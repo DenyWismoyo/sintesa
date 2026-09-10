@@ -1,0 +1,302 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =========================================================================
+    // HELPER FUNCTIONS & AUTHENTICATION / ROLES
+    // =========================================================================
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // Mengambil role: Cek Custom Claims JWT terlebih dahulu, jika belum ada cek dokumen /users/{uid}
+    function getRole() {
+      return isAuth() ? (
+        request.auth.token.role != null 
+          ? request.auth.token.role 
+          : (exists(/databases/$(database)/documents/users/$(request.auth.uid))
+              ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+              : 'public')
+      ) : 'public';
+    }
+
+    function isSuperAdmin() {
+      return isAuth() && getRole() == 'super_admin';
+    }
+
+    function isAdmin() {
+      return isAuth() && (getRole() in ['super_admin', 'admin']);
+    }
+
+    function hasAnyRole(roles) {
+      return isAuth() && (getRole() in roles || isSuperAdmin());
+    }
+
+    function isOwnTenant(tenantId) {
+      return isAuth() && (
+        (request.auth.token.tenantId != null && request.auth.token.tenantId == tenantId) ||
+        (request.auth.uid == tenantId) ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.tenantId == tenantId)
+      );
+    }
+
+    // =========================================================================
+    // ROOT COLLECTIONS (MASTER DATA)
+    // =========================================================================
+
+    // 1. Data User & Akun
+    match /users/{userId} {
+      // User dapat membaca profilnya sendiri, atau admin dapat melihat semua user
+      allow read: if isAuth() && (request.auth.uid == userId || isAdmin());
+      // User yang login diizinkan membuat dokumen profil awalnya sendiri
+      allow create: if isAuth() && request.auth.uid == userId;
+      // Admin dapat mengupdate profil siapa saja, user biasa hanya profil miliknya tanpa mengubah role
+      allow update: if isAdmin() || (
+        isAuth() && request.auth.uid == userId && 
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'tenantId', 'isInstructor'])
+      );
+      // Hanya Super Admin yang dapat menghapus akun
+      allow delete: if isSuperAdmin();
+    }
+
+    // 2. Data Tenant & Startup Inkubasi
+    match /tenants/{tenantId} {
+      // Terbuka untuk umum atau user login untuk direktori profil ekosistem
+      allow read: if true;
+      // Admin tenant & Super Admin memiliki hak create, serta pendaftar kurasi baru berstatus 'Menunggu Review'
+      allow create: if hasAnyRole(['admin', 'super_admin', 'admin_tenant']) || 
+                      (request.resource.data.status == 'Menunggu Review');
+      // Update dapat dilakukan oleh admin, atau tenant yang bersangkutan
+      allow update: if hasAnyRole(['admin', 'super_admin', 'admin_tenant', 'operator_tenant']) || isOwnTenant(tenantId);
+      // Hapus hanya oleh admin tenant atau super admin
+      allow delete: if hasAnyRole(['admin', 'super_admin', 'admin_tenant']);
+
+      // Sub-koleksi Produk Tenant
+      match /products/{productId} {
+        allow read: if true;
+        allow create: if true; // Mendukung batch write saat self-assessment kurasi tenant publik
+        allow update, delete: if hasAnyRole(['admin', 'super_admin', 'admin_tenant', 'operator_tenant']) || isOwnTenant(tenantId);
+      }
+
+      // Sub-koleksi Tiket Bantuan Tenant (Helpdesk)
+      match /tickets/{ticketId} {
+        allow read: if isAuth() && (
+          isOwnTenant(tenantId) || 
+          hasAnyRole(['admin', 'super_admin', 'admin_tenant', 'operator_tenant', 'admin_aset'])
+        );
+        allow create: if isAuth() && (isOwnTenant(tenantId) || hasAnyRole(['admin', 'super_admin', 'admin_tenant']));
+        allow update, delete: if isAuth() && (isOwnTenant(tenantId) || hasAnyRole(['admin', 'super_admin', 'admin_tenant']));
+      }
+
+      // Sub-koleksi tenant lainnya (Monev, KPI, Team, Milestones, Revenue, dll)
+      match /{subCollection}/{subDocId} {
+        allow read: if isAuth() && (
+          hasAnyRole(['admin', 'super_admin', 'admin_tenant', 'operator_tenant', 'investor']) || 
+          isOwnTenant(tenantId)
+        );
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_tenant', 'operator_tenant']) || isOwnTenant(tenantId);
+      }
+    }
+
+    // 3. Data Aset Kawasan & Fasilitas
+    match /assets/{assetId} {
+      // Publik dapat melihat daftar dan detail fasilitas
+      allow read: if true;
+      // Manajemen aset hanya oleh tim admin aset atau super admin
+      allow write: if hasAnyRole(['admin', 'super_admin', 'admin_aset', 'operator_aset']);
+
+      // Sub-koleksi riwayat pemeliharaan
+      match /maintenance_records/{recordId} {
+        allow read: if isAuth();
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_aset', 'operator_aset']);
+      }
+    }
+
+    // 4. Laporan Kerusakan Aset (Publik / User)
+    match /asset_reports/{reportId} {
+      allow create: if true; // Publik dapat melaporkan kerusakan fasilitas
+      allow read: if isAuth() && (
+        hasAnyRole(['admin', 'super_admin', 'admin_aset', 'operator_aset']) ||
+        (resource.data.reporterEmail == request.auth.token.email)
+      );
+      allow update, delete: if hasAnyRole(['admin', 'super_admin', 'admin_aset', 'operator_aset']);
+    }
+
+    // 5. Program Pelatihan (LMS & Training)
+    match /trainings/{trainingId} {
+      allow read: if true;
+      allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']);
+
+      // Sub-koleksi pendaftaran pelatihan
+      match /registrations/{regId} {
+        allow create: if true; // Publik/peserta mendaftar
+        allow read: if isAuth() && (
+          hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']) ||
+          resource.data.email == request.auth.token.email ||
+          resource.data.userId == request.auth.uid ||
+          (request.auth.uid in get(/databases/$(database)/documents/trainings/$(trainingId)).data.authorizedInstructorIds)
+        );
+        allow update: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']) || (
+          isAuth() && 
+          (resource.data.email == request.auth.token.email || resource.data.userId == request.auth.uid) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['completedLessons', 'lastAccessedAt', 'updatedAt'])
+        );
+        allow delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']);
+
+        // Sub-koleksi pengumpulan tugas peserta (Submissions)
+        match /submissions/{subId} {
+          allow read: if isAuth() && (
+            hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']) ||
+            get(/databases/$(database)/documents/trainings/$(trainingId)/registrations/$(regId)).data.email == request.auth.token.email ||
+            (request.auth.uid in get(/databases/$(database)/documents/trainings/$(trainingId)).data.authorizedInstructorIds)
+          );
+          allow create, update: if isAuth();
+          allow delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan']);
+        }
+      }
+
+      // Sub-koleksi materi & silabus
+      match /{trainingSub}/{docId} {
+        allow read: if isAuth();
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']);
+      }
+    }
+
+    // 6. E-Katalog Produk Tenant
+    match /catalogs/{catalogId} {
+      allow read: if true;
+      allow write: if hasAnyRole(['admin', 'super_admin', 'admin_tenant', 'operator_tenant']);
+    }
+
+    // 7. Data Alumni Pelatihan
+    match /alumnis/{alumniId} {
+      allow read: if true;
+      allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']);
+    }
+
+    // 8. Event & Agenda Publik
+    match /events/{eventId} {
+      allow read: if true;
+      allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan', 'admin_tenant']);
+    }
+
+    // 9. Tanya Jawab (FAQs)
+    match /faqs/{faqId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 10. Konten Krenova
+    match /krenova_contents/{contentId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 11. Kolaborasi Ekosistem (Hub Threads & Responses)
+    match /hub_threads/{threadId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isAuth() && (
+        resource.data.authorId == request.auth.uid || 
+        isAdmin()
+      );
+    }
+
+    match /hub_responses/{responseId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isAuth() && (
+        resource.data.authorId == request.auth.uid || 
+        isAdmin()
+      );
+    }
+
+    // =========================================================================
+    // MULTI-TENANT TRANSAKSI & ARTIFACTS
+    // Path: /artifacts/{appId}/public/data/{collection}/{docId}
+    // =========================================================================
+    match /artifacts/{appId}/public/data {
+
+      // Master Cache (Read publik, ditulis oleh Cloud Functions / Admin)
+      match /cache_tenants/{docId} {
+        allow read: if true;
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_tenant']);
+      }
+
+      match /cache_assets/{docId} {
+        allow read: if true;
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_aset']);
+      }
+
+      match /cache_catalogs/{docId} {
+        allow read: if true;
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_tenant']);
+      }
+
+      match /cache_alumnis/{docId} {
+        allow read: if true;
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan']);
+      }
+
+      // Peta Kawasan & Hotspots
+      match /map_settings/{docId} {
+        allow read: if true;
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_aset']);
+      }
+      match /map_hotspots/{docId} {
+        allow read: if true;
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_aset']);
+      }
+
+      // Peminjaman / Bookings
+      match /bookings/{bookingId} {
+        allow read: if true;
+        allow create: if isAuth();
+        allow update, delete: if hasAnyRole(['admin', 'super_admin', 'admin_aset', 'operator_aset']);
+      }
+
+      // Invoices & Billing
+      match /invoices/{invoiceId} {
+        // Terbuka untuk dibaca agar verifikasi nomor tagihan dan portal bukti bayar publik berfungsi
+        allow read: if true;
+        // Pembuatan dan perubahan tagihan hanya oleh manajemen keuangan
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan', 'kasir']);
+      }
+
+      // Pengeluaran / Expenses
+      match /expenses/{expenseId} {
+        allow read, write: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan', 'kasir_pengeluaran']);
+      }
+
+      // Akuntansi & Buku Besar (Bagan Akun, Jurnal, Anggaran)
+      match /accounts/{accountId} {
+        allow read, write: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan']);
+      }
+      match /journals/{journalId} {
+        allow read, write: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan']);
+      }
+      match /budgets/{budgetId} {
+        allow read, write: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan']);
+      }
+
+      // Pesanan E-Katalog
+      match /orders/{orderId} {
+        allow create: if true;
+        allow read: if isAuth() && (
+          hasAnyRole(['admin', 'super_admin', 'admin_tenant']) ||
+          resource.data.customerEmail == request.auth.token.email ||
+          resource.data.userId == request.auth.uid
+        );
+        allow update, delete: if hasAnyRole(['admin', 'super_admin', 'admin_tenant']);
+      }
+
+      // Pengaturan Umum Instansi
+      match /settings/{docId} {
+        allow read: if true;
+        allow write: if isAdmin();
+      }
+    }
+  }
+}

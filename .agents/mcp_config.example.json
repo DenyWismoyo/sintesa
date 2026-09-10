@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "clario-ai": {
+      "command": "node",
+      "args": ["./.agents/mcp/clario-server.mjs"],
+      "env": {
+        "CLARIO_API_KEY": "YOUR_CLARIO_API_KEY",
+        "CLARIO_BASE_URL": "http://api-direct.apicloud.my.id:8088/v1",
+        "CLARIO_BACKUP_BASE_URL": "https://clario.apicloud.my.id/v1"
+      }
+    }
+  }
+}

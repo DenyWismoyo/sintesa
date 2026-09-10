@@ -1,0 +1,137 @@
+rules_version = '2';
+
+// Firebase Cloud Storage Security Rules — Teknopark / Sintesa
+// Mendukung bucket utama: gs://sintesa dan default bucket
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // =========================================================================
+    // HELPER FUNCTIONS & AUTHENTICATION
+    // =========================================================================
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function getRole() {
+      return isAuth() && request.auth.token.role != null ? request.auth.token.role : 'public';
+    }
+
+    function isSuperAdmin() {
+      return isAuth() && getRole() == 'super_admin';
+    }
+
+    function isAdmin() {
+      return isAuth() && (getRole() in ['super_admin', 'admin']);
+    }
+
+    function hasAnyRole(roles) {
+      return isAuth() && (getRole() in roles || isSuperAdmin());
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isDoc() {
+      return request.resource.contentType.matches('application/pdf') ||
+             request.resource.contentType.matches('image/.*');
+    }
+
+    function isVideo() {
+      return request.resource.contentType.matches('video/.*');
+    }
+
+    function isUnderSize(maxSizeMB) {
+      return request.resource.size < maxSizeMB * 1024 * 1024;
+    }
+
+    // =========================================================================
+    // PATH RULES & ACCESS CONTROLS
+    // =========================================================================
+
+    // 1. Aset & Fasilitas Kawasan (assets/*)
+    match /assets/{fileName} {
+      allow read: if true;
+      allow write: if hasAnyRole(['admin', 'super_admin', 'admin_aset', 'operator_aset']) &&
+                   isImage() && isUnderSize(10);
+    }
+
+    // 2. Tenant & Startup (tenants/{tenantId}/{folder}/{fileName})
+    match /tenants/{tenantId}/{folder}/{fileName} {
+      allow read: if true;
+      allow write: if (
+        hasAnyRole(['admin', 'super_admin', 'admin_tenant', 'operator_tenant']) ||
+        (isAuth() && request.auth.token.tenantId == tenantId) ||
+        (isAuth() && request.auth.uid == tenantId)
+      ) && (
+        (folder == 'documents' && isDoc() && isUnderSize(25)) ||
+        (folder in ['logos', 'covers', 'products', 'team'] && isImage() && isUnderSize(5))
+      );
+    }
+
+    // 3. E-Katalog Produk (catalogs/*)
+    match /catalogs/{fileName} {
+      allow read: if true;
+      allow write: if hasAnyRole(['admin', 'super_admin', 'admin_tenant', 'operator_tenant']) &&
+                   isImage() && isUnderSize(5);
+    }
+
+    // 4. Pelatihan & LMS (trainings/*, lms/*)
+    match /trainings/{fileName} {
+      allow read: if true;
+      allow write: if (hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']) || isAuth()) &&
+                   isDoc() && isUnderSize(20);
+    }
+    match /lms/{allPaths=**} {
+      allow read: if isAuth();
+      allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']) &&
+                   isUnderSize(50);
+    }
+
+    // 5. Event Kawasan (events/*)
+    match /events/{fileName} {
+      allow read: if true;
+      allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'admin_tenant']) &&
+                   isImage() && isUnderSize(5);
+    }
+
+    // 6. Alumni (alumni/{folder}/{fileName})
+    match /alumni/{folder}/{fileName} {
+      allow read: if true;
+      allow write: if isAuth() && (
+        (folder == 'photos' && isImage() && isUnderSize(5)) ||
+        (folder in ['resumes', 'projects'] && isDoc() && isUnderSize(15))
+      );
+    }
+
+    // 7. Krenova (krenova/{folder}/{fileName})
+    match /krenova/{folder}/{fileName} {
+      allow read: if true;
+      allow write: if isAuth() && (
+        (folder == 'thumbnails' && isImage() && isUnderSize(5)) ||
+        (folder == 'videos' && isVideo() && isUnderSize(100))
+      );
+    }
+
+    // 8. Keuangan: Bukti Bayar / Receipts (receipts/{appId}/{fileName})
+    match /receipts/{appId}/{fileName} {
+      // Pembayaran publik: izinkan upload bukti transfer jika ukuran wajar (< 10MB)
+      allow create: if isDoc() && isUnderSize(10);
+      allow read: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan', 'kasir']) || isAuth();
+      allow update, delete: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan', 'kasir']);
+    }
+
+    // 9. Keuangan: Pengeluaran Kas (expenses/{appId}/{fileName})
+    match /expenses/{appId}/{fileName} {
+      allow read, write: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan', 'kasir_pengeluaran']) &&
+                         isDoc() && isUnderSize(10);
+    }
+
+    // 10. Multi-tenant Artifacts (Peta, Logo Instansi, dll)
+    match /artifacts/{appId}/public/{folder}/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin() && isImage() && isUnderSize(5);
+    }
+  }
+}
