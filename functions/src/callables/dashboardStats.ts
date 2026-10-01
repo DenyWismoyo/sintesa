@@ -7,7 +7,7 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-export const getDashboardStats = onCall({ minInstances: 1 }, async (request) => {
+export const getDashboardStats = onCall(async (request) => {
   // --- 1. GUARD: CEK AUTENTIKASI ---
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Akses Ditolak: Anda harus login untuk mengakses data statistik.');

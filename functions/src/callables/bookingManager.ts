@@ -11,7 +11,7 @@ const db = admin.firestore();
 // Format path standar aplikasi (mendukung multi-tenant / dynamic appId)
 const getBookingCollectionPath = (appId: string) => `artifacts/${appId}/public/data/bookings`;
 
-export const submitBooking = onCall({ minInstances: 1 }, async (request) => {
+export const submitBooking = onCall(async (request) => {
   const data = request.data;
   const appId = data.appId || 'blud-app-dev'; 
 
