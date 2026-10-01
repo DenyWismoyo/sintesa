@@ -3,16 +3,9 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
-  "storage": [
-    {
-      "bucket": "sintesa",
-      "rules": "storage.rules"
-    },
-    {
-      "bucket": "teknopark-surakarta.firebasestorage.app",
-      "rules": "storage.rules"
-    }
-  ],
+  "storage": {
+    "rules": "storage.rules"
+  },
   "hosting": {
     "source": ".",
     "ignore": [

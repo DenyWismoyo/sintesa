@@ -16,7 +16,7 @@ if (!admin.apps.length) {
  */
 export const generateThumbnail = onObjectFinalized(
   {
-    bucket: "sintesa",
+    bucket: process.env.STORAGE_BUCKET || "katalog-solo-technopark.firebasestorage.app",
     region: "asia-southeast2",
     memory: "512MiB",
     cpu: 1,
@@ -73,7 +73,7 @@ export const generateThumbnail = onObjectFinalized(
  */
 export const deleteThumbnail = onObjectDeleted(
   {
-    bucket: "sintesa",
+    bucket: process.env.STORAGE_BUCKET || "katalog-solo-technopark.firebasestorage.app",
     region: "asia-southeast2"
   },
   async (event) => {

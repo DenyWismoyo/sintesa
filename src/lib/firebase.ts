@@ -18,7 +18,7 @@ const firebaseConfig = {
 // Pola Singleton untuk mencegah inisialisasi ganda di Next.js (Hot Reload)
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'gs://sintesa';
+const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'katalog-solo-technopark.firebasestorage.app';
 const bucketUrl = storageBucket.startsWith('gs://') ? storageBucket : `gs://${storageBucket}`;
 
 const auth = getAuth(app);

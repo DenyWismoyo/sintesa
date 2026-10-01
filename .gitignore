@@ -44,6 +44,7 @@ yarn-error.log*
 .firebase/
 *service-account*.json
 *firebase-adminsdk*.json
+scratch/
 
 # local agent / mcp credentials
 .agents/mcp_config.json
