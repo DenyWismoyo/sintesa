@@ -1,0 +1,76 @@
+// Lokasi file: src/app/(public)/artikel/[id]/page.tsx
+
+import { Metadata } from 'next';
+import ClientPage from './ClientPage';
+import { articleService } from '@/services/article.service';
+
+type Props = {
+  params: Promise<{ id: string }>;
+};
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://katalog.solotechnopark.id';
+
+export const revalidate = 60; // ISR cache 60 detik
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  try {
+    const { id } = await params;
+    let article = await articleService.getArticleById(id);
+    if (!article) {
+      article = await articleService.getArticleBySlug(id);
+    }
+
+    if (!article) {
+      return {
+        title: 'Artikel Tidak Ditemukan | Solo Technopark',
+        description: 'Artikel yang Anda cari tidak tersedia atau telah diarsipkan.'
+      };
+    }
+
+    const title = `${article.title} | Warta Solo Technopark`;
+    const description = article.excerpt || article.content.substring(0, 160).replace(/[#*`_]/g, '');
+    const ogImage = article.coverImageUrl || `${APP_URL}/icon-katalog-stp.svg`;
+
+    return {
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        url: `${APP_URL}/artikel/${article.slug || article.id}`,
+        siteName: 'Solo Technopark',
+        type: 'article',
+        publishedTime: article.publishedAt ? new Date(article.publishedAt).toISOString() : undefined,
+        images: [
+          {
+            url: ogImage,
+            width: 1200,
+            height: 630,
+            alt: article.title,
+          }
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: [ogImage],
+      }
+    };
+  } catch {
+    return {
+      title: 'Artikel & Warta | Solo Technopark',
+      description: 'Berita, panduan, dan ulasan program Solo Technopark.'
+    };
+  }
+}
+
+export default async function ArticleDetailPage({ params }: Props) {
+  const { id } = await params;
+  let initialArticle = await articleService.getArticleById(id);
+  if (!initialArticle) {
+    initialArticle = await articleService.getArticleBySlug(id);
+  }
+
+  return <ClientPage initialArticle={initialArticle} idOrSlug={id} />;
+}

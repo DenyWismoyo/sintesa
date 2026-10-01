@@ -23,7 +23,8 @@ import {
   Settings,
   ShieldAlert,
   Video,
-  Home // <-- Ikon Home ditambahkan
+  Home,
+  Newspaper
 } from 'lucide-react';
 
 // --- KONFIGURASI MENU ---
@@ -54,6 +55,7 @@ const MENU_GROUPS = [
       { name: 'Inkubasi Tenant', href: '/tenant', icon: Rocket },
       { name: 'Pelatihan', href: '/pelatihan', icon: GraduationCap },
       { name: 'Manajemen Event', href: '/manajemen-event', icon: Ticket },
+      { name: 'Artikel & Warta', href: '/manajemen-artikel', icon: Newspaper },
       { name: 'Manajemen KRENOVA', href: '/manajemen-krenova', icon: Video },
     ]
   },

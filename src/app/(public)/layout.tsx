@@ -23,6 +23,7 @@ const NAV_MENUS = [
   { name: 'Fasilitas', path: '/fasilitas' },
   { name: 'Pelatihan', path: '/program-pelatihan' },
   { name: 'Ekosistem', path: '/ekosistem' },
+  { name: 'Artikel', path: '/artikel' },
   { name: 'Event', path: '/event' },
   { name: 'Ruang Belajar', path: '/ruang-belajar' }, 
   { name: 'FAQ', path: '/faq' },

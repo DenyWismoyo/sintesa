@@ -25,5 +25,8 @@ export * from './learning.types';
 // 7. Ecosystem (Events, FAQ, Alumni, Map, Krenova, Hub)
 export * from './ecosystem.types';
 
-// 8. AI Intelligence Layer
+// 8. Articles & News (Guides, Knowledge & Smart CTA)
+export * from './article.types';
+
+// 9. AI Intelligence Layer
 export * from './ai';

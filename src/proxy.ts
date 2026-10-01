@@ -14,6 +14,7 @@ const PROTECTED_PREFIXES = [
   '/manajemen-event',
   '/manajemen-krenova',
   '/manajemen-faq',
+  '/manajemen-artikel',
   '/pengaturan',
 ];
 
