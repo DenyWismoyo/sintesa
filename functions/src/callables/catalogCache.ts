@@ -21,12 +21,13 @@ export const rebuildCatalogMasterCache = onCall(async (request) => {
     
     snapshot.forEach(doc => {
       const data = doc.data();
-      // KOMPRESI PAYLOAD: Buang description panjang, spec, dan cukup ambil gambar pertama (cover)
       compressedCatalogs.push({
         id: doc.id,
         name: data.name || '',
         category: data.category || '',
-        shortDescription: data.shortDescription || data.description?.substring(0, 100) || '',
+        shortDescription: data.shortDescription || data.description?.substring(0, 120) || '',
+        description: data.description || '',
+        specifications: Array.isArray(data.specifications) ? data.specifications : [],
         price: data.price || 0,
         pricingType: data.pricingType || '',
         isNegotiable: data.isNegotiable || false,
@@ -34,9 +35,12 @@ export const rebuildCatalogMasterCache = onCall(async (request) => {
         tenantName: data.tenantName || '',
         isPublished: data.isPublished || false,
         ctaType: data.ctaType || 'WHATSAPP',
-        // Ambil hanya index 0 untuk thumbnail, hindari nyimpan array url panjang
-        coverImage: data.images && data.images.length > 0 ? data.images[0] : null, 
-        highlights: data.highlights ? data.highlights.slice(0, 2) : [], // Maksimal 2 highlight untuk public card
+        ctaLink: data.ctaLink || '',
+        ctaText: data.ctaText || 'Hubungi Kami',
+        coverImage: data.images && data.images.length > 0 ? data.images[0] : (data.coverImage || null), 
+        images: Array.isArray(data.images) ? data.images : [],
+        highlights: Array.isArray(data.highlights) ? data.highlights : [],
+        tags: Array.isArray(data.tags) ? data.tags : [],
         createdAt: data.createdAt || 0
       });
     });

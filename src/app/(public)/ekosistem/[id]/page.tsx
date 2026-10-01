@@ -1,10 +1,10 @@
 // Lokasi file: src/app/(public)/ekosistem/[id]/page.tsx
 
 import { Metadata } from 'next';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { cache } from 'react';
 import ClientPage from './ClientPage';
-import { Tenant } from '@/types'; // Import tipe data Tenant
+import { Tenant } from '@/types';
+import { getServerDocRest } from '@/lib/serverFirestore';
 
 type Props = {
   params: Promise<{ id: string }>
@@ -12,23 +12,25 @@ type Props = {
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://katalog.solotechnopark.id';
 
+export const revalidate = 60;
+
+// Request deduplication dengan React.cache & Fast REST Fetch
+const getTenantServerCached = cache(async (id: string): Promise<Tenant | null> => {
+  return await getServerDocRest<Tenant>('tenants', id, 60);
+});
+
 // FASE 1: Supercharge generateMetadata dengan info Startup
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
-    const resolvedParams = await params;
-    const docRef = doc(db, 'tenants', resolvedParams.id);
-    const snap = await getDoc(docRef);
+    const { id } = await params;
+    const tenant = await getTenantServerCached(id);
 
-    if (!snap.exists()) {
-      return { title: 'Profil Tidak Ditemukan | Ekosistem KST Solo' };
+    if (!tenant) {
+      return { title: 'Profil Startup | Ekosistem Solo Technopark' };
     }
-
-    const tenant = snap.data() as Tenant;
     
     const title = `${tenant.name} - ${tenant.segment || 'Startup'} | Ekosistem KST Solo`;
     const description = tenant.elevatorPitch || tenant.companyDescription?.substring(0, 160) || `Lihat profil inovasi ${tenant.name} di Solo Technopark.`;
-    
-    // API OG Dinamis Khusus Startup/Ekosistem
     const dynamicOgUrl = `${APP_URL}/api/og/ekosistem?name=${encodeURIComponent(tenant.name || '')}&segment=${encodeURIComponent(tenant.segment || 'StartUp')}&stage=${encodeURIComponent(tenant.fundingStage || 'Bootstrapped')}`;
 
     return {
@@ -37,7 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       openGraph: {
         title,
         description,
-        url: `${APP_URL}/ekosistem/${resolvedParams.id}`,
+        url: `${APP_URL}/ekosistem/${id}`,
         siteName: 'Solo Technopark Ekosistem',
         images: [
           {
@@ -57,42 +59,32 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         images: [dynamicOgUrl],
       },
       alternates: {
-        canonical: `${APP_URL}/ekosistem/${resolvedParams.id}`,
+        canonical: `${APP_URL}/ekosistem/${id}`,
       }
     };
   } catch (error) {
-    console.warn("Metadata fetch error:", error);
     return { title: 'Profil Startup | Ekosistem Solo Technopark' };
   }
 }
 
-// FASE 2: JSON-LD Organization Schema Injection
+// FASE 2: JSON-LD Organization Schema Injection & Hydration ke ClientPage
 export default async function Page({ params }: Props) {
-  let jsonLd = null;
+  const { id } = await params;
+  const tenant = await getTenantServerCached(id);
 
-  try {
-    const resolvedParams = await params;
-    const docRef = doc(db, 'tenants', resolvedParams.id);
-    const snap = await getDoc(docRef);
-    
-    if (snap.exists()) {
-      const tenant = snap.data() as Tenant;
-      
-      // Standar Schema.org untuk Organisasi/Perusahaan
-      jsonLd = {
-        '@context': 'https://schema.org',
-        '@type': 'Organization',
-        name: tenant.name,
-        description: tenant.companyDescription || tenant.elevatorPitch,
-        url: tenant.website ? (tenant.website.startsWith('http') ? tenant.website : `https://${tenant.website}`) : `${APP_URL}/ekosistem/${resolvedParams.id}`,
-        logo: tenant.logoUrl || `${APP_URL}/placeholder-logo.png`,
-        industry: tenant.sector || 'Teknologi',
-        foundingDate: tenant.joinedAt,
-        knowsAbout: tenant.techStack || []
-      };
-    }
-  } catch (error) {
-    console.warn("Gagal memuat JSON-LD di sisi server:", error);
+  let jsonLd = null;
+  if (tenant) {
+    jsonLd = {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: tenant.name,
+      description: tenant.companyDescription || tenant.elevatorPitch,
+      url: tenant.website ? (tenant.website.startsWith('http') ? tenant.website : `https://${tenant.website}`) : `${APP_URL}/ekosistem/${id}`,
+      logo: tenant.logoUrl || `${APP_URL}/placeholder-logo.png`,
+      industry: tenant.sector || 'Teknologi',
+      foundingDate: tenant.joinedAt,
+      knowsAbout: tenant.techStack || []
+    };
   }
 
   return (
@@ -103,8 +95,7 @@ export default async function Page({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      {/* Lempar ID ke ClientPage agar memuat data dinamis */}
-      <ClientPage tenantId={(await params).id} />
+      <ClientPage tenantId={id} initialTenant={tenant} />
     </>
   );
 }

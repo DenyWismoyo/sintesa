@@ -33,10 +33,12 @@ export const catalogService = {
       if (cacheSnap.exists()) {
         const cacheData = cacheSnap.data();
         if (cacheData && Array.isArray(cacheData.data)) {
-          // Format kembali coverImage menjadi array images agar UI tidak error saat me-render Card
+          // Format kembali coverImage menjadi array images jika images kosong agar UI tidak error
           return cacheData.data.map((item: any) => ({
             ...item,
-            images: item.coverImage ? [item.coverImage] : []
+            images: Array.isArray(item.images) && item.images.length > 0 
+              ? item.images 
+              : (item.coverImage ? [item.coverImage] : [])
           }));
         }
       }
@@ -71,12 +73,41 @@ export const catalogService = {
   },
 
   getProductById: async (id: string): Promise<ProductCatalog | null> => {
-    const docSnap = await getDoc(doc(db, COLLECTION_NAME, id));
-    if (docSnap.exists()) {
-      const parsed = ProductCatalogSchema.safeParse({ id: docSnap.id, ...docSnap.data() });
-      return parsed.success ? parsed.data : null;
+    try {
+      const docSnap = await getDoc(doc(db, COLLECTION_NAME, id));
+      if (!docSnap.exists()) return null;
+      
+      const raw = { id: docSnap.id, ...(docSnap.data() || {}) } as any;
+      const parsed = ProductCatalogSchema.safeParse(raw);
+      if (parsed.success) return parsed.data;
+
+      console.warn(`[CATALOG] safeParse warning for ID ${id}, using normalized fallback:`, parsed.error);
+      return {
+        id: docSnap.id,
+        name: raw.name || '',
+        category: raw.category || 'Umum',
+        shortDescription: raw.shortDescription || '',
+        price: Number(raw.price) || 0,
+        pricingType: raw.pricingType || 'Tetap',
+        isNegotiable: Boolean(raw.isNegotiable),
+        description: raw.description || '',
+        highlights: Array.isArray(raw.highlights) ? raw.highlights : [],
+        specifications: Array.isArray(raw.specifications) ? raw.specifications : [],
+        tags: Array.isArray(raw.tags) ? raw.tags : [],
+        images: Array.isArray(raw.images) ? raw.images : [],
+        coverImage: raw.coverImage || (Array.isArray(raw.images) && raw.images.length > 0 ? raw.images[0] : null),
+        ownerType: raw.ownerType || 'INTERNAL',
+        tenantName: raw.tenantName || '',
+        ctaType: raw.ctaType || 'WHATSAPP',
+        ctaLink: raw.ctaLink || '',
+        ctaText: raw.ctaText || 'Hubungi Kami',
+        isPublished: raw.isPublished !== false,
+        createdAt: raw.createdAt || 0,
+      } as ProductCatalog;
+    } catch (error) {
+      console.error(`[CATALOG] Error in getProductById for ID ${id}:`, error);
+      return null;
     }
-    return null;
   },
 
   createProduct: async (data: Omit<ProductCatalog, 'id'>) => {

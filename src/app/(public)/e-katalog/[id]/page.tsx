@@ -2,11 +2,10 @@
 
 import { Metadata } from 'next';
 import { cache } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import ClientPage from './ClientPage';
 import { ProductCatalog } from '@/types';
 import { catalogService } from '@/services/catalog.service';
+import { getServerDocRest } from '@/lib/serverFirestore';
 
 type Props = {
   params: Promise<{ id: string }>
@@ -18,30 +17,15 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://katalog.solotechnopa
 // OPTIMASI 1: ISR Edge Caching (Cache 60 detik di level CDN/Server)
 export const revalidate = 60;
 
-// OPTIMASI 2: Request Deduplication dengan React.cache & Timeout Guard
-// Memastikan generateMetadata dan Page hanya melakukan 1 kali fetch Firestore di server
+// OPTIMASI 2: Request Deduplication dengan React.cache & Fast REST Fetch
 const getProductServerCached = cache(async (id: string): Promise<ProductCatalog | null> => {
-  try {
-    // Timeout guard 2.5 detik agar serverless worker tidak pernah hang/blocking
-    const fetchPromise = (async () => {
-      const docRef = doc(db, 'catalogs', id);
-      const snap = await getDoc(docRef);
-      if (!snap.exists()) return null;
-      return { id: snap.id, ...snap.data() } as ProductCatalog;
-    })();
-
-    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2500));
-    return await Promise.race([fetchPromise, timeoutPromise]);
-  } catch (error) {
-    console.warn("[SERVER CACHE] Gagal fetch produk:", error);
-    return null;
-  }
+  return await getServerDocRest<ProductCatalog>('catalogs', id, 60);
 });
 
-// OPTIMASI 3: Pre-generate daftar ID untuk routing & prefetching instan
+// OPTIMASI 3: Pre-generate daftar ID untuk routing & prefetching instan di CDN
 export async function generateStaticParams() {
   try {
-    const products = await catalogService.getProducts(30);
+    const products = await catalogService.getProducts(100);
     return products.map(p => ({ id: p.id }));
   } catch {
     return [];

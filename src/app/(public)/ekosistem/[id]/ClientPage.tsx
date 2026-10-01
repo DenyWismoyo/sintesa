@@ -105,14 +105,27 @@ const ExpandableText = ({ text, maxLength = 250, theme }: { text: string, maxLen
   );
 };
 
-export default function TenantProfilePublicPage({ tenantId }: { tenantId: string }) {
+export default function TenantProfilePublicPage({ tenantId, initialTenant }: { tenantId: string, initialTenant?: any }) {
   const router = useRouter();
   
-  const [tenant, setTenant] = useState<any>(null);
-  const [isTenantsLoading, setIsTenantsLoading] = useState(true);
+  const [tenant, setTenant] = useState<any>(() => {
+    if (initialTenant && (!tenantId || initialTenant.id === tenantId)) return initialTenant;
+    return null;
+  });
+  const [isTenantsLoading, setIsTenantsLoading] = useState(() => {
+    if (initialTenant && (!tenantId || initialTenant.id === tenantId)) return false;
+    return true;
+  });
 
-  // 1. Fetch Tenant secara aman di Browser (Klien) untuk bypass bug gRPC Node.js
+  // 1. Fetch Tenant secara aman di Browser (Klien) jika belum ada di initialTenant
   useEffect(() => {
+    if (!tenantId) return;
+    if (initialTenant && initialTenant.id === tenantId) {
+      setTenant(initialTenant);
+      setIsTenantsLoading(false);
+      return;
+    }
+
     const fetchTenant = async () => {
       try {
         const docRef = doc(db, 'tenants', tenantId);
@@ -126,8 +139,8 @@ export default function TenantProfilePublicPage({ tenantId }: { tenantId: string
         setIsTenantsLoading(false);
       }
     };
-    if (tenantId) fetchTenant();
-  }, [tenantId]);
+    fetchTenant();
+  }, [tenantId, initialTenant]);
 
   // 2. Fetch Subkoleksi secara otomatis (Klien)
   const { teamMembers, isLoading: isTeamLoading } = useTenantTeam(tenant?.id);

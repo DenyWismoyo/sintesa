@@ -115,19 +115,31 @@ const ModuleAccordion = ({ module, index, isOffline, isLast }: { module: any, in
   );
 };
 
-export default function DetailPelatihanPage() {
+export default function DetailPelatihanPage({ initialTraining }: { initialTraining?: Training | null }) {
   const params = useParams();
   const router = useRouter();
-  const trainingId = params?.id as string;
+  const trainingId = (params?.id as string) || '';
 
-  const [training, setTraining] = useState<Training | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [training, setTraining] = useState<Training | null>(() => {
+    if (initialTraining && (!trainingId || initialTraining.id === trainingId)) return initialTraining;
+    return null;
+  });
+  const [loading, setLoading] = useState<boolean>(() => {
+    if (initialTraining && (!trainingId || initialTraining.id === trainingId)) return false;
+    return true;
+  });
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
+    if (!trainingId) return;
+    if (initialTraining && initialTraining.id === trainingId) {
+      setTraining(initialTraining);
+      setLoading(false);
+      return;
+    }
+
     const fetchTraining = async () => {
-      if (!trainingId) return;
       try {
         const docSnap = await getDoc(doc(db, 'trainings', trainingId));
         if (docSnap.exists()) {
@@ -140,7 +152,7 @@ export default function DetailPelatihanPage() {
       }
     };
     fetchTraining();
-  }, [trainingId]);
+  }, [trainingId, initialTraining]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]"><Loader2 className="w-8 h-8 animate-spin text-amber-500" /></div>;
   if (!training) return <div className="min-h-screen flex flex-col items-center justify-center bg-[#F8FAFC] text-slate-500"><MonitorPlay size={64} className="mb-4 text-slate-300"/><h2 className="text-2xl font-bold text-slate-800 mb-4">Kelas Tidak Ditemukan</h2><Button onClick={() => router.push('/program-pelatihan')} className="rounded-xl px-8 bg-amber-500 hover:bg-amber-600 text-white">Kembali ke Katalog</Button></div>;

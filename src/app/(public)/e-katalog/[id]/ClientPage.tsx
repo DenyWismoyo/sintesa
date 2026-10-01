@@ -65,34 +65,48 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
+  // Normalisasi gambar dari images array atau fallback coverImage
+  const displayImages: string[] = React.useMemo(() => {
+    if (!product) return [];
+    if (Array.isArray(product.images) && product.images.length > 0) {
+      return product.images;
+    }
+    const fallbackCover = (product as any)?.coverImage;
+    if (fallbackCover) return [fallbackCover];
+    return [];
+  }, [product]);
+
+  const hasImages = displayImages.length > 0;
+
   // Sinkronisasi data detail secara instan tanpa blocking
   useEffect(() => {
     if (!paramId) return;
 
-    // 1. Jika initialProduct cocok dengan params.id, gunakan langsung
-    if (initialProduct && initialProduct.id === paramId) {
+    // 1. Jika initialProduct dari server sudah ada dan lengkap dengan deskripsi, gunakan langsung
+    if (initialProduct && initialProduct.id === paramId && initialProduct.description) {
       setProduct(initialProduct);
       setLoading(false);
       return;
     }
 
-    // 2. Jika produk di state sudah cocok, pastikan loading false
-    if (product && product.id === paramId) {
+    // 2. Jika produk di state sudah cocok dan memiliki deskripsi lengkap, selesai
+    if (product && product.id === paramId && product.description) {
       setLoading(false);
       return;
     }
 
-    // 3. Jika ada di allProducts (TanStack Cache lokal), gunakan langsung
+    // 3. Jika ada di allProducts (TanStack Cache), pasang sebagai preview instan (0ms) agar UI langsung render
     const foundInCache = allProducts.find(p => p.id === paramId);
-    if (foundInCache) {
+    if (foundInCache && (!product || product.id !== paramId)) {
       setProduct(foundInCache);
       setLoading(false);
-      return;
+    } else if (!product && !foundInCache) {
+      setLoading(true);
     }
 
-    // 4. Jika belum ada di memori mana pun, baru fetch ke Firestore
+    // 4. SELALU ambil dokumen penuh dari Firestore (catalogs/{id}) agar isian deskripsi,
+    // spesifikasi, dan seluruh galeri foto 100% lengkap dan sesuai pengaturan di Admin
     let isMounted = true;
-    setLoading(true);
     getProduct(paramId).then(result => {
       if (isMounted) {
         if (result.success && result.data) {
@@ -100,6 +114,9 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
         }
         setLoading(false);
       }
+    }).catch(err => {
+      console.error("[CATALOG DETAIL] Gagal memuat data lengkap:", err);
+      if (isMounted) setLoading(false);
     });
 
     return () => {
@@ -251,8 +268,6 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
     );
   }
 
-  const hasImages = product.images && product.images.length > 0;
-
   return (
     <>
       <div className="bg-white min-h-screen selection:bg-emerald-100 selection:text-emerald-900 pb-32 lg:pb-24">
@@ -297,13 +312,13 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
                   className="w-full lg:w-1/2 h-full cursor-zoom-in relative overflow-hidden group/main"
                   onClick={() => { setActiveImageIdx(0); setIsLightboxOpen(true); }}
                 >
-                  <img src={product.images![0]} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover/main:scale-105" />
+                  <img src={displayImages[0]} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover/main:scale-105" />
                   <div className="absolute inset-0 bg-black/10 opacity-0 group-hover/main:opacity-100 transition-opacity" />
                 </div>
                 
                 {/* Grid Gambar Kecil (Kanan - 50%) - Hidden di HP */}
                 <div className="hidden lg:grid w-1/2 h-full grid-cols-2 grid-rows-2 gap-3">
-                  {product.images!.slice(1, 5).map((img, idx) => (
+                  {displayImages.slice(1, 5).map((img, idx) => (
                     <div 
                       key={idx} 
                       className="w-full h-full relative cursor-zoom-in overflow-hidden group/item"
@@ -313,10 +328,10 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
                       <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors" />
                       
                       {/* Overlay "Lihat Semua" di gambar terakhir jika > 5 */}
-                      {idx === 3 && product.images!.length > 5 && (
+                      {idx === 3 && displayImages.length > 5 && (
                         <div className="absolute inset-0 bg-black/40 hover:bg-black/50 transition-colors flex items-center justify-center backdrop-blur-sm">
                           <span className="text-white font-bold text-lg flex items-center gap-2">
-                            <ImageIcon size={20} /> +{product.images!.length - 5} Foto
+                            <ImageIcon size={20} /> +{displayImages.length - 5} Foto
                           </span>
                         </div>
                       )}
@@ -324,7 +339,7 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
                   ))}
                   
                   {/* Fill empty grid spaces if images < 5 */}
-                  {Array.from({ length: Math.max(0, 4 - (product.images!.length - 1)) }).map((_, i) => (
+                  {Array.from({ length: Math.max(0, 4 - (displayImages.length - 1)) }).map((_, i) => (
                     <div key={`empty-${i}`} className="w-full h-full bg-slate-50 border border-slate-100 flex items-center justify-center">
                       <ImageIcon className="w-8 h-8 text-slate-200" />
                     </div>
@@ -417,7 +432,13 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
                     {activeTab === 'description' && (
                       <motion.div key="desc" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
                         <div className="prose prose-lg text-slate-600 prose-headings:text-slate-900 leading-relaxed max-w-none whitespace-pre-line">
-                          {product.description}
+                          {product.description || (
+                            <div className="space-y-3 py-2 animate-pulse">
+                              <div className="h-4 bg-slate-100 rounded w-full"></div>
+                              <div className="h-4 bg-slate-100 rounded w-5/6"></div>
+                              <div className="h-4 bg-slate-100 rounded w-4/6"></div>
+                            </div>
+                          )}
                         </div>
                       </motion.div>
                     )}
@@ -599,23 +620,23 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
           >
             <button onClick={() => setIsLightboxOpen(false)} className="absolute top-6 right-6 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 p-3 rounded-full transition-all z-10"><X size={24} /></button>
 
-            {product.images!.length > 1 && (
-              <button onClick={(e) => { e.stopPropagation(); setActiveImageIdx((prev) => (prev === 0 ? product.images!.length - 1 : prev - 1)); }} className="absolute left-4 sm:left-12 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 p-4 rounded-full transition-all z-10"><ChevronLeft size={32} /></button>
+            {displayImages.length > 1 && (
+              <button onClick={(e) => { e.stopPropagation(); setActiveImageIdx((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1)); }} className="absolute left-4 sm:left-12 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 p-4 rounded-full transition-all z-10"><ChevronLeft size={32} /></button>
             )}
 
             <motion.div 
               key={activeImageIdx} initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} transition={{ type: "spring", damping: 25, stiffness: 300 }}
               className="relative max-w-full max-h-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}
             >
-              <img src={product.images![activeImageIdx]} alt={`View ${activeImageIdx + 1}`} className="max-w-[90vw] max-h-[85vh] object-contain rounded-xl shadow-2xl" draggable={false} />
+              <img src={displayImages[activeImageIdx]} alt={`View ${activeImageIdx + 1}`} className="max-w-[90vw] max-h-[85vh] object-contain rounded-xl shadow-2xl" draggable={false} />
             </motion.div>
 
-            {product.images!.length > 1 && (
-              <button onClick={(e) => { e.stopPropagation(); setActiveImageIdx((prev) => (prev === product.images!.length - 1 ? 0 : prev + 1)); }} className="absolute right-4 sm:right-12 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 p-4 rounded-full transition-all z-10"><ChevronRight size={32} /></button>
+            {displayImages.length > 1 && (
+              <button onClick={(e) => { e.stopPropagation(); setActiveImageIdx((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1)); }} className="absolute right-4 sm:right-12 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 p-4 rounded-full transition-all z-10"><ChevronRight size={32} /></button>
             )}
 
-            {product.images!.length > 1 && (
-              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white font-bold text-sm bg-black/60 backdrop-blur-md px-6 py-2.5 rounded-full tracking-widest z-10">{activeImageIdx + 1} / {product.images!.length}</div>
+            {displayImages.length > 1 && (
+              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white font-bold text-sm bg-black/60 backdrop-blur-md px-6 py-2.5 rounded-full tracking-widest z-10">{activeImageIdx + 1} / {displayImages.length}</div>
             )}
           </motion.div>
         )}

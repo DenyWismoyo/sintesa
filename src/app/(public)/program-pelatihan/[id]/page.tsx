@@ -1,10 +1,13 @@
 // Lokasi file: src/app/(public)/program-pelatihan/[id]/page.tsx
 
 import { Metadata } from 'next';
+import { cache } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import ClientPage from './ClientPage';
-import { Training } from '@/types'; // Import tipe data Training
+import { Training } from '@/types';
+
+import { getServerDocRest } from '@/lib/serverFirestore';
 
 type Props = {
   params: Promise<{ id: string }>
@@ -12,27 +15,26 @@ type Props = {
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://katalog.solotechnopark.id';
 
+export const revalidate = 60;
+
+// Request deduplication dengan React.cache & Fast REST Fetch
+const getTrainingServerCached = cache(async (id: string): Promise<Training | null> => {
+  return await getServerDocRest<Training>('trainings', id, 60);
+});
+
 // FASE 1: SEO & Dynamic Open Graph untuk Detail Pelatihan
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
-    const resolvedParams = await params;
-    const docRef = doc(db, 'trainings', resolvedParams.id);
-    const snap = await getDoc(docRef);
+    const { id } = await params;
+    const training = await getTrainingServerCached(id);
 
-    if (!snap.exists()) {
-      return { title: 'Program Tidak Ditemukan | KST Solo' };
+    if (!training) {
+      return { title: 'Program Pelatihan | KST Solo Technopark' };
     }
-
-    const data = snap.data();
-    const training = { id: snap.id, ...data } as Training;
     
     const title = `${training.title} | Pelatihan KST Solo Technopark`;
     const description = training.description?.substring(0, 160) || 'Ikuti pelatihan intensif dan tingkatkan keahlian Anda bersama KST Solo Technopark.';
-    
-    // API OG Dinamis Khusus Pelatihan (Bisa dipanggil jika Anda membuat endpointnya nanti)
     const formattedPrice = training.isFree ? 'GRATIS' : (training.price ? training.price.toLocaleString('id-ID') : 'Hubungi Kami');
-    
-    // Untuk saat ini kita fallback menggunakan API OG Katalog dengan parameter sedikit dimodifikasi
     const dynamicOgUrl = `${APP_URL}/api/og/katalog?title=${encodeURIComponent(training.title || '')}&price=${encodeURIComponent(formattedPrice)}`;
 
     return {
@@ -52,7 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           },
         ],
         locale: 'id_ID',
-        type: 'article', // 'article' lebih cocok dari 'website' untuk detail kursus
+        type: 'article',
       },
       twitter: {
         card: 'summary_large_image',
@@ -69,45 +71,36 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-// FASE 2: JSON-LD Course Schema Injection
+// FASE 2: JSON-LD Course Schema Injection & Hydration ke ClientPage
 export default async function Page({ params }: Props) {
-  let jsonLd = null;
+  const { id } = await params;
+  const training = await getTrainingServerCached(id);
 
-  try {
-    const resolvedParams = await params;
-    const docRef = doc(db, 'trainings', resolvedParams.id);
-    const snap = await getDoc(docRef);
-    
-    if (snap.exists()) {
-      const training = snap.data() as Training;
-      
-      // Standar Schema.org untuk Kursus / Pelatihan (Google Course Carousel)
-      jsonLd = {
-        '@context': 'https://schema.org',
-        '@type': 'Course',
-        name: training.title,
-        description: training.description,
-        image: training.imageUrl || `${APP_URL}/placeholder-image.jpg`,
-        provider: {
-          '@type': 'Organization',
-          name: 'Solo Technopark',
-          sameAs: APP_URL
-        },
-        hasCourseInstance: {
-          '@type': 'CourseInstance',
-          courseMode: training.type === 'Offline' ? 'Onsite' : 'Online',
-          courseWorkload: training.durationDisplay || 'PT10H', // Contoh ISO 8601 durasi
-        },
-        offers: {
-          '@type': 'Offer',
-          category: training.isFree ? 'Free' : 'Paid',
-          priceCurrency: 'IDR',
-          price: training.isFree ? 0 : (training.price || 0),
-        }
-      };
-    }
-  } catch (error) {
-    console.warn("Gagal memuat JSON-LD untuk pelatihan di server:", error);
+  let jsonLd = null;
+  if (training) {
+    jsonLd = {
+      '@context': 'https://schema.org',
+      '@type': 'Course',
+      name: training.title,
+      description: training.description,
+      image: training.imageUrl || `${APP_URL}/placeholder-image.jpg`,
+      provider: {
+        '@type': 'Organization',
+        name: 'Solo Technopark',
+        sameAs: APP_URL
+      },
+      hasCourseInstance: {
+        '@type': 'CourseInstance',
+        courseMode: training.type === 'Offline' ? 'Onsite' : 'Online',
+        courseWorkload: training.durationDisplay || 'PT10H',
+      },
+      offers: {
+        '@type': 'Offer',
+        category: training.isFree ? 'Free' : 'Paid',
+        priceCurrency: 'IDR',
+        price: training.isFree ? 0 : (training.price || 0),
+      }
+    };
   }
 
   return (
@@ -118,7 +111,7 @@ export default async function Page({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      <ClientPage />
+      <ClientPage initialTraining={training} />
     </>
   );
 }
