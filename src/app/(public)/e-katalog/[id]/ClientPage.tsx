@@ -20,6 +20,9 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import ProductCard from '../components/ProductCard'; 
+import MobileImageGallery from '@/components/ui/MobileImageGallery';
+import ProviderCard from '@/components/ui/ProviderCard';
+import PillTabs from '@/components/ui/PillTabs';
 
 type TabType = 'description' | 'specifications' | 'highlights';
 
@@ -268,170 +271,127 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
     );
   }
 
+  const detailTabs = [
+    { key: 'description' as TabType, label: 'Deskripsi' },
+    { key: 'specifications' as TabType, label: `Spesifikasi (${product.specifications?.length || 0})` },
+    { key: 'highlights' as TabType, label: 'Keunggulan' }
+  ];
+
   return (
     <>
-      <div className="bg-white min-h-screen selection:bg-emerald-100 selection:text-emerald-900 pb-32 lg:pb-24">
+      <div className="bg-[#FAFAFA] min-h-screen selection:bg-emerald-100 selection:text-emerald-900 pb-28 lg:pb-24">
         
-        <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+        <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-5 lg:py-8">
           
-          {/* HEADER INLINE & BREADCRUMB (Tidak Sticky, Menyatu dengan Halaman) */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-2 md:gap-4">
-              <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full hover:bg-slate-100 h-10 w-10 shrink-0 -ml-2 text-slate-500">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div className="flex flex-wrap items-center text-sm font-semibold text-slate-400 gap-1.5 sm:gap-2">
-                 <Link href="/e-katalog" className="hover:text-slate-900 transition-colors">E-Katalog</Link> 
-                 <ChevronRight size={14}/> 
-                 <span className="text-slate-800 font-bold">{product.category}</span>
-              </div>
-            </div>
-            <div className="flex items-center">
-              <Button variant="outline" size="sm" className="rounded-full h-9 px-4 text-slate-600 font-bold border-slate-200 bg-white hover:bg-slate-50 shadow-sm hidden sm:flex">
-                <Share2 size={14} className="mr-2" /> Bagikan
-              </Button>
-              <Button variant="outline" size="icon" className="rounded-full h-9 w-9 text-slate-600 border-slate-200 bg-white hover:bg-slate-50 shadow-sm sm:hidden">
-                <Share2 size={14} />
-              </Button>
-            </div>
-          </div>
-
-          {/* JUDUL PRODUK */}
-          <div className="mb-6 lg:mb-8">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-[1.15] mb-2">
-              {product.name}
-            </h1>
-          </div>
-
-          {/* GALLERY HERO - AIRBNB STYLE */}
-          <div className="w-full h-[40vh] sm:h-[50vh] lg:h-[60vh] mb-12 rounded-[2rem] overflow-hidden relative group bg-slate-100">
-            {hasImages ? (
-              <div className="w-full h-full flex gap-2 sm:gap-3">
-                {/* Gambar Utama (Kiri - 50%) */}
-                <div 
-                  className="w-full lg:w-1/2 h-full cursor-zoom-in relative overflow-hidden group/main"
-                  onClick={() => { setActiveImageIdx(0); setIsLightboxOpen(true); }}
-                >
-                  <img src={displayImages[0]} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover/main:scale-105" />
-                  <div className="absolute inset-0 bg-black/10 opacity-0 group-hover/main:opacity-100 transition-opacity" />
-                </div>
-                
-                {/* Grid Gambar Kecil (Kanan - 50%) - Hidden di HP */}
-                <div className="hidden lg:grid w-1/2 h-full grid-cols-2 grid-rows-2 gap-3">
-                  {displayImages.slice(1, 5).map((img, idx) => (
-                    <div 
-                      key={idx} 
-                      className="w-full h-full relative cursor-zoom-in overflow-hidden group/item"
-                      onClick={() => { setActiveImageIdx(idx + 1); setIsLightboxOpen(true); }}
-                    >
-                      <img src={getThumbnailUrl(img)} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover transition-transform duration-700 group-hover/item:scale-110" />
-                      <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors" />
-                      
-                      {/* Overlay "Lihat Semua" di gambar terakhir jika > 5 */}
-                      {idx === 3 && displayImages.length > 5 && (
-                        <div className="absolute inset-0 bg-black/40 hover:bg-black/50 transition-colors flex items-center justify-center backdrop-blur-sm">
-                          <span className="text-white font-bold text-lg flex items-center gap-2">
-                            <ImageIcon size={20} /> +{displayImages.length - 5} Foto
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  
-                  {/* Fill empty grid spaces if images < 5 */}
-                  {Array.from({ length: Math.max(0, 4 - (displayImages.length - 1)) }).map((_, i) => (
-                    <div key={`empty-${i}`} className="w-full h-full bg-slate-50 border border-slate-100 flex items-center justify-center">
-                      <ImageIcon className="w-8 h-8 text-slate-200" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center w-full h-full text-slate-300 border-2 border-dashed border-slate-200 rounded-[2rem]">
-                <ImageIcon className="h-16 w-16 mb-4 opacity-40" />
-                <span className="font-bold tracking-widest uppercase text-sm">Tanpa Media Visual</span>
-              </div>
-            )}
-            
-            {/* Tombol Lihat Semua (Muncul di Mobile/Desktop) */}
-            {hasImages && (
+          {/* HEADER INLINE & BREADCRUMB */}
+          <div className="flex items-center justify-between mb-5 sm:mb-6">
+            <div className="flex items-center gap-2 sm:gap-3">
               <Button 
-                onClick={() => { setActiveImageIdx(0); setIsLightboxOpen(true); }}
-                variant="outline" 
-                className="absolute bottom-6 right-6 bg-white/90 backdrop-blur-md border-white font-bold shadow-lg hover:bg-white text-slate-800 rounded-xl"
+                variant="ghost" 
+                size="sm" 
+                onClick={() => router.back()} 
+                className="rounded-full hover:bg-white h-9 px-3 gap-1.5 text-slate-600 font-bold -ml-1 shadow-xs bg-white/70"
               >
-                <ListChecks className="w-4 h-4 mr-2 hidden sm:inline" /> 
-                <span className="sm:hidden"><ImageIcon className="w-4 h-4" /></span>
-                <span className="hidden sm:inline">Tampilkan semua foto</span>
+                <ArrowLeft className="h-4 w-4" />
+                <span className="hidden sm:inline text-xs">Kembali</span>
               </Button>
-            )}
+              <div className="flex items-center text-xs font-semibold text-slate-400 gap-1.5 sm:gap-2">
+                <Link href="/e-katalog" className="hover:text-slate-900 transition-colors">Katalog</Link> 
+                <ChevronRight size={13}/> 
+                <span className="text-slate-800 font-bold truncate max-w-[120px] sm:max-w-none">{product.category}</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({ title: product.name, url: window.location.href }).catch(() => {});
+                  } else {
+                    navigator.clipboard.writeText(window.location.href);
+                    toast.success("Tautan Disalin", { description: "Link produk telah disalin ke clipboard." });
+                  }
+                }}
+                className="rounded-full h-9 px-3.5 text-slate-600 font-bold border-0 bg-white hover:bg-slate-50 shadow-xs"
+              >
+                <Share2 size={14} className="sm:mr-1.5" /> 
+                <span className="hidden sm:inline text-xs">Bagikan</span>
+              </Button>
+            </div>
           </div>
+
+          {/* GALLERY HERO (SWIPEABLE DI MOBILE, SPLIT GRID DI DESKTOP) */}
+          <MobileImageGallery 
+            images={displayImages} 
+            title={product.name} 
+            onOpenLightbox={(idx) => { setActiveImageIdx(idx); setIsLightboxOpen(true); }}
+            className="mb-6 lg:mb-8"
+          />
 
           {/* KONTEN UTAMA - 60/40 Split */}
-          <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-start relative">
+          <div className="flex flex-col lg:flex-row gap-8 lg:gap-14 items-start relative">
             
-            {/* KOLOM KIRI (KONTEN) */}
-            <div className="w-full lg:w-[60%] flex flex-col gap-10">
+            {/* KOLOM KIRI (KONTEN UTAMA) */}
+            <div className="w-full lg:w-[60%] flex flex-col gap-6 sm:gap-8">
               
-              {/* Short Desc & Badges */}
+              {/* Judul & Meta Bar */}
               <div>
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {product.ownerType === 'TENANT' ? (
-                    <span className="bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-bold uppercase tracking-widest px-4 py-2 rounded-xl flex items-center gap-2">
-                      <Store size={16} /> Disediakan oleh Tenant
-                    </span>
-                  ) : (
-                    <span className="bg-blue-50 text-blue-700 border border-blue-200 text-[11px] font-bold uppercase tracking-widest px-4 py-2 rounded-xl flex items-center gap-2">
-                      <Building2 size={16} /> Layanan Internal BLUD
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-700 bg-white px-3 py-1 rounded-full shadow-xs">
+                    {product.category}
+                  </span>
+                  {product.isNegotiable && (
+                    <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full">
+                      <Tag size={12} /> Bisa Nego
                     </span>
                   )}
-                  {product.tags?.map((tag, idx) => (
-                    <span key={idx} className="text-[11px] font-bold text-slate-500 bg-slate-100 px-4 py-2 rounded-xl">
+                  {product.tags?.slice(0, 3).map((tag, idx) => (
+                    <span key={idx} className="text-xs font-medium text-slate-400">
                       #{tag}
                     </span>
                   ))}
                 </div>
-                <p className="text-xl text-slate-600 font-medium leading-relaxed">
-                  {product.shortDescription}
-                </p>
+
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight leading-[1.2] mb-3">
+                  {product.name}
+                </h1>
+
+                {product.shortDescription && (
+                  <p className="text-sm sm:text-base text-slate-600 font-medium leading-relaxed mt-2">
+                    {product.shortDescription}
+                  </p>
+                )}
               </div>
 
-              <hr className="border-slate-100" />
+              {/* KARTU IDENTITAS PENYELENGGARA / TENANT */}
+              <ProviderCard 
+                ownerType={product.ownerType} 
+                tenantName={product.tenantName} 
+                tenantId={product.tenantId} 
+              />
 
-              {/* TABS NAVIGATION */}
-              <div className="w-full">
-                <div className="flex gap-8 border-b border-slate-200 mb-8 overflow-x-auto hide-scrollbar">
-                  {[
-                    { id: 'description', label: 'Deskripsi Detail' },
-                    { id: 'specifications', label: 'Spesifikasi' },
-                    { id: 'highlights', label: 'Fasilitas & Keunggulan' }
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id as TabType)}
-                      className={`relative pb-4 text-base font-bold whitespace-nowrap transition-colors ${
-                        activeTab === tab.id ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600'
-                      }`}
-                    >
-                      {tab.label}
-                      {activeTab === tab.id && (
-                        <motion.div 
-                          layoutId="activeTabUnderline" 
-                          className="absolute bottom-0 left-0 right-0 h-1 bg-slate-900 rounded-t-full" 
-                        />
-                      )}
-                    </button>
-                  ))}
+              {/* TABS NAVIGATION DENGAN PILL TABS */}
+              <div className="w-full bg-white rounded-2xl p-5 sm:p-7 shadow-[0_4px_18px_-2px_rgba(15,23,42,0.04)] border-0">
+                <div className="mb-6">
+                  <PillTabs
+                    tabs={detailTabs}
+                    active={activeTab}
+                    onChange={(t) => setActiveTab(t as TabType)}
+                    layoutId="detail-katalog-active-pill"
+                    ariaLabel="Navigasi Detail Produk"
+                  />
                 </div>
 
                 {/* TABS CONTENT */}
-                <div className="min-h-[300px]">
+                <div className="min-h-[200px]">
                   <AnimatePresence mode="wait">
                     
                     {/* Tab: Deskripsi */}
                     {activeTab === 'description' && (
-                      <motion.div key="desc" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                        <div className="prose prose-lg text-slate-600 prose-headings:text-slate-900 leading-relaxed max-w-none whitespace-pre-line">
+                      <motion.div key="desc" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
+                        <div className="prose prose-slate prose-headings:text-slate-900 text-slate-600 leading-relaxed max-w-none whitespace-pre-line text-sm sm:text-base">
                           {product.description || (
                             <div className="space-y-3 py-2 animate-pulse">
                               <div className="h-4 bg-slate-100 rounded w-full"></div>
@@ -445,67 +405,68 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
 
                     {/* Tab: Spesifikasi */}
                     {activeTab === 'specifications' && (
-                      <motion.div key="specs" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+                      <motion.div key="specs" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
                         {product.specifications && product.specifications.length > 0 ? (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                             {product.specifications.map((spec, idx) => (
-                              <div key={idx} className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex flex-col gap-1">
-                                <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">{spec.label}</span>
-                                <span className="text-lg font-bold text-slate-900">{spec.value}</span>
+                              <div key={idx} className="bg-slate-50/80 p-4 rounded-xl border-0 flex flex-col gap-1">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{spec.label}</span>
+                                <span className="text-sm sm:text-base font-extrabold text-slate-900">{spec.value}</span>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <p className="text-slate-400 italic">Tidak ada spesifikasi khusus.</p>
+                          <p className="text-slate-400 italic text-sm">Tidak ada spesifikasi khusus untuk produk ini.</p>
                         )}
                       </motion.div>
                     )}
 
                     {/* Tab: Keunggulan */}
                     {activeTab === 'highlights' && (
-                      <motion.div key="high" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+                      <motion.div key="high" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
                         {product.highlights && product.highlights.length > 0 ? (
-                          <div className="grid grid-cols-1 gap-4">
+                          <div className="grid grid-cols-1 gap-3">
                             {product.highlights.map((highlight, idx) => (
-                              <div key={idx} className="flex items-start gap-4 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-                                <div className="mt-1 w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                                  <Check size={18} strokeWidth={3} />
+                              <div key={idx} className="flex items-start gap-3 bg-slate-50/60 p-4 rounded-xl border-0">
+                                <div className="mt-0.5 w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                                  <Check size={14} strokeWidth={3} />
                                 </div>
-                                <p className="text-slate-700 font-medium leading-relaxed">{highlight}</p>
+                                <p className="text-slate-700 font-semibold text-sm leading-relaxed">{highlight}</p>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <p className="text-slate-400 italic">Tidak ada informasi fasilitas khusus.</p>
+                          <p className="text-slate-400 italic text-sm">Tidak ada poin keunggulan khusus yang dicantumkan.</p>
                         )}
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
               </div>
+
             </div>
 
-            {/* KOLOM KANAN (STICKY CONVERSION AREA) - Hidden on Mobile */}
-            <div className="hidden lg:block w-[40%] sticky top-32 z-10">
-              <div className="bg-white border border-slate-200 rounded-[2rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] p-8 flex flex-col gap-8 relative overflow-hidden">
+            {/* KOLOM KANAN (STICKY CONVERSION AREA) - Khusus Desktop */}
+            <div className="hidden lg:block w-[40%] sticky top-28 z-10">
+              <div className="bg-white border-0 rounded-[2rem] shadow-[0_12px_40px_-10px_rgba(15,23,42,0.06)] p-8 flex flex-col gap-7 relative overflow-hidden">
                 
                 {/* Efek Glow di Box Kanan */}
-                <div className="absolute -top-24 -right-24 w-64 h-64 bg-emerald-50 rounded-full blur-3xl opacity-50 pointer-events-none" />
+                <div className="absolute -top-24 -right-24 w-64 h-64 bg-emerald-50 rounded-full blur-3xl opacity-60 pointer-events-none" />
 
-                {/* Harga Area */}
+                {/* Area Harga */}
                 <div>
-                  <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">Tarif Layanan</p>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Tarif Layanan</p>
                   <div className="flex flex-col xl:flex-row xl:items-end gap-2 xl:gap-3 mb-2">
-                    <h2 className="text-4xl xl:text-5xl font-black tracking-tighter text-slate-900">
+                    <h2 className="text-4xl xl:text-5xl font-black tracking-tight text-slate-900">
                       <span className="text-2xl text-slate-400 mr-1 font-bold">Rp</span>
                       {product.price?.toLocaleString('id-ID')}
                     </h2>
-                    <span className="text-lg font-medium text-slate-500 pb-1">/ {product.pricingType}</span>
+                    <span className="text-base font-semibold text-slate-500 pb-1.5">/ {product.pricingType}</span>
                   </div>
                   
                   {product.isNegotiable && (
-                    <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg mt-3">
-                      <Tag size={14} /> Harga Dapat Dinegosiasikan
+                    <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg mt-2">
+                      <Tag size={13} /> Harga Dapat Dinegosiasikan
                     </div>
                   )}
                 </div>
@@ -515,15 +476,15 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
                   <Button 
                     onClick={handleCTA} 
                     disabled={isProcessing} 
-                    className={`w-full h-16 rounded-2xl text-lg font-bold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-xl ${
+                    className={`w-full h-14 rounded-2xl text-base font-bold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg border-0 ${
                       product.ctaType === 'WHATSAPP' ? 'bg-[#25D366] hover:bg-[#1DA851] shadow-[#25D366]/20' :
                       'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20'
                     }`}
                   >
-                    {isProcessing ? <Loader2 className="mr-2 h-6 w-6 animate-spin" /> : renderCtaIcon()}
+                    {isProcessing ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : renderCtaIcon()}
                     {isProcessing ? 'Memproses...' : product.ctaText || 'Pesan Sekarang'}
                   </Button>
-                  <p className="text-center text-xs text-slate-400 font-medium">Anda tidak akan ditagih sebelum konfirmasi akhir.</p>
+                  <p className="text-center text-xs text-slate-400 font-medium">Layanan resmi terdaftar di Solo Technopark.</p>
                 </div>
 
               </div>
@@ -531,13 +492,25 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
 
           </div>
 
-          {/* CROSS SELLING: Layanan Serupa */}
+          {/* CROSS SELLING: Layanan Serupa (Horizontal Snap Carousel di Mobile, Grid di Desktop) */}
           {relatedProducts.length > 0 && (
-            <div className="mt-24 pt-16 border-t border-slate-200">
-              <h2 className="text-2xl lg:text-3xl font-black text-slate-900 mb-8">Layanan Serupa yang Mungkin Anda Suka</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="mt-16 sm:mt-24 pt-10 sm:pt-14 border-t border-slate-200/80">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Layanan Terkait</h2>
+                  <p className="text-xs sm:text-sm text-slate-400 font-medium mt-0.5">Pilihan inovasi dan fasilitas sejenis di kawasan</p>
+                </div>
+                <Link href="/e-katalog" className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 shrink-0">
+                  Lihat Semua <ChevronRight size={14} />
+                </Link>
+              </div>
+
+              {/* Mobile: Horizontal Swipeable Snap; Desktop: Grid 4 Kolom */}
+              <div className="flex lg:grid lg:grid-cols-4 overflow-x-auto no-scrollbar gap-4 pb-4 pt-1 snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0">
                 {relatedProducts.map(relProduct => (
-                  <ProductCard key={relProduct.id} product={relProduct} />
+                  <div key={relProduct.id} className="w-[280px] sm:w-[310px] lg:w-auto shrink-0 snap-start">
+                    <ProductCard product={relProduct} />
+                  </div>
                 ))}
               </div>
             </div>
@@ -546,24 +519,40 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
         </div>
       </div>
 
-      {/* MOBILE STICKY BOTTOM BAR (Tampil hanya di layar HP) - Elegan & Borderless */}
+      {/* MOBILE STICKY BOTTOM BAR (DUAL-CTA) */}
       <div className="public-detail-bottom-bar lg:hidden">
         <div className="flex flex-col">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Tarif</span>
-          <p className="font-black text-slate-900 text-lg flex items-baseline gap-1">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Tarif Layanan</span>
+          <p className="font-black text-slate-900 text-lg flex items-baseline gap-1 mt-1 leading-none">
             Rp {product.price?.toLocaleString('id-ID')}
             <span className="text-xs font-semibold text-slate-400">/{product.pricingType}</span>
           </p>
         </div>
-        <Button 
-          onClick={handleCTA} 
-          disabled={isProcessing} 
-          className={`h-11 px-6 rounded-full font-bold text-white shadow-md border-0 ${
-            product.ctaType === 'WHATSAPP' ? 'bg-[#25D366] hover:bg-[#1DA851]' : 'bg-emerald-600 hover:bg-emerald-700'
-          }`}
-        >
-          {isProcessing ? <Loader2 className="h-5 w-5 animate-spin" /> : (product.ctaText || 'Pesan')}
-        </Button>
+
+        <div className="flex items-center gap-2">
+          {/* Tombol WhatsApp Konsultasi PIC Cepat */}
+          <a 
+            href={`https://wa.me/628112658888?text=${encodeURIComponent(`Halo Solo Technopark, saya ingin konsultasi mengenai layanan *${product.name}* (ID: ${product.id}).`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-11 h-11 rounded-full flex items-center justify-center bg-emerald-50 hover:bg-emerald-100 text-emerald-700 active:scale-95 transition-all shrink-0"
+            title="Tanya PIC via WhatsApp"
+            aria-label="Tanya via WhatsApp"
+          >
+            <MessageCircle size={20} />
+          </a>
+
+          {/* Tombol Pesan Utama */}
+          <Button 
+            onClick={handleCTA} 
+            disabled={isProcessing} 
+            className={`h-11 px-5 rounded-full font-bold text-white shadow-md border-0 text-sm ${
+              product.ctaType === 'WHATSAPP' ? 'bg-[#25D366] hover:bg-[#1DA851]' : 'bg-emerald-600 hover:bg-emerald-700'
+            }`}
+          >
+            {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : (product.ctaText || 'Pesan Sekarang')}
+          </Button>
+        </div>
       </div>
 
       {/* Modal Konfirmasi Pesanan */}

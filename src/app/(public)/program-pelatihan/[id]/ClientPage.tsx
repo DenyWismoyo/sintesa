@@ -9,10 +9,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
 import { 
-  ArrowLeft, Loader2, PlayCircle, FileText, CheckCircle2, ChevronDown, ChevronUp, 
-  Users, MapPin, Calendar, Clock, Lock, Unlock, MonitorPlay, Infinity, Award, 
+  ArrowLeft, Loader2, PlayCircle, FileText, CheckCircle2, ChevronDown, 
+  Users, MapPin, Calendar, Clock, Lock, MonitorPlay, Award, 
   ChevronRight, Star, X, Play, ShieldCheck, Settings, Wrench, BookOpen, Target, Briefcase,
-  Share2, Heart, Check, MessageCircle
+  Share2, Heart, Check, MessageCircle, Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,36 +32,36 @@ const ModuleAccordion = ({ module, index, isOffline, isLast }: { module: any, in
   const totalDuration = module.lessons?.reduce((acc: number, curr: any) => acc + (curr.durationMins || 0), 0) || 0;
 
   return (
-    <div className="relative pl-8 md:pl-12 pb-6">
+    <div className="relative pl-7 sm:pl-10 pb-5">
       {/* Timeline Line */}
       {!isLast && (
-        <div className="absolute left-[15px] md:left-[23px] top-10 bottom-0 w-px bg-slate-200"></div>
+        <div className="absolute left-[13px] sm:left-[19px] top-9 bottom-0 w-px bg-slate-200"></div>
       )}
       
       {/* Timeline Node */}
-      <div className={`absolute left-0 md:left-2 top-4 w-8 h-8 rounded-full border-4 border-white flex items-center justify-center shrink-0 z-10 ${isOpen ? 'bg-amber-500' : 'bg-slate-300'}`}>
-        <span className="text-white text-xs font-bold">{index + 1}</span>
+      <div className={`absolute left-0 sm:left-1 top-3.5 w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-white flex items-center justify-center shrink-0 z-10 shadow-sm ${isOpen ? 'bg-amber-500 text-white' : 'bg-slate-200 text-slate-600'}`}>
+        <span className="text-xs font-bold">{index + 1}</span>
       </div>
 
-      <div className={`border rounded-[20px] overflow-hidden bg-white transition-all duration-300 ${isOpen ? 'border-amber-200 shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)]' : 'border-slate-100 shadow-sm hover:border-slate-300'}`}>
+      <div className={`border rounded-2xl overflow-hidden bg-white transition-all duration-300 ${isOpen ? 'border-amber-200 shadow-sm' : 'border-slate-100 hover:border-slate-200'}`}>
         <button 
           onClick={() => setIsOpen(!isOpen)} 
-          className="w-full flex items-center justify-between p-5 md:p-6 bg-white transition-colors text-left group"
+          className="w-full flex items-center justify-between p-4 sm:p-5 bg-white transition-colors text-left group"
         >
-          <div>
-            <h4 className="font-bold text-slate-900 text-base md:text-lg group-hover:text-amber-600 transition-colors">{module.title}</h4>
-            <div className="flex items-center gap-3 mt-1.5 text-xs font-semibold text-slate-500">
-              <span className="flex items-center gap-1"><BookOpen size={14}/> {module.lessons?.length || 0} Materi</span>
+          <div className="pr-3">
+            <h4 className="font-bold text-slate-900 text-sm sm:text-base group-hover:text-amber-600 transition-colors leading-snug">{module.title}</h4>
+            <div className="flex items-center gap-2.5 mt-1 text-xs font-semibold text-slate-500">
+              <span className="flex items-center gap-1"><BookOpen size={13} className="text-amber-500"/> {module.lessons?.length || 0} Materi</span>
               {totalDuration > 0 && (
                 <>
                   <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                  <span className="flex items-center gap-1"><Clock size={14}/> {totalDuration} Menit</span>
+                  <span className="flex items-center gap-1"><Clock size={13}/> {totalDuration} Menit</span>
                 </>
               )}
             </div>
           </div>
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-transform duration-300 ${isOpen ? 'bg-amber-50 text-amber-600 rotate-180' : 'bg-slate-50 text-slate-400 group-hover:bg-slate-100'}`}>
-            <ChevronDown size={20}/>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-transform duration-300 ${isOpen ? 'bg-amber-50 text-amber-600 rotate-180' : 'bg-slate-50 text-slate-400 group-hover:bg-slate-100'}`}>
+            <ChevronDown size={18}/>
           </div>
         </button>
         
@@ -73,37 +73,37 @@ const ModuleAccordion = ({ module, index, isOffline, isLast }: { module: any, in
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden"
             >
-              <div className="p-4 md:p-6 pt-0 space-y-2 bg-white">
-                <div className="w-full h-px bg-slate-100 mb-4"></div>
-                {module.lessons?.map((lesson: any, lIndex: number) => (
-                  <div key={lesson.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 md:p-4 hover:bg-slate-50/80 rounded-2xl group transition-all gap-4 border border-transparent hover:border-slate-100">
-                    <div className="flex items-start gap-4">
-                      <div className={`mt-0.5 shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${isOffline ? 'bg-orange-50 text-orange-500 group-hover:bg-orange-100' : (lesson.type === 'Video' ? 'bg-blue-50 text-blue-500 group-hover:bg-blue-100' : 'bg-emerald-50 text-emerald-500 group-hover:bg-emerald-100')}`}>
-                        {isOffline ? <Wrench size={20}/> : (lesson.type === 'Video' ? <PlayCircle size={20}/> : <FileText size={20}/>)}
+              <div className="p-4 sm:p-5 pt-0 space-y-2 bg-white">
+                <div className="w-full h-px bg-slate-100 mb-3"></div>
+                {module.lessons?.map((lesson: any) => (
+                  <div key={lesson.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 hover:bg-slate-50 rounded-xl group transition-all gap-3 border border-transparent hover:border-slate-100">
+                    <div className="flex items-start gap-3">
+                      <div className={`mt-0.5 shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-colors ${isOffline ? 'bg-orange-50 text-orange-500' : (lesson.type === 'Video' ? 'bg-blue-50 text-blue-500' : 'bg-emerald-50 text-emerald-500')}`}>
+                        {isOffline ? <Wrench size={16}/> : (lesson.type === 'Video' ? <PlayCircle size={16}/> : <FileText size={16}/>)}
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-slate-800 group-hover:text-amber-600 transition-colors leading-snug">{lesson.title}</p>
-                        <p className="text-xs text-slate-500 mt-1 font-medium">{isOffline ? 'Sesi Praktek / Tatap Muka' : (lesson.type === 'Video' ? 'Video Pembelajaran' : 'Materi Bacaan')}</p>
+                        <p className="text-xs sm:text-sm font-bold text-slate-800 group-hover:text-amber-600 transition-colors leading-snug">{lesson.title}</p>
+                        <p className="text-[11px] text-slate-400 mt-0.5 font-medium">{isOffline ? 'Sesi Praktek / Tatap Muka' : (lesson.type === 'Video' ? 'Video Pembelajaran' : 'Materi Bacaan')}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 shrink-0 pl-14 sm:pl-0">
+                    <div className="flex items-center gap-3 shrink-0 pl-11 sm:pl-0">
                       {!lesson.isLocked ? (
-                        <Badge variant="outline" className="border-emerald-200 text-emerald-700 bg-emerald-50/50 text-[10px] uppercase font-bold cursor-pointer hover:bg-emerald-100 transition-colors rounded-full px-3 py-1">
-                          <Play size={12} className="mr-1.5 fill-emerald-700"/> Preview
+                        <Badge variant="outline" className="border-emerald-200 text-emerald-700 bg-emerald-50 text-[10px] uppercase font-bold cursor-pointer hover:bg-emerald-100 transition-colors rounded-full px-2.5 py-0.5">
+                          <Play size={10} className="mr-1 fill-emerald-700"/> Preview
                         </Badge>
                       ) : (
-                        <span title="Terkunci" className="flex items-center text-xs font-bold text-slate-400 gap-1.5">
+                        <span title="Terkunci" className="flex items-center text-xs font-semibold text-slate-400 gap-1">
                           <Lock size={12} /> Terkunci
                         </span>
                       )}
-                      {lesson.durationMins > 0 && <span className="text-xs font-bold text-slate-400 w-14 text-right bg-slate-50 py-1 px-2 rounded-md">{lesson.durationMins} mnt</span>}
+                      {lesson.durationMins > 0 && <span className="text-[11px] font-bold text-slate-500 bg-slate-100 py-0.5 px-2 rounded-md">{lesson.durationMins} mnt</span>}
                     </div>
                   </div>
                 ))}
                 {(!module.lessons || module.lessons.length === 0) && (
-                  <div className="p-8 text-center flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                    <BookOpen size={24} className="mb-2 opacity-50"/>
-                    <span className="text-sm font-medium">Materi sedang disusun oleh instruktur.</span>
+                  <div className="p-6 text-center flex flex-col items-center justify-center text-slate-400 bg-slate-50/60 rounded-xl border border-dashed border-slate-200">
+                    <BookOpen size={20} className="mb-1.5 opacity-50"/>
+                    <span className="text-xs font-medium">Materi sedang disusun oleh instruktur.</span>
                   </div>
                 )}
               </div>
@@ -154,8 +154,29 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
     fetchTraining();
   }, [trainingId, initialTraining]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]"><Loader2 className="w-8 h-8 animate-spin text-amber-500" /></div>;
-  if (!training) return <div className="min-h-screen flex flex-col items-center justify-center bg-[#F8FAFC] text-slate-500"><MonitorPlay size={64} className="mb-4 text-slate-300"/><h2 className="text-2xl font-bold text-slate-800 mb-4">Kelas Tidak Ditemukan</h2><Button onClick={() => router.push('/program-pelatihan')} className="rounded-xl px-8 bg-amber-500 hover:bg-amber-600 text-white">Kembali ke Katalog</Button></div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+          <p className="text-xs font-semibold text-slate-400">Memuat detail program pelatihan...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!training) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#FAFAFA] text-slate-500 p-4">
+        <MonitorPlay size={56} className="mb-4 text-slate-300"/>
+        <h2 className="text-xl font-bold text-slate-800 mb-2">Kelas Tidak Ditemukan</h2>
+        <p className="text-sm text-slate-500 mb-6 text-center max-w-sm">Program pelatihan yang Anda cari mungkin sudah selesai atau tautan tidak valid.</p>
+        <Button onClick={() => router.push('/program-pelatihan')} className="rounded-full px-6 bg-amber-500 hover:bg-amber-600 text-white font-bold">
+          Kembali ke Katalog Pelatihan
+        </Button>
+      </div>
+    );
+  }
 
   const formatRupiah = (angka: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
   const isFull = (training.registeredCount || 0) >= (training.quota || 0) && training.quota !== 0;
@@ -166,18 +187,16 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
     totalLessons += mod.lessons?.length || 0;
     mod.lessons?.forEach((les: any) => { totalDuration += (les.durationMins || 0); });
   });
-  const totalHours = Math.floor(totalDuration / 60);
-  
-  // Fitur Fasilitas/What's included (Dinamis berdasarkan tipe pelatihan)
+
   const whatsIncluded = [
     { icon: <MonitorPlay size={16}/>, text: training.type === 'Offline' ? 'Praktek Langsung (Hands-on)' : 'Akses Video Selamanya' },
-    { icon: <Award size={16}/>, text: training.certificationType ? `Sertifikat ${training.certificationType}` : 'Sertifikat Kelulusan' },
-    { icon: <Users size={16}/>, text: 'Komunitas Alumni & Diskusi' },
-    { icon: <Briefcase size={16}/>, text: 'Peluang Koneksi Industri' }
+    { icon: <Award size={16}/>, text: training.certificationType ? `Sertifikat ${training.certificationType}` : 'Sertifikat Kelulusan Resmi STP' },
+    { icon: <Users size={16}/>, text: 'Komunitas Alumni & Diskusi Industri' },
+    { icon: <Briefcase size={16}/>, text: 'Peluang Koneksi & Rekomendasi Karir' }
   ];
 
   if (training.type === 'Offline') {
-    whatsIncluded.push({ icon: <Settings size={16}/>, text: 'Peralatan & Bahan Praktek' });
+    whatsIncluded.push({ icon: <Settings size={16}/>, text: 'Peralatan & Bahan Praktek di Lab STP' });
   }
 
   const scrollToSection = (id: string) => {
@@ -189,170 +208,279 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
     }
   };
 
-  return (
-    <div className="bg-[#F8FAFC] min-h-screen pb-32 font-sans relative selection:bg-amber-100 selection:text-amber-900">
-      
-      {/* --- HERO SECTION --- */}
-      <div className="relative pt-24 pb-40 lg:pb-56 px-4 sm:px-6 lg:px-10 overflow-hidden bg-slate-900">
-        {/* Background Effects */}
-        <div className="absolute inset-0 z-0">
-          {training.imageUrl && (
-            <img src={training.imageUrl} alt="Cover" className="w-full h-full object-cover opacity-30 mix-blend-overlay" />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-slate-900/40"></div>
-          <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-amber-500/10 to-transparent blur-3xl"></div>
-        </div>
+  const cleanWhatsappNumber = training.contactWhatsapp ? training.contactWhatsapp.replace(/[^0-9]/g, '').replace(/^0/, '62') : '';
+  const waText = encodeURIComponent(`Halo admin Solo Technopark, saya tertarik dengan pelatihan *${training.title}*. Bisa dibantu informasi pendaftarannya?`);
 
-        <div className="relative z-10 w-full max-w-[1920px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 xl:gap-14">
-          <div className="lg:col-span-7 xl:col-span-8">
-            <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-amber-500 mb-8 uppercase tracking-widest">
-              <Link href="/program-pelatihan" className="hover:text-white transition-colors flex items-center gap-1.5 bg-white/5 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10"><ArrowLeft size={14}/> Katalog</Link>
-              <ChevronRight size={14} className="text-slate-600"/>
-              <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3 py-1.5 rounded-full">{training.category}</span>
+  return (
+    <div className="bg-[#FAFAFA] min-h-screen pb-32 font-sans relative selection:bg-amber-100 selection:text-amber-900">
+      
+      {/* --- HERO SECTION (Tema Terang Bersih & Elegan) --- */}
+      <div className="relative pt-6 sm:pt-10 pb-8 sm:pb-12 px-4 sm:px-6 lg:px-10 bg-gradient-to-b from-amber-50/50 via-white to-[#FAFAFA] border-b border-slate-100">
+        <div className="w-full max-w-[1400px] mx-auto">
+          
+          {/* Top Breadcrumb Nav */}
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-bold text-slate-500 mb-5">
+            <div className="flex items-center gap-2">
+              <Link href="/program-pelatihan" className="hover:text-amber-600 transition-colors flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full border border-slate-200/80 shadow-xs">
+                <ArrowLeft size={13}/> Pelatihan
+              </Link>
+              <ChevronRight size={13} className="text-slate-400"/>
+              <span className="bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1.5 rounded-full">
+                {training.category || 'Teknologi'}
+              </span>
             </div>
 
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-[1.15] mb-6 tracking-tight drop-shadow-sm">
-              {training.title}
-            </h1>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({ title: training.title, url: window.location.href });
+                  } else {
+                    navigator.clipboard.writeText(window.location.href);
+                    alert('Tautan pelatihan berhasil disalin!');
+                  }
+                }}
+                className="w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-600 flex items-center justify-center hover:text-amber-600 transition-colors shadow-xs"
+                title="Bagikan Program"
+              >
+                <Share2 size={14}/>
+              </button>
+            </div>
+          </div>
+
+          {/* Grid Layout: Hero Mobile/Desktop */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
             
-            <p className="text-slate-300 text-lg lg:text-xl mb-10 leading-relaxed max-w-3xl font-medium">
-              {training.description?.substring(0, 180)}...
-            </p>
-            
-            {/* Glassmorphism Meta Bar */}
-            <div className="flex flex-wrap items-center gap-x-8 gap-y-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 max-w-max">
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Rating Kelas</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-base font-black text-white">4.9</span>
-                  <div className="flex items-center text-amber-400">
-                    <Star fill="currentColor" size={14}/><Star fill="currentColor" size={14}/><Star fill="currentColor" size={14}/><Star fill="currentColor" size={14}/><Star fill="currentColor" size={14}/>
+            {/* Sisi Kiri: Deskripsi & Judul */}
+            <div className="lg:col-span-7 xl:col-span-8">
+              
+              {/* Badges Bar */}
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <Badge className="bg-amber-500 text-white border-0 font-bold text-[11px] px-2.5 py-0.5 rounded-md">
+                  {training.type || 'Offline'}
+                </Badge>
+                {training.level && (
+                  <Badge variant="outline" className="border-slate-200 bg-white text-slate-700 font-bold text-[11px] px-2.5 py-0.5 rounded-md">
+                    Level: {training.level}
+                  </Badge>
+                )}
+                {training.certificationType && (
+                  <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700 font-bold text-[11px] px-2.5 py-0.5 rounded-md flex items-center gap-1">
+                    <Sparkles size={11} className="text-emerald-600"/> Sertifikasi {training.certificationType}
+                  </Badge>
+                )}
+              </div>
+
+              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-900 leading-tight mb-4 tracking-tight">
+                {training.title}
+              </h1>
+
+              <p className="text-slate-600 text-sm sm:text-base lg:text-lg mb-6 leading-relaxed font-normal">
+                {training.description ? (training.description.length > 220 ? `${training.description.substring(0, 220)}...` : training.description) : 'Tingkatkan kompetensi Anda bersama para praktisi dan kurikulum industri resmi Solo Technopark.'}
+              </p>
+
+              {/* Mobile Media Cover (Tampil di Layar Ponsel & Tablet < lg) */}
+              <div className="block lg:hidden mb-6">
+                <div 
+                  className={`w-full relative aspect-video bg-slate-100 rounded-2xl overflow-hidden border border-slate-200/80 shadow-sm group ${training.promoVideoUrl ? 'cursor-pointer' : ''}`}
+                  onClick={() => training.promoVideoUrl && setIsVideoModalOpen(true)}
+                >
+                  {training.imageUrl ? (
+                    <img src={training.imageUrl} alt={training.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center w-full h-full text-slate-400 bg-slate-50">
+                      <MonitorPlay size={36} className="mb-2 opacity-50"/>
+                      <span className="text-xs font-semibold">Solo Technopark Academy</span>
+                    </div>
+                  )}
+                  
+                  {training.promoVideoUrl && (
+                    <div className="absolute inset-0 bg-slate-950/30 flex items-center justify-center transition-colors group-hover:bg-slate-950/40">
+                      <div className="w-13 h-13 rounded-full bg-amber-500 text-white flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
+                        <Play className="w-6 h-6 ml-0.5" fill="currentColor"/>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="absolute top-3 left-3 flex gap-1.5">
+                    <span className="bg-white/90 backdrop-blur-md text-slate-800 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-xs">
+                      {training.type}
+                    </span>
                   </div>
-                  <span className="text-xs text-slate-400 ml-1 underline decoration-slate-600 decoration-dashed cursor-pointer">(120+)</span>
                 </div>
               </div>
-              
-              <div className="w-px h-10 bg-white/10 hidden sm:block"></div>
-              
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Tingkat Kelas</span>
-                <span className="text-sm font-bold text-white flex items-center gap-2"><Target size={16} className="text-amber-400"/> {training.level}</span>
+
+              {/* Clean Meta Bar */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3 bg-white border border-slate-200/80 rounded-2xl p-3 sm:p-4 shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                    <Star size={18} className="fill-amber-500 text-amber-500"/>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Rating Kelas</span>
+                    <span className="text-sm font-black text-slate-900">4.9 <span className="text-xs text-slate-400 font-semibold">(120+ ulasan)</span></span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                    <Users size={18}/>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Peserta</span>
+                    <span className="text-sm font-black text-slate-900">{training.registeredCount || 0} Siswa</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 col-span-2 sm:col-span-1">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                    <Award size={18}/>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Kelulusan</span>
+                    <span className="text-sm font-black text-slate-900">Sertifikat Resmi</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="w-px h-10 bg-white/10 hidden sm:block"></div>
+            </div>
 
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Peserta Terdaftar</span>
-                <span className="text-sm font-bold text-white flex items-center gap-2"><Users size={16} className="text-emerald-400"/> {training.registeredCount || 0} Siswa</span>
-              </div>
+            {/* Sisi Kanan: Ruang penampung kolom desktop */}
+            <div className="hidden lg:block lg:col-span-5 xl:col-span-4">
+              {/* Ruang kosong untuk alignment hero desktop, floating card ada di body */}
             </div>
 
           </div>
-          <div className="hidden lg:block lg:col-span-5 xl:col-span-4 relative h-0"></div>
         </div>
       </div>
 
-      {/* --- MAIN CONTENT & SIDEBAR --- */}
-      <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-10 -mt-16 lg:-mt-32 relative z-20">
+      {/* --- MAIN CONTENT & SIDEBAR CONTAINER --- */}
+      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 mt-6 lg:mt-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12">
           
-          {/* KIRI: KONTEN UTAMA */}
-          <div className="lg:col-span-7 xl:col-span-8 space-y-8">
+          {/* KOLOM KIRI: KONTEN DETAIL */}
+          <div className="lg:col-span-7 xl:col-span-8 space-y-6">
             
-            {/* Sticky Navigation Tabs */}
-            <div className="sticky top-0 lg:top-4 z-40 bg-white/80 backdrop-blur-xl border border-slate-200/60 shadow-sm rounded-full p-1.5 flex items-center gap-1 overflow-x-auto custom-scrollbar mt-10 lg:mt-0">
+            {/* Sticky Navigation PillTabs (Bersih & Borderless) */}
+            <div className="sticky top-4 z-40 bg-white/90 backdrop-blur-md border border-slate-200/80 shadow-xs rounded-full p-1 flex items-center gap-1 overflow-x-auto no-scrollbar">
               {[
-                { id: 'overview', label: 'Overview' },
-                { id: 'skills', label: 'Materi & Keahlian' },
-                { id: 'curriculum', label: training.type === 'Offline' ? 'Silabus Praktek' : 'Kurikulum' },
+                { id: 'overview', label: 'Tentang' },
+                { id: 'skills', label: 'Kompetensi' },
+                { id: 'curriculum', label: training.type === 'Offline' ? 'Silabus' : 'Kurikulum' },
                 { id: 'mentor', label: 'Instruktur' }
               ].map(tab => (
                 <button
                   key={tab.id}
                   onClick={() => scrollToSection(tab.id)}
-                  className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all ${activeTab === tab.id ? 'bg-slate-900 text-white shadow-md' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}
+                  className={`px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition-all ${
+                    activeTab === tab.id 
+                      ? 'bg-amber-500 text-white shadow-xs' 
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  }`}
                 >
                   {tab.label}
                 </button>
               ))}
             </div>
 
-            {/* Section: Overview */}
-            <section id="overview" className="bg-white p-6 md:p-10 rounded-[32px] shadow-[0_8px_30px_-4px_rgba(0,0,0,0.04)] border border-slate-100 scroll-mt-24">
-              <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-6 tracking-tight">Tentang Program Ini</h2>
+            {/* Section: Overview (Tentang Kelas) */}
+            <section id="overview" className="bg-white p-5 sm:p-8 rounded-3xl shadow-xs border border-slate-200/70 scroll-mt-24">
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 mb-4 tracking-tight">Tentang Program Ini</h2>
               <div className="prose prose-slate max-w-none">
-                <p className="text-base md:text-lg text-slate-600 leading-relaxed font-medium whitespace-pre-wrap">
+                <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal whitespace-pre-wrap">
                   {training.description}
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10 pt-10 border-t border-slate-100">
-                <div className="bg-amber-50/50 p-6 rounded-2xl border border-amber-100/50">
-                  <h3 className="font-bold text-slate-900 text-base mb-4 flex items-center gap-2"><Lock size={18} className="text-amber-500"/> Syarat Pendaftaran</h3>
-                  <ul className="space-y-3 text-sm font-medium text-slate-700">
+              {/* Syarat & Target Peserta */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-6 border-t border-slate-100">
+                <div className="bg-amber-50/50 p-5 rounded-2xl border border-amber-100/60">
+                  <h3 className="font-bold text-slate-900 text-sm mb-3 flex items-center gap-2">
+                    <Lock size={15} className="text-amber-500"/> Syarat Pendaftaran
+                  </h3>
+                  <ul className="space-y-2 text-xs sm:text-sm font-medium text-slate-700">
                     {training.prerequisites?.map((prq, idx) => (
-                      <li key={idx} className="flex items-start gap-3"><div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0"></div> {prq}</li>
+                      <li key={idx} className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0"></div>
+                        <span>{prq}</span>
+                      </li>
                     ))}
-                    {(!training.prerequisites || training.prerequisites.length === 0) && <li className="flex items-center gap-2"><Check size={16} className="text-emerald-500"/> Terbuka untuk Umum / Pemula</li>}
+                    {(!training.prerequisites || training.prerequisites.length === 0) && (
+                      <li className="flex items-center gap-2 text-slate-600">
+                        <Check size={14} className="text-emerald-500"/> Terbuka untuk Umum & Pemula
+                      </li>
+                    )}
                   </ul>
                 </div>
-                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                  <h3 className="font-bold text-slate-900 text-base mb-4 flex items-center gap-2"><Target size={18} className="text-blue-500"/> Target Peserta</h3>
-                  <ul className="space-y-3 text-sm font-medium text-slate-700">
+
+                <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-100">
+                  <h3 className="font-bold text-slate-900 text-sm mb-3 flex items-center gap-2">
+                    <Target size={15} className="text-blue-500"/> Target Peserta
+                  </h3>
+                  <ul className="space-y-2 text-xs sm:text-sm font-medium text-slate-700">
                     {training.targetAudience?.map((aud, idx) => (
-                      <li key={idx} className="flex items-start gap-3"><div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 shrink-0"></div> {aud}</li>
+                      <li key={idx} className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0"></div>
+                        <span>{aud}</span>
+                      </li>
                     ))}
-                    {(!training.targetAudience || training.targetAudience.length === 0) && <li className="flex items-center gap-2"><Check size={16} className="text-emerald-500"/> Cocok untuk upskilling & reskilling.</li>}
+                    {(!training.targetAudience || training.targetAudience.length === 0) && (
+                      <li className="flex items-center gap-2 text-slate-600">
+                        <Check size={14} className="text-emerald-500"/> Siapa saja yang ingin meningkatkan keahlian (upskilling & reskilling).
+                      </li>
+                    )}
                   </ul>
                 </div>
               </div>
             </section>
 
-            {/* Section: Skills */}
+            {/* Section: Skills (Tema Terang Bersih, Menggantikan Box Gelap) */}
             <section id="skills" className="scroll-mt-24">
-              <div className="bg-slate-900 p-8 md:p-10 rounded-[32px] shadow-lg relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
-                  <CheckCircle2 size={200} />
+              <div className="bg-white p-5 sm:p-8 rounded-3xl shadow-xs border border-slate-200/70">
+                <div className="mb-5">
+                  <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600 uppercase tracking-widest bg-amber-50 px-2.5 py-1 rounded-full mb-2">
+                    <Sparkles size={12}/> Target Output
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Keahlian yang Anda Kuasai</h2>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1">Kompetensi teknis dan praktis yang akan Anda peroleh setelah menyelesaikan kelas ini.</p>
                 </div>
-                <div className="relative z-10">
-                  <h2 className="text-2xl md:text-3xl font-black text-white mb-2 tracking-tight">Keahlian Spesifik</h2>
-                  <p className="text-slate-400 mb-8 font-medium">Apa yang akan Anda kuasai setelah menyelesaikan kelas ini?</p>
-                  
-                  {(!training.skillsGained || training.skillsGained.length === 0) ? (
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-slate-400 text-sm font-medium">Informasi keahlian sedang diperbarui.</div>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                      {training.skillsGained.map((skill, idx) => (
-                        <div key={idx} className="bg-white/10 hover:bg-white/15 transition-colors border border-white/5 rounded-2xl p-4 flex items-start gap-3">
-                          <div className="mt-0.5 shrink-0 w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                            <Check size={14} className="text-emerald-400" />
-                          </div>
-                          <span className="text-sm font-bold text-white leading-snug">{skill}</span>
+                
+                {(!training.skillsGained || training.skillsGained.length === 0) ? (
+                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 text-slate-500 text-xs sm:text-sm font-medium">
+                    Informasi keahlian spesifik sedang diperbarui oleh tim akademik STP.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    {training.skillsGained.map((skill, idx) => (
+                      <div key={idx} className="bg-slate-50/80 hover:bg-amber-50/40 transition-colors border border-slate-100 hover:border-amber-200 rounded-2xl p-3.5 flex items-start gap-2.5">
+                        <div className="mt-0.5 shrink-0 w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                          <Check size={12} />
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                        <span className="text-xs sm:text-sm font-bold text-slate-800 leading-snug">{skill}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </section>
 
-            {/* Section: Curriculum */}
-            <section id="curriculum" className="pt-4 scroll-mt-24">
-              <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4 px-2">
+            {/* Section: Curriculum / Silabus */}
+            <section id="curriculum" className="scroll-mt-24">
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-4 gap-2 px-1">
                 <div>
-                  <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight mb-2">
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                     {training.type === 'Offline' ? 'Silabus Pembelajaran' : 'Kurikulum Kelas'}
                   </h2>
-                  <p className="text-sm font-medium text-slate-500">Materi disusun secara sistematis dan bertahap.</p>
+                  <p className="text-xs sm:text-sm font-medium text-slate-500">Materi disusun terstruktur dan sesuai kebutuhan dunia industri.</p>
                 </div>
-                <div className="text-xs font-bold text-slate-700 bg-white border border-slate-200 shadow-sm px-5 py-2.5 rounded-full inline-flex items-center gap-2">
-                  <BookOpen size={14} className="text-amber-500"/> {training.curriculum?.length || 0} Modul Utama
-                  <span className="w-1 h-1 rounded-full bg-slate-300 mx-1"></span>
-                  {totalLessons} Topik Detail
+                <div className="text-xs font-bold text-slate-700 bg-white border border-slate-200 shadow-xs px-3.5 py-1.5 rounded-full inline-flex items-center gap-1.5 self-start sm:self-auto">
+                  <BookOpen size={13} className="text-amber-500"/> {training.curriculum?.length || 0} Modul
+                  <span className="w-1 h-1 rounded-full bg-slate-300 mx-0.5"></span>
+                  {totalLessons} Materi
                 </div>
               </div>
               
-              <div className="bg-white p-6 md:p-8 rounded-[32px] shadow-[0_8px_30px_-4px_rgba(0,0,0,0.04)] border border-slate-100">
+              <div className="bg-white p-5 sm:p-7 rounded-3xl shadow-xs border border-slate-200/70">
                 {training.curriculum?.map((module, index) => (
                   <ModuleAccordion 
                     key={module.id} 
@@ -363,39 +491,35 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
                   />
                 ))}
                 {(!training.curriculum || training.curriculum.length === 0) && (
-                  <div className="p-10 bg-slate-50 rounded-[24px] border border-dashed border-slate-200 text-center text-slate-500 font-medium">
-                    <BookOpen size={32} className="mx-auto mb-4 text-slate-300"/>
-                    <p>Kurikulum detail sedang dipersiapkan oleh tim akademik.</p>
+                  <div className="p-8 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-center text-slate-400 font-medium">
+                    <BookOpen size={28} className="mx-auto mb-2 text-slate-300"/>
+                    <p className="text-xs sm:text-sm">Kurikulum detail sedang dipersiapkan oleh tim akademik.</p>
                   </div>
                 )}
               </div>
             </section>
 
-            {/* Section: Mentors */}
+            {/* Section: Mentors / Instruktur */}
             {training.instructors && training.instructors.length > 0 && (
-              <section id="mentor" className="pt-4 scroll-mt-24">
-                <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-8 tracking-tight px-2">Belajar dari Ahlinya</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <section id="mentor" className="scroll-mt-24">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 mb-4 tracking-tight px-1">Instruktur & Praktisi</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {training.instructors.map(inst => (
-                    <div key={inst.id} className="group relative bg-white border border-slate-200 hover:border-amber-300 rounded-[32px] p-8 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden">
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110 z-0"></div>
-                      
-                      <div className="relative z-10 flex flex-col items-center text-center">
-                        <div className="w-24 h-24 mb-5 rounded-full bg-slate-100 overflow-hidden shrink-0 border-4 border-white shadow-md">
-                          {inst.photoUrl ? (
-                            <img src={inst.photoUrl} alt={inst.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-slate-400 bg-slate-50"><Users size={32}/></div>
-                          )}
-                        </div>
-                        <h3 className="text-xl font-bold text-slate-900 mb-1">{inst.name}</h3>
-                        <Badge variant="secondary" className="bg-amber-100 text-amber-700 font-bold border-none uppercase tracking-wide text-[10px] mb-4">
-                          {inst.title}
-                        </Badge>
-                        <p className="text-sm font-medium text-slate-600 leading-relaxed line-clamp-4">
-                          {inst.bio || 'Praktisi dan ahli di bidangnya dengan pengalaman industri bertahun-tahun yang siap membimbing Anda dari dasar hingga mahir.'}
-                        </p>
+                    <div key={inst.id} className="bg-white border border-slate-200/80 hover:border-amber-300 rounded-3xl p-6 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col items-center text-center">
+                      <div className="w-20 h-20 mb-4 rounded-full bg-slate-100 overflow-hidden shrink-0 border-3 border-amber-50 shadow-xs">
+                        {inst.photoUrl ? (
+                          <img src={inst.photoUrl} alt={inst.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-slate-400 bg-slate-50"><Users size={28}/></div>
+                        )}
                       </div>
+                      <h3 className="text-base font-bold text-slate-900 mb-0.5">{inst.name}</h3>
+                      <Badge variant="secondary" className="bg-amber-100 text-amber-700 font-bold border-none uppercase tracking-wide text-[10px] mb-3">
+                        {inst.title}
+                      </Badge>
+                      <p className="text-xs text-slate-600 leading-relaxed font-normal line-clamp-3">
+                        {inst.bio || 'Praktisi industri berpengalaman yang siap membimbing Anda dari pemahaman dasar hingga penguasaan standar operasional.'}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -404,52 +528,55 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
             
           </div>
 
-          {/* KANAN: FLOATING SIDEBAR */}
-          <div className="lg:col-span-5 xl:col-span-4 mt-8 lg:mt-0">
-            <div className="sticky top-24 z-30">
+          {/* KOLOM KANAN: DESKTOP FLOATING SIDEBAR (Tersembunyi di Mobile) */}
+          <div className="hidden lg:block lg:col-span-5 xl:col-span-4">
+            <div className="sticky top-20 z-30">
               
-              <div className="bg-white rounded-[32px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-slate-200/60 overflow-hidden flex flex-col">
+              <div className="bg-white rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden flex flex-col">
                 
-                {/* Video / Cover Image Area */}
+                {/* Desktop Video / Cover Area */}
                 <div 
-                  className={`w-full relative aspect-video bg-slate-900 group ${training.promoVideoUrl ? 'cursor-pointer' : ''}`}
+                  className={`w-full relative aspect-video bg-slate-100 group ${training.promoVideoUrl ? 'cursor-pointer' : ''}`}
                   onClick={() => training.promoVideoUrl && setIsVideoModalOpen(true)}
                 >
                   {training.imageUrl ? (
-                    <img src={training.imageUrl} alt="Poster Kelas" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-90" />
+                    <img src={training.imageUrl} alt="Poster Kelas" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="flex flex-col items-center justify-center w-full h-full text-slate-600 bg-slate-800">
+                    <div className="flex flex-col items-center justify-center w-full h-full text-slate-400 bg-slate-50">
                       <MonitorPlay size={40} className="mb-2 opacity-50"/>
+                      <span className="text-xs font-semibold">Solo Technopark</span>
                     </div>
                   )}
                   
                   {training.promoVideoUrl && (
-                    <div className="absolute inset-0 bg-slate-900/40 flex items-center justify-center transition-colors group-hover:bg-slate-900/60">
-                      <div className="w-16 h-16 rounded-full bg-amber-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_30px_rgba(245,158,11,0.5)]">
-                        <Play className="w-8 h-8 ml-1" fill="currentColor"/>
+                    <div className="absolute inset-0 bg-slate-900/30 flex items-center justify-center transition-colors group-hover:bg-slate-900/40">
+                      <div className="w-14 h-14 rounded-full bg-amber-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                        <Play className="w-7 h-7 ml-0.5" fill="currentColor"/>
                       </div>
                     </div>
                   )}
 
-                  <div className="absolute top-4 left-4 flex gap-2">
-                    <Badge className="bg-white/20 backdrop-blur-md text-white border-none font-bold text-[10px] tracking-wider uppercase">{training.type}</Badge>
+                  <div className="absolute top-3 left-3 flex gap-2">
+                    <Badge className="bg-white/90 backdrop-blur-md text-slate-800 border-none font-bold text-[10px] tracking-wider uppercase shadow-xs">
+                      {training.type}
+                    </Badge>
                   </div>
                 </div>
 
-                <div className="p-8">
+                <div className="p-6">
                   {/* Pricing Block */}
-                  <div className="mb-8">
+                  <div className="mb-6">
                     {training.isFree ? (
-                      <h2 className="text-4xl lg:text-5xl font-black text-emerald-500 tracking-tight">Gratis</h2>
+                      <h2 className="text-3xl lg:text-4xl font-black text-emerald-600 tracking-tight">Gratis</h2>
                     ) : (
                       <div className="flex flex-col">
                         {training.discountPrice && training.discountPrice > training.price && (
-                          <span className="text-sm md:text-base text-slate-400 font-bold line-through mb-1 flex items-center gap-2">
+                          <span className="text-xs text-slate-400 font-bold line-through mb-0.5 flex items-center gap-1.5">
                             {formatRupiah(training.discountPrice)}
-                            <Badge className="bg-red-100 text-red-600 hover:bg-red-100 border-none px-2 py-0.5 text-[10px]">PROMO</Badge>
+                            <Badge className="bg-red-100 text-red-600 hover:bg-red-100 border-none px-1.5 py-0.2 text-[9px]">HEMAT</Badge>
                           </span>
                         )}
-                        <h2 className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">{formatRupiah(training.price)}</h2>
+                        <h2 className="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">{formatRupiah(training.price)}</h2>
                       </div>
                     )}
                   </div>
@@ -458,68 +585,77 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
                   <Button 
                     onClick={() => router.push(`/program-pelatihan/${training.id}/daftar`)}
                     disabled={isFull}
-                    className={`w-full h-14 rounded-full text-base font-bold shadow-lg transition-all duration-300 mb-3 flex items-center justify-center gap-2 ${isFull ? 'bg-slate-100 text-slate-400 shadow-none' : 'bg-slate-900 hover:bg-amber-500 hover:shadow-amber-500/25 text-white'}`}
+                    className={`w-full h-12 rounded-full text-sm font-bold shadow-md transition-all duration-300 mb-2.5 flex items-center justify-center gap-2 ${
+                      isFull 
+                        ? 'bg-slate-100 text-slate-400 shadow-none cursor-not-allowed' 
+                        : 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/20'
+                    }`}
                   >
                     {isFull ? 'Kuota Penuh' : 'Daftar Kelas Sekarang'}
                   </Button>
                   
-                  {/* Secondary CTA: WhatsApp */}
-                  {training.contactWhatsapp && (
+                  {/* WhatsApp CTA */}
+                  {cleanWhatsappNumber && (
                     <a 
-                      href={`https://wa.me/${training.contactWhatsapp.replace(/[^0-9]/g, '').replace(/^0/, '62')}?text=${encodeURIComponent(`Halo admin, saya tertarik dengan pelatihan *${training.title}*. Bisa minta informasi lebih lanjut?`)}`}
+                      href={`https://wa.me/${cleanWhatsappNumber}?text=${waText}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full h-14 rounded-full text-base font-bold shadow-lg shadow-[#25D366]/20 transition-all duration-300 mb-4 flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1EBE5D] text-white"
+                      className="w-full h-12 rounded-full text-sm font-bold shadow-sm transition-all duration-300 mb-5 flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1EBE5D] text-white"
                     >
-                      <MessageCircle size={20}/>
+                      <MessageCircle size={18}/>
                       Tanya via WhatsApp
                     </a>
                   )}
                   
-                  <div className="flex items-center justify-between text-xs font-bold text-slate-400 mb-8">
-                    <span className="flex items-center gap-1.5"><ShieldCheck size={14}/> Garansi Aman</span>
-                    <div className="flex gap-3">
-                      <button className="hover:text-amber-500 transition-colors"><Share2 size={16}/></button>
-                      <button className="hover:text-red-500 transition-colors"><Heart size={16}/></button>
-                    </div>
+                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 mb-6 px-1">
+                    <span className="flex items-center gap-1.5"><ShieldCheck size={14} className="text-emerald-500"/> Sertifikasi & Instruktur Resmi</span>
+                    <button 
+                      onClick={() => {
+                        if (navigator.share) navigator.share({ title: training.title, url: window.location.href });
+                        else { navigator.clipboard.writeText(window.location.href); alert('Tautan disalin!'); }
+                      }}
+                      className="hover:text-amber-500 transition-colors"
+                    >
+                      <Share2 size={15}/>
+                    </button>
                   </div>
 
                   {/* What's included */}
-                  <div className="space-y-5 border-t border-slate-100 pt-8">
-                    <h4 className="font-bold text-slate-900 text-sm">Fasilitas yang Anda dapatkan:</h4>
-                    <ul className="space-y-4">
+                  <div className="space-y-4 border-t border-slate-100 pt-6">
+                    <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider">Fasilitas yang didapatkan:</h4>
+                    <ul className="space-y-3">
                       {whatsIncluded.map((item, idx) => (
-                        <li key={idx} className="flex items-center gap-3 text-sm font-medium text-slate-600">
-                          <span className="w-8 h-8 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+                        <li key={idx} className="flex items-center gap-2.5 text-xs font-medium text-slate-600">
+                          <span className="w-6 h-6 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
                             {item.icon}
                           </span>
-                          {item.text}
+                          <span>{item.text}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
 
                   {/* Logistics Detail */}
-                  <div className="mt-8 bg-slate-50 rounded-2xl p-5 space-y-4 border border-slate-100">
+                  <div className="mt-6 bg-slate-50/80 rounded-2xl p-4 space-y-3 border border-slate-100 text-xs">
                     {training.durationDisplay && (
-                      <div className="flex items-start gap-3 text-sm">
-                        <Clock size={18} className="text-slate-400 shrink-0 mt-0.5"/> 
+                      <div className="flex items-start gap-2.5">
+                        <Clock size={16} className="text-slate-400 shrink-0 mt-0.5"/> 
                         <div>
                           <span className="block text-slate-800 font-bold">Durasi: {training.durationDisplay}</span>
-                          {training.scheduleDetails && <span className="text-xs text-slate-500 font-medium mt-0.5 block">{training.scheduleDetails}</span>}
+                          {training.scheduleDetails && <span className="text-slate-500 font-medium mt-0.5 block">{training.scheduleDetails}</span>}
                         </div>
                       </div>
                     )}
                     
                     {training.type !== 'Video Course' && (
                       <>
-                        <div className="flex items-center gap-3 text-sm">
-                          <Calendar size={18} className="text-slate-400 shrink-0"/> 
-                          <span className="text-slate-700 font-bold">{training.date ? new Date(training.date).toLocaleDateString('id-ID', { dateStyle: 'long' }) : 'Tanggal Menyusul'}</span>
+                        <div className="flex items-center gap-2.5">
+                          <Calendar size={16} className="text-slate-400 shrink-0"/> 
+                          <span className="text-slate-700 font-bold">{training.date ? new Date(training.date).toLocaleDateString('id-ID', { dateStyle: 'long' }) : 'Jadwal Reguler STP'}</span>
                         </div>
-                        <div className="flex items-start gap-3 text-sm">
-                          <MapPin size={18} className="text-slate-400 shrink-0 mt-0.5"/> 
-                          <span className="text-slate-700 font-medium leading-snug">{training.location || 'Lokasi Menyusul'}</span>
+                        <div className="flex items-start gap-2.5">
+                          <MapPin size={16} className="text-slate-400 shrink-0 mt-0.5"/> 
+                          <span className="text-slate-700 font-medium leading-snug">{training.location || 'Solo Technopark, Surakarta'}</span>
                         </div>
                       </>
                     )}
@@ -534,24 +670,24 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
         </div>
       </div>
 
-      {/* --- MOBILE BOTTOM CTA (Elegan & Borderless) --- */}
+      {/* --- MOBILE STICKY BOTTOM DUAL-CTA (Tema Terang & Borderless) --- */}
       <div className="public-detail-bottom-bar lg:hidden">
         <div>
-           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-0.5">Total Harga</p>
+           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-0.5">Biaya Pelatihan</p>
            {training.isFree ? (
-             <p className="text-xl font-black text-emerald-500 leading-none">Gratis</p>
+             <p className="text-lg font-black text-emerald-600 leading-none">Gratis</p>
            ) : (
-             <p className="text-xl font-black text-slate-900 leading-none">{formatRupiah(training.price)}</p>
+             <p className="text-lg font-black text-slate-900 leading-none">{formatRupiah(training.price)}</p>
            )}
         </div>
         
-        <div className="flex items-center gap-2.5">
-          {training.contactWhatsapp && (
+        <div className="flex items-center gap-2">
+          {cleanWhatsappNumber && (
             <a 
-              href={`https://wa.me/${training.contactWhatsapp.replace(/[^0-9]/g, '').replace(/^0/, '62')}?text=${encodeURIComponent(`Halo, saya tertarik dengan pelatihan *${training.title}*.`)}`}
+              href={`https://wa.me/${cleanWhatsappNumber}?text=${waText}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-11 h-11 rounded-full flex items-center justify-center bg-[#25D366] text-white shadow-md shrink-0"
+              className="w-11 h-11 rounded-full flex items-center justify-center bg-[#25D366] text-white shadow-sm shrink-0"
               title="Hubungi Admin WhatsApp"
             >
               <MessageCircle size={18}/>
@@ -560,7 +696,11 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
           <Button 
             onClick={() => router.push(`/program-pelatihan/${training.id}/daftar`)}
             disabled={isFull}
-            className={`h-11 px-6 rounded-full font-bold shadow-md border-0 ${isFull ? 'bg-slate-100 text-slate-400 shadow-none' : 'bg-amber-500 hover:bg-amber-600 text-white'}`}
+            className={`h-11 px-5 rounded-full text-xs font-bold shadow-md border-0 ${
+              isFull 
+                ? 'bg-slate-100 text-slate-400 shadow-none cursor-not-allowed' 
+                : 'bg-amber-500 hover:bg-amber-600 text-white'
+            }`}
           >
             {isFull ? 'Penuh' : 'Daftar Sekarang'}
           </Button>
@@ -574,20 +714,20 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }} 
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/95 backdrop-blur-sm p-4 sm:p-6"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 sm:p-6"
           >
             <button 
               onClick={() => setIsVideoModalOpen(false)} 
-              className="absolute top-6 right-6 sm:top-8 sm:right-8 text-white/50 hover:text-white bg-white/10 hover:bg-white/20 p-3 rounded-full backdrop-blur-md transition-all z-50"
+              className="absolute top-5 right-5 sm:top-8 sm:right-8 text-white/70 hover:text-white bg-black/40 hover:bg-black/60 p-2.5 rounded-full backdrop-blur-md transition-all z-50"
             >
-              <X size={24}/>
+              <X size={20}/>
             </button>
             <motion.div 
-              initial={{ scale: 0.95, opacity: 0, y: 20 }} 
+              initial={{ scale: 0.95, opacity: 0, y: 15 }} 
               animate={{ scale: 1, opacity: 1, y: 0 }} 
-              exit={{ scale: 0.95, opacity: 0, y: 20 }} 
+              exit={{ scale: 0.95, opacity: 0, y: 15 }} 
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="w-full max-w-5xl aspect-video bg-black rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10 relative"
+              className="w-full max-w-4xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/20 relative"
             >
                <iframe 
                  src={getEmbedUrl(training.promoVideoUrl) + '?autoplay=1'} 
