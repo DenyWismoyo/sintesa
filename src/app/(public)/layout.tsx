@@ -283,8 +283,8 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         )}
       </AnimatePresence>
 
-      {/* --- MAIN CONTENT AREA DENGAN PADDING ERGONOMIS MOBILE TANPA OVERLAY BOTTOM BAR --- */}
-      <main className="flex-1 w-full flex flex-col relative z-10 pt-16 sm:pt-20 pb-8 sm:pb-12">
+      {/* --- MAIN CONTENT AREA DENGAN PADDING ERGONOMIS MOBILE TANPA OVERLAP DENGAN FIXED NAVBAR --- */}
+      <main className="flex-1 w-full flex flex-col relative z-10 pt-[5.25rem] sm:pt-24 pb-8 sm:pb-12">
         {children}
       </main>
 

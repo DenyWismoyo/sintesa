@@ -215,10 +215,10 @@ export default function TenantProfilePublicPage({ tenantId, initialTenant }: { t
     <div className="w-full bg-[#FAFAFA] min-h-screen pb-32 font-sans selection:bg-indigo-100 selection:text-indigo-900">
       
       {/* 1. CLEAN LIGHT HERO SECTION (Sesuai Tema Terang Solo Technopark) */}
-      <div className="w-full max-w-[1400px] mx-auto sm:px-6 lg:px-10 sm:pt-6">
+      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 pt-3 sm:pt-6">
         
         {/* Cover Image Container */}
-        <div className="relative w-full h-44 sm:h-64 md:h-80 sm:rounded-3xl overflow-hidden bg-slate-100 border-b sm:border border-slate-200/80 shadow-xs">
+        <div className="relative w-full h-44 sm:h-64 md:h-80 rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-100 border border-slate-200/80 shadow-xs">
           <OptimizedImage 
             src={tenant.coverImageUrl} 
             alt={`${tenant.name} Cover`} 
