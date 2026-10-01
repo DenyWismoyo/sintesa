@@ -29,6 +29,11 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-, "src/app/api/ai/calculate-matches/route/ts"  ],
-  "exclude": ["node_modules"]
+  ],
+  "exclude": [
+    "node_modules",
+    "functions",
+    "scripts",
+    "scratch"
+  ]
 }
