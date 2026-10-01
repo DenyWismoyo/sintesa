@@ -1,8 +1,7 @@
-// Lokasi file: src/app/(public)/artikel/[id]/page.tsx
-
 import { Metadata } from 'next';
 import ClientPage from './ClientPage';
-import { articleService } from '@/services/article.service';
+import { Article } from '@/types';
+import { getServerDocRest, getServerDocBySlugRest } from '@/lib/serverFirestore';
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -12,13 +11,22 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://katalog.solotechnopa
 
 export const revalidate = 60; // ISR cache 60 detik
 
+async function fetchArticleServer(idOrSlug: string): Promise<Article | null> {
+  try {
+    let art = await getServerDocRest<Article>('articles', idOrSlug, 60);
+    if (!art) {
+      art = await getServerDocBySlugRest<Article>('articles', idOrSlug, 60);
+    }
+    return art;
+  } catch {
+    return null;
+  }
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const { id } = await params;
-    let article = await articleService.getArticleById(id);
-    if (!article) {
-      article = await articleService.getArticleBySlug(id);
-    }
+    const article = await fetchArticleServer(id);
 
     if (!article) {
       return {
@@ -67,10 +75,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ArticleDetailPage({ params }: Props) {
   const { id } = await params;
-  let initialArticle = await articleService.getArticleById(id);
-  if (!initialArticle) {
-    initialArticle = await articleService.getArticleBySlug(id);
-  }
+  const initialArticle = await fetchArticleServer(id);
 
   return <ClientPage initialArticle={initialArticle} idOrSlug={id} />;
 }

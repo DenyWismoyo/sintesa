@@ -63,3 +63,43 @@ export async function getServerDocRest<T = any>(
     return null;
   }
 }
+
+export async function getServerDocBySlugRest<T = any>(
+  collectionName: string,
+  slug: string,
+  revalidateSeconds: number = 60
+): Promise<T | null> {
+  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'katalog-solo-technopark';
+  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents:runQuery`;
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: collectionName }],
+          where: {
+            fieldFilter: {
+              field: { fieldPath: 'slug' },
+              op: 'EQUAL',
+              value: { stringValue: slug }
+            }
+          },
+          limit: 1
+        }
+      })
+    });
+
+    if (!res.ok) return null;
+    const json = await res.json();
+    if (!Array.isArray(json) || json.length === 0 || !json[0].document) return null;
+
+    return parseFirestoreDoc<T>(json[0].document);
+  } catch (error) {
+    console.warn(`[SERVER REST SLUG ERROR] Gagal query slug ${slug}:`, error);
+    return null;
+  }
+}
+
