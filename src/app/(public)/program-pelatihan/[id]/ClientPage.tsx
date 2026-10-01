@@ -12,7 +12,7 @@ import {
   ArrowLeft, Loader2, PlayCircle, FileText, CheckCircle2, ChevronDown, 
   Users, MapPin, Calendar, Clock, Lock, MonitorPlay, Award, 
   ChevronRight, Star, X, Play, ShieldCheck, Settings, Wrench, BookOpen, Target, Briefcase,
-  Share2, Heart, Check, MessageCircle, Sparkles
+  Share2, Heart, Check, MessageCircle, Sparkles, ShoppingBag
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -659,6 +659,17 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
                         </div>
                       </>
                     )}
+                  </div>
+
+                  {/* Cross-Link Resmi ke E-Katalog */}
+                  <div className="mt-4 pt-4 border-t border-slate-100">
+                    <Link
+                      href={`/e-katalog/${training.id}`}
+                      className="w-full h-11 rounded-2xl text-xs font-bold text-slate-700 bg-slate-50 hover:bg-amber-50 hover:text-amber-900 hover:border-amber-200 border border-slate-200/80 flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] shadow-2xs"
+                    >
+                      <ShoppingBag size={15} className="text-amber-600" />
+                      <span>Lihat Spesifikasi di E-Katalog STP</span>
+                    </Link>
                   </div>
 
                 </div>

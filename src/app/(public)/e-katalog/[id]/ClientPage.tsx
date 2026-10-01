@@ -7,7 +7,7 @@ import {
   ArrowLeft, CheckCircle2, Image as ImageIcon, ShoppingCart, Loader2, 
   Tag, Info, ListChecks, ChevronRight, Check, X, ChevronLeft, 
   ZoomIn, MessageCircle, ExternalLink, CalendarDays, Store, Building2,
-  Share2, ShieldCheck
+  Share2, ShieldCheck, GraduationCap
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/AuthContext';
@@ -484,6 +484,17 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
                     {isProcessing ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : renderCtaIcon()}
                     {isProcessing ? 'Memproses...' : product.ctaText || 'Pesan Sekarang'}
                   </Button>
+
+                  {product.category === 'Pelatihan' && (
+                    <Link
+                      href={`/program-pelatihan/${product.id}`}
+                      className="w-full h-12 rounded-2xl text-xs sm:text-sm font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] shadow-2xs"
+                    >
+                      <GraduationCap size={18} className="text-amber-700" />
+                      <span>Lihat Silabus & Formulir Pendaftaran</span>
+                    </Link>
+                  )}
+
                   <p className="text-center text-xs text-slate-400 font-medium">Layanan resmi terdaftar di Solo Technopark.</p>
                 </div>
 
@@ -530,6 +541,17 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
         </div>
 
         <div className="flex items-center gap-2">
+          {product.category === 'Pelatihan' && (
+            <Link
+              href={`/program-pelatihan/${product.id}`}
+              className="h-11 px-3.5 rounded-full flex items-center justify-center gap-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs border border-amber-200 shrink-0"
+              title="Lihat Silabus & Pendaftaran"
+            >
+              <GraduationCap size={16} className="text-amber-700" />
+              <span>Silabus</span>
+            </Link>
+          )}
+
           {/* Tombol WhatsApp Konsultasi PIC Cepat */}
           <a 
             href={`https://wa.me/628112658888?text=${encodeURIComponent(`Halo Solo Technopark, saya ingin konsultasi mengenai layanan *${product.name}* (ID: ${product.id}).`)}`}
