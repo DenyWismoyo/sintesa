@@ -15,7 +15,6 @@ import { toast } from 'sonner';
 
 // --- IMPORT KONFIGURASI ROLE ---
 import { isInternalStaff, APP_ROLES } from '@/config/roles';
-import MobileBottomNav from '@/components/ui/MobileBottomNav';
 
 const NAV_MENUS = [
   //{ name: 'Beranda', path: '/portal' },
@@ -284,13 +283,10 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         )}
       </AnimatePresence>
 
-      {/* --- MAIN CONTENT AREA DENGAN BOTTOM PADDING UNTUK DOCK MOBILE --- */}
-      <main className="flex-1 w-full flex flex-col relative z-10 pt-16 sm:pt-20 pb-28 lg:pb-12">
+      {/* --- MAIN CONTENT AREA DENGAN PADDING ERGONOMIS MOBILE TANPA OVERLAY BOTTOM BAR --- */}
+      <main className="flex-1 w-full flex flex-col relative z-10 pt-16 sm:pt-20 pb-8 sm:pb-12">
         {children}
       </main>
-
-      {/* --- DOCK NAVIGASI BAWAH SELULER (THUMB-FRIENDLY) --- */}
-      <MobileBottomNav onOpenMobileMenu={() => setIsMobileMenuOpen(true)} />
 
     </div>
   );

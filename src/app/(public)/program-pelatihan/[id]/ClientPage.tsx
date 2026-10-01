@@ -534,10 +534,10 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
         </div>
       </div>
 
-      {/* --- MOBILE BOTTOM CTA --- */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-slate-200 p-4 z-50 shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.1)] flex items-center justify-between pb-safe">
+      {/* --- MOBILE BOTTOM CTA (Elegan & Borderless) --- */}
+      <div className="public-detail-bottom-bar lg:hidden">
         <div>
-           <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Total Harga</p>
+           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-0.5">Total Harga</p>
            {training.isFree ? (
              <p className="text-xl font-black text-emerald-500 leading-none">Gratis</p>
            ) : (
@@ -545,23 +545,24 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
            )}
         </div>
         
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           {training.contactWhatsapp && (
             <a 
               href={`https://wa.me/${training.contactWhatsapp.replace(/[^0-9]/g, '').replace(/^0/, '62')}?text=${encodeURIComponent(`Halo, saya tertarik dengan pelatihan *${training.title}*.`)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-12 h-12 rounded-full flex items-center justify-center bg-[#25D366] text-white shadow-lg shrink-0"
+              className="w-11 h-11 rounded-full flex items-center justify-center bg-[#25D366] text-white shadow-md shrink-0"
+              title="Hubungi Admin WhatsApp"
             >
-              <MessageCircle size={20}/>
+              <MessageCircle size={18}/>
             </a>
           )}
           <Button 
             onClick={() => router.push(`/program-pelatihan/${training.id}/daftar`)}
             disabled={isFull}
-            className={`h-12 px-6 sm:px-8 rounded-full font-bold shadow-lg ${isFull ? 'bg-slate-100 text-slate-400 shadow-none' : 'bg-slate-900 text-white'}`}
+            className={`h-11 px-6 rounded-full font-bold shadow-md border-0 ${isFull ? 'bg-slate-100 text-slate-400 shadow-none' : 'bg-amber-500 hover:bg-amber-600 text-white'}`}
           >
-            {isFull ? 'Penuh' : 'Daftar'}
+            {isFull ? 'Penuh' : 'Daftar Sekarang'}
           </Button>
         </div>
       </div>

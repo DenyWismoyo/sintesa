@@ -546,23 +546,23 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
         </div>
       </div>
 
-      {/* MOBILE STICKY BOTTOM BAR (Tampil hanya di layar HP) */}
-      <div className="lg:hidden fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] p-4 px-6 z-40 flex items-center justify-between pb-[calc(1rem+env(safe-area-inset-bottom))]">
+      {/* MOBILE STICKY BOTTOM BAR (Tampil hanya di layar HP) - Elegan & Borderless */}
+      <div className="public-detail-bottom-bar lg:hidden">
         <div className="flex flex-col">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Harga</span>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Tarif</span>
           <p className="font-black text-slate-900 text-lg flex items-baseline gap-1">
             Rp {product.price?.toLocaleString('id-ID')}
-            <span className="text-xs font-medium text-slate-500">/{product.pricingType}</span>
+            <span className="text-xs font-semibold text-slate-400">/{product.pricingType}</span>
           </p>
         </div>
         <Button 
           onClick={handleCTA} 
           disabled={isProcessing} 
-          className={`h-12 px-6 rounded-xl font-bold text-white shadow-lg ${
+          className={`h-11 px-6 rounded-full font-bold text-white shadow-md border-0 ${
             product.ctaType === 'WHATSAPP' ? 'bg-[#25D366] hover:bg-[#1DA851]' : 'bg-emerald-600 hover:bg-emerald-700'
           }`}
         >
-          {isProcessing ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Pesan'}
+          {isProcessing ? <Loader2 className="h-5 w-5 animate-spin" /> : (product.ctaText || 'Pesan')}
         </Button>
       </div>
 
