@@ -8,12 +8,17 @@ import { useTraining } from '@/hooks/useTraining';
 import { useAssets } from '@/hooks/useAssets';
 import { Article, ArticleCategory, ArticleCtaType } from '@/types';
 import { slugify } from '@/services/article.service';
+import { storageService } from '@/services/storage.service';
+import ArticleImagePickerModal, { SelectedMasterImage } from '@/components/admin/ArticleImagePickerModal';
+import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
+import { toast } from 'sonner';
 import { 
   Newspaper, Plus, Search, Edit3, Trash2, ExternalLink, Eye, 
   Clock, Calendar, User, Tag, Sparkles, CheckCircle2, 
   X, Image as ImageIcon, ArrowUpRight, MessageCircle, 
   GraduationCap, Store, Building2, Link as LinkIcon, AlertCircle, 
-  FileText, ShieldCheck
+  FileText, ShieldCheck, UploadCloud, FileCode, Heading2, Heading3, 
+  Bold, Italic, List, CheckSquare, Code, Quote, Table as TableIcon, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -56,6 +61,11 @@ export default function ManajemenArtikelPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [tagInput, setTagInput] = useState('');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  // Image & Markdown Tools State
+  const [isImagePickerOpen, setIsImagePickerOpen] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [markdownViewMode, setMarkdownViewMode] = useState<'WRITE' | 'PREVIEW'>('WRITE');
 
   // Form State
   const [formData, setFormData] = useState<Partial<Article>>({
@@ -163,6 +173,118 @@ export default function ManajemenArtikelPage() {
       ...prev,
       title: val,
       slug: prev.slug && editingId ? prev.slug : slugify(val)
+    }));
+  };
+
+  // Upload Cover Image langsung ke Firebase Storage (dengan kompresi klien otomatis)
+  const handleUploadCoverImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploadingImage(true);
+      const url = await storageService.uploadImage(file, 'articles');
+      setFormData(prev => ({ ...prev, coverImageUrl: url }));
+      toast.success("Foto Sampul Berhasil Diunggah", {
+        description: "Gambar telah dikompres otomatis dan disimpan ke storage."
+      });
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Gagal Mengunggah Gambar", { description: err.message || "Terjadi kesalahan saat upload." });
+    } finally {
+      setIsUploadingImage(false);
+      e.target.value = '';
+    }
+  };
+
+  // Pilih Gambar dari Master Data (Pelatihan / Fasilitas / Katalog)
+  const handleSelectMasterImage = (selected: SelectedMasterImage) => {
+    setFormData(prev => {
+      const updates: Partial<Article> = {
+        ...prev,
+        coverImageUrl: selected.url,
+      };
+
+      // Jika CTA belum diatur, otomatis tautkan Smart CTA ke item tersebut
+      if (!prev.cta || prev.cta.type === 'NONE') {
+        updates.cta = {
+          type: selected.sourceType,
+          targetId: selected.sourceId,
+          targetUrl: selected.targetUrl,
+          targetBadge: selected.targetBadge,
+          title: selected.sourceType === 'TRAINING' 
+            ? `Tertarik Mengikuti Pelatihan ${selected.sourceTitle}?`
+            : selected.sourceType === 'CATALOG'
+            ? `Butuh Produk / Layanan ${selected.sourceTitle}?`
+            : `Reservasi Fasilitas ${selected.sourceTitle}`,
+          description: selected.suggestedDescription || 'Pelajari detail lengkap dan lakukan pendaftaran atau reservasi sekarang.',
+          buttonText: selected.sourceType === 'TRAINING' ? 'Daftar Pelatihan' : selected.sourceType === 'CATALOG' ? 'Buka E-Katalog' : 'Cek Fasilitas'
+        };
+      }
+
+      return updates;
+    });
+
+    toast.success("Gambar Master Data Dipilih", {
+      description: `Gambar ${selected.sourceTitle} berhasil diintegrasikan.`
+    });
+  };
+
+  // Import File .md (Markdown Reader)
+  const handleImportMarkdownFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      if (!text) return;
+
+      const lines = text.split('\n');
+
+      // 1. Ekstrak H1 (# Judul) jika field judul form masih kosong atau default
+      const h1Line = lines.find(l => l.trim().startsWith('# '));
+      if (h1Line && (!formData.title || formData.title.trim() === '')) {
+        const extractedTitle = h1Line.replace(/^#\s+/, '').trim();
+        handleTitleChange(extractedTitle);
+      }
+
+      // 2. Ekstrak excerpt jika belum diisi
+      if (!formData.excerpt) {
+        const nonHeadings = lines.filter(l => l.trim() && !l.trim().startsWith('#') && !l.trim().startsWith('!['))[0];
+        if (nonHeadings) {
+          setFormData(prev => ({ ...prev, excerpt: nonHeadings.substring(0, 160) }));
+        }
+      }
+
+      // 3. Estimasi waktu baca
+      const wordCount = text.trim().split(/\s+/).length;
+      const estimatedMins = Math.max(1, Math.ceil(wordCount / 200));
+
+      setFormData(prev => ({
+        ...prev,
+        content: text,
+        readTimeMins: estimatedMins,
+      }));
+
+      toast.success("File Markdown Berhasil Diimpor", {
+        description: `Memuat ${lines.length} baris dokumen. Siap dipratinjau & disimpan.`
+      });
+    };
+
+    reader.onerror = () => {
+      toast.error("Gagal Membaca File Markdown");
+    };
+
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  // Helper Quick Markdown Insert
+  const insertMarkdownSnippet = (snippet: string) => {
+    setFormData(prev => ({
+      ...prev,
+      content: (prev.content ? prev.content + '\n' : '') + snippet
     }));
   };
 
@@ -612,13 +734,73 @@ export default function ManajemenArtikelPage() {
             {/* Bagian 2: Gambar Cover & Meta Penulis */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50/70 p-4 rounded-2xl border border-slate-100">
               <div className="sm:col-span-2">
-                <label className="text-xs font-bold text-slate-700 block mb-1">URL Gambar Sampul (Cover Image)</label>
+                <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1.5">
+                  <label className="text-xs font-bold text-slate-700">URL Gambar Sampul (Cover Image)</label>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setIsImagePickerOpen(true)}
+                      className="text-[11px] font-bold text-amber-800 hover:text-amber-900 bg-amber-100/90 hover:bg-amber-200 px-2.5 py-1 rounded-lg inline-flex items-center gap-1 transition-colors shadow-2xs"
+                    >
+                      <Sparkles size={12} className="text-amber-600" />
+                      Pilih dari Master Data STP
+                    </button>
+                    <label className="text-[11px] font-bold text-slate-700 hover:text-slate-900 bg-white border border-slate-200 hover:bg-slate-50 px-2.5 py-1 rounded-lg inline-flex items-center gap-1 cursor-pointer transition-colors shadow-2xs">
+                      {isUploadingImage ? (
+                        <>
+                          <Loader2 size={12} className="animate-spin text-amber-600" />
+                          <span>Mengompres & Upload...</span>
+                        </>
+                      ) : (
+                        <>
+                          <UploadCloud size={12} />
+                          <span>Upload Foto</span>
+                        </>
+                      )}
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={handleUploadCoverImage} 
+                        disabled={isUploadingImage}
+                        className="hidden" 
+                      />
+                    </label>
+                  </div>
+                </div>
                 <Input 
                   value={formData.coverImageUrl || ''}
                   onChange={(e) => setFormData(prev => ({ ...prev, coverImageUrl: e.target.value }))}
-                  placeholder="https://images.unsplash.com/... atau URL foto"
+                  placeholder="https://... atau klik tombol di atas untuk upload / pilih master data"
                   className="h-10 rounded-xl text-xs bg-white"
                 />
+
+                {/* Pratinjau Thumbnail Gambar */}
+                {formData.coverImageUrl && (
+                  <div className="mt-2.5 relative rounded-2xl overflow-hidden border border-slate-200 h-28 bg-slate-100 flex items-center justify-center group shadow-2xs">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img 
+                      src={formData.coverImageUrl} 
+                      alt="Pratinjau Cover" 
+                      className="w-full h-full object-cover" 
+                    />
+                    <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <button 
+                        type="button" 
+                        onClick={() => setIsImagePickerOpen(true)}
+                        className="bg-white/90 hover:bg-white text-slate-800 text-[11px] font-bold px-3 py-1.5 rounded-xl shadow-xs"
+                      >
+                        Ganti Gambar
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => setFormData(prev => ({ ...prev, coverImageUrl: '' }))}
+                        className="bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl shadow-xs"
+                      >
+                        Hapus
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -685,20 +867,82 @@ export default function ManajemenArtikelPage() {
               />
             </div>
 
-            {/* Bagian 4: Isi Konten Artikel */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-xs font-bold text-slate-700">Isi Konten Artikel <span className="text-rose-500">*</span></label>
-                <span className="text-[11px] text-slate-400">Mendukung format paragraf, heading, & bullet points</span>
+            {/* Bagian 4: Isi Konten Artikel (.md / Markdown) */}
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-bold text-slate-700">Isi Konten Artikel (.md / Markdown) <span className="text-rose-500">*</span></label>
+                  
+                  {/* Mode Tabs: Edit vs Preview */}
+                  <div className="flex items-center p-0.5 bg-slate-100 rounded-lg text-xs font-bold">
+                    <button
+                      type="button"
+                      onClick={() => setMarkdownViewMode('WRITE')}
+                      className={`px-2.5 py-1 rounded-md transition-all ${
+                        markdownViewMode === 'WRITE' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      ✍️ Tulis Teks
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMarkdownViewMode('PREVIEW')}
+                      className={`px-2.5 py-1 rounded-md transition-all ${
+                        markdownViewMode === 'PREVIEW' ? 'bg-white text-amber-700 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      👁️ Pratinjau GitHub (.md)
+                    </button>
+                  </div>
+                </div>
+
+                {/* Import File .md Button */}
+                <label className="text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200/80 hover:bg-indigo-100 px-3 py-1.5 rounded-xl inline-flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs">
+                  <FileCode size={13} className="text-indigo-600" />
+                  Import File .md / Dokumen
+                  <input 
+                    type="file" 
+                    accept=".md,.markdown,text/markdown,text/plain" 
+                    onChange={handleImportMarkdownFile} 
+                    className="hidden" 
+                  />
+                </label>
               </div>
-              <Textarea 
-                required
-                rows={9}
-                value={formData.content}
-                onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                placeholder="Tuliskan ulasan mendalam, penjelasan teknis, latar belakang, dan keunggulan program di sini. Gunakan baris baru antar paragraf agar mudah dibaca customer..."
-                className="rounded-xl text-xs sm:text-sm font-normal leading-relaxed font-mono"
-              />
+
+              {/* Quick Markdown Toolbar jika mode WRITE */}
+              {markdownViewMode === 'WRITE' && (
+                <div className="flex flex-wrap items-center gap-1 p-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600">
+                  <button type="button" onClick={() => insertMarkdownSnippet('## Judul Seksi Baru\n')} className="px-2 py-1 rounded hover:bg-white hover:text-slate-900 font-bold" title="Heading 2">H2</button>
+                  <button type="button" onClick={() => insertMarkdownSnippet('### Sub Judul\n')} className="px-2 py-1 rounded hover:bg-white hover:text-slate-900 font-bold" title="Heading 3">H3</button>
+                  <button type="button" onClick={() => insertMarkdownSnippet('**teks tebal**')} className="px-2 py-1 rounded hover:bg-white hover:text-slate-900 font-bold" title="Tebal"><Bold size={13} /></button>
+                  <button type="button" onClick={() => insertMarkdownSnippet('*teks miring*')} className="px-2 py-1 rounded hover:bg-white hover:text-slate-900 italic" title="Miring"><Italic size={13} /></button>
+                  <button type="button" onClick={() => insertMarkdownSnippet('> Kutipan atau catatan penting kawasan...\n')} className="px-2 py-1 rounded hover:bg-white hover:text-slate-900" title="Kutipan"><Quote size={13} /></button>
+                  <button type="button" onClick={() => insertMarkdownSnippet('- Poin materi / kurikulum 1\n- Poin materi / kurikulum 2\n')} className="px-2 py-1 rounded hover:bg-white hover:text-slate-900" title="Daftar Bullet"><List size={13} /></button>
+                  <button type="button" onClick={() => insertMarkdownSnippet('- [ ] Checklist materi selesai\n- [x] Sertifikasi terbit\n')} className="px-2 py-1 rounded hover:bg-white hover:text-slate-900" title="Checklist"><CheckSquare size={13} /></button>
+                  <button type="button" onClick={() => insertMarkdownSnippet('| Fitur / Modul | Durasi | Sertifikasi |\n|---|---|---|\n| Teori Dasar | 8 Jam | Internal STP |\n| Praktik Bengkel | 32 Jam | BNSP |\n')} className="px-2 py-1 rounded hover:bg-white hover:text-slate-900 inline-flex items-center gap-1" title="Tabel"><TableIcon size={13} /> Tabel</button>
+                  <button type="button" onClick={() => insertMarkdownSnippet('```ts\n// kode program atau spesifikasi teknis\n```\n')} className="px-2 py-1 rounded hover:bg-white hover:text-slate-900 font-mono" title="Kode"><Code size={13} /></button>
+                  <button type="button" onClick={() => insertMarkdownSnippet('[Kunjungi Portal Solo Technopark](https://solotechnopark.id)')} className="px-2 py-1 rounded hover:bg-white hover:text-slate-900" title="Tautan">Link</button>
+                </div>
+              )}
+
+              {markdownViewMode === 'WRITE' ? (
+                <Textarea 
+                  required
+                  rows={11}
+                  value={formData.content}
+                  onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                  placeholder="# Judul Artikel&#10;&#10;Tuliskan ulasan mendalam, materi edukasi, atau panduan dalam format Markdown (.md) di sini.&#10;&#10;Anda juga dapat mengklik tombol 'Import File .md / Dokumen' di pojok kanan atas untuk langsung mengunggah file catatan Anda..."
+                  className="rounded-xl text-xs sm:text-sm font-normal leading-relaxed font-mono bg-white border border-slate-200"
+                />
+              ) : (
+                <div className="p-5 rounded-2xl bg-white border border-slate-200 min-h-[300px] max-h-[500px] overflow-y-auto">
+                  {formData.content ? (
+                    <MarkdownRenderer content={formData.content} />
+                  ) : (
+                    <p className="text-xs text-slate-400 italic">Konten masih kosong. Tulis atau import file .md untuk melihat pratinjau GitHub di sini.</p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Bagian 5: Tags */}
@@ -917,6 +1161,13 @@ export default function ManajemenArtikelPage() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* 7. MODAL PILIH GAMBAR MASTER DATA STP */}
+      <ArticleImagePickerModal 
+        isOpen={isImagePickerOpen}
+        onClose={() => setIsImagePickerOpen(false)}
+        onSelectImage={handleSelectMasterImage}
+      />
 
     </div>
   );

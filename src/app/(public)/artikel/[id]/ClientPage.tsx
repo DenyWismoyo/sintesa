@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
 
 interface ClientPageProps {
   initialArticle: Article | null;
@@ -309,64 +310,6 @@ export default function ArticleDetailClient({ initialArticle, idOrSlug }: Client
     );
   };
 
-  // Helper untuk rendering formatted content
-  const renderFormattedContent = (content: string) => {
-    const paragraphs = content.split('\n\n');
-    return paragraphs.map((para, idx) => {
-      const trimmed = para.trim();
-      if (!trimmed) return null;
-
-      // Heading 3
-      if (trimmed.startsWith('### ')) {
-        return (
-          <h3 key={idx} className="text-xl sm:text-2xl font-bold text-slate-900 mt-8 mb-3 tracking-tight">
-            {trimmed.replace('### ', '')}
-          </h3>
-        );
-      }
-
-      // Heading 2
-      if (trimmed.startsWith('## ')) {
-        return (
-          <h2 key={idx} className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-10 mb-4 tracking-tight border-b border-slate-100 pb-2">
-            {trimmed.replace('## ', '')}
-          </h2>
-        );
-      }
-
-      // Quote / Highlight box
-      if (trimmed.startsWith('> ')) {
-        return (
-          <blockquote key={idx} className="border-l-4 border-amber-500 bg-amber-50/60 rounded-r-2xl p-4 my-6 text-slate-800 italic text-base leading-relaxed">
-            {trimmed.replace('> ', '')}
-          </blockquote>
-        );
-      }
-
-      // Bullet list
-      if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
-        const items = trimmed.split('\n').filter(line => line.startsWith('- ') || line.startsWith('* '));
-        return (
-          <ul key={idx} className="space-y-2.5 my-4 pl-2">
-            {items.map((it, itemIdx) => (
-              <li key={itemIdx} className="flex items-start gap-2.5 text-slate-700 leading-relaxed text-base">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0" />
-                <span>{it.replace(/^[-*]\s+/, '')}</span>
-              </li>
-            ))}
-          </ul>
-        );
-      }
-
-      // Standard Paragraph
-      return (
-        <p key={idx} className="text-slate-700 leading-relaxed text-base sm:text-lg mb-5 font-normal">
-          {trimmed}
-        </p>
-      );
-    });
-  };
-
   const otherArticles = relatedArticles.filter(a => a.id !== article.id).slice(0, 3);
 
   return (
@@ -484,9 +427,9 @@ export default function ArticleDetailClient({ initialArticle, idOrSlug }: Client
           </div>
         )}
 
-        {/* Main Body Content */}
-        <div className="prose prose-slate max-w-none">
-          {renderFormattedContent(article.content)}
+        {/* Main Body Content (GitHub-style Markdown) */}
+        <div className="bg-white p-6 sm:p-10 rounded-3xl border border-slate-200/80 shadow-2xs my-6">
+          <MarkdownRenderer content={article.content} />
         </div>
 
         {/* Tags */}
