@@ -213,6 +213,21 @@ service cloud.firestore {
       );
     }
 
+    // 12. Artikel, Berita & Panduan Edukasi
+    match /articles/{articleId} {
+      // Publik dapat membaca seluruh artikel terbit dan konten warta edukasi
+      allow read: if true;
+
+      // Admin & operator pengelola memiliki wewenang penuh membuat dan menghapus artikel
+      allow create, delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'admin_tenant', 'operator_pelatihan', 'operator_tenant']);
+
+      // Admin dapat mengupdate seluruh isi artikel.
+      // Publik / pembaca diizinkan mengupdate hanya field viewCount (counter atomik)
+      allow update: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'admin_tenant', 'operator_pelatihan', 'operator_tenant']) || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount'])
+      );
+    }
+
     // =========================================================================
     // MULTI-TENANT TRANSAKSI & ARTIFACTS
     // Path: /artifacts/{appId}/public/data/{collection}/{docId}
