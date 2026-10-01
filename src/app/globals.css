@@ -1161,3 +1161,78 @@
   margin-right: 0.5em;
   vertical-align: middle;
 }
+
+/* 12.1. Mobile Borderless & Full-Width Optimization for Markdown */
+@media (max-width: 640px) {
+  .github-markdown-body {
+    font-size: 15.5px;
+    line-height: 1.8;
+    color: #334155;
+    letter-spacing: -0.01em;
+  }
+  .github-markdown-body p {
+    margin-top: 0;
+    margin-bottom: 1.15rem;
+  }
+  .github-markdown-body h1 {
+    font-size: 1.4rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.6rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .github-markdown-body h2 {
+    font-size: 1.25rem;
+    margin-top: 1.35rem;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .github-markdown-body h3 {
+    font-size: 1.1rem;
+    margin-top: 1.15rem;
+    margin-bottom: 0.4rem;
+  }
+  .github-markdown-body table {
+    font-size: 0.82rem;
+    margin: 1rem 0;
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .github-markdown-body table th,
+  .github-markdown-body table td {
+    padding: 0.55rem 0.7rem;
+  }
+  .github-markdown-body pre {
+    padding: 0.75rem 0.9rem;
+    border-radius: 0.75rem;
+    font-size: 0.82rem;
+    margin: 1rem 0;
+    overflow-x: auto;
+  }
+  .github-markdown-body blockquote {
+    padding: 0.5rem 0.85rem;
+    margin: 1.15rem 0;
+    border-left: 3.5px solid #f59e0b;
+    background-color: rgba(254, 243, 199, 0.25);
+    border-radius: 0 0.5rem 0.5rem 0;
+    color: #475569;
+  }
+  .github-markdown-body ul,
+  .github-markdown-body ol {
+    padding-left: 1.25rem;
+    margin-bottom: 1.15rem;
+  }
+  .github-markdown-body li {
+    margin-bottom: 0.35rem;
+  }
+  .github-markdown-body img {
+    border-radius: 0.75rem;
+    margin: 1.15rem 0;
+    max-width: 100%;
+    height: auto;
+    border: none;
+  }
+}

@@ -74,7 +74,7 @@ export default function ArtikelListClient() {
   };
 
   return (
-    <SectionContainer accent="amber">
+    <SectionContainer accent="amber" containerClassName="!px-3 sm:!px-6 md:!px-8">
       {/* Header Reusable PageHero */}
       <PageHero 
         breadcrumbs={[{ label: 'Artikel & Warta', href: '/artikel' }]}
@@ -104,8 +104,8 @@ export default function ArtikelListClient() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map(n => (
-              <div key={n} className="bg-white rounded-3xl p-4 border border-slate-200/80 space-y-3 animate-pulse">
-                <div className="w-full h-48 bg-slate-200 rounded-2xl" />
+              <div key={n} className="bg-white rounded-2xl sm:rounded-3xl p-4 border border-slate-200/80 space-y-3 animate-pulse">
+                <div className="w-full h-44 sm:h-48 bg-slate-200 rounded-xl sm:rounded-2xl" />
                 <div className="h-4 w-28 bg-slate-200 rounded-md" />
                 <div className="h-6 w-3/4 bg-slate-200 rounded-md" />
                 <div className="h-4 w-full bg-slate-200 rounded-md" />
@@ -113,7 +113,7 @@ export default function ArtikelListClient() {
             ))}
           </div>
         ) : filteredArticles.length === 0 ? (
-          <div className="bg-white rounded-3xl border border-slate-200/80 p-12 text-center max-w-md mx-auto my-8">
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 p-8 sm:p-12 text-center max-w-md mx-auto my-8">
             <BookOpen size={48} className="mx-auto text-slate-300 mb-3" />
             <h3 className="text-lg font-black text-slate-800 mb-1">Belum Ada Artikel Ditemukan</h3>
             <p className="text-xs text-slate-500 font-normal leading-relaxed">
@@ -121,7 +121,7 @@ export default function ArtikelListClient() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <AnimatePresence>
               {filteredArticles.map(article => {
                 const hasCta = article.cta && article.cta.type !== 'NONE';
@@ -135,10 +135,10 @@ export default function ArtikelListClient() {
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="bg-white border border-slate-200/80 rounded-3xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-300 flex flex-col group relative"
+                    className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col group relative"
                   >
                     {/* Media Cover Image */}
-                    <Link href={`/artikel/${article.id}`} className="block w-full h-48 bg-slate-100 relative overflow-hidden shrink-0">
+                    <Link href={`/artikel/${article.id}`} className="block w-full h-44 sm:h-48 bg-slate-100 relative overflow-hidden shrink-0">
                       {article.coverImageUrl ? (
                         <img 
                           src={article.coverImageUrl} 
@@ -165,7 +165,7 @@ export default function ArtikelListClient() {
                     </Link>
 
                     {/* Article Body */}
-                    <div className="p-5 sm:p-6 flex flex-col flex-1 bg-white">
+                    <div className="p-4 sm:p-6 flex flex-col flex-1 bg-white">
                       
                       {/* Meta Top: Tanggal & Penulis */}
                       <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-400 mb-2">
