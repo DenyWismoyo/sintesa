@@ -235,7 +235,7 @@ export default function TenantProductsPage() {
                       <div className="space-y-6">
                         <div>
                           <label className="block text-sm font-bold text-slate-700 mb-2">Nama Produk / Layanan <span className="text-red-500">*</span></label>
-                          <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-5 py-3.5 bg-white border border-slate-200/80 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-base shadow-sm transition-all" placeholder="Contoh: Sistem Kasir Cerdas SINTESA..." />
+                          <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-5 py-3.5 bg-white border border-slate-200/80 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-base shadow-sm transition-all" placeholder="Contoh: Sistem IoT Monitoring Pintar..." />
                         </div>
                         <div>
                           <label className="block text-sm font-bold text-slate-700 mb-2">Deskripsi Lengkap <span className="text-red-500">*</span></label>

@@ -13,9 +13,9 @@
 ## 3. Manfaat bagi Pemenang & Inovator KRENOVA
 - Total hadiah ratusan juta rupiah dan piala bergilir Walikota Surakarta.
 - Fasilitasi pendampingan hilirisasi prototipe di laboratorium Solo Technopark.
-- Tiket masuk otomatis (fast-track) ke Program Inkubasi Bisnis Sintesa.
+- Tiket masuk otomatis (fast-track) ke Program Inkubasi Bisnis Solo Technopark.
 - Pameran karya pada gelaran tahunan Solo Innovation & Tech Expo di Auditorium Solo Technopark.
 - Bantuan pendaftaran paten HKI gratis dari Balitbangda / Bappeda.
 
 ## 4. Galeri Virtual Inovasi
-Karya-karya video dokumenter dan demonstrasi produk inovator dapat disaksikan langsung di platform Sintesa melalui menu AI Explorer, di mana pengunjung dapat bertanya langsung mengenai spesifikasi inovasi, profil penemu, dan peluang kolaborasi.
+Karya-karya video dokumenter dan demonstrasi produk inovator dapat disaksikan langsung di platform Katalog Solo Technopark melalui menu AI Explorer, di mana pengunjung dapat bertanya langsung mengenai spesifikasi inovasi, profil penemu, dan peluang kolaborasi.

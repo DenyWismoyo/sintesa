@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/AuthContext';
 import { hasAccess, isInternalStaff, ROLE_LABELS } from '@/config/roles';
@@ -193,9 +194,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* 1. SIDEBAR DESKTOP */}
       <aside className="hidden md:flex flex-col w-20 bg-white border-r border-slate-200 relative z-50 flex-shrink-0">
         <div className="h-16 flex items-center justify-center border-b border-slate-100">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-sm">
-             <Hexagon className="w-6 h-6 text-white fill-white/20" />
-          </div>
+          <Link href="/" className="w-10 h-10 rounded-xl flex items-center justify-center p-0.5 hover:scale-105 transition-transform" title="Beranda Katalog STP">
+             <Image src="/icon-192x192.png" alt="Solo Technopark" width={40} height={40} className="w-full h-full object-contain rounded-xl shadow-xs" priority />
+          </Link>
         </div>
 
         <nav className="flex-1 py-4 overflow-visible">
@@ -242,9 +243,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         
         <header className="md:hidden h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 z-20 flex-shrink-0">
           <div className="flex items-center gap-3">
-             <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center shadow-sm">
-                <Hexagon className="w-5 h-5 text-white fill-white/20" />
-             </div>
+             <Link href="/" title="Beranda Katalog STP">
+               <Image src="/icon-192x192.png" alt="Solo Technopark" width={32} height={32} className="w-8 h-8 object-contain rounded-lg shadow-xs" priority />
+             </Link>
              <div className="flex flex-col">
                <span className="font-bold text-slate-800 leading-tight">Admin Panel</span>
                <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">{ROLE_LABELS[role || '']}</span>

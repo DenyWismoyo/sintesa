@@ -39,10 +39,10 @@ const generateWaMessage = (alumni: any) => {
 Kami dari Admin Karier Solo Technopark.
 Saat ini histori pelatihan Anda (Program: ${alumni.programTaken || '-'}) telah tercatat di sistem kami.
 
-Untuk memudahkan penyaluran kerja dan agar portofolio keahlian Anda dapat dilihat oleh mitra industri, silakan lengkapi profil Anda dengan mengklaim status Alumni di portal SINTESA.
+Untuk memudahkan penyaluran kerja dan agar portofolio keahlian Anda dapat dilihat oleh mitra industri, silakan lengkapi profil Anda dengan mengklaim status Alumni di Portal Solo Technopark.
 
 Berikut langkah-langkahnya:
-1. Buka tautan: https://sintesa.solotechnopark.id/login
+1. Buka tautan: https://katalog.solotechnopark.id/login
 2. Login menggunakan Akun Email Anda.
 3. Masuk ke menu *"Akun Saya"* (Profil).
 4. Masukkan Kode Registrasi rahasia berikut pada bagian *"Klaim Status Alumni"*:

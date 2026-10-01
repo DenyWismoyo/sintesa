@@ -13,7 +13,7 @@ interface PromptSuggestionsProps {
 const KNOWLEDGE_PROMPTS: Record<string, string[]> = {
   all: [
     "Bagaimana prosedur dan tarif sewa Auditorium Solo Technopark?",
-    "Apa syarat dan alur pendaftaran inkubasi startup Sintesa?",
+    "Apa syarat dan alur pendaftaran inkubasi startup Solo Technopark?",
     "Apa saja pilihan program pelatihan talenta digital & vokasi?",
     "Bagaimana cara berkunjung atau studi banding ke kawasan?",
   ],

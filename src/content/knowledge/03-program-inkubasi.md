@@ -1,6 +1,6 @@
 # PROGRAM INKUBASI STARTUP & BISNIS TEKNOPARK
 
-## 1. Mengenal Inkubator Bisnis Sintesa
+## 1. Mengenal Inkubator Bisnis Solo Technopark
 Inkubator Bisnis Solo Technopark mendampingi calon wirausaha, startup teknologi, dan UMKM potensial agar bertumbuh dari tahap ide (early stage) menjadi entitas bisnis yang tervalidasi dan siap investasi (market ready & investment ready).
 
 ### Track Inkubasi yang Tersedia:
@@ -18,7 +18,7 @@ Inkubator Bisnis Solo Technopark mendampingi calon wirausaha, startup teknologi,
    - Benefit: Akses proyek B2B pemerintah dan korporasi mitra kawasan.
 
 ## 2. Tahapan Alur Program Inkubasi
-1. **Open Call & Registrasi:** Pendaftaran daring melalui portal Sintesa (`/curation` atau menu program).
+1. **Open Call & Registrasi:** Pendaftaran daring melalui portal Solo Technopark (`/curation` atau menu program).
 2. **AI Curation & Scoring:** Formulir pendaftaran dinilai otomatis oleh sistem kurasi cerdas Clario (`/api/curation-ai`) untuk memetakan kesiapan bisnis (Pre-Incubation, Market Ready, atau Accelerated).
 3. **Wawancara & Pitching Kurator:** Calon tenant mempresentasikan bisnis di hadapan dewan kurator dan praktisi.
 4. **Program Bootcamp & Mentoring:** Sesi bimbingan intensif mingguan bersama 1-on-1 mentor industri berskala nasional.

@@ -10,7 +10,7 @@ type Props = {
   params: Promise<{ id: string }>
 };
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://sintesa.solotechnopark.id';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://katalog.solotechnopark.id';
 
 // FASE 1: SEO & Dynamic Open Graph untuk Detail Pelatihan
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

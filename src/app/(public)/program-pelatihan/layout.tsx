@@ -3,7 +3,7 @@
 import { Metadata } from 'next';
 import React from 'react';
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://sintesa.solotechnopark.id';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://katalog.solotechnopark.id';
 
 // FASE 4: Menyematkan Meta Global di Layout agar halaman list (/program-pelatihan) terindeks optimal
 export const metadata: Metadata = {

@@ -19,7 +19,7 @@ import MobileBottomNav from '@/components/ui/MobileBottomNav';
 
 const NAV_MENUS = [
   //{ name: 'Beranda', path: '/portal' },
-  //{ name: 'Sintesa AI', path: '/explore' }, 
+  //{ name: 'AI Explorer', path: '/explore' }, 
   { name: 'Katalog', path: '/e-katalog' },
   { name: 'Fasilitas', path: '/fasilitas' },
   { name: 'Pelatihan', path: '/program-pelatihan' },
@@ -152,21 +152,25 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       <header className={`public-navbar ${scrolled ? 'public-navbar-scrolled' : ''}`}>
         <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-10 h-12 flex items-center justify-between gap-6 lg:gap-8">
           
-          {/* LOGO */}
+          {/* LOGO RESMI SOLO TECHNOPARK */}
           <Link href="/" className="flex items-center gap-3 group shrink-0">
-            <div className="w-9 h-9 flex items-center justify-center shrink-0 relative">
+            <div className="h-8 flex items-center justify-center shrink-0 relative">
               <Image 
                 src="/logo.png" 
-                alt="Sintesa Logo" 
-                width={36} 
-                height={36} 
-                className="object-contain drop-shadow-xs group-hover:scale-105 group-hover:rotate-3 transition-transform duration-300" 
+                alt="Solo Technopark" 
+                width={72} 
+                height={38} 
+                className="h-8 w-auto object-contain group-hover:scale-105 transition-transform duration-300" 
                 priority 
               />
             </div>
+            <div className="h-5 w-px bg-slate-200 hidden sm:block" />
             <div className="flex flex-col">
-              <h1 className="text-sm font-black tracking-tight leading-none text-slate-900 group-hover:text-indigo-600 transition-colors">SINTESA</h1>
-              <p className="text-[9px] font-bold uppercase tracking-widest mt-0.5 text-slate-400">Technopark</p>
+              <div className="flex items-center gap-1.5">
+                <h1 className="text-sm font-black tracking-tight leading-none text-slate-900 group-hover:text-red-600 transition-colors">KATALOG</h1>
+                <span className="text-[9px] font-bold text-red-600 bg-red-50 border border-red-200/60 px-1.5 py-0.5 rounded">STP</span>
+              </div>
+              <p className="text-[9px] font-bold uppercase tracking-widest mt-0.5 text-slate-400">solotechnopark.id</p>
             </div>
           </Link>
 
@@ -220,19 +224,23 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               
               <div className="flex items-center justify-between mb-8">
                  <div className="flex items-center gap-3">
-                   <div className="w-10 h-10 flex items-center justify-center relative">
+                   <div className="h-10 flex items-center justify-center relative">
                      <Image 
                        src="/logo.png" 
-                       alt="Sintesa Logo" 
-                       width={40} 
-                       height={40} 
-                       className="object-contain drop-shadow-md" 
+                       alt="Solo Technopark" 
+                       width={80} 
+                       height={44} 
+                       className="h-9 w-auto object-contain drop-shadow-sm" 
                        priority 
                      />
                    </div>
+                   <div className="h-6 w-px bg-slate-200" />
                    <div>
-                     <h1 className="text-lg font-black tracking-tight leading-none text-slate-900">SINTESA</h1>
-                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Technopark</p>
+                     <div className="flex items-center gap-1.5">
+                       <h1 className="text-lg font-black tracking-tight leading-none text-slate-900">KATALOG</h1>
+                       <span className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-200/60 px-2 py-0.5 rounded">STP</span>
+                     </div>
+                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">solotechnopark.id</p>
                    </div>
                  </div>
                  

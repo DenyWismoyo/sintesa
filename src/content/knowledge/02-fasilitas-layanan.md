@@ -30,7 +30,7 @@ Solo Technopark menyediakan beragam fasilitas fisik modern yang dapat disewa ole
    - Layanan: Fabrikasi suku cadang presisi industri, pelatihan teknisi mesin, prototyping mekanikal.
 
 ## 2. Alur Peminjaman & Pembayaran Sewa
-1. **Pengecekan Jadwal:** Pengguna dapat mengecek ketersediaan ruangan via menu publik `/fasilitas` di platform SINTESA.
+1. **Pengecekan Jadwal:** Pengguna dapat mengecek ketersediaan ruangan via menu publik `/fasilitas` di platform Katalog Solo Technopark.
 2. **Pengajuan Booking:** Isi formulir reservasi online dengan melampirkan identitas (KTP) dan surat permohonan.
 3. **Verifikasi Admin:** Tim UPTD Solo Technopark akan memverifikasi kesiapan ruangan dalam waktu 1x24 jam.
 4. **Penerbitan Invoice & Tagihan VA:** Sistem menerbitkan invoice resmi BLUD dengan kode Virtual Account Bank (Bank Jateng / Bank Mandiri).

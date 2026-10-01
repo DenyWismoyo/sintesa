@@ -308,7 +308,7 @@ export default function ManajemenKrenovaPage() {
                     <textarea 
                       required rows={3}
                       value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})}
-                      placeholder="Jelaskan isi video ini agar AI Sintesa mudah merekomendasikannya kepada pengunjung..."
+                      placeholder="Jelaskan isi video ini agar AI Asisten mudah merekomendasikannya kepada pengunjung..."
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
                     />
                   </div>

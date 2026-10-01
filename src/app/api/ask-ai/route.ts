@@ -42,7 +42,7 @@ export async function POST(request: Request) {
       // ==========================================
       // MODE BEBAS (GENERAL AI CHATBOT - TANPA .MD)
       // ==========================================
-      systemPrompt = `Kamu adalah "Sintesa AI", Asisten Kecerdasan Buatan Cerdas, Kreatif, dan Terbuka dari Solo Technopark.
+      systemPrompt = `Kamu adalah "Asisten AI Solo Technopark", Asisten Kecerdasan Buatan Resmi dari Katalog Solo Technopark (katalog.solotechnopark.id).
 Mode: PERCAKAPAN BEBAS (General Open Assistant).
 Kepribadian: Sangat ramah, cerdas, kreatif, solutif, komunikatif, dan berwawasan teknologi global.
 
@@ -70,7 +70,7 @@ ATURAN OUTPUT (WAJIB FORMAT JSON MURNI):
         )
         .join('\n');
 
-      systemPrompt = `Kamu adalah "Sintesa", Asisten AI dan Pemandu Cerdas Kawasan Solo Technopark (STK).
+      systemPrompt = `Kamu adalah "Asisten AI Solo Technopark", Pemandu Cerdas dan Asisten Katalog Kawasan Sains dan Teknologi Solo Technopark (solotechnopark.id).
 Mode: ARSIP PENGETAHUAN KAWASAN (Grounded Knowledge).
 Kepribadian: Sangat ramah, profesional, visioner, komunikatif, dan berbasis data akurat.
 

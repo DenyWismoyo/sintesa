@@ -18,7 +18,7 @@ export default function ExploreAIPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "ai",
-      text: "Halo! Saya **Sintesa**, asisten AI resmi Solo Technopark.\n\nSaya dapat membantu Anda mengeksplorasi **layanan sewa fasilitas & auditorium**, informasi **inkubasi startup/UMKM**, jadwal **pelatihan talenta digital & vokasi**, serta karya inovasi pameran **KRENOVA** berbasis arsip resmi kawasan.\n\nAnda juga dapat beralih ke **Mode Bebas (General AI)** di bagian atas jika ingin berdiskusi, brainstorming ide, atau bertanya topik apapun di luar arsip kawasan. Apa yang ingin Anda ketahui hari ini?",
+      text: "Halo! Saya **Asisten AI Solo Technopark**, pemandu cerdas e-katalog kawasan.\n\nSaya dapat membantu Anda mengeksplorasi **katalog produk & inovasi**, **layanan sewa fasilitas & auditorium**, informasi **inkubasi startup/UMKM**, jadwal **pelatihan talenta digital & vokasi**, serta karya inovasi pameran **KRENOVA** berbasis arsip resmi kawasan.\n\nAnda juga dapat beralih ke **Mode Bebas (General AI)** di bagian atas jika ingin berdiskusi, brainstorming ide, atau bertanya topik apapun di luar arsip kawasan. Apa yang ingin Anda ketahui hari ini?",
       sources: ["01-profil-kawasan.md"],
       quickActions: [
         { label: "Sewa Fasilitas", href: "/fasilitas", type: "link" },
@@ -79,7 +79,7 @@ export default function ExploreAIPage() {
           ...prev,
           {
             role: "ai",
-            text: data.message || "Maaf, Sintesa sedang tidak dapat memproses jawaban.",
+            text: data.message || "Maaf, AI Asisten sedang tidak dapat memproses jawaban saat ini.",
           },
         ]);
       }

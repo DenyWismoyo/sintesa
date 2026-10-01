@@ -28,7 +28,7 @@ const STATIC_DOCS: Omit<KnowledgeDoc, 'content'>[] = [
   },
   {
     id: 'inkubasi',
-    title: 'Program Inkubasi Startup & Bisnis Sintesa',
+    title: 'Program Inkubasi Startup & Bisnis Solo Technopark',
     filename: '03-program-inkubasi.md',
     category: 'Inkubasi',
     keywords: ['inkubasi', 'startup', 'umkm', 'bisnis', 'tenant', 'kurasi', 'mentoring', 'modal', 'investor', 'pendanaan', 'demo day', 'pitching'],
@@ -83,7 +83,7 @@ export function getAllKnowledgeDocs(): KnowledgeDoc[] {
 
     // Jika file gagal dibaca dari fs, gunakan fallback ringkas
     if (!content) {
-      content = `# ${meta.title}\nInformasi resmi kawasan Solo Technopark untuk kategori ${meta.category}. Kunjungi menu terkait pada sistem Sintesa untuk data lengkap.`;
+      content = `# ${meta.title}\nInformasi resmi kawasan Solo Technopark untuk kategori ${meta.category}. Kunjungi menu terkait pada Katalog Solo Technopark untuk data lengkap.`;
     }
 
     docs.push({
@@ -158,7 +158,7 @@ export function buildGroundedPrompt(query: string, matchedDocs: { doc: Knowledge
     })
     .join('\n\n');
 
-  return `KUMPULAN PENGETAHUAN RESMI SOLO TECHNOPARK (SINTESA):\n\n${contextSections}`;
+  return `KUMPULAN PENGETAHUAN RESMI SOLO TECHNOPARK:\n\n${contextSections}`;
 }
 
 /**
@@ -226,7 +226,7 @@ export function generateFreeOfflineFallback(query: string): {
 
   let responseText = '';
   if (qLower.includes('halo') || qLower.includes('hai') || qLower.includes('pagi') || qLower.includes('siang') || qLower.includes('malam')) {
-    responseText = `Halo! Saya **Sintesa AI** dalam **Mode Percakapan Bebas** ✨.\n\nSaya siap berdiskusi, bertukar pikiran, membantu brainstorming ide inovasi, menulis teks kreatif, atau menjawab pertanyaan umum Anda tanpa batasan arsip kawasan. Apa topik menarik yang ingin kita bahas bersama?`;
+    responseText = `Halo! Saya **Asisten AI Solo Technopark** dalam **Mode Percakapan Bebas** ✨.\n\nSaya siap berdiskusi, bertukar pikiran, membantu brainstorming ide inovasi, menulis teks kreatif, atau menjawab pertanyaan umum Anda tanpa batasan arsip kawasan. Apa topik menarik yang ingin kita bahas bersama?`;
   } else if (qLower.includes('ide') || qLower.includes('inovasi') || qLower.includes('startup')) {
     responseText = `Ide yang sangat menarik! Untuk mengembangkan konsep ini ke tingkat berikutnya, berikut beberapa pilar strategis yang bisa Anda pertimbangkan:\n\n1. **Validasi Masalah Pasar:** Pastikan problem yang ingin diselesaikan benar-benar dirasakan oleh target pengguna nyata (*hair-on-fire problem*).\n2. **Diferensiasi & Moat:** Tentukan keunikan produk Anda dibandingkan solusi yang sudah ada di pasar (misal: adopsi AI terapan, efisiensi rantai pasok, atau kemudahan UX).\n3. **Prototipe Cepat (MVP):** Bangun versi sederhana terlebih dahulu untuk mendapatkan umpan balik awal dalam kurun waktu 2-4 minggu.\n\nApakah ada aspek tertentu dari ide Anda yang ingin kita bedah lebih detail?`;
   } else {

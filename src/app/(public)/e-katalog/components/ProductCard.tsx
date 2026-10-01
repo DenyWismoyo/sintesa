@@ -31,34 +31,40 @@ export default function ProductCard({ product }: ProductCardProps) {
     <div className="public-card public-card-hover group relative flex flex-col h-full overflow-hidden z-10">
       
       {/* Area Media Gambar & Floating Badges */}
-      <div className="public-card-media h-52 sm:h-56">
-        {imageUrl && imageUrl !== '/placeholder-image.jpg' && !imgError ? (
-          <Image 
-            src={imageUrl} 
-            alt={product.name}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-            onError={() => setImgError(true)}
-          />
-        ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center text-slate-300 bg-slate-100">
-            <ImageIcon size={32} className="mb-2 opacity-30" />
-            <span className="text-[10px] uppercase font-bold tracking-widest opacity-50">Tanpa Gambar</span>
-          </div>
-        )}
-
-        <div className="public-card-scrim" />
+      <div className="public-card-media h-52 sm:h-56 relative">
+        <Link 
+          href={`/e-katalog/${product.id}`} 
+          prefetch={true} 
+          className="block w-full h-full relative overflow-hidden"
+          title={`Lihat detail ${product.name}`}
+        >
+          {imageUrl && imageUrl !== '/placeholder-image.jpg' && !imgError ? (
+            <Image 
+              src={imageUrl} 
+              alt={product.name}
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center text-slate-300 bg-slate-100">
+              <ImageIcon size={32} className="mb-2 opacity-30" />
+              <span className="text-[10px] uppercase font-bold tracking-widest opacity-50">Tanpa Gambar</span>
+            </div>
+          )}
+          <div className="public-card-scrim" />
+        </Link>
 
         {/* Badge Kategori */}
-        <div className="public-card-badge-top-left">
+        <div className="public-card-badge-top-left pointer-events-none">
           <div className="bg-white/95 backdrop-blur-md text-slate-800 text-[10px] px-2.5 py-1 rounded-full font-black uppercase tracking-widest shadow-xs">
             {product.category}
           </div>
         </div>
 
         {/* Badge Kepemilikan */}
-        <div className="public-card-badge-top-right">
+        <div className="public-card-badge-top-right pointer-events-none">
           {product.ownerType?.toUpperCase() === 'TENANT' ? (
             <div className="bg-amber-50 text-amber-800 text-[10px] px-2.5 py-1 rounded-full font-bold shadow-xs flex items-center gap-1.5">
               <Store size={12} /> <span className="max-w-[80px] truncate">{product.tenantName || 'Tenant'}</span>
@@ -74,7 +80,9 @@ export default function ProductCard({ product }: ProductCardProps) {
       {/* Konten Text Elegan Menggunakan Card Anatomy */}
       <div className="public-card-body">
         <h3 className="public-card-title group-hover:text-emerald-600" title={product.name}>
-          {product.name}
+          <Link href={`/e-katalog/${product.id}`} prefetch={true} className="hover:text-emerald-600 transition-colors">
+            {product.name}
+          </Link>
         </h3>
         
         <p className="public-card-desc mb-4">
@@ -111,7 +119,9 @@ export default function ProductCard({ product }: ProductCardProps) {
           {/* Tombol Aksi */}
           <Link 
             href={`/e-katalog/${product.id}`}
+            prefetch={true}
             className="public-card-action-btn"
+            title={`Buka ${product.name}`}
           >
             <div className="absolute inset-0 flex items-center justify-center translate-y-0 group-hover:-translate-y-full transition-transform duration-300">
               {renderCtaIcon()}

@@ -1,37 +1,67 @@
 // Lokasi file: src/app/(public)/e-katalog/[id]/page.tsx
 
 import { Metadata } from 'next';
+import { cache } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import ClientPage from './ClientPage';
-import { ProductCatalog } from '@/types'; // Tambahkan import tipe datanya di sini
+import { ProductCatalog } from '@/types';
+import { catalogService } from '@/services/catalog.service';
 
 type Props = {
   params: Promise<{ id: string }>
 };
 
 // Telah disesuaikan dengan domain produksi Anda
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://sintesa.solotechnopark.id';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://katalog.solotechnopark.id';
+
+// OPTIMASI 1: ISR Edge Caching (Cache 60 detik di level CDN/Server)
+export const revalidate = 60;
+
+// OPTIMASI 2: Request Deduplication dengan React.cache & Timeout Guard
+// Memastikan generateMetadata dan Page hanya melakukan 1 kali fetch Firestore di server
+const getProductServerCached = cache(async (id: string): Promise<ProductCatalog | null> => {
+  try {
+    // Timeout guard 2.5 detik agar serverless worker tidak pernah hang/blocking
+    const fetchPromise = (async () => {
+      const docRef = doc(db, 'catalogs', id);
+      const snap = await getDoc(docRef);
+      if (!snap.exists()) return null;
+      return { id: snap.id, ...snap.data() } as ProductCatalog;
+    })();
+
+    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2500));
+    return await Promise.race([fetchPromise, timeoutPromise]);
+  } catch (error) {
+    console.warn("[SERVER CACHE] Gagal fetch produk:", error);
+    return null;
+  }
+});
+
+// OPTIMASI 3: Pre-generate daftar ID untuk routing & prefetching instan
+export async function generateStaticParams() {
+  try {
+    const products = await catalogService.getProducts(30);
+    return products.map(p => ({ id: p.id }));
+  } catch {
+    return [];
+  }
+}
 
 // FASE 1: Supercharge generateMetadata
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
-    const resolvedParams = await params;
-    const docRef = doc(db, 'catalogs', resolvedParams.id);
-    const snap = await getDoc(docRef);
+    const { id } = await params;
+    const product = await getProductServerCached(id);
 
-    if (!snap.exists()) {
-      return { title: 'Produk Tidak Ditemukan | KST Solo' };
+    if (!product) {
+      return { title: 'Detail Layanan | E-Katalog KST Solo Technopark' };
     }
-
-    const data = snap.data();
-    // Beri tahu TypeScript bahwa ini adalah ProductCatalog
-    const product = { id: snap.id, ...data } as ProductCatalog;
     
     const title = `${product.name} | E-Katalog KST Solo Technopark`;
     const description = product.shortDescription || product.description?.substring(0, 160) || 'Jelajahi inovasi dan produk dari KST Solo Technopark.';
     
-    // FASE 3 INTEGRATION: Gunakan Dynamic OG API untuk link preview yang konsisten (1200x630)
+    // Dynamic OG API untuk link preview yang konsisten
     const formattedPrice = product.price ? product.price.toLocaleString('id-ID') : '0';
     const dynamicOgUrl = `${APP_URL}/api/og/katalog?title=${encodeURIComponent(product.name || '')}&price=${formattedPrice}`;
 
@@ -41,7 +71,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       openGraph: {
         title,
         description,
-        url: `${APP_URL}/e-katalog/${product.id || resolvedParams.id}`,
+        url: `${APP_URL}/e-katalog/${product.id || id}`,
         siteName: 'Solo Technopark',
         images: [
           {
@@ -52,7 +82,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           },
         ],
         locale: 'id_ID',
-        // PERBAIKAN: Ubah 'product' menjadi 'website' agar diterima oleh TypeScript Next.js
         type: 'website', 
       },
       twitter: {
@@ -62,56 +91,41 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         images: [dynamicOgUrl],
       },
       alternates: {
-        canonical: `${APP_URL}/e-katalog/${product.id || resolvedParams.id}`,
+        canonical: `${APP_URL}/e-katalog/${product.id || id}`,
       }
     };
   } catch (error) {
-    // Error di sini sudah aman karena ada try...catch, akan mengembalikan title default
     console.warn("Metadata fetch error (bisa diabaikan saat dev):", error);
     return { title: 'E-Katalog | KST Solo Technopark' };
   }
 }
 
-// FASE 2: Otomatisasi JSON-LD Structured Data
+// FASE 2: Page Component dengan data hydration langsung ke ClientPage
 export default async function Page({ params }: Props) {
-  let jsonLd = null;
+  const { id } = await params;
+  const product = await getProductServerCached(id);
 
-  // PERBAIKAN: Bungkus proses fetch di komponen Page dengan try...catch
-  // Untuk mencegah aplikasi crash jika koneksi gRPC Firebase Web SDK terputus di Server Node.js
-  try {
-    const resolvedParams = await params;
-    const docRef = doc(db, 'catalogs', resolvedParams.id);
-    const snap = await getDoc(docRef);
-    
-    if (snap.exists()) {
-      // Beri tahu TypeScript bahwa ini adalah ProductCatalog
-      const product = snap.data() as ProductCatalog;
-      
-      // Format JSON-LD untuk Rich Snippet Google
-      jsonLd = {
-        '@context': 'https://schema.org',
-        '@type': 'Product',
-        name: product.name,
-        image: product.images?.[0] || `${APP_URL}/placeholder-image.jpg`,
-        description: product.shortDescription || product.description,
-        offers: {
-          '@type': 'Offer',
-          url: `${APP_URL}/e-katalog/${resolvedParams.id}`,
-          priceCurrency: 'IDR',
-          price: product.price || 0,
-          availability: product.isPublished ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-          itemCondition: 'https://schema.org/NewCondition'
-        },
-        brand: {
-          '@type': 'Brand',
-          name: product.tenantName || (product.ownerType === 'TENANT' ? 'Tenant KST' : 'Internal BLUD KST Solo')
-        }
-      };
-    }
-  } catch (error) {
-    // Jika fetch JSON-LD gagal di server, abaikan saja.
-    // ClientPage di bawah ini akan mengambil alih fetching data aktual untuk UI di browser.
-    console.warn("Gagal memuat JSON-LD di sisi server (aman diabaikan saat dev):", error);
+  let jsonLd = null;
+  if (product) {
+    jsonLd = {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: product.name,
+      image: product.images?.[0] || `${APP_URL}/placeholder-image.jpg`,
+      description: product.shortDescription || product.description,
+      offers: {
+        '@type': 'Offer',
+        url: `${APP_URL}/e-katalog/${id}`,
+        priceCurrency: 'IDR',
+        price: product.price || 0,
+        availability: product.isPublished ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+        itemCondition: 'https://schema.org/NewCondition'
+      },
+      brand: {
+        '@type': 'Brand',
+        name: product.tenantName || (product.ownerType === 'TENANT' ? 'Tenant KST' : 'Internal BLUD KST Solo')
+      }
+    };
   }
 
   return (
@@ -124,8 +138,8 @@ export default async function Page({ params }: Props) {
         />
       )}
       
-      {/* Panggil komponen client yang sudah ada */}
-      <ClientPage />
+      {/* OPTIMASI 4: Kirim product yang sudah di-fetch ke ClientPage agar loading instan */}
+      <ClientPage initialProduct={product} />
     </>
   );
 }

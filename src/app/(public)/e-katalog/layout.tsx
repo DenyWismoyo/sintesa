@@ -4,7 +4,7 @@ import { Metadata } from 'next';
 import React from 'react';
 
 // Telah disesuaikan dengan domain produksi Anda
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://sintesa.solotechnopark.id';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://katalog.solotechnopark.id';
 
 // FASE 4: Menyematkan Meta Global di Layout agar halaman list (/e-katalog) terindeks
 export const metadata: Metadata = {

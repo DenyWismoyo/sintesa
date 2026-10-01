@@ -10,7 +10,7 @@ type Props = {
   params: Promise<{ id: string }>
 };
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://sintesa.solotechnopark.id';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://katalog.solotechnopark.id';
 
 // FASE 1: Supercharge generateMetadata dengan info Startup
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -62,7 +62,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   } catch (error) {
     console.warn("Metadata fetch error:", error);
-    return { title: 'Profil Startup | Ekosistem SINTESA' };
+    return { title: 'Profil Startup | Ekosistem Solo Technopark' };
   }
 }
 

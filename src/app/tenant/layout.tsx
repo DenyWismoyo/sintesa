@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, UserCircle, Package, TrendingUp, 
@@ -85,12 +86,12 @@ export default function TenantLayout({ children }: { children: React.ReactNode }
       <aside className="hidden md:flex w-72 bg-white/80 backdrop-blur-2xl border-r border-slate-200/60 flex-col h-screen sticky top-0 shrink-0 z-20 shadow-[4px_0_24px_rgba(0,0,0,0.01)]">
         <div className="p-8 pb-6">
           <div className="flex items-center gap-3 mb-10">
-            <div className="w-10 h-10 bg-gradient-to-br from-sky-100 to-blue-50 rounded-xl flex items-center justify-center text-blue-600 font-black text-xl shadow-sm border border-sky-200/50">
-              S
+            <div className="h-10 px-2 bg-white rounded-xl flex items-center justify-center shadow-xs border border-slate-200/80">
+              <Image src="/logo.png" alt="Solo Technopark" width={70} height={38} className="h-8 w-auto object-contain" priority />
             </div>
             <div>
-              <h2 className="font-black text-blue-950 tracking-tight leading-none text-lg">SINTESA</h2>
-              <p className="text-[10px] font-bold text-sky-500 uppercase tracking-widest mt-1">Tenant Workspace</p>
+              <h2 className="font-black text-slate-900 tracking-tight leading-none text-base">KATALOG STP</h2>
+              <p className="text-[10px] font-bold text-red-600 uppercase tracking-widest mt-1">Tenant Workspace</p>
             </div>
           </div>
 
@@ -152,8 +153,10 @@ export default function TenantLayout({ children }: { children: React.ReactNode }
         {/* Mobile Header */}
         <div className="md:hidden flex items-center justify-between p-4 bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-30">
            <div className="flex items-center gap-3">
-             <div className="w-8 h-8 bg-gradient-to-br from-sky-100 to-blue-50 rounded-lg flex items-center justify-center text-blue-600 font-black text-sm border border-sky-200">S</div>
-             <span className="font-black text-blue-950 tracking-tight">SINTESA</span>
+             <div className="h-8 px-1.5 bg-white rounded-lg flex items-center justify-center border border-slate-200">
+               <Image src="/logo.png" alt="Solo Technopark" width={60} height={32} className="h-6 w-auto object-contain" priority />
+             </div>
+             <span className="font-black text-slate-900 tracking-tight">Katalog STP</span>
            </div>
            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-slate-600 bg-slate-50 rounded-lg border border-slate-200">
              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}

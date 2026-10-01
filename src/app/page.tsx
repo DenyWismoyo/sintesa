@@ -143,20 +143,24 @@ export default function SmartHubLanding() {
 
       {/* Top Navbar Minimalis */}
       <nav className="relative z-20 w-full px-6 lg:px-12 py-6 flex items-center justify-between max-w-[1920px] mx-auto">
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 relative flex items-center justify-center">
+        <Link href="/" className="flex items-center gap-3.5 group">
+          <div className="h-9 relative flex items-center justify-center">
             <Image 
               src="/logo.png" 
-              alt="Sintesa Logo" 
-              width={40} 
+              alt="Solo Technopark" 
+              width={76} 
               height={40} 
-              className="object-contain drop-shadow-xs group-hover:scale-105 transition-transform" 
+              className="h-9 w-auto object-contain group-hover:scale-105 transition-transform" 
               priority
             />
           </div>
+          <div className="h-6 w-px bg-slate-200 hidden sm:block" />
           <div>
-            <h1 className="text-lg font-black tracking-tight text-blue-950 leading-none group-hover:text-sky-600 transition-colors">SINTESA</h1>
-            <p className="text-[10px] font-bold text-sky-600 uppercase tracking-widest mt-0.5">Smart Hub</p>
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-lg font-black tracking-tight text-slate-900 leading-none group-hover:text-red-600 transition-colors">KATALOG</h1>
+              <span className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-200/60 px-2 py-0.5 rounded">STP</span>
+            </div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">solotechnopark.id</p>
           </div>
         </Link>
         
@@ -200,10 +204,10 @@ export default function SmartHubLanding() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-50 border border-sky-100 shadow-sm text-xs font-bold tracking-widest uppercase text-sky-700 mb-8"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200/60 shadow-xs text-xs font-bold tracking-widest uppercase text-emerald-800 mb-8"
           >
-            <Sparkles size={16} className="text-sky-500" />
-            <span>Kawasan Inovasi & Vokasi</span>
+            <Sparkles size={16} className="text-emerald-600" />
+            <span>Katalog Resmi Kawasan • solotechnopark.id</span>
           </motion.div>
 
           <motion.h1 
@@ -212,8 +216,8 @@ export default function SmartHubLanding() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-4xl md:text-5xl lg:text-7xl font-black tracking-tight text-blue-950 leading-[1.1] mb-6"
           >
-            Pusat Kolaborasi Masa Depan di <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 via-blue-600 to-cyan-500">
+            Katalog Layanan, Fasilitas & Pelatihan <br className="hidden md:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600">
               Solo Technopark
             </span>
           </motion.h1>
@@ -224,7 +228,7 @@ export default function SmartHubLanding() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-base md:text-lg text-slate-500 mb-10 max-w-2xl font-medium"
           >
-            Platform terintegrasi yang menjadi simpul pertemuan antara Pemerintah, Akademisi, Industri, Komunitas, dan Media guna mewujudkan ekonomi kreatif dan penguatan daya saing daerah.
+            Gerbang dan jembatan katalog terpadu untuk mengeksplorasi program pelatihan vokasi industri, penyewaan fasilitas & gedung pertemuan, layanan teknologi, serta produk inovasi tenant Solo Technopark.
           </motion.p>
         </div>
 
@@ -578,22 +582,23 @@ export default function SmartHubLanding() {
 
       </main>
 
-      {/* Footer Komprehensif SINTESA */}
-      <footer className="relative z-10 border-t border-sky-100/80 bg-white/80 backdrop-blur-xl mt-24">
+      {/* Footer Resmi Katalog Solo Technopark */}
+      <footer className="relative z-10 border-t border-slate-200/80 bg-white/80 backdrop-blur-xl mt-24">
         <div className="w-full max-w-[1920px] mx-auto px-6 lg:px-12 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3.5 group cursor-default">
-            <div className="w-10 h-10 flex items-center justify-center shrink-0">
+            <div className="h-9 flex items-center justify-center shrink-0">
               <Image 
                 src="/logo.png" 
-                alt="Sintesa Logo" 
-                width={36} 
-                height={36} 
-                className="object-contain grayscale group-hover:grayscale-0 transition-all duration-500 opacity-70 group-hover:opacity-100 drop-shadow-sm group-hover:rotate-6" 
+                alt="Solo Technopark" 
+                width={72} 
+                height={38} 
+                className="h-8 w-auto object-contain drop-shadow-xs" 
               />
             </div>
+            <div className="h-5 w-px bg-slate-200" />
             <div>
-              <p className="text-sm font-black text-slate-800 tracking-tight">SINTESA SuperApp</p>
-              <p className="text-xs font-medium text-slate-400">&copy; {new Date().getFullYear()} Solo Technopark. Platform Kolaborasi Smart Hub.</p>
+              <p className="text-sm font-black text-slate-800 tracking-tight">Katalog Solo Technopark</p>
+              <p className="text-xs font-medium text-slate-400">&copy; {new Date().getFullYear()} Solo Technopark. Bagian dari ekosistem <a href="https://solotechnopark.id" target="_blank" rel="noopener noreferrer" className="text-red-600 hover:underline font-semibold">solotechnopark.id</a></p>
             </div>
           </div>
 

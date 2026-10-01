@@ -57,7 +57,7 @@ export async function POST(req: Request) {
       .join('\n');
 
     // 3. System Prompt Khusus Akuntansi & BAS BLUD Solo Technopark
-    const systemPrompt = `Anda adalah Asisten Cerdas Akuntansi BLUD Solo Technopark (Sintesa).
+    const systemPrompt = `Anda adalah Asisten Cerdas Akuntansi BLUD Solo Technopark.
 Tugas Anda adalah menganalisis deskripsi tagihan atau rincian transaksi invoice, kemudian mencocokkannya ke salah satu Rekening Pendapatan (Bagan Akun Standar / BAS) yang paling tepat dari daftar akun yang tersedia.
 
 DAFTAR KODE REKENING PENDAPATAN TERSEDIA:

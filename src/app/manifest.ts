@@ -3,9 +3,9 @@ import { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'SINTESA | Solo Technopark',
-    short_name: 'SINTESA',
-    description: 'Sistem Integrasi Technopark Surakarta - Manajemen Aset & Layanan',
+    name: 'Katalog Solo Technopark',
+    short_name: 'Katalog STP',
+    description: 'Katalog resmi layanan, fasilitas, pelatihan, dan produk inovasi Solo Technopark',
     start_url: '/',
     display: 'standalone', // Membuatnya tampil full-screen seperti aplikasi native
     background_color: '#ffffff',

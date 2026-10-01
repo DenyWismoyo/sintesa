@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { signInWithPopup, GoogleAuthProvider, signInAnonymously } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase'; 
@@ -162,20 +163,24 @@ export default function LoginPage() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-100/50 border border-sky-200/50 text-xs font-bold tracking-widest uppercase text-sky-700 mb-8 backdrop-blur-sm">
-              <Sparkles size={16} className="text-sky-500" />
-              <span>SINTESA Smart Hub</span>
+            <div className="mb-6">
+              <Image src="/logo.png" alt="Solo Technopark" width={180} height={98} className="h-14 w-auto object-contain" priority />
             </div>
 
-            <h1 className="text-4xl xl:text-5xl font-black tracking-tight text-blue-950 leading-[1.2] mb-6">
-              Masuk ke Ekosistem <br/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-blue-600">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-50 border border-red-200/60 text-xs font-bold tracking-widest uppercase text-red-700 mb-8 backdrop-blur-sm">
+              <Sparkles size={16} className="text-red-600" />
+              <span>Katalog Solo Technopark</span>
+            </div>
+
+            <h1 className="text-4xl xl:text-5xl font-black tracking-tight text-slate-900 leading-[1.2] mb-6">
+              Masuk ke Portal <br/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-rose-600 to-slate-800">
                 Solo Technopark
               </span>
             </h1>
 
             <p className="text-lg text-slate-500 mb-10 max-w-lg leading-relaxed font-medium">
-              Satu pintu akses untuk berkolaborasi, berinovasi, dan berkembang bersama ratusan entitas di kawasan terpadu.
+              Satu pintu akses untuk mengelola katalog, reservasi fasilitas, program pelatihan, dan layanan kawasan terpadu.
             </p>
 
             {/* Ekosistem Miniatur */}
@@ -204,10 +209,11 @@ export default function LoginPage() {
             
             {/* Header Form Mobile Only Logo */}
             <div className="lg:hidden text-center mb-8">
-               <div className="w-14 h-14 bg-sky-100 rounded-2xl mx-auto flex items-center justify-center mb-4">
-                  <span className="text-xl font-black text-blue-600">STP</span>
+               <div className="h-12 mx-auto flex items-center justify-center mb-3">
+                  <Image src="/logo.png" alt="Solo Technopark" width={110} height={60} className="h-11 w-auto object-contain" priority />
                </div>
-               <h2 className="text-2xl font-black text-blue-950">SINTESA</h2>
+               <h2 className="text-2xl font-black text-slate-900">Katalog STP</h2>
+               <p className="text-xs text-slate-400 font-semibold mt-1">katalog.solotechnopark.id</p>
             </div>
 
             {error && (

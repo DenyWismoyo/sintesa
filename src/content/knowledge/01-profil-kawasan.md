@@ -1,7 +1,7 @@
-# PROFIL KAWASAN SOLO TECHNOPARK (SINTESA)
+# PROFIL KAWASAN SOLO TECHNOPARK
 
 ## 1. Identitas & Visi
-**Solo Technopark (STK)** adalah pusat inovasi, vokasi, dan kewirausahaan teknologi terpadu yang dikelola dengan pola Badan Layanan Umum Daerah (BLUD) di bawah Pemerintah Kota Surakarta. Melalui platform digital **SINTESA** (Sistem Integrasi Technopark Surakarta), seluruh layanan kawasan saling terhubung untuk mendukung percepatan ekonomi digital Indonesia.
+**Solo Technopark (STK)** adalah pusat inovasi, vokasi, dan kewirausahaan teknologi terpadu yang dikelola dengan pola Badan Layanan Umum Daerah (BLUD) di bawah Pemerintah Kota Surakarta. Melalui platform digital **Katalog Solo Technopark** (`katalog.solotechnopark.id`) yang merupakan bagian dari portal utama `solotechnopark.id`, seluruh katalog layanan, pelatihan vokasi, sewa fasilitas, dan produk tenant kawasan disajikan secara terpadu.
 
 - **Visi:** Menjadi hub sains dan teknologi terdepan di Indonesia yang berdaya saing global, menghubungkan akademisi, pelaku usaha, pemerintah, komunitas, dan media (Pentahelix).
 - **Misi:**

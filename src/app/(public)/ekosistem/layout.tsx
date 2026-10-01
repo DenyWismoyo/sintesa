@@ -3,7 +3,7 @@
 import { Metadata } from 'next';
 import React from 'react';
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://sintesa.solotechnopark.id';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://katalog.solotechnopark.id';
 
 export const metadata: Metadata = {
   title: 'Katalog Ekosistem Startup & Inovasi | KST Solo Technopark',

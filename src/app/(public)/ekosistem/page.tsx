@@ -2,7 +2,7 @@
 
 import ClientPage from './ClientPage';
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://sintesa.solotechnopark.id';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://katalog.solotechnopark.id';
 
 export default function EkosistemPage() {
   // Format JSON-LD untuk Halaman Direktori Bisnis/Startup

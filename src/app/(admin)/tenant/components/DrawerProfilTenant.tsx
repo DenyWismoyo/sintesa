@@ -781,7 +781,7 @@ export default function DrawerProfilTenant({ tenant, isOpen, onClose, invoices =
                             {/* Opportunities */}
                             <div className="bg-blue-50/60 rounded-3xl p-6 border border-blue-200/70 shadow-2xs">
                               <h5 className="text-xs font-black text-blue-900 uppercase tracking-wider mb-3.5 flex items-center gap-2">
-                                <TrendingUp size={15} className="text-blue-600" /> Opportunities (Peluang Kawasan Sintesa)
+                                <TrendingUp size={15} className="text-blue-600" /> Opportunities (Peluang Kawasan Solo Technopark)
                               </h5>
                               <ul className="space-y-2">
                                 {(activeHealthData.swot.opportunities || []).map((o: string, idx: number) => (

@@ -23,7 +23,11 @@ import ProductCard from '../components/ProductCard';
 
 type TabType = 'description' | 'specifications' | 'highlights';
 
-export default function DetailKatalogEnterprisePage() {
+interface ClientPageProps {
+  initialProduct?: ProductCatalog | null;
+}
+
+export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPageProps) {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
@@ -32,9 +36,27 @@ export default function DetailKatalogEnterprisePage() {
   const { getProduct, products: allProducts } = useCatalog(); 
   const { createNewInvoice } = useBilling('MUTATION_ONLY');
 
-  // State
-  const [product, setProduct] = useState<ProductCatalog | null>(null);
-  const [loading, setLoading] = useState(true);
+  const paramId = (params?.id as string) || '';
+
+  // State: Coba ambil dari initialProduct atau cari di allProducts jika sudah ada di client cache
+  const [product, setProduct] = useState<ProductCatalog | null>(() => {
+    if (initialProduct && (!paramId || initialProduct.id === paramId)) return initialProduct;
+    if (paramId && allProducts.length > 0) {
+      const cached = allProducts.find(p => p.id === paramId);
+      if (cached) return cached;
+    }
+    return null;
+  });
+
+  const [loading, setLoading] = useState<boolean>(() => {
+    if (initialProduct && (!paramId || initialProduct.id === paramId)) return false;
+    if (paramId && allProducts.length > 0) {
+      const cached = allProducts.find(p => p.id === paramId);
+      if (cached) return false;
+    }
+    return true;
+  });
+
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('description');
   
@@ -43,19 +65,47 @@ export default function DetailKatalogEnterprisePage() {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  // Fetching Data
+  // Sinkronisasi data detail secara instan tanpa blocking
   useEffect(() => {
-    const fetchDetail = async () => {
-      if (!params.id) return;
-      setLoading(true);
-      const result = await getProduct(params.id as string);
-      if (result.success && result.data) {
-        setProduct(result.data);
-      }
+    if (!paramId) return;
+
+    // 1. Jika initialProduct cocok dengan params.id, gunakan langsung
+    if (initialProduct && initialProduct.id === paramId) {
+      setProduct(initialProduct);
       setLoading(false);
+      return;
+    }
+
+    // 2. Jika produk di state sudah cocok, pastikan loading false
+    if (product && product.id === paramId) {
+      setLoading(false);
+      return;
+    }
+
+    // 3. Jika ada di allProducts (TanStack Cache lokal), gunakan langsung
+    const foundInCache = allProducts.find(p => p.id === paramId);
+    if (foundInCache) {
+      setProduct(foundInCache);
+      setLoading(false);
+      return;
+    }
+
+    // 4. Jika belum ada di memori mana pun, baru fetch ke Firestore
+    let isMounted = true;
+    setLoading(true);
+    getProduct(paramId).then(result => {
+      if (isMounted) {
+        if (result.success && result.data) {
+          setProduct(result.data);
+        }
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      isMounted = false;
     };
-    fetchDetail();
-  }, [params.id]);
+  }, [paramId, initialProduct, allProducts]);
 
   // Kunci Scroll saat Lightbox Terbuka
   useEffect(() => {

@@ -55,7 +55,7 @@ export default function ModalFormTenant({ isOpen, onClose, onSubmit, initialData
 
   // FUNGSI UNTUK MENYALIN KREDENSIAL KE CLIPBOARD (SIAP KIRIM VIA WA)
   const handleCopyCredentials = () => {
-    const textToCopy = `Halo Tim ${formData.name || 'Startup'},\n\nBerikut adalah Kredensial Akses untuk masuk ke Portal Inkubator SINTESA:\n\n🌐 URL Portal: ${window.location.origin}/login\n\n📌 Opsi 1 (Untuk Founder/PIC):\nLogin menggunakan akun Google dengan email: ${formData.email || '(Belum disetel)'}\n\n📌 Opsi 2 (Untuk Tim/Anggota Lain):\nLogin menggunakan Kode Akses: ${formData.accessCode || '(Kode belum di-generate)'}\n\nHarap simpan informasi ini dengan baik. Terima kasih.`;
+    const textToCopy = `Halo Tim ${formData.name || 'Startup'},\n\nBerikut adalah Kredensial Akses untuk masuk ke Portal Tenant Solo Technopark:\n\n🌐 URL Portal: ${window.location.origin}/login\n\n📌 Opsi 1 (Untuk Founder/PIC):\nLogin menggunakan akun Google dengan email: ${formData.email || '(Belum disetel)'}\n\n📌 Opsi 2 (Untuk Tim/Anggota Lain):\nLogin menggunakan Kode Akses: ${formData.accessCode || '(Kode belum di-generate)'}\n\nHarap simpan informasi ini dengan baik. Terima kasih.`;
     
     navigator.clipboard.writeText(textToCopy).then(() => {
         setIsCopied(true);

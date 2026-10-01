@@ -185,7 +185,7 @@ export default function PendaftaranKelasPage() {
                 </div>
                 <div className="space-y-1.5 md:col-span-2">
                   <Label className="text-sm font-bold text-slate-700">Asal Instansi / Universitas <span className="text-red-500">*</span></Label>
-                  <Input required value={form.origin} onChange={e=>setForm({...form, origin: e.target.value})} className="h-11 rounded-xl" placeholder="Cth: PT Sintesa / Universitas Sebelas Maret" />
+                  <Input required value={form.origin} onChange={e=>setForm({...form, origin: e.target.value})} className="h-11 rounded-xl" placeholder="Cth: PT Teknologi Maju / Universitas Sebelas Maret" />
                 </div>
               </div>
             </motion.div>

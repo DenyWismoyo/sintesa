@@ -19,14 +19,14 @@ export const viewport: Viewport = {
 
 // --- KONFIGURASI METADATA & PWA APPLE ---
 export const metadata: Metadata = {
-  title: "SINTESA | Solo Technopark",
-  description: "Sistem Integrasi Technopark Surakarta - Manajemen Aset & Layanan",
+  title: "Katalog Solo Technopark | Jembatan Katalog & Layanan Kawasan",
+  description: "Katalog resmi layanan, fasilitas, pelatihan, dan produk inovasi Solo Technopark. Bagian terintegrasi dari ekosistem solotechnopark.id",
   generator: "Next.js",
-  applicationName: "SINTESA",
+  applicationName: "Katalog Solo Technopark",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "SINTESA",
+    title: "Katalog STP",
   },
   formatDetection: {
     telephone: false,

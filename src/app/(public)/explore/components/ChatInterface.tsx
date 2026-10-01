@@ -115,7 +115,7 @@ export default function ChatInterface({
                       <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
                         <span className="flex items-center gap-1 text-[11px] text-slate-400">
                           <Sparkles className={`w-3 h-3 ${activeMode === "free" ? "text-fuchsia-500" : "text-indigo-500"}`} />
-                          {activeMode === "free" ? "Sintesa Open AI • Mode Bebas" : "Sintesa Knowledge Grounded"}
+                          {activeMode === "free" ? "Solo Technopark AI • Mode Bebas" : "STP Knowledge Grounded"}
                         </span>
                         <button
                           onClick={() => handleCopy(msg.text, idx)}
@@ -196,7 +196,7 @@ export default function ChatInterface({
                 <span className="w-2 h-2 rounded-full bg-indigo-600 animate-bounce"></span>
                 <span className="w-2 h-2 rounded-full bg-indigo-600 animate-bounce delay-100"></span>
                 <span className="w-2 h-2 rounded-full bg-indigo-600 animate-bounce delay-200"></span>
-                <span className="text-xs font-semibold text-slate-500 ml-1">Sintesa mencari arsip pengetahuan...</span>
+                <span className="text-xs font-semibold text-slate-500 ml-1">Mencari di arsip katalog & pengetahuan...</span>
               </div>
             </motion.div>
           )}

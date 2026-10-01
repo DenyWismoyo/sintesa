@@ -54,7 +54,7 @@ export default function ExploreHero({
           <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
         </span>
         <span className="text-xs font-bold text-indigo-950 uppercase tracking-wider">
-          Sintesa AI • Powered by Clario
+          STP AI Assistant • Powered by Clario
         </span>
       </div>
 
@@ -93,14 +93,14 @@ export default function ExploreHero({
           <>
             Percakapan Terbuka dengan{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600">
-              Sintesa Open AI
+              Solo Technopark AI
             </span>
           </>
         ) : (
           <>
             Eksplorasi Resmi bersama{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600">
-              Sintesa AI
+              Asisten AI Kawasan
             </span>
           </>
         )}

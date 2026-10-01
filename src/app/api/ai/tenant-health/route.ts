@@ -93,7 +93,7 @@ function performRuleBasedTenantHealth(input: TenantHealthRequest): Omit<TenantHe
       opportunities: [
         'Komersialisasi dan piloting solusi di jejaring mitra industri Solo Technopark.',
         'Akses ke program business matching dan inkubasi lanjutan Pemkot Surakarta.',
-        'Sinergi supply-chain dengan sesama tenant binaan di ekosistem Sintesa.'
+        'Sinergi supply-chain dengan sesama tenant binaan di ekosistem Solo Technopark.'
       ],
       threats: [
         'Kenaikan biaya akuisisi pengguna jika strategi marketing tidak tepat sasaran.',
@@ -208,7 +208,7 @@ export async function POST(req: Request) {
     const isStartup = (input.segment || '').toLowerCase().includes('startup') || (input.segment || '').toLowerCase().includes('tekno');
 
     // 4. Prompt Engineering Canggih Ala ai-curation-app (Audience & Data Grounded)
-    const systemPrompt = `Anda adalah Lead Partner & Auditor Investasi di Kawasan Sains dan Teknologi Solo Technopark (Sintesa).
+    const systemPrompt = `Anda adalah Lead Partner & Auditor Investasi di Kawasan Sains dan Teknologi Solo Technopark.
 Tugas Anda adalah melakukan evaluasi kesehatan bisnis (Business Health & Viability Audit) komprehensif terhadap tenant binaan berdasarkan data riil yang terdokumentasi.
 
 PANDUAN PERSPEKTIF ENTITAS:
