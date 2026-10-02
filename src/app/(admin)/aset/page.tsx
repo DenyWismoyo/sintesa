@@ -175,41 +175,41 @@ export default function AsetPage() {
               </button>
             </div>
           }
-        />
+        >
+          {/* PILL TABS SECTION */}
+          <div className="flex bg-slate-100/80 p-1.5 rounded-xl overflow-x-auto w-full xl:w-auto hide-scrollbar">
+            <button 
+              onClick={() => setMainTab('Daftar Aset')} 
+              className={`flex items-center gap-2 px-5 py-2 font-bold text-xs sm:text-sm rounded-lg transition-all whitespace-nowrap ${mainTab === 'Daftar Aset' ? 'bg-white text-blue-600 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+            >
+              <Folder size={16} /> Database Aset
+            </button>
+            <button 
+              onClick={() => setMainTab('Laporan Publik')} 
+              className={`flex items-center gap-2 px-5 py-2 font-bold text-xs sm:text-sm rounded-lg transition-all whitespace-nowrap ${mainTab === 'Laporan Publik' ? 'bg-white text-red-600 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+            >
+              <Bell size={16} /> Laporan Kerusakan
+              {openReports.length > 0 && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full shadow-xs">{openReports.length}</span>}
+            </button>
+          </div>
+        </AdminPageHeader>
 
         {/* STATS SECTION */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <StatCard icon={<LayoutList size={24}/>} title="Total Aset Terdata" value={assets.length} suffix="Item" colorClass="bg-blue-50 text-blue-600" />
-          <StatCard icon={<Wrench size={24}/>} title="Sedang Diperbaiki" value={assets.filter(a => a.status === 'Pemeliharaan').length} suffix="Aset" colorClass="bg-amber-50 text-amber-600" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+          <StatCard icon={<LayoutList size={22}/>} title="Total Aset Terdata" value={assets.length} suffix="Item" colorClass="bg-blue-50 text-blue-600" />
+          <StatCard icon={<Wrench size={22}/>} title="Sedang Diperbaiki" value={assets.filter(a => a.status === 'Pemeliharaan').length} suffix="Aset" colorClass="bg-amber-50 text-amber-600" />
           
-          <div className={`p-5 rounded-2xl shadow-sm border flex items-center gap-4 transition-colors ${openReports.length > 0 ? 'bg-red-50/50 border-red-200' : 'bg-white border-slate-200'}`}>
-            <div className={`p-3 rounded-xl ${openReports.length > 0 ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-slate-50 text-slate-400'}`}>
-              <ShieldAlert size={24}/>
+          <div className={`p-4 sm:p-5 rounded-2xl shadow-2xs border flex items-center gap-4 transition-colors ${openReports.length > 0 ? 'bg-red-50/50 border-red-200' : 'bg-white border-slate-200/90'}`}>
+            <div className={`p-2.5 sm:p-3 rounded-xl ${openReports.length > 0 ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-slate-50 text-slate-400'}`}>
+              <ShieldAlert size={22}/>
             </div>
             <div>
-              <p className={`text-sm font-medium ${openReports.length > 0 ? 'text-red-600' : 'text-slate-500'}`}>Laporan Publik Masuk</p>
-              <h3 className={`text-2xl font-extrabold ${openReports.length > 0 ? 'text-red-700' : 'text-slate-800'}`}>
-                {openReports.length} <span className="text-sm font-normal text-slate-500">Belum Selesai</span>
+              <p className={`text-xs sm:text-sm font-medium ${openReports.length > 0 ? 'text-red-600' : 'text-slate-500'}`}>Laporan Publik Masuk</p>
+              <h3 className={`text-xl sm:text-2xl font-black ${openReports.length > 0 ? 'text-red-700' : 'text-slate-800'}`}>
+                {openReports.length} <span className="text-xs font-normal text-slate-400">Belum Selesai</span>
               </h3>
             </div>
           </div>
-        </div>
-
-        {/* PILL TABS SECTION */}
-        <div className="flex bg-slate-100/80 p-1.5 rounded-xl w-fit">
-          <button 
-            onClick={() => setMainTab('Daftar Aset')} 
-            className={`flex items-center gap-2 px-6 py-2.5 font-bold text-sm rounded-lg transition-all ${mainTab === 'Daftar Aset' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
-          >
-            <Folder size={18} /> Database Aset
-          </button>
-          <button 
-            onClick={() => setMainTab('Laporan Publik')} 
-            className={`flex items-center gap-2 px-6 py-2.5 font-bold text-sm rounded-lg transition-all ${mainTab === 'Laporan Publik' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
-          >
-            <Bell size={18} /> Laporan Kerusakan
-            {openReports.length > 0 && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm">{openReports.length}</span>}
-          </button>
         </div>
 
         {/* RENDER CONTENT */}

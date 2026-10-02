@@ -120,42 +120,42 @@ export default function TabDaftarKatalog({
         // DESKTOP TABLE VIEW (≥ lg)
         renderDesktopTable={(items) => (
           <table className="w-full text-left text-sm whitespace-nowrap border-collapse">
-            <thead className="bg-slate-50/80 text-slate-500 font-semibold text-xs uppercase tracking-wider border-b border-slate-100">
+            <thead className="bg-slate-50/80 text-slate-500 font-bold text-xs uppercase tracking-wider border-b border-slate-150">
               <tr>
-                <th className="px-6 py-4">Produk / Layanan</th>
-                <th className="px-6 py-4">Kepemilikan</th>
-                <th className="px-6 py-4">Harga Sewa / Jual</th>
-                <th className="px-6 py-4 text-center">Spesifikasi</th>
-                <th className="px-6 py-4">Status Tampil</th>
-                <th className="px-6 py-4 text-center">Aksi</th>
+                <th className="px-5 py-3.5 w-[36%]">Produk / Layanan</th>
+                <th className="px-5 py-3.5 w-[16%]">Kepemilikan</th>
+                <th className="px-5 py-3.5 w-[16%]">Harga Sewa / Jual</th>
+                <th className="px-5 py-3.5 w-[12%] text-center">Spesifikasi</th>
+                <th className="px-5 py-3.5 w-[10%] text-center">Status</th>
+                <th className="px-5 py-3.5 w-[10%] text-right pr-6">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
               {items.map((product) => (
-                <tr key={product.id} className="hover:bg-slate-50/80 transition-colors group">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-16 h-12 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden border border-slate-200 group-hover:scale-105 transition-transform shadow-xs">
+                <tr key={product.id} className="hover:bg-slate-50/70 transition-colors group">
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden border border-slate-200/80 group-hover:scale-105 transition-transform shadow-2xs">
                         {product.images && product.images.length > 0 ? (
                           <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
                         ) : (
                           <ImageIcon className="text-slate-400 h-5 w-5" />
                         )}
                       </div>
-                      <div className="max-w-[220px]">
-                        <p className="font-bold text-slate-800 truncate group-hover:text-blue-600 transition-colors" title={product.name}>
+                      <div className="min-w-0 max-w-md">
+                        <p className="font-bold text-slate-800 text-sm truncate group-hover:text-blue-600 transition-colors" title={product.name}>
                           {product.name}
                         </p>
-                        <p className="text-[11px] font-bold text-slate-500 bg-slate-100 border border-slate-200 w-fit px-2 py-0.5 rounded-md mt-1">
+                        <span className="inline-block text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200/70 px-2 py-0.5 rounded-md mt-1">
                           {product.category}
-                        </p>
+                        </span>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-5 py-3.5">
                     {product.ownerType === 'TENANT' ? (
-                      <div>
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                      <div className="flex flex-col">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 w-fit">
                           <Store className="w-3 h-3" /> Milik Tenant
                         </span>
                         <p className="text-xs font-semibold text-slate-700 mt-1 truncate max-w-[150px]">
@@ -163,26 +163,26 @@ export default function TabDaftarKatalog({
                         </p>
                       </div>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 w-fit">
                         <UserCheck className="w-3 h-3" /> Internal / BLUD
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-5 py-3.5">
                     <p className="font-black text-slate-800 text-sm">
                       Rp {product.price?.toLocaleString('id-ID')}
                     </p>
-                    <p className="text-[11px] font-medium text-slate-500 mt-0.5 uppercase tracking-wide">
+                    <p className="text-[10px] font-semibold text-slate-400 mt-0.5 uppercase tracking-wide">
                       / {product.pricingType || 'Satuan'}
                     </p>
                     {product.isNegotiable && (
-                      <span className="inline-block mt-1 text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">
+                      <span className="inline-block mt-0.5 text-[9px] font-bold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">
                         Bisa Nego
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-center">
-                    <div className="flex flex-col items-center gap-1.5">
+                  <td className="px-5 py-3.5 text-center">
+                    <div className="flex flex-col items-center gap-1">
                       <span className="inline-flex items-center text-[10px] font-bold text-slate-600 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-md w-fit">
                         <List className="h-3 w-3 mr-1 text-slate-400" /> {product.specifications?.length || 0} Spek
                       </span>
@@ -191,23 +191,23 @@ export default function TabDaftarKatalog({
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-5 py-3.5 text-center">
                     {product.isPublished ? (
                       <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500" /> Publik
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Publik
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
-                        <span className="w-2 h-2 rounded-full bg-slate-400" /> Draft
+                        <span className="w-1.5 h-1.5 rounded-full bg-slate-400" /> Draft
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-center">
-                    <div className="flex items-center justify-center gap-2">
+                  <td className="px-5 py-3.5 text-right pr-6">
+                    <div className="flex items-center justify-end gap-1.5">
                       <button
                         onClick={() => onEdit(product)}
                         disabled={isFetchingDetail}
-                        className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 bg-white border border-slate-200 rounded-xl transition-colors shadow-xs relative"
+                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 bg-white border border-slate-200 rounded-lg transition-colors shadow-2xs relative"
                         title="Edit Produk"
                       >
                         <Edit className={`h-4 w-4 ${isFetchingDetail ? 'opacity-0' : 'opacity-100'}`} />
@@ -217,7 +217,7 @@ export default function TabDaftarKatalog({
                       </button>
                       <button
                         onClick={() => onDelete(product.id!)}
-                        className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 bg-white border border-slate-200 rounded-xl transition-colors shadow-xs"
+                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 bg-white border border-slate-200 rounded-lg transition-colors shadow-2xs"
                         title="Hapus Produk"
                       >
                         <Trash2 className="h-4 w-4" />

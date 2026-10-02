@@ -85,7 +85,7 @@ export default function AdminResponsiveView<T>({
   return (
     <div className={`space-y-4 ${className}`}>
       {/* DESKTOP VIEW: Tabel Lengkap (Breakpoint lg ke atas) */}
-      <div className="hidden lg:block bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+      <div className="hidden lg:block bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
           {renderDesktopTable(items)}
         </div>

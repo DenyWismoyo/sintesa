@@ -369,25 +369,25 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
   };
 
   return (
-    <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in">
-      <div className="flex border-b border-slate-100 bg-white justify-between items-center pr-6">
+    <div className="bg-white rounded-2xl shadow-2xs border border-slate-200/90 overflow-hidden animate-in fade-in">
+      <div className="flex border-b border-slate-150 bg-white justify-between items-center pr-4 sm:pr-6">
         <div className="flex overflow-x-auto hide-scrollbar">
-          <button onClick={() => setSubTab('Antrean')} className={`flex items-center gap-2 px-6 py-4 text-sm font-bold transition-colors border-b-2 whitespace-nowrap ${subTab === 'Antrean' ? 'text-blue-600 border-blue-600 bg-blue-50/30' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50 border-transparent'}`}>
-            <ListTodo size={18}/> Antrean Persetujuan {pendingBookings.length > 0 && <span className="bg-blue-600 text-white rounded-full px-2 text-xs">{pendingBookings.length}</span>}
+          <button onClick={() => setSubTab('Antrean')} className={`flex items-center gap-2 px-5 py-3.5 text-xs sm:text-sm font-bold transition-colors border-b-2 whitespace-nowrap ${subTab === 'Antrean' ? 'text-blue-600 border-blue-600 bg-blue-50/30' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50 border-transparent'}`}>
+            <ListTodo size={16}/> Antrean Persetujuan {pendingBookings.length > 0 && <span className="bg-blue-600 text-white rounded-full px-2 text-[10px]">{pendingBookings.length}</span>}
           </button>
-          <button onClick={() => setSubTab('Riwayat')} className={`flex items-center gap-2 px-6 py-4 text-sm font-bold transition-colors border-b-2 whitespace-nowrap ${subTab === 'Riwayat' ? 'text-blue-600 border-blue-600 bg-blue-50/30' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50 border-transparent'}`}>
-            <History size={18}/> Riwayat Peminjaman
+          <button onClick={() => setSubTab('Riwayat')} className={`flex items-center gap-2 px-5 py-3.5 text-xs sm:text-sm font-bold transition-colors border-b-2 whitespace-nowrap ${subTab === 'Riwayat' ? 'text-blue-600 border-blue-600 bg-blue-50/30' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50 border-transparent'}`}>
+            <History size={16}/> Riwayat Peminjaman
           </button>
-          <button onClick={() => setSubTab('Tagihan Mandiri')} className={`flex items-center gap-2 px-6 py-4 text-sm font-bold transition-colors border-b-2 whitespace-nowrap ${subTab === 'Tagihan Mandiri' ? 'text-blue-600 border-blue-600 bg-blue-50/30' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50 border-transparent'}`}>
-            <Receipt size={18}/> Tagihan Mandiri
+          <button onClick={() => setSubTab('Tagihan Mandiri')} className={`flex items-center gap-2 px-5 py-3.5 text-xs sm:text-sm font-bold transition-colors border-b-2 whitespace-nowrap ${subTab === 'Tagihan Mandiri' ? 'text-blue-600 border-blue-600 bg-blue-50/30' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50 border-transparent'}`}>
+            <Receipt size={16}/> Tagihan Mandiri
           </button>
         </div>
         
-        <div className="hidden md:flex items-center gap-3">
-          <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
-            <RefreshCw size={12} className="animate-spin-slow" /> Auto-Sync
+        <div className="hidden md:flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
+            <RefreshCw size={11} className="animate-spin-slow" /> Auto-Sync
           </div>
-          <Button size="sm" onClick={() => setIsIndependentInvoiceModalOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white font-bold h-8 rounded-lg shadow-sm text-xs flex items-center">
+          <Button size="sm" onClick={() => setIsIndependentInvoiceModalOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white font-bold h-8 rounded-xl shadow-2xs text-xs flex items-center px-3">
             <FilePlus2 className="w-3.5 h-3.5 mr-1.5" /> Tagihan Mandiri Baru
           </Button>
         </div>
@@ -395,50 +395,50 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
       
       {subTab === 'Antrean' && (
         pendingBookings.length === 0 ? (
-           <div className="text-center py-24 text-slate-500 bg-slate-50/30">
-             <CheckCircle2 className="h-16 w-16 text-emerald-400 mx-auto mb-4 bg-emerald-50 rounded-full p-2 border border-emerald-100" />
-             <h3 className="text-xl font-bold text-slate-800 tracking-tight">Antrean Bersih!</h3>
-             <p className="text-sm mt-1">Tidak ada pengajuan peminjaman baru saat ini.</p>
+           <div className="text-center py-20 text-slate-500 bg-slate-50/30">
+             <CheckCircle2 className="h-12 w-12 text-emerald-400 mx-auto mb-3 bg-emerald-50 rounded-full p-2 border border-emerald-100" />
+             <h3 className="text-lg font-bold text-slate-800 tracking-tight">Antrean Bersih!</h3>
+             <p className="text-xs sm:text-sm text-slate-400 mt-1">Tidak ada pengajuan peminjaman baru saat ini.</p>
            </div>
         ) : (
           <div>
             {/* DESKTOP TABLE VIEW */}
             <div className="hidden lg:block overflow-x-auto">
               <table className="w-full text-sm text-left border-collapse">
-                <thead className="text-xs text-slate-500 font-semibold uppercase tracking-wider bg-slate-50/80 border-b border-slate-100">
+                <thead className="text-xs text-slate-500 font-bold uppercase tracking-wider bg-slate-50/80 border-b border-slate-150">
                   <tr>
-                    <th className="px-8 py-4">Pemohon</th>
-                    <th className="px-6 py-4">Fasilitas & Jadwal</th>
-                    <th className="px-6 py-4">Keperluan</th>
-                    <th className="px-8 py-4 text-center">Aksi</th>
+                    <th className="px-5 py-3.5 w-[30%]">Pemohon</th>
+                    <th className="px-5 py-3.5 w-[32%]">Fasilitas & Jadwal</th>
+                    <th className="px-5 py-3.5 w-[24%]">Keperluan</th>
+                    <th className="px-5 py-3.5 w-[14%] text-right pr-6">Aksi</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 bg-white">
                   {pendingBookings.map((booking) => (
-                    <tr key={booking.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="px-8 py-5">
-                        <div className="font-bold text-slate-800">{booking.userName}</div>
-                        <div className="text-xs text-slate-500 mt-1">{booking.agency || 'Individu'}</div>
+                    <tr key={booking.id} className="hover:bg-slate-50/70 transition-colors">
+                      <td className="px-5 py-3.5">
+                        <div className="font-bold text-slate-800 text-sm">{booking.userName}</div>
+                        <div className="text-xs text-slate-500 mt-0.5">{booking.agency || 'Individu'}</div>
                         <div className="text-[10px] text-slate-400 mt-0.5">{booking.userEmail}</div>
                       </td>
-                      <td className="px-6 py-5">
-                        <div className="font-bold text-blue-700 flex items-center gap-1.5 mb-1.5">
-                          <MapPin size={14}/> {booking.assetName}
+                      <td className="px-5 py-3.5">
+                        <div className="font-bold text-blue-700 text-sm flex items-center gap-1.5 mb-1">
+                          <MapPin size={13}/> {booking.assetName}
                         </div>
-                        <div className="text-xs font-medium text-slate-600 flex items-center gap-1.5">
-                          <Clock size={14} className="text-slate-400"/> {booking.startDate} ({booking.startTime || '08:00'} - {booking.endTime || '17:00'})
+                        <div className="text-xs font-medium text-slate-500 flex items-center gap-1.5">
+                          <Clock size={13} className="text-slate-400"/> {booking.startDate} ({booking.startTime || '08:00'} - {booking.endTime || '17:00'})
                         </div>
                       </td>
-                      <td className="px-6 py-5">
+                      <td className="px-5 py-3.5">
                         <p className="text-slate-600 line-clamp-2 text-xs max-w-xs">{booking.purpose}</p>
                       </td>
-                      <td className="px-8 py-5 text-center">
-                        <div className="flex justify-center gap-2">
-                          <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:text-red-700 hover:bg-red-50 hover:border-red-300 rounded-xl px-4" onClick={() => handleReject(booking.id!)}>
-                            <XCircle className="mr-1.5 h-4 w-4"/> Tolak
+                      <td className="px-5 py-3.5 text-right pr-6">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:text-red-700 hover:bg-red-50 hover:border-red-300 rounded-lg px-3 h-8 text-xs font-bold" onClick={() => handleReject(booking.id!)}>
+                            <XCircle className="mr-1 h-3.5 w-3.5"/> Tolak
                           </Button>
-                          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 rounded-xl px-4 shadow-xs shadow-emerald-200" onClick={() => { setSelectedBooking(booking); setIsApproveModalOpen(true); }}>
-                            <CheckCircle2 className="mr-1.5 h-4 w-4"/> Validasi
+                          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-3.5 h-8 text-xs font-bold shadow-2xs" onClick={() => { setSelectedBooking(booking); setIsApproveModalOpen(true); }}>
+                            <CheckCircle2 className="mr-1 h-3.5 w-3.5"/> Validasi
                           </Button>
                         </div>
                       </td>
@@ -517,38 +517,38 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
             {/* DESKTOP TABLE VIEW */}
             <div className="hidden lg:block overflow-x-auto">
               <table className="w-full text-sm text-left border-collapse">
-                <thead className="text-xs text-slate-500 font-semibold uppercase tracking-wider bg-slate-50/80 border-b border-slate-100">
+                <thead className="text-xs text-slate-500 font-bold uppercase tracking-wider bg-slate-50/80 border-b border-slate-150">
                   <tr>
-                    <th className="px-8 py-4">Pemohon</th>
-                    <th className="px-6 py-4">Fasilitas & Jadwal</th>
-                    <th className="px-6 py-4">Status Kalender</th>
-                    <th className="px-8 py-4">Status Tagihan / Invoice</th>
+                    <th className="px-5 py-3.5 w-[28%]">Pemohon</th>
+                    <th className="px-5 py-3.5 w-[32%]">Fasilitas & Jadwal</th>
+                    <th className="px-5 py-3.5 w-[20%]">Status Kalender</th>
+                    <th className="px-5 py-3.5 w-[20%] text-right pr-6">Status Tagihan / Invoice</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 bg-white">
                   {historyBookings.map((booking) => {
                     const inv = invoices.find(i => i.id === booking.invoiceId);
                     const isAutoCancelled = booking.status === 'rejected' && (inv?.status === 'OVERDUE' || inv?.status === 'CANCELLED');
 
                     return (
-                      <tr key={booking.id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="px-8 py-5">
-                          <div className="font-bold text-slate-800">{booking.userName}</div>
-                          <div className="text-xs text-slate-500 mt-1">{booking.agency || 'Individu'}</div>
+                      <tr key={booking.id} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="px-5 py-3.5">
+                          <div className="font-bold text-slate-800 text-sm">{booking.userName}</div>
+                          <div className="text-xs text-slate-500 mt-0.5">{booking.agency || 'Individu'}</div>
                         </td>
-                        <td className="px-6 py-5">
-                          <div className="font-bold text-slate-800 flex items-center gap-1.5 mb-1.5">{booking.assetName}</div>
+                        <td className="px-5 py-3.5">
+                          <div className="font-bold text-slate-800 text-sm flex items-center gap-1.5 mb-1">{booking.assetName}</div>
                           <div className="text-xs font-medium text-slate-500 flex items-center gap-1.5">
                             <Clock size={12}/> {booking.startDate} ({booking.startTime || '08:00'} - {booking.endTime || '17:00'})
                           </div>
                         </td>
-                        <td className="px-6 py-5">
-                          {booking.status === 'completed' && !booking.invoiceId && <span className="text-emerald-700 font-bold bg-emerald-50 px-2.5 py-1 rounded-md text-[11px] border border-emerald-200 flex items-center gap-1.5 w-fit uppercase tracking-wide"><CheckCircle2 size={12}/> Gratis / Internal</span>}
-                          {booking.status === 'completed' && booking.invoiceId && <span className="text-emerald-700 font-bold bg-emerald-50 px-2.5 py-1 rounded-md text-[11px] border border-emerald-200 flex items-center gap-1.5 w-fit uppercase tracking-wide"><CheckCircle2 size={12}/> Terkonfirmasi (Lunas)</span>}
-                          {booking.status === 'approved' && <span className="text-blue-700 font-bold bg-blue-50 px-2.5 py-1 rounded-md text-[11px] border border-blue-200 flex items-center gap-1.5 w-fit uppercase tracking-wide"><Clock size={12}/> Menunggu Bayar</span>}
-                          {booking.status === 'rejected' && <span className="text-red-700 font-bold bg-red-50 px-2.5 py-1 rounded-md text-[11px] border border-red-200 flex items-center gap-1.5 w-fit uppercase tracking-wide"><XCircle size={12}/> {isAutoCancelled ? 'Batal (Telat Bayar)' : 'Ditolak'}</span>}
+                        <td className="px-5 py-3.5">
+                          {booking.status === 'completed' && !booking.invoiceId && <span className="text-emerald-700 font-bold bg-emerald-50 px-2.5 py-0.5 rounded text-[10px] border border-emerald-200 flex items-center gap-1.5 w-fit uppercase tracking-wide"><CheckCircle2 size={12}/> Gratis / Internal</span>}
+                          {booking.status === 'completed' && booking.invoiceId && <span className="text-emerald-700 font-bold bg-emerald-50 px-2.5 py-0.5 rounded text-[10px] border border-emerald-200 flex items-center gap-1.5 w-fit uppercase tracking-wide"><CheckCircle2 size={12}/> Terkonfirmasi (Lunas)</span>}
+                          {booking.status === 'approved' && <span className="text-blue-700 font-bold bg-blue-50 px-2.5 py-0.5 rounded text-[10px] border border-blue-200 flex items-center gap-1.5 w-fit uppercase tracking-wide"><Clock size={12}/> Menunggu Bayar</span>}
+                          {booking.status === 'rejected' && <span className="text-red-700 font-bold bg-red-50 px-2.5 py-0.5 rounded text-[10px] border border-red-200 flex items-center gap-1.5 w-fit uppercase tracking-wide"><XCircle size={12}/> {isAutoCancelled ? 'Batal (Telat Bayar)' : 'Ditolak'}</span>}
                         </td>
-                        <td className="px-8 py-5">
+                        <td className="px-5 py-3.5 text-right pr-6">
                           {booking.status === 'rejected' && !isAutoCancelled ? <span className="text-slate-400 italic text-xs font-medium">- Tidak Berlaku -</span> : renderInvoiceStatus(booking.invoiceId)}
                         </td>
                       </tr>

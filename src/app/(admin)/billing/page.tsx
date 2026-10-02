@@ -269,29 +269,37 @@ export default function BillingPage() {
         subtitle={isKasirPendapatan ? 'Kelola tagihan pelanggan, verifikasi bukti transfer, dan penerbitan kwitansi resmi.' : isKasirPengeluaran ? 'Ajukan pencairan dana dan catat bukti transaksi belanja BLUD.' : 'Sistem Penagihan, Rekonsiliasi Kas, dan Akuntansi Otomatis berbasis Cloud.'}
         badge={pendingVerificationsCount > 0 ? `${pendingVerificationsCount} Perlu Verifikasi Bukti` : undefined}
         breadcrumbs={[{ label: 'Billing & Invoice' }]}
-      />
-
-      {VISIBLE_VIEWS.length > 1 && (
-        <div className="flex bg-white border border-slate-200 p-1.5 rounded-2xl overflow-x-auto hide-scrollbar">
-          {VISIBLE_VIEWS.map(view => (
-            <button key={view.id} onClick={() => setMainView(view.id)} className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold rounded-xl whitespace-nowrap transition-all ${ mainView === view.id ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100' : 'text-slate-500 hover:bg-slate-50' }`}>
-              {view.icon} {view.label}
-              {view.badge && (
-                <span className="bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full ml-1 animate-pulse">
-                  {view.badge}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-      )}
+      >
+        {VISIBLE_VIEWS.length > 1 && (
+          <div className="flex bg-slate-100/80 p-1.5 rounded-xl overflow-x-auto w-full hide-scrollbar">
+            {VISIBLE_VIEWS.map(view => (
+              <button 
+                key={view.id} 
+                onClick={() => setMainView(view.id)} 
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg whitespace-nowrap transition-all ${ 
+                  mainView === view.id 
+                    ? 'bg-white text-blue-700 shadow-xs' 
+                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50' 
+                }`}
+              >
+                {view.icon} {view.label}
+                {view.badge && (
+                  <span className="bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full ml-1 animate-pulse">
+                    {view.badge}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+      </AdminPageHeader>
 
       {isLoading ? <div className="py-24 flex justify-center"><Loader2 className="w-10 h-10 text-blue-500 animate-spin" /></div> : (
         <>
           {mainView === 'DASHBOARD' && !isRestrictedStaff && <div className="mt-6"><StatCardBilling invoices={invoices || []} targetPAD={targetPAD} onUpdateTargetPAD={setTargetPAD} /></div>}
           
           {mainView === 'INCOME' && (
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm mt-6 p-2">
+            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs mt-5 p-2 overflow-hidden">
               <TabInvoices 
                 rawInvoices={invoices || []} 
                 activeTab={activeInvoiceTab} 
@@ -309,7 +317,7 @@ export default function BillingPage() {
 
           {/* MENAMBAHKAN RENDER BLOK UNTUK TAB KONFIRMASI */}
           {mainView === 'KONFIRMASI' && (
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm mt-6 p-2 overflow-hidden">
+            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs mt-5 p-2 overflow-hidden">
               <TabKonfirmasi 
                 invoices={invoices || []}
                 accounts={accounts || []}
@@ -320,7 +328,7 @@ export default function BillingPage() {
           )}
 
           {mainView === 'EXPENSE' && (
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm mt-6 p-2">
+            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs mt-5 p-2 overflow-hidden">
               <TabExpenses 
                  expenses={expenses || []} 
                  activeTab={activeExpenseTab} 
@@ -332,35 +340,35 @@ export default function BillingPage() {
           )}
           
           {mainView === 'AGING_PIUTANG' && (
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm mt-6 overflow-hidden">
+            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs mt-5 overflow-hidden">
                <TabAgingPiutang invoices={invoices || []} onViewDetail={handleOpenDetail} />
             </div>
           )}
 
           {mainView === 'PROFIT_CENTER' && !isRestrictedStaff && (
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm mt-6 overflow-hidden">
+            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs mt-5 overflow-hidden">
                <TabProfitCenter invoices={invoices || []} expenses={expenses || []} />
             </div>
           )}
 
           {mainView === 'CASH_FLOW' && !isRestrictedStaff && (
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm mt-6 overflow-hidden">
+            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs mt-5 overflow-hidden">
                <TabCashFlow invoices={invoices || []} expenses={expenses || []} accounts={accounts || []} />
             </div>
           )}
           
           {mainView === 'CASH' && !isRestrictedStaff && (
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm mt-6 overflow-hidden">
+            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs mt-5 overflow-hidden">
               <TabCashBank accounts={accounts || []} onOpenAddAccount={() => setIsAccountFormOpen(true)} onOpenTransfer={() => setIsTransferOpen(true)} onOpenReconciliation={() => setIsReconOpen(true)} />
             </div>
           )}
 
-          {mainView === 'REKAP_ALOKASI' && !isRestrictedStaff && <div className="bg-white rounded-3xl border border-slate-200 shadow-sm mt-6 overflow-hidden"><TabLaporanAlokasi invoices={invoices || []} expenses={expenses || []} accounts={accounts || []} /></div>}
+          {mainView === 'REKAP_ALOKASI' && !isRestrictedStaff && <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs mt-5 overflow-hidden"><TabLaporanAlokasi invoices={invoices || []} expenses={expenses || []} accounts={accounts || []} /></div>}
           
-          {mainView === 'REPORT' && !isRestrictedStaff && <div className="bg-white rounded-3xl border border-slate-200 shadow-sm mt-6 overflow-hidden"><TabReports journals={journals || []} accounts={accounts || []} invoices={invoices || []} expenses={expenses || []} /></div>}
+          {mainView === 'REPORT' && !isRestrictedStaff && <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs mt-5 overflow-hidden"><TabReports journals={journals || []} accounts={accounts || []} invoices={invoices || []} expenses={expenses || []} /></div>}
           
           {mainView === 'EXPORT' && !isRestrictedStaff && (
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm mt-6 overflow-hidden">
+            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs mt-5 overflow-hidden">
               <TabExport invoices={invoices || []} expenses={expenses || []} journals={journals || []} accounts={accounts || []} />
             </div>
           )}

@@ -189,11 +189,19 @@ export default function TenantAdminPage() {
       </div>
 
       {/* Konten Tab Aktif */}
-      <div className="mt-4 bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden min-h-[500px]">
-        {activeTab === 'validasi' && <TabValidasiTenant tenants={allTenants} onReview={handleStartValidation} />}
+      <div className="min-h-[500px]">
+        {activeTab === 'validasi' && (
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+            <TabValidasiTenant tenants={allTenants} onReview={handleStartValidation} />
+          </div>
+        )}
         {activeTab === 'direktori' && <TabDirektoriTenant tenants={tenants} loading={loading} fetchNextPage={fetchNextPage} hasNextPage={!!hasNextPage} isFetchingNextPage={!!isFetchingNextPage} onEdit={handleOpenEdit} onDelete={handleDeleteTenant} onViewProfile={handleViewProfile} />}
         {activeTab === 'kanban' && <KanbanBoardTenant tenants={allTenants} onUpdateStage={handleUpdateStage} onViewProfile={handleViewProfile} />}
-        {activeTab === 'matching' && <BusinessMatchingBoard tenants={allTenants} onViewProfile={handleViewProfile} />}
+        {activeTab === 'matching' && (
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-6">
+            <BusinessMatchingBoard tenants={allTenants} onViewProfile={handleViewProfile} />
+          </div>
+        )}
         {activeTab === 'kurasi' && <TabKurasiProduk tenants={allTenants} onStartCuration={handleStartCuration} />}
         {activeTab === 'tagihan' && <TabTagihanTenant tenants={allTenants} invoices={invoices} onBuatTagihan={handleBuatTagihanTenant} onViewInvoice={handleViewInvoice} />}
       </div>

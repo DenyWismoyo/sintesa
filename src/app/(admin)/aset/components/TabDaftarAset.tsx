@@ -142,9 +142,9 @@ export default function TabDaftarAset({
         // DESKTOP TABLE VIEW
         renderDesktopTable={(items) => (
           <table className="w-full text-sm text-left border-collapse">
-            <thead className="text-xs text-slate-500 font-semibold bg-slate-50/80 border-b border-slate-200">
+            <thead className="text-xs text-slate-500 font-bold uppercase tracking-wider bg-slate-50/80 border-b border-slate-150">
               <tr>
-                <th className="px-4 py-4 w-12 text-center">
+                <th className="px-4 py-3.5 w-[4%] text-center">
                   <input 
                     type="checkbox" 
                     className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer w-4 h-4 transition-all" 
@@ -152,11 +152,11 @@ export default function TabDaftarAset({
                     onChange={handleSelectAllCurrent} 
                   />
                 </th>
-                <th className="px-6 py-4 font-semibold uppercase tracking-wider">Merek & Informasi</th>
-                <th className="px-6 py-4 font-semibold uppercase tracking-wider">Nama Aset & Kategori</th>
-                <th className="px-6 py-4 font-semibold uppercase tracking-wider">Kondisi & Status</th>
-                <th className="px-6 py-4 font-semibold uppercase tracking-wider text-center">Keluhan</th>
-                <th className="px-6 py-4 font-semibold uppercase tracking-wider text-center">Aksi</th>
+                <th className="px-5 py-3.5 w-[28%]">Merek & Informasi</th>
+                <th className="px-5 py-3.5 w-[30%]">Nama Aset & Kategori</th>
+                <th className="px-5 py-3.5 w-[18%]">Kondisi & Status</th>
+                <th className="px-5 py-3.5 w-[8%] text-center">Keluhan</th>
+                <th className="px-5 py-3.5 w-[12%] text-right pr-6">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
@@ -220,11 +220,11 @@ export default function TabDaftarAset({
                         <span className="text-xs text-slate-400 font-medium italic">-</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-center">
-                      <div className="flex items-center justify-center gap-1.5">
-                        <button onClick={() => onOpenDetail(asset)} className="text-slate-500 hover:text-blue-600 p-2 bg-white border border-slate-200 rounded-lg hover:border-blue-200 hover:bg-blue-50 transition-all shadow-xs" title="Lihat Detail & Laporan"><Eye size={15} /></button>
-                        <button onClick={() => onOpenQr(asset)} className="text-slate-500 hover:text-slate-700 p-2 bg-white border border-slate-200 rounded-lg hover:border-slate-300 hover:bg-slate-50 transition-all shadow-xs" title="QR Code Aset"><QrCode size={15} /></button>
-                        <button onClick={() => onOpenForm(asset)} className="text-blue-500 hover:text-blue-700 p-2 bg-white border border-slate-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all shadow-xs" title="Edit Aset"><Edit size={15} /></button>
+                    <td className="px-5 py-3.5 text-right pr-6">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button onClick={() => onOpenDetail(asset)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 bg-white border border-slate-200 rounded-lg transition-colors shadow-2xs" title="Lihat Detail & Laporan"><Eye size={14} /></button>
+                        <button onClick={() => onOpenQr(asset)} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-50 bg-white border border-slate-200 rounded-lg transition-colors shadow-2xs" title="QR Code Aset"><QrCode size={14} /></button>
+                        <button onClick={() => onOpenForm(asset)} className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 bg-white border border-slate-200 rounded-lg transition-colors shadow-2xs" title="Edit Aset"><Edit size={14} /></button>
                       </div>
                     </td>
                   </tr>

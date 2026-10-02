@@ -138,43 +138,29 @@ export default function KatalogAdminPage() {
         </div>
       </AdminPageHeader>
 
-      {/* Banner Info - Clean Styling */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 flex items-start gap-4 shadow-sm">
-        <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl shrink-0">
-          <Info className="w-5 h-5" />
-        </div>
-        <div className="flex-1">
-          <p className="text-sm font-medium leading-relaxed text-slate-700 pt-1">
-            Anda dapat mengelola detail, harga, dan spesifikasi seluruh produk e-katalog pada halaman ini. Data akan otomatis diperbarui dan dapat langsung dilihat oleh pengunjung web.
+      {/* Konten Tab Aktif */}
+      {activeTab === 'daftar' && (
+        <TabDaftarKatalog 
+          products={products}
+          loading={loading}
+          isFetchingDetail={isFetchingDetail}
+          onAdd={handleOpenAdd}
+          onEdit={handleOpenEdit}
+          onDelete={handleDeleteProduct}
+        />
+      )}
+      
+      {activeTab === 'pengaturan' && (
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-16 sm:p-20 text-center flex flex-col items-center">
+          <div className="h-16 w-16 bg-slate-50 text-slate-300 rounded-2xl flex items-center justify-center border border-slate-100 mb-4">
+            <Settings size={28} />
+          </div>
+          <h3 className="text-lg font-bold text-slate-800">Pengaturan Lanjutan</h3>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1.5 max-w-md mx-auto">
+            Fitur manajemen banner <em>carousel</em> dan pengaturan kategori custom sedang dalam pengembangan.
           </p>
         </div>
-      </div>
-
-      {/* Konten Tab Aktif */}
-      <div className="mt-4 bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-        {activeTab === 'daftar' && (
-          <TabDaftarKatalog 
-            products={products}
-            loading={loading}
-            isFetchingDetail={isFetchingDetail}
-            onAdd={handleOpenAdd}
-            onEdit={handleOpenEdit}
-            onDelete={handleDeleteProduct}
-          />
-        )}
-        
-        {activeTab === 'pengaturan' && (
-          <div className="p-20 text-center flex flex-col items-center">
-            <div className="h-20 w-20 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center border border-slate-100 mb-4">
-              <Settings size={32} />
-            </div>
-            <h3 className="text-xl font-bold text-slate-800">Pengaturan Lanjutan</h3>
-            <p className="text-sm text-slate-500 mt-2 max-w-md mx-auto">
-              Fitur manajemen banner *carousel* dan pengaturan *custom* kategori sedang dalam pengembangan (Coming Soon).
-            </p>
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Modal Form */}
       <ModalFormProduct 
