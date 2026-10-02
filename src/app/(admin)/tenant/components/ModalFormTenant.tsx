@@ -72,70 +72,66 @@ export default function ModalFormTenant({ isOpen, onClose, onSubmit, initialData
 
   if (!isOpen) return null;
 
-  const inputClass = "w-full px-4 py-3 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all";
-  const labelClass = "block text-xs font-bold text-slate-700 mb-1.5";
+  const inputClass = "w-full px-3 py-2 sm:py-2.5 text-xs sm:text-sm bg-slate-50/80 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all";
+  const labelClass = "block text-[11px] sm:text-xs font-bold text-slate-700 mb-1";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-2xl max-h-[95vh] flex flex-col border border-slate-100 animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-[95vw] sm:max-w-2xl max-h-[92vh] sm:max-h-[88vh] flex flex-col border border-slate-200/80 animate-in zoom-in-95 duration-200 overflow-hidden">
         
         {/* HEADER */}
-        <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-white/80 backdrop-blur-md shrink-0">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100">
-              <Building2 size={24} />
+        <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-150 flex justify-between items-center bg-white shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100 shrink-0">
+              <Building2 className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div>
-              <h2 className="text-xl font-black text-slate-800 tracking-tight">
+              <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">
                 {initialData ? 'Edit Data Registrasi' : 'Registrasi Tenant Baru'}
               </h2>
-              <p className="text-xs font-medium text-slate-500 mt-1">Buat cangkang akun. Startup terkait akan melengkapi profilnya sendiri.</p>
+              <p className="text-[11px] font-medium text-slate-400 hidden sm:block">Buat akun awal. Startup dapat melengkapi profilnya sendiri.</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2.5 text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-full transition-colors"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors"><X className="w-4 h-4" /></button>
         </div>
 
         {/* BODY FORM */}
-        <form id="tenant-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar bg-slate-50/50">
+        <form id="tenant-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-3.5 sm:p-6 space-y-4 sm:space-y-6 no-scrollbar bg-slate-50/50">
           
           {/* SECTION KREDENSIAL */}
-          <div className="bg-blue-600 p-6 rounded-3xl relative overflow-hidden group shadow-lg shadow-blue-200 text-white">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+          <div className="bg-blue-600 p-3.5 sm:p-5 rounded-2xl relative overflow-hidden group shadow-md shadow-blue-200/50 text-white">
+            <div className="absolute top-0 right-0 w-28 h-28 bg-white/10 rounded-full blur-2xl -mr-8 -mt-8"></div>
             
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 relative z-10 gap-3">
-              <h3 className="text-sm font-black flex items-center gap-2 uppercase tracking-widest"><Key className="w-4 h-4" /> Kredensial Akses Startup</h3>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 relative z-10 gap-2">
+              <h3 className="text-xs font-black flex items-center gap-1.5 uppercase tracking-wider"><Key className="w-3.5 h-3.5" /> Kredensial Akses</h3>
               
-              <div className="flex gap-2">
-                <button type="button" onClick={handleGenerateCode} className="text-[10px] font-bold bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors">
-                  <RefreshCw size={12} /> Auto-Generate Kode
+              <div className="flex gap-1.5">
+                <button type="button" onClick={handleGenerateCode} className="text-[10px] font-bold bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded-md flex items-center gap-1 transition-colors">
+                  <RefreshCw size={11} /> Auto-Generate
                 </button>
-                <button type="button" onClick={handleCopyCredentials} className="text-[10px] font-bold bg-blue-800 hover:bg-blue-900 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors shadow-sm">
-                  {isCopied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />} {isCopied ? 'Tersalin!' : 'Salin Data'}
+                <button type="button" onClick={handleCopyCredentials} className="text-[10px] font-bold bg-blue-800 hover:bg-blue-900 px-2.5 py-1 rounded-md flex items-center gap-1 transition-colors shadow-2xs">
+                  {isCopied ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />} {isCopied ? 'Tersalin!' : 'Salin Data'}
                 </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 relative z-10">
               {/* OPSI 1: EMAIL FOUNDER */}
-              <div className="bg-blue-700/50 rounded-xl p-4 border border-blue-500">
-                 <p className="text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-2 flex items-center gap-1"><Mail size={12} /> Email (Login Founder/Google)</p>
-                 <input type="email" value={formData.email || ''} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full bg-blue-800/50 px-3 py-2 rounded-lg text-sm font-bold outline-none border border-transparent focus:border-blue-400 placeholder-blue-400/50" placeholder="founder@startup.com" />
+              <div className="bg-blue-700/50 rounded-xl p-2.5 sm:p-3 border border-blue-500/80">
+                 <p className="text-[10px] font-bold text-blue-200 uppercase tracking-wider mb-1 flex items-center gap-1"><Mail size={11} /> Email Login</p>
+                 <input type="email" value={formData.email || ''} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full bg-blue-800/50 px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold outline-none border border-transparent focus:border-blue-400 placeholder-blue-300/50" placeholder="founder@startup.com" />
               </div>
 
               {/* OPSI 2: KODE AKSES */}
-              <div className="bg-blue-700/50 rounded-xl p-4 border border-blue-500">
-                 <p className="text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-2 flex items-center gap-1"><Key size={12} /> Kode Akses (Login Tim)</p>
-                 <input type="text" value={formData.accessCode || ''} onChange={(e) => setFormData({...formData, accessCode: e.target.value})} className="w-full bg-blue-800/50 px-3 py-2 rounded-lg text-lg font-black tracking-widest uppercase outline-none border border-transparent focus:border-blue-400 placeholder-blue-400/50" placeholder="SNT-XXXXX" />
+              <div className="bg-blue-700/50 rounded-xl p-2.5 sm:p-3 border border-blue-500/80">
+                 <p className="text-[10px] font-bold text-blue-200 uppercase tracking-wider mb-1 flex items-center gap-1"><Key size={11} /> Kode Akses Tim</p>
+                 <input type="text" value={formData.accessCode || ''} onChange={(e) => setFormData({...formData, accessCode: e.target.value})} className="w-full bg-blue-800/50 px-2.5 py-1.5 rounded-lg text-sm sm:text-base font-black tracking-widest uppercase outline-none border border-transparent focus:border-blue-400 placeholder-blue-300/50" placeholder="SNT-XXXXX" />
               </div>
             </div>
-            
-            <p className="text-[10px] text-blue-200 relative z-10 mt-3 flex items-start gap-1.5 bg-blue-800/30 p-2 rounded-lg">
-              <span className="font-bold shrink-0">💡 TIPS:</span> Founder bisa menggunakan Email untuk login via tombol Google, sementara anggota tim lainnya cukup menggunakan Kode Akses tanpa perlu email/password.
-            </p>
           </div>
 
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5">
-            <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 mb-2 border-b border-slate-100 pb-3 uppercase tracking-widest"><Building2 className="w-4 h-4 text-slate-400" /> Identitas Dasar</h3>
+          <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-3 sm:space-y-4">
+            <h3 className="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-2 uppercase tracking-wider"><Building2 className="w-4 h-4 text-slate-400" /> Identitas Dasar</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="md:col-span-2">
                 <label className={labelClass}>Nama Startup / Brand *</label>
@@ -282,10 +278,10 @@ export default function ModalFormTenant({ isOpen, onClose, onSubmit, initialData
 
         </form>
 
-        <div className="px-8 py-5 bg-white border-t border-slate-100 flex justify-end gap-3 shrink-0 rounded-b-[24px]">
-          <button type="button" onClick={onClose} disabled={isSubmitting} className="px-6 py-3 text-sm font-bold text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm">Batal</button>
-          <button type="submit" form="tenant-form" disabled={isSubmitting} className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm flex items-center gap-2 shadow-lg shadow-blue-200 disabled:opacity-70 transition-all">
-            {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin"/> Memproses...</> : (initialData ? 'Simpan Perubahan' : 'Daftarkan Startup')}
+        <div className="px-4 py-2.5 sm:px-6 sm:py-3.5 bg-white border-t border-slate-150 flex justify-end gap-2 shrink-0">
+          <button type="button" onClick={onClose} disabled={isSubmitting} className="px-4 py-2 text-xs sm:text-sm font-semibold text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">Batal</button>
+          <button type="submit" form="tenant-form" disabled={isSubmitting} className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs sm:text-sm flex items-center gap-1.5 shadow-xs disabled:opacity-70 transition-all">
+            {isSubmitting ? <><Loader2 className="w-3.5 h-3.5 animate-spin"/> Memproses...</> : (initialData ? 'Simpan Perubahan' : 'Daftarkan Startup')}
           </button>
         </div>
 

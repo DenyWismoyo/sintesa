@@ -121,7 +121,7 @@ export default function ManajemenEventPage() {
     setFormData({ ...formData, ticketingTiers: newArr });
   };
 
-  const inputClass = "w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all";
+  const inputClass = "w-full px-3 py-2 sm:py-2.5 bg-slate-50/80 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all";
 
   return (
     <div className="w-full space-y-6 pb-24 animate-in fade-in duration-300">
@@ -333,39 +333,39 @@ export default function ManajemenEventPage() {
         )}
       />
 
-      {/* MODAL FORM BUILDER (WIZARD) - Redesigned */}
+      {/* MODAL FORM BUILDER (WIZARD) - Redesigned Mobile Compact */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/40 backdrop-blur-sm overflow-hidden animate-in fade-in duration-200">
-          <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-5xl h-[94vh] sm:h-[90vh] flex flex-col border border-slate-100 animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/40 backdrop-blur-xs overflow-hidden animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-5xl h-[92vh] sm:h-[88vh] flex flex-col border border-slate-200/80 animate-in zoom-in-95 duration-200 overflow-hidden">
             
             {/* Modal Header */}
-            <div className="px-4 sm:px-8 py-3.5 sm:py-5 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-md shrink-0">
+            <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-150 flex items-center justify-between bg-white shrink-0">
               <div>
-                <h3 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight">{editingId ? 'Edit Event Setup' : 'Event Builder Baru'}</h3>
-                <p className="text-xs sm:text-sm text-slate-500 mt-0.5">Mode Hyper-Dynamic. Konfigurasi semua aspek acara.</p>
+                <h3 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">{editingId ? 'Edit Event Setup' : 'Event Builder Baru'}</h3>
+                <p className="text-[11px] text-slate-400 hidden sm:block mt-0.5">Konfigurasi jadwal, konten, dan tiket acara.</p>
               </div>
-              <button onClick={handleCloseModal} className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 p-2 sm:p-2.5 rounded-full transition-colors"><XCircle size={22} /></button>
+              <button onClick={handleCloseModal} className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 p-1.5 rounded-lg transition-colors"><XCircle size={18} /></button>
             </div>
             
             <div className="flex flex-col md:flex-row flex-1 overflow-hidden bg-slate-50/50">
               {/* Sidebar Navigation */}
-              <div className="w-full md:w-64 bg-white border-r border-slate-100 p-3 sm:p-6 shrink-0 flex flex-row md:flex-col gap-1.5 sm:gap-2 overflow-x-auto hide-scrollbar">
-                <button type="button" onClick={() => setActiveTab('BASIC')} className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'BASIC' ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 border border-transparent'}`}>
-                  <AlignLeft size={16} /> Basic Info
+              <div className="w-full md:w-56 bg-white border-b md:border-b-0 md:border-r border-slate-150 p-2 sm:p-4 shrink-0 flex flex-row md:flex-col gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar">
+                <button type="button" onClick={() => setActiveTab('BASIC')} className={`flex items-center gap-1.5 sm:gap-2.5 px-3 py-1.5 sm:py-2.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'BASIC' ? 'bg-blue-50 text-blue-700 font-bold shadow-2xs' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>
+                  <AlignLeft size={14} /> Basic Info
                 </button>
-                <button type="button" onClick={() => setActiveTab('CONTENT')} className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'CONTENT' ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 border border-transparent'}`}>
-                  <Users size={16} /> Konten & Acara
+                <button type="button" onClick={() => setActiveTab('CONTENT')} className={`flex items-center gap-1.5 sm:gap-2.5 px-3 py-1.5 sm:py-2.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'CONTENT' ? 'bg-blue-50 text-blue-700 font-bold shadow-2xs' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>
+                  <Users size={14} /> Konten & Acara
                 </button>
-                <button type="button" onClick={() => setActiveTab('TICKETING')} className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'TICKETING' ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 border border-transparent'}`}>
-                  <Ticket size={16} /> Ticketing & Form
+                <button type="button" onClick={() => setActiveTab('TICKETING')} className={`flex items-center gap-1.5 sm:gap-2.5 px-3 py-1.5 sm:py-2.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'TICKETING' ? 'bg-blue-50 text-blue-700 font-bold shadow-2xs' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>
+                  <Ticket size={14} /> Tiket & Form
                 </button>
-                <button type="button" onClick={() => setActiveTab('SETTINGS')} className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'SETTINGS' ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 border border-transparent'}`}>
-                  <Settings size={16} /> Pengaturan
+                <button type="button" onClick={() => setActiveTab('SETTINGS')} className={`flex items-center gap-1.5 sm:gap-2.5 px-3 py-1.5 sm:py-2.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'SETTINGS' ? 'bg-blue-50 text-blue-700 font-bold shadow-2xs' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>
+                  <Settings size={14} /> Pengaturan
                 </button>
               </div>
 
               {/* Main Content Area */}
-              <form id="eventForm" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 sm:p-8 custom-scrollbar">
+              <form id="eventForm" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-3.5 sm:p-6 no-scrollbar">
                 
                 {/* TAB 1: BASIC INFO */}
                 {activeTab === 'BASIC' && (
