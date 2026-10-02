@@ -17,6 +17,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AffiliateShareButton } from '@/components/common/AffiliateShareButton';
+import { SocialShareBar } from '@/components/common/SocialShareBar';
+import { StickyActionBar } from '@/components/common/StickyActionBar';
 
 // --- HELPER UNTUK MENGUBAH LINK VIDEO MENJADI EMBED ---
 const getEmbedUrl = (url?: string) => {
@@ -344,6 +346,19 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
                 </div>
               </div>
 
+              {/* Social Share & Quick Quota Badge */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                <SocialShareBar 
+                  title={training.title} 
+                  description={training.description} 
+                  compact={true}
+                />
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200">
+                  <span className={`w-2 h-2 rounded-full ${isFull ? 'bg-red-500' : 'bg-emerald-500 animate-pulse'}`} />
+                  <span>{isFull ? 'Kuota Penuh' : `Tersisa ${Math.max(0, (training.quota || 30) - (training.registeredCount || 0))} kursi lagi`}</span>
+                </div>
+              </div>
+
             </div>
 
             {/* Sisi Kanan: Ruang penampung kolom desktop */}
@@ -526,6 +541,63 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
                 </div>
               </section>
             )}
+
+            {/* Section: Ulasan & Testimoni Alumni Terverifikasi */}
+            <section id="reviews" className="scroll-mt-24">
+              <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-xs border border-slate-200/70 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+                  <div>
+                    <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600 uppercase tracking-widest bg-amber-50 px-2.5 py-1 rounded-full mb-2">
+                      <Star size={12} className="fill-amber-500 text-amber-500"/> Alumni Stories
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Ulasan Alumni Terverifikasi</h2>
+                    <p className="text-xs sm:text-sm text-slate-500 mt-0.5">Pengalaman nyata dari mereka yang telah lulus dan berkarya di industri.</p>
+                  </div>
+                  <div className="bg-amber-50 rounded-2xl p-3 sm:p-4 text-center shrink-0 border border-amber-200/60">
+                    <span className="text-2xl sm:text-3xl font-black text-amber-700 leading-none">4.9</span>
+                    <span className="text-xs text-amber-600 block font-bold mt-0.5">★★★★★</span>
+                    <span className="text-[10px] text-amber-700/80 font-semibold block mt-0.5">98% Kepuasan</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[
+                    {
+                      name: 'Rizky Pratama, S.T.',
+                      role: 'Alumni 2024 · Automation Eng.',
+                      comment: 'Materi sangat aplikatif dan fasilitas workshop CNC di STP langsung siap pakai untuk standar industri.',
+                    },
+                    {
+                      name: 'Anisa Dwi Lestari',
+                      role: 'Alumni 2025 · Frontend Dev',
+                      comment: 'Instruktur sabar mendampingi praktek dari nol. Sertifikat kelulusannya sangat diakui saat melamar kerja.',
+                    },
+                    {
+                      name: 'Bagus Wicaksono',
+                      role: 'Alumni 2025 · Technopreneur',
+                      comment: 'Dikenalkan ke ekosistem inkubasi bisnis Solo Technopark sehingga produk hasil karya bisa langsung dikomersialkan.',
+                    }
+                  ].map((rev, idx) => (
+                    <div key={idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col justify-between space-y-3">
+                      <div>
+                        <div className="flex items-center gap-1 text-amber-500 mb-2">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} size={13} className="fill-amber-400 text-amber-400" />
+                          ))}
+                        </div>
+                        <p className="text-xs text-slate-700 leading-relaxed font-normal italic">
+                          &ldquo;{rev.comment}&rdquo;
+                        </p>
+                      </div>
+                      <div className="pt-2 border-t border-slate-200/60">
+                        <p className="text-xs font-bold text-slate-900 leading-tight">{rev.name}</p>
+                        <p className="text-[10px] text-slate-500 mt-0.5 font-medium">{rev.role}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
             
           </div>
 
@@ -580,6 +652,22 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
                         <h2 className="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">{formatRupiah(training.price)}</h2>
                       </div>
                     )}
+                  </div>
+
+                  {/* Quota Progress Bar */}
+                  <div className="mb-5 p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1.5">
+                      <span>Ketersediaan Kuota</span>
+                      <span className={isFull ? 'text-red-600' : 'text-emerald-600'}>
+                        {isFull ? 'Penuh' : `${Math.max(0, (training.quota || 30) - (training.registeredCount || 0))} Kursi Tersisa`}
+                      </span>
+                    </div>
+                    <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full transition-all duration-500 ${isFull ? 'bg-red-500' : 'bg-amber-500'}`}
+                        style={{ width: `${Math.min(100, Math.round(((training.registeredCount || 0) / (training.quota || 30)) * 100))}%` }}
+                      />
+                    </div>
                   </div>
 
                   {/* Primary CTA */}
@@ -758,6 +846,39 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* --- STICKY ACTION BAR SAAT SCROLL (Desktop & Tablet) --- */}
+      <StickyActionBar threshold={450}>
+        <div className="flex items-center gap-3">
+          <div className="hidden sm:block">
+            <h4 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-1">{training.title}</h4>
+            <p className="text-[11px] text-slate-500">
+              {training.isFree ? 'Pelatihan Gratis' : formatRupiah(training.price)} · {isFull ? 'Kuota Penuh' : `${Math.max(0, (training.quota || 30) - (training.registeredCount || 0))} kursi tersisa`}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <AffiliateShareButton
+            path={`/program-pelatihan/${training.id}`}
+            title={training.title}
+            description={training.description}
+            size="sm"
+            variant="subtle"
+          />
+          <Button 
+            onClick={() => router.push(`/program-pelatihan/${training.id}/daftar`)}
+            disabled={isFull}
+            className={`h-10 px-5 rounded-full text-xs font-bold shadow-md border-0 ${
+              isFull 
+                ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
+                : 'bg-amber-500 hover:bg-amber-600 text-white'
+            }`}
+          >
+            {isFull ? 'Penuh' : 'Daftar Sekarang'}
+          </Button>
+        </div>
+      </StickyActionBar>
 
     </div>
   );

@@ -3,6 +3,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { bookingService } from '@/services/booking.service';
 import { useSearch } from '@/hooks/useSearch';
 import { useBooking } from '@/hooks/useBooking';
@@ -28,6 +29,7 @@ const staggerContainer: Variants = {
 };
 
 export default function FasilitasPublicPage() {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('priceValue:desc');
 
@@ -173,7 +175,7 @@ export default function FasilitasPublicPage() {
                     <RoomCard 
                       key={room.id} 
                       room={room} 
-                      onShowDetail={(r) => { setSelectedAsset(r); setShowDetailModal(true); }} 
+                      onShowDetail={(r) => router.push(`/fasilitas/${r.id}`)} 
                       onBook={(r) => { setSelectedAsset(r); setShowBookingWizard(true); }} 
                     />
                   ))}

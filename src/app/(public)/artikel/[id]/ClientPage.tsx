@@ -20,6 +20,8 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
+import { ReadingProgress } from '@/components/common/ReadingProgress';
+import { SocialShareBar } from '@/components/common/SocialShareBar';
 
 interface ClientPageProps {
   initialArticle: Article | null;
@@ -313,7 +315,9 @@ export default function ArticleDetailClient({ initialArticle, idOrSlug }: Client
   const otherArticles = relatedArticles.filter(a => a.id !== article.id).slice(0, 3);
 
   return (
-    <SectionContainer accent="amber" containerClassName="!px-3 sm:!px-6 md:!px-8">
+    <>
+      <ReadingProgress color="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600" />
+      <SectionContainer accent="amber" containerClassName="!px-3 sm:!px-6 md:!px-8">
       <div className="max-w-4xl mx-auto pb-20 sm:pb-16">
         
         {/* Top Breadcrumbs & Back Navigation */}
@@ -380,23 +384,12 @@ export default function ArticleDetailClient({ initialArticle, idOrSlug }: Client
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-              <button 
-                onClick={handleShareWa}
-                aria-label="Share ke WhatsApp"
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 border border-slate-200 flex items-center justify-center transition-colors shadow-2xs"
-                title="Bagikan via WhatsApp"
-              >
-                <MessageCircle size={15} />
-              </button>
-              <button 
-                onClick={handleCopyLink}
-                aria-label="Salin Tautan"
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white hover:bg-amber-50 text-slate-600 hover:text-amber-600 border border-slate-200 flex items-center justify-center transition-colors shadow-2xs"
-                title="Salin Tautan Artikel"
-              >
-                {copied ? <Check size={15} className="text-amber-600" /> : <Copy size={15} />}
-              </button>
+            <div className="shrink-0">
+              <SocialShareBar 
+                title={article.title} 
+                description={article.excerpt} 
+                compact={true} 
+              />
             </div>
           </div>
         </div>
@@ -446,6 +439,12 @@ export default function ArticleDetailClient({ initialArticle, idOrSlug }: Client
             ))}
           </div>
         )}
+
+        {/* Bottom Social Share Bar Banner */}
+        <div className="my-6 p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <p className="text-xs font-bold text-slate-700">Suka dengan artikel ini? Bagikan kepada rekan dan jejaring Anda:</p>
+          <SocialShareBar title={article.title} description={article.excerpt} />
+        </div>
 
         {/* Embedded Smart CTA Banner */}
         {renderSmartCta()}
@@ -536,5 +535,6 @@ export default function ArticleDetailClient({ initialArticle, idOrSlug }: Client
         </div>
       )}
     </SectionContainer>
+    </>
   );
 }
