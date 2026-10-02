@@ -22,7 +22,8 @@ import {
   BookOpen,
   Info,
   HelpCircle,
-  ChevronRight
+  ChevronRight,
+  Search
 } from 'lucide-react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { useAuth } from '@/lib/AuthContext';
@@ -30,6 +31,7 @@ import { auth } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
 import { toast } from 'sonner';
 import { isInternalStaff, APP_ROLES } from '@/config/roles';
+import GlobalSearchModal from './GlobalSearchModal';
 
 export interface NavMenu {
   name: string;
@@ -71,6 +73,7 @@ export default function PublicNavbar() {
   const router = useRouter();
   const { user, role, loading } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -79,9 +82,22 @@ export default function PublicNavbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Shortcut Cmd+K / Ctrl+K untuk Global Search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Tutup menu saat route berpindah
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    setIsSearchOpen(false);
   }, [pathname]);
 
   // Lock scroll background saat overlay mobile terbuka
@@ -169,7 +185,7 @@ export default function PublicNavbar() {
         </Link>
         <button
           onClick={handleLogout}
-          className="p-2 h-9 w-9 bg-white border border-slate-200 text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100 rounded-full transition-all flex items-center justify-center shadow-2xs"
+          className="p-2 h-9 w-9 bg-white border border-slate-200 text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100 rounded-full transition-all flex items-center justify-center shadow-2xs cursor-pointer"
           title="Keluar Akun"
         >
           <LogOut size={14} />
@@ -261,7 +277,7 @@ export default function PublicNavbar() {
         {/* Tombol Logout */}
         <button
           onClick={handleLogout}
-          className="w-full h-10 text-xs font-bold text-rose-600 bg-rose-50/70 hover:bg-rose-100/70 border border-rose-100 rounded-xl transition-colors flex items-center justify-center gap-1.5"
+          className="w-full h-10 text-xs font-bold text-rose-600 bg-rose-50/70 hover:bg-rose-100/70 border border-rose-100 rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
         >
           <LogOut size={14} />
           <span>Keluar Akun</span>
@@ -272,45 +288,55 @@ export default function PublicNavbar() {
 
   return (
     <>
-      {/* --- TOP FIXED NAVBAR (KONSISTEN DI SEMUA HALAMAN) --- */}
+      {/* Global Search Modal Spotlight */}
+      <GlobalSearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+      />
+
+      {/* --- TOP FIXED NAVBAR (MINIMALIS & ELEGAN) --- */}
       <header
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
           scrolled
             ? 'bg-white/95 backdrop-blur-xl border-b border-slate-200/80 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] py-2'
-            : 'bg-white/85 backdrop-blur-md border-b border-slate-200/60 py-2.5 sm:py-3'
+            : 'bg-white/85 backdrop-blur-md border-b border-slate-200/60 py-2 sm:py-2.5'
         }`}
       >
-        <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-10 flex items-center justify-between gap-4">
-          {/* BRANDING RESMI SOLO TECHNOPARK */}
-          <Link href="/" className="flex items-center gap-3 group shrink-0">
-            <div className="h-8 sm:h-9 flex items-center justify-center shrink-0 relative">
-              <Image
-                src="/logo.png"
-                alt="Solo Technopark"
-                width={76}
-                height={40}
-                className="h-8 sm:h-9 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
-                priority
-              />
-            </div>
-            <div className="h-5 w-px bg-slate-200 hidden sm:block" />
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs sm:text-sm font-black tracking-tight leading-none text-slate-900 group-hover:text-red-600 transition-colors">
-                  SOLO TECHNOPARK
-                </span>
-                <span className="text-[9px] font-bold text-red-600 bg-red-50 border border-red-200/70 px-1.5 py-0.5 rounded leading-none">
-                  KST
-                </span>
+        <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between gap-2.5 sm:gap-4">
+          
+          {/* SISI KIRI: HANYA LOGO RESMI (TULISAN TEKS DIHILANGKAN SESUAI INSTRUKSI) */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <Link href="/" className="flex items-center group shrink-0" title="Beranda Solo Technopark">
+              <div className="h-8 sm:h-9 flex items-center justify-center relative">
+                <Image
+                  src="/logo.png"
+                  alt="Solo Technopark"
+                  width={76}
+                  height={40}
+                  className="h-8 sm:h-9 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+                  priority
+                />
               </div>
-              <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mt-0.5 leading-none">
-                solotechnopark.id
-              </p>
-            </div>
-          </Link>
+            </Link>
 
-          {/* NAVIGASI DESKTOP */}
-          <nav className="hidden lg:flex flex-1 items-center justify-center gap-1 xl:gap-1.5 max-w-4xl">
+            {/* SEARCH TRIGGER DI HEADER (MOBILE & TABLET / DESKTOP RINGKAS) */}
+            <button
+              type="button"
+              onClick={() => setIsSearchOpen(true)}
+              className="flex items-center gap-2 h-9 px-3 sm:px-3.5 rounded-full bg-slate-100/90 hover:bg-slate-200/80 border border-slate-200/60 text-slate-400 hover:text-slate-600 text-xs font-medium transition-all w-36 sm:w-56 md:w-64 cursor-pointer"
+            >
+              <Search size={14} className="text-slate-500 shrink-0" />
+              <span className="truncate text-slate-500 text-[11px] sm:text-xs">
+                Cari layanan kawasan...
+              </span>
+              <kbd className="ml-auto hidden md:inline-block px-1.5 py-0.2 text-[9px] font-bold bg-white text-slate-400 rounded border border-slate-200">
+                ⌘K
+              </kbd>
+            </button>
+          </div>
+
+          {/* SISI TENGAH: NAVIGASI DESKTOP */}
+          <nav className="hidden lg:flex flex-1 items-center justify-center gap-1 xl:gap-1.5 max-w-3xl">
             {PUBLIC_NAV_MENUS.map((menu) => {
               const isActive =
                 pathname === menu.path || (menu.path !== '/' && pathname?.startsWith(menu.path));
@@ -330,8 +356,8 @@ export default function PublicNavbar() {
             })}
           </nav>
 
-          {/* AUTH WIDGET DESKTOP */}
-          <div className="hidden lg:flex items-center justify-end shrink-0 min-w-[140px]">
+          {/* SISI KANAN: AUTH WIDGET DESKTOP */}
+          <div className="hidden lg:flex items-center justify-end shrink-0 min-w-[130px]">
             {renderDesktopAuth()}
           </div>
 
@@ -340,9 +366,9 @@ export default function PublicNavbar() {
             type="button"
             aria-label="Buka Navigasi"
             onClick={() => setIsMobileMenuOpen(true)}
-            className="lg:hidden w-10 h-10 flex items-center justify-center rounded-full bg-slate-100/80 hover:bg-slate-200/80 active:scale-95 text-slate-700 transition-all shadow-2xs shrink-0"
+            className="lg:hidden w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-slate-100/80 hover:bg-slate-200/80 active:scale-95 text-slate-700 transition-all shadow-2xs shrink-0 cursor-pointer"
           >
-            <Menu size={19} strokeWidth={2.2} />
+            <Menu size={18} strokeWidth={2.2} />
           </button>
         </div>
       </header>
@@ -363,7 +389,7 @@ export default function PublicNavbar() {
 
             {/* Header Drawer */}
             <div className="w-full max-w-xl mx-auto px-5 py-3.5 flex items-center justify-between border-b border-slate-100 shrink-0">
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2">
                 <Image
                   src="/logo.png"
                   alt="Solo Technopark"
@@ -372,30 +398,29 @@ export default function PublicNavbar() {
                   className="h-7 w-auto object-contain"
                   priority
                 />
-                <div className="h-4 w-px bg-slate-200" />
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs font-black tracking-tight leading-none text-slate-900">
-                      SOLO TECHNOPARK
-                    </span>
-                    <span className="text-[8px] font-bold text-red-600 bg-red-50 border border-red-200/60 px-1 py-0.2 rounded leading-none">
-                      KST
-                    </span>
-                  </div>
-                  <p className="text-[8px] font-bold uppercase tracking-widest text-slate-400 mt-0.5 leading-none">
-                    solotechnopark.id
-                  </p>
-                </div>
               </div>
 
-              <button
-                type="button"
-                aria-label="Tutup Menu"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="w-9 h-9 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full flex items-center justify-center transition-colors active:scale-95"
-              >
-                <X size={18} strokeWidth={2.2} />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setIsSearchOpen(true);
+                  }}
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-full flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Search size={14} />
+                  <span>Cari</span>
+                </button>
+                <button
+                  type="button"
+                  aria-label="Tutup Menu"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-9 h-9 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full flex items-center justify-center transition-colors active:scale-95 cursor-pointer"
+                >
+                  <X size={18} strokeWidth={2.2} />
+                </button>
+              </div>
             </div>
 
             {/* Body Drawer: Navigasi List dengan Custom Scrollbar Minimalis */}

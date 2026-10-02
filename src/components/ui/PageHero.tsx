@@ -67,7 +67,7 @@ export default function PageHero({
   const badgeVariant = defaultBadgeVariants[accentColor] || 'default';
 
   return (
-    <div className={`relative w-full pt-1 sm:pt-2 pb-4 mb-6 ${className}`}>
+    <div className={`relative w-full pt-1 sm:pt-2 pb-2 sm:pb-4 mb-3 sm:mb-6 ${className}`}>
       <div className="flex flex-col gap-4 sm:gap-5">
         
         {/* Top Meta Bar: Breadcrumbs & Badge */}

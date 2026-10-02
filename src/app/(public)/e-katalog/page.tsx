@@ -77,7 +77,7 @@ export default function KatalogPublikPage() {
       />
 
       {/* Filter Kategori Animatif (Pills) Standar */}
-      <div className="mb-6">
+      <div className="mb-4 sm:mb-6">
         <PillTabs
           tabs={categories.map(cat => ({ key: cat, label: cat }))}
           active={selectedCategory}

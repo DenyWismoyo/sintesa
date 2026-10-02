@@ -105,16 +105,16 @@ export default function ProgramPelatihanPublik() {
       />
 
       {/* Filter Bar Minimalist Borderless */}
-      <div className="public-filter-bar mb-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 pl-1 shrink-0">
+      <div className="flex flex-wrap items-center justify-between gap-2.5 mb-3 sm:mb-4">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 max-w-full">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 pl-0.5 shrink-0 hidden sm:flex">
             <SlidersHorizontal size={14} /> Filter:
           </div>
           
           <select
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}
-            className="public-select"
+            className="public-select shrink-0"
           >
             <option value="all">Semua Tipe</option>
             <option value="Video Course">Video Course</option>
@@ -122,43 +122,41 @@ export default function ProgramPelatihanPublik() {
             <option value="Offline">Offline / Tatap Muka</option>
           </select>
 
-          <div className="w-px h-5 bg-slate-100 mx-0.5 shrink-0 hidden sm:block" />
-
-          <div className="flex bg-slate-50 rounded-full p-0.5 shrink-0">
+          <div className="flex bg-slate-100/80 p-0.5 rounded-full shrink-0">
             {(['all', 'free', 'paid'] as const).map((price) => (
               <button
                 key={price}
                 type="button"
                 onClick={() => setPriceFilter(price)}
-                className={`px-3 py-1 rounded-full text-xs font-bold capitalize transition-all ${
+                className={`px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold capitalize transition-all cursor-pointer ${
                   priceFilter === price 
                     ? 'bg-slate-900 text-white shadow-xs' 
-                    : 'text-slate-500 hover:text-slate-800'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 {price === 'all' ? 'Semua Biaya' : price === 'free' ? 'Gratis' : 'Berbayar'}
               </button>
             ))}
           </div>
-        </div>
 
-        {(selectedType !== 'all' || priceFilter !== 'all' || selectedCategory !== 'Semua Kategori') && (
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedCategory('Semua Kategori');
-              setSelectedType('all');
-              setPriceFilter('all');
-            }}
-            className="text-xs font-bold text-amber-600 hover:text-amber-700 px-3 py-1.5 rounded-full hover:bg-amber-50 transition-colors shrink-0 self-end sm:self-auto cursor-pointer"
-          >
-            Reset Filter
-          </button>
-        )}
+          {(selectedType !== 'all' || priceFilter !== 'all' || selectedCategory !== 'Semua Kategori') && (
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedCategory('Semua Kategori');
+                setSelectedType('all');
+                setPriceFilter('all');
+              }}
+              className="text-[11px] sm:text-xs font-bold text-amber-600 hover:text-amber-700 px-2.5 py-1 rounded-full hover:bg-amber-50 transition-colors shrink-0 cursor-pointer whitespace-nowrap"
+            >
+              Reset Filter
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Filter Kategori Diklat Horizontal Menggunakan PillTabs */}
-      <div className="mb-6">
+      {/* Filter Kategori Diklat Horizontal Menggunakan PillTabs Minimalis */}
+      <div className="mb-4 sm:mb-6">
         <PillTabs
           tabs={DIKLAT_CATEGORIES.map(cat => ({ key: cat, label: cat }))}
           active={selectedCategory}

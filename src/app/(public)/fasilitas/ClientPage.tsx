@@ -116,11 +116,12 @@ export default function FasilitasPublicPage() {
       />
 
       {/* Pill Tabs + Sortir Dropdown */}
-      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 mb-6 relative z-10">
+      {/* Pill Tabs + Sortir Dropdown Minimalis */}
+      <div className="flex flex-row items-center justify-between gap-2.5 mb-3 sm:mb-6 relative z-10 overflow-x-auto no-scrollbar py-0.5">
         <PillTabs
           tabs={[
-            { key: 'daftar', label: 'Katalog Ruangan', icon: <DoorOpen size={15} /> },
-            { key: 'kalender', label: 'Cek Kalender Master', icon: <CalendarIcon size={15} /> },
+            { key: 'daftar', label: 'Katalog Ruangan', icon: <DoorOpen size={14} /> },
+            { key: 'kalender', label: 'Cek Kalender Master', icon: <CalendarIcon size={14} /> },
           ]}
           active={activeTab}
           onChange={(val) => setActiveTab(val as 'daftar' | 'kalender')}
@@ -128,12 +129,12 @@ export default function FasilitasPublicPage() {
         />
 
         {activeTab === 'daftar' && (
-          <div className="flex items-center gap-2 bg-white px-2 py-1 rounded-full shadow-xs shrink-0 self-end sm:self-auto">
-            <ListFilter size={14} className="text-slate-400 shrink-0 ml-2" />
+          <div className="flex items-center gap-1.5 bg-white px-2 py-0.5 rounded-full shadow-2xs border border-slate-200/70 shrink-0">
+            <ListFilter size={13} className="text-slate-400 shrink-0 ml-1" />
             <select 
               value={sortBy} 
               onChange={(e) => setSortBy(e.target.value)} 
-              className="public-select"
+              className="public-select h-7 text-xs"
             >
               <option value="priceValue:desc">Harga Tertinggi</option>
               <option value="priceValue:asc">Harga Terendah</option>
