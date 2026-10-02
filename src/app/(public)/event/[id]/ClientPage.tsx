@@ -447,20 +447,20 @@ export default function EventDetailClient({ eventId, initialEvent }: EventDetail
 
       {/* --- STICKY ACTION BAR SAAT SCROLL --- */}
       <StickyActionBar threshold={400}>
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:block">
+        <div className="flex items-center gap-3 min-w-0 pr-2">
+          <div>
             <h4 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-1">{event.title}</h4>
-            <p className="text-[11px] text-slate-500">{event.date} · {event.time}</p>
+            <p className="text-[10px] sm:text-[11px] text-slate-500 truncate">{event.date} · {event.time}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {event.registrationType === 'EXTERNAL' && event.registrationUrl ? (
             <a
               href={event.registrationUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="h-10 px-5 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1.5 shadow-md"
+              className="h-10 px-5 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm shrink-0 active:scale-95"
             >
               <span>Daftar Luar</span> <ExternalLink size={13} />
             </a>
@@ -468,7 +468,7 @@ export default function EventDetailClient({ eventId, initialEvent }: EventDetail
             <Button
               onClick={() => toast.success('Membuka dialog registrasi tiket...')}
               disabled={isCompleted}
-              className={`h-10 px-5 rounded-full text-xs font-bold shadow-md ${
+              className={`h-10 px-5 rounded-full text-xs font-bold shadow-sm shrink-0 active:scale-95 ${
                 isCompleted ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-violet-600 hover:bg-violet-700 text-white'
               }`}
             >

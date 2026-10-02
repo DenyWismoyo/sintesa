@@ -35,7 +35,7 @@ export function StickyActionBar({
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
-          className={`fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-2xl py-3 px-4 sm:px-8 ${className}`}
+          className={`fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-4px_20px_-2px_rgba(15,23,42,0.06)] py-2.5 px-4 sm:px-8 pb-[calc(0.625rem+env(safe-area-inset-bottom,0px))] ${className}`}
         >
           <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-4">
             {children}

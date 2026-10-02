@@ -16,7 +16,6 @@ import { toast } from 'sonner';
 // --- IMPORT KONFIGURASI ROLE ---
 import { isInternalStaff, APP_ROLES } from '@/config/roles';
 import { AffiliateTracker } from '@/components/common/AffiliateTracker';
-import { FloatingAIButton } from '@/components/common/FloatingAIButton';
 import { Suspense } from 'react';
 
 const NAV_MENUS = [
@@ -301,8 +300,59 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         {children}
       </main>
 
-      {/* Floating Krenova AI Assistant Button */}
-      <FloatingAIButton />
+      {/* --- FOOTER PUBLIK MINIMALIS & TERPADU --- */}
+      <footer className="w-full bg-slate-950 text-white border-t border-slate-900 mt-auto relative z-10 pb-20 lg:pb-0">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 sm:mb-12">
+            <div className="md:col-span-2 space-y-3">
+              <div className="flex items-center gap-3">
+                <Image src="/logo.png" alt="Solo Technopark" width={64} height={32} className="h-8 w-auto brightness-0 invert" />
+                <div className="h-4 w-px bg-slate-800" />
+                <span className="text-xs font-black tracking-wider text-slate-200 uppercase">Solo Technopark</span>
+              </div>
+              <p className="text-xs text-slate-400 max-w-sm leading-relaxed font-normal">
+                Kawasan Sains dan Teknologi (KST) terpadu di Surakarta untuk percepatan riset, vokasi industri, dan komersialisasi produk inovatif.
+              </p>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Jl. Ki Hajar Dewantara No. 19, Jebres, Kec. Jebres, Kota Surakarta, Jawa Tengah 57126
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-400">Layanan Kawasan</h4>
+              <ul className="space-y-2 text-xs text-slate-400">
+                <li><Link href="/program-pelatihan" className="hover:text-white transition-colors">Program Pelatihan</Link></li>
+                <li><Link href="/e-katalog" className="hover:text-white transition-colors">E-Katalog Produk</Link></li>
+                <li><Link href="/fasilitas" className="hover:text-white transition-colors">Sewa Fasilitas & Lab</Link></li>
+                <li><Link href="/ekosistem" className="hover:text-white transition-colors">Direktori Tenant & Startup</Link></li>
+                <li><Link href="/event" className="hover:text-white transition-colors">Agenda Event & Seminar</Link></li>
+              </ul>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-400">Pusat Informasi</h4>
+              <ul className="space-y-2 text-xs text-slate-400">
+                <li><Link href="/artikel" className="hover:text-white transition-colors">Artikel & Warta Riset</Link></li>
+                <li><Link href="/ruang-belajar" className="hover:text-white transition-colors">Ruang Belajar LMS</Link></li>
+                <li><Link href="/tentang" className="hover:text-white transition-colors">Tentang Solo Technopark</Link></li>
+                <li><Link href="/peta-kawasan" className="hover:text-white transition-colors">Peta Kawasan</Link></li>
+                <li><Link href="/faq" className="hover:text-white transition-colors">Pusat Bantuan & FAQ</Link></li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="pt-6 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500 gap-3">
+            <p>© {new Date().getFullYear()} Kawasan Sains & Teknologi Solo Technopark. Hak cipta dilindungi.</p>
+            <div className="flex items-center gap-4 text-slate-400">
+              <Link href="/faq" className="hover:text-white transition-colors">Bantuan</Link>
+              <span>·</span>
+              <Link href="/tentang" className="hover:text-white transition-colors">Profil Kawasan</Link>
+              <span>·</span>
+              <Link href="/peta-kawasan" className="hover:text-white transition-colors">Lokasi</Link>
+            </div>
+          </div>
+        </div>
+      </footer>
 
     </div>
   );

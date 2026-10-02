@@ -22,6 +22,7 @@ interface AffiliateShareButtonProps {
   className?: string;
   variant?: 'primary' | 'outline' | 'subtle';
   size?: 'sm' | 'md';
+  iconOnly?: boolean;
 }
 
 export function AffiliateShareButton({
@@ -31,6 +32,7 @@ export function AffiliateShareButton({
   className = '',
   variant = 'outline',
   size = 'md',
+  iconOnly = false,
 }: AffiliateShareButtonProps) {
   const { user } = useAuth();
   const { profile } = useAffiliateProfile(user?.uid);
@@ -74,9 +76,9 @@ export function AffiliateShareButton({
 
   const isSmall = size === 'sm';
 
-  const baseStyles = isSmall
-    ? 'px-3 py-1.5 text-xs rounded-xl font-bold'
-    : 'px-4 py-2.5 text-sm rounded-2xl font-bold';
+  const baseStyles = iconOnly
+    ? 'w-10 h-10 rounded-full flex items-center justify-center p-0 shrink-0'
+    : (isSmall ? 'px-3 py-1.5 text-xs rounded-xl font-bold' : 'px-4 py-2.5 text-sm rounded-2xl font-bold');
 
   let variantStyles = 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300';
   if (variant === 'primary') {
@@ -94,17 +96,19 @@ export function AffiliateShareButton({
       <DropdownMenuTrigger asChild>
         <button
           type="button"
+          aria-label="Bagikan Tautan"
+          title={isApproved ? `Bagikan Link Mitra (${affiliate?.referralCode})` : 'Bagikan'}
           className={`inline-flex items-center justify-center gap-2 transition-all duration-200 focus:outline-none ${baseStyles} ${variantStyles} ${className}`}
         >
           {isApproved ? (
             <>
-              <Sparkles className={isSmall ? 'w-3.5 h-3.5 text-violet-400' : 'w-4 h-4 text-violet-400'} />
-              <span>Bagikan (Link Mitra)</span>
+              <Sparkles className={isSmall || iconOnly ? 'w-4 h-4 text-violet-500' : 'w-4 h-4 text-violet-400'} />
+              {!iconOnly && <span>Bagikan (Link Mitra)</span>}
             </>
           ) : (
             <>
-              <Share2 className={isSmall ? 'w-3.5 h-3.5' : 'w-4 h-4'} />
-              <span>Bagikan</span>
+              <Share2 className={isSmall || iconOnly ? 'w-4 h-4' : 'w-4 h-4'} />
+              {!iconOnly && <span>Bagikan</span>}
             </>
           )}
         </button>

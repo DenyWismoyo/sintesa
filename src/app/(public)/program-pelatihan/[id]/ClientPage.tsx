@@ -18,7 +18,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AffiliateShareButton } from '@/components/common/AffiliateShareButton';
 import { SocialShareBar } from '@/components/common/SocialShareBar';
-import { StickyActionBar } from '@/components/common/StickyActionBar';
 
 // --- HELPER UNTUK MENGUBAH LINK VIDEO MENJADI EMBED ---
 const getEmbedUrl = (url?: string) => {
@@ -770,32 +769,34 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
         </div>
       </div>
 
-      {/* --- MOBILE STICKY BOTTOM DUAL-CTA (Tema Terang & Borderless) --- */}
+      {/* --- MOBILE STICKY BOTTOM DUAL-CTA (Minimalis & Bebas Tumpang Tindih) --- */}
       <div className="public-detail-bottom-bar lg:hidden">
-        <div>
-           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-0.5">Biaya Pelatihan</p>
+        <div className="flex flex-col min-w-0 pr-2">
+           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none truncate">Biaya Pelatihan</p>
            {training.isFree ? (
-             <p className="text-lg font-black text-emerald-600 leading-none">Gratis</p>
+             <p className="text-base sm:text-lg font-black text-emerald-600 leading-none mt-1 truncate">Gratis</p>
            ) : (
-             <p className="text-lg font-black text-slate-900 leading-none">{formatRupiah(training.price)}</p>
+             <p className="text-base sm:text-lg font-black text-slate-900 leading-none mt-1 truncate">{formatRupiah(training.price)}</p>
            )}
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <AffiliateShareButton
             path={`/program-pelatihan/${training.id}`}
             title={training.title}
             description={training.description}
             size="sm"
             variant="subtle"
+            iconOnly={true}
           />
           {cleanWhatsappNumber && (
             <a 
               href={`https://wa.me/${cleanWhatsappNumber}?text=${waText}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-11 h-11 rounded-full flex items-center justify-center bg-[#25D366] text-white shadow-sm shrink-0"
+              className="w-10 h-10 rounded-full flex items-center justify-center bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200/60 active:scale-95 transition-all shrink-0"
               title="Hubungi Admin WhatsApp"
+              aria-label="Hubungi Admin WhatsApp"
             >
               <MessageCircle size={18}/>
             </a>
@@ -803,7 +804,7 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
           <Button 
             onClick={() => router.push(`/program-pelatihan/${training.id}/daftar`)}
             disabled={isFull}
-            className={`h-11 px-5 rounded-full text-xs font-bold shadow-md border-0 ${
+            className={`h-10 px-5 rounded-full text-xs font-bold shadow-sm border-0 shrink-0 active:scale-95 transition-all ${
               isFull 
                 ? 'bg-slate-100 text-slate-400 shadow-none cursor-not-allowed' 
                 : 'bg-amber-500 hover:bg-amber-600 text-white'
@@ -846,39 +847,6 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* --- STICKY ACTION BAR SAAT SCROLL (Desktop & Tablet) --- */}
-      <StickyActionBar threshold={450}>
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:block">
-            <h4 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-1">{training.title}</h4>
-            <p className="text-[11px] text-slate-500">
-              {training.isFree ? 'Pelatihan Gratis' : formatRupiah(training.price)} · {isFull ? 'Kuota Penuh' : `${Math.max(0, (training.quota || 30) - (training.registeredCount || 0))} kursi tersisa`}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <AffiliateShareButton
-            path={`/program-pelatihan/${training.id}`}
-            title={training.title}
-            description={training.description}
-            size="sm"
-            variant="subtle"
-          />
-          <Button 
-            onClick={() => router.push(`/program-pelatihan/${training.id}/daftar`)}
-            disabled={isFull}
-            className={`h-10 px-5 rounded-full text-xs font-bold shadow-md border-0 ${
-              isFull 
-                ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
-                : 'bg-amber-500 hover:bg-amber-600 text-white'
-            }`}
-          >
-            {isFull ? 'Penuh' : 'Daftar Sekarang'}
-          </Button>
-        </div>
-      </StickyActionBar>
 
     </div>
   );

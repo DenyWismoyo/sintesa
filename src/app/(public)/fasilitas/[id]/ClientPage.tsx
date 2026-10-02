@@ -344,26 +344,27 @@ export default function RoomDetailClient({ roomId, initialRoom }: RoomDetailClie
 
       {/* --- STICKY ACTION BAR SAAT SCROLL --- */}
       <StickyActionBar threshold={350}>
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:block">
+        <div className="flex items-center gap-3 min-w-0 pr-2">
+          <div>
             <h4 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-1">{room.name}</h4>
-            <p className="text-[11px] text-slate-500">
-              {isKomersial && harga > 0 ? `Rp ${harga.toLocaleString('id-ID')} / ${room.pricingType || 'Hari'}` : 'Fasilitas Kawasan'} · Kapasitas {room.capacity || 'Fleksibel'} Orang
+            <p className="text-[10px] sm:text-[11px] font-semibold text-sky-700 truncate">
+              {isKomersial && harga > 0 ? `Rp ${harga.toLocaleString('id-ID')} / ${room.pricingType || 'Hari'}` : 'Fasilitas Internal'}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <AffiliateShareButton
             path={`/fasilitas/${room.id}`}
             title={room.name}
             description={room.description}
             size="sm"
             variant="subtle"
+            iconOnly={true}
           />
           <Button
             onClick={() => setShowBookingModal(true)}
-            className="h-10 px-5 rounded-full bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-md"
+            className="h-10 px-5 rounded-full bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-sm border-0 shrink-0 active:scale-95"
           >
             Pesan Ruangan
           </Button>
