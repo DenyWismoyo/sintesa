@@ -23,6 +23,9 @@ import ProductCard from '../components/ProductCard';
 import MobileImageGallery from '@/components/ui/MobileImageGallery';
 import ProviderCard from '@/components/ui/ProviderCard';
 import PillTabs from '@/components/ui/PillTabs';
+import { getActiveRefCode } from '@/components/common/AffiliateTracker';
+import { AffiliateShareButton } from '@/components/common/AffiliateShareButton';
+import { affiliateService } from '@/services/affiliate.service';
 
 type TabType = 'description' | 'specifications' | 'highlights';
 
@@ -159,6 +162,8 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
     const basePrice = Number(product.price || 0);
     const totalAmount = basePrice;
 
+    const refCode = getActiveRefCode();
+
     const invoicePayload: Omit<Invoice, 'id'> = {
       invoiceNumber: invNumber, 
       customerName: user.displayName || user.email?.split('@')[0] || 'Pelanggan Publik',
@@ -189,6 +194,7 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
       issuerNIP: '',
       history: [],
       notes: `Pemesanan E-Katalog: ${product.name}`,
+      referralCode: refCode || undefined
     };
 
     const res = await createNewInvoice(invoicePayload);
@@ -196,8 +202,35 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
     setShowConfirmModal(false); 
 
     if (res.success) {
+      if (refCode && basePrice > 0 && res.id) {
+        try {
+          const partner = await affiliateService.getAffiliateByCode(refCode);
+          if (partner && partner.userId !== user.uid) {
+            const settings = await affiliateService.getAffiliateSettings();
+            const rate = settings.catalogCommissionRate || 0.05;
+            const commissionAmount = Math.round(basePrice * rate);
+
+            await affiliateService.createCommission({
+              affiliateId: partner.userId,
+              referralCode: refCode,
+              domain: 'KATALOG',
+              itemId: product.id || '',
+              itemTitle: product.name || 'Produk Katalog',
+              customerName: user.displayName || user.email || 'Pelanggan',
+              customerEmail: user.email || '',
+              transactionAmount: basePrice,
+              commissionRate: rate,
+              commissionAmount: commissionAmount,
+              invoiceId: res.id
+            });
+          }
+        } catch (affErr) {
+          console.warn("Gagal mencatat komisi afiliasi pesanan katalog:", affErr);
+        }
+      }
+
       toast.success("Pesanan Berhasil Dibuat!", { id: loadingToast, description: "Mengalihkan ke halaman tagihan...", icon: <CheckCircle2 className="text-emerald-500" /> });
-      setTimeout(() => router.push('/tagihan'), 1500);
+      setTimeout(() => router.push('/profil'), 1500);
     } else {
       toast.error("Gagal membuat pesanan", { id: loadingToast, description: res.error || "Terjadi kesalahan internal." });
     }
@@ -495,6 +528,14 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
                     </Link>
                   )}
 
+                  <AffiliateShareButton
+                    path={`/e-katalog/${product.id}`}
+                    title={product.name || 'Produk E-Katalog'}
+                    description={product.description}
+                    className="w-full h-12"
+                    variant="subtle"
+                  />
+
                   <p className="text-center text-xs text-slate-400 font-medium">Layanan resmi terdaftar di Solo Technopark.</p>
                 </div>
 
@@ -541,6 +582,14 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
         </div>
 
         <div className="flex items-center gap-2">
+          <AffiliateShareButton
+            path={`/e-katalog/${product.id}`}
+            title={product.name || 'Produk E-Katalog'}
+            description={product.description}
+            size="sm"
+            variant="subtle"
+          />
+
           {product.category === 'Pelatihan' && (
             <Link
               href={`/program-pelatihan/${product.id}`}

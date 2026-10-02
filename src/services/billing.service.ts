@@ -2,6 +2,7 @@ import { collection, doc, addDoc, updateDoc, deleteDoc, query, orderBy, getDocs,
 import { db } from '@/lib/firebase';
 import { getAppId } from '@/lib/appId';
 import { storageService } from '@/services/storage.service';
+import { affiliateService } from '@/services/affiliate.service';
 import { Invoice, PaymentHistory } from '@/types';
 
 export const billingService = {
@@ -179,6 +180,15 @@ export const billingService = {
       }
     }
     await batch.commit();
+
+    // Auto-clear komisi afiliasi jika transaksi ini memiliki kode referral
+    if (invoice.id) {
+      try {
+        await affiliateService.clearCommissionByInvoiceId(invoice.id);
+      } catch (affError) {
+        console.warn(`[SYNC] Gagal auto-clear komisi afiliasi untuk invoice ${invoice.id}:`, affError);
+      }
+    }
   },
 
   uploadReceipt: async (file: File) => {

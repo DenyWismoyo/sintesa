@@ -53,6 +53,7 @@ export const InvoiceSchema = z.object({
   history: z.array(PaymentHistorySchema),
   paymentUrl: z.string().optional(),
   notes: z.string().optional(),
+  referralCode: z.string().optional(),
   createdAt: z.number().optional(),
   isAllocated: z.boolean().default(false).optional(),
   allocatedCoaId: z.string().optional(),

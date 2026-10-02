@@ -20,6 +20,7 @@ import RoomCard from './components/RoomCard';
 import RoomDetailModal from './components/RoomDetailModal';
 import BookingWizardModal from './components/BookingWizardModal';
 import FacilityCalendar from './components/FacilityCalendar';
+import { getActiveRefCode } from '@/components/common/AffiliateTracker';
 
 const staggerContainer: Variants = {
   hidden: { opacity: 0 },
@@ -79,7 +80,13 @@ export default function FasilitasPublicPage() {
   const handleSubmitBooking = async (formData: any) => {
     if (!selectedAsset || !selectedAsset.id) return;
     setIsSubmitting(true);
-    const payload = { ...formData, assetId: selectedAsset.id as string, assetName: selectedAsset.name };
+    const refCode = getActiveRefCode();
+    const payload = { 
+      ...formData, 
+      assetId: selectedAsset.id as string, 
+      assetName: selectedAsset.name,
+      referralCode: refCode || undefined
+    };
     const res = await submitBooking(payload);
     setIsSubmitting(false);
 

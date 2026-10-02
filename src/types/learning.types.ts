@@ -103,6 +103,7 @@ export const TrainingRegistrationSchema = z.object({
   completedLessons: z.array(z.string()).optional().default([]),
   lastAccessedAt: z.number().optional(),
   invoiceId: z.string().optional(),
+  referralCode: z.string().optional(),
   paymentStatus: z.enum(['FREE', 'PENDING', 'PAID']).default('FREE'),
   status: z.enum(['PENDING', 'CONFIRMED', 'REJECTED', 'CANCELLED']).default('PENDING'),
   createdAt: z.number().optional()

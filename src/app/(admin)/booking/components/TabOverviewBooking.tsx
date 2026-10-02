@@ -5,6 +5,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { useBilling } from '@/hooks/useBilling';
 import { useCatalog } from '@/hooks/useCatalog';
 import { useAssets } from '@/hooks/useAssets'; 
+import { affiliateService } from '@/services/affiliate.service'; 
 
 import { CheckCircle2, XCircle, Clock, MapPin, Loader2, FileText, AlertTriangle, Receipt, ListTodo, History, Calculator, RefreshCw, FilePlus2, Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -197,11 +198,41 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
           subTotal: billingAmount, taxAmount: 0, discountAmount: 0, totalAmount: billingAmount, paidAmount: 0, remainingAmount: billingAmount,
           term: 'FULL_PAYMENT', date: today, dueDate: selectedBooking.startDate, status: 'PENDING',
           issuerName: 'Sistem', issuerRole: 'Admin', issuerNIP: '', history: [],
-          notes: `Keperluan: ${selectedBooking.purpose}`
+          notes: `Keperluan: ${selectedBooking.purpose}`,
+          referralCode: selectedBooking.referralCode || undefined
         };
 
         const res = await createNewInvoice(invoicePayload);
-        if (res.success && res.id) invoiceId = res.id;
+        if (res.success && res.id) {
+          invoiceId = res.id;
+          // Catat komisi afiliasi pending jika booking menggunakan referralCode
+          if (selectedBooking.referralCode && billingAmount > 0) {
+            try {
+              const partner = await affiliateService.getAffiliateByCode(selectedBooking.referralCode);
+              if (partner) {
+                const settings = await affiliateService.getAffiliateSettings();
+                const rate = settings.facilityCommissionRate || 0.05;
+                const commissionAmount = Math.round(billingAmount * rate);
+
+                await affiliateService.createCommission({
+                  affiliateId: partner.userId,
+                  referralCode: selectedBooking.referralCode,
+                  domain: 'FASILITAS',
+                  itemId: selectedBooking.assetId,
+                  itemTitle: selectedBooking.assetName,
+                  customerName: selectedBooking.userName,
+                  customerEmail: selectedBooking.userEmail || '',
+                  transactionAmount: billingAmount,
+                  commissionRate: rate,
+                  commissionAmount: commissionAmount,
+                  invoiceId: res.id
+                });
+              }
+            } catch (affErr) {
+              console.warn("Gagal mencatat komisi afiliasi sewa fasilitas:", affErr);
+            }
+          }
+        }
         else throw new Error("Gagal membuat Invoice tagihan.");
       }
 

@@ -14,6 +14,7 @@ export const BookingSchema = z.object({
   startTime: z.string().optional(),     
   endTime: z.string().optional(),       
   invoiceId: z.string().optional(),     
+  referralCode: z.string().optional(),
   status: z.enum(['pending', 'approved', 'rejected', 'completed']).default('pending'),
   createdAt: z.number().optional(),
   adminNotes: z.string().optional(),

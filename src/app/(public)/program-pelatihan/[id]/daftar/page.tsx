@@ -2,11 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Training } from '@/types';
 import { useTraining } from '@/hooks/useTraining';
 import { useAuth } from '@/lib/AuthContext';
+import { billingService } from '@/services/billing.service';
+import { affiliateService } from '@/services/affiliate.service';
+import { getActiveRefCode } from '@/components/common/AffiliateTracker';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
@@ -102,11 +105,14 @@ export default function PendaftaranKelasPage() {
       }
 
       toast.info("Menyimpan data pendaftaran...");
+      const refCode = getActiveRefCode();
+
       const regData = {
         ...form,
         customData: finalCustomData,
         paymentStatus: training.isFree ? 'FREE' : 'PENDING',
-        status: 'PENDING'
+        status: training.isFree ? 'CONFIRMED' : 'PENDING',
+        referralCode: refCode || undefined
       };
 
       const regRes = await registerForTraining(training.id as string, regData);
@@ -116,11 +122,89 @@ export default function PendaftaranKelasPage() {
       }
 
       if (!training.isFree) {
-        toast.success("Pendaftaran Berhasil!", { description: "Tagihan Anda sedang diproses. Silakan cek menu Tagihan Anda." });
-        router.push(`/program-pelatihan`); 
+        // Buat Invoice Tagihan Resmi di Modul Billing
+        const today = new Date().toISOString().split('T')[0];
+        const dueDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const invNumber = `INV-TRN-${Date.now().toString().slice(-6)}`;
+        const price = training.price || 0;
+
+        const newInvoiceData = {
+          invoiceNumber: invNumber,
+          customerName: form.name,
+          customerEmail: form.email,
+          customerPhone: form.phone,
+          customerType: 'Umum' as const,
+          items: [{
+            id: Date.now().toString(),
+            referenceType: 'TRAINING' as const,
+            referenceId: `${training.id}::${regRes.registrationId}`,
+            description: `Pendaftaran Pelatihan: ${training.title}`,
+            quantity: 1,
+            unitPrice: price,
+            total: price
+          }],
+          subTotal: price,
+          taxAmount: 0,
+          discountAmount: 0,
+          totalAmount: price,
+          paidAmount: 0,
+          remainingAmount: price,
+          term: 'FULL_PAYMENT' as const,
+          date: today,
+          dueDate: dueDate,
+          status: 'PENDING' as const,
+          referralCode: refCode || undefined,
+          issuerName: '',
+          issuerRole: 'Kasir' as const,
+          issuerNIP: '',
+          notes: `Pendaftaran Peserta: ${form.name} (${form.email}) - Pelatihan: ${training.title}`,
+          history: []
+        };
+
+        const invoiceId = await billingService.createInvoice(newInvoiceData);
+
+        // Update registration record dengan invoiceId
+        if (invoiceId && regRes.registrationId) {
+          await updateDoc(doc(db, 'trainings', training.id as string, 'registrations', regRes.registrationId), {
+            invoiceId
+          });
+        }
+
+        // Jika ada referralCode aktif, catat komisi pending untuk mitra afiliasi
+        if (refCode && price > 0 && invoiceId) {
+          try {
+            const partner = await affiliateService.getAffiliateByCode(refCode);
+            if (partner && partner.userId !== user?.uid) {
+              const settings = await affiliateService.getAffiliateSettings();
+              const rate = settings.trainingCommissionRate || 0.05;
+              const commissionAmount = Math.round(price * rate);
+
+              await affiliateService.createCommission({
+                affiliateId: partner.userId,
+                referralCode: refCode,
+                domain: 'PELATIHAN',
+                itemId: training.id as string,
+                itemTitle: training.title,
+                customerName: form.name,
+                customerEmail: form.email,
+                transactionAmount: price,
+                commissionRate: rate,
+                commissionAmount: commissionAmount,
+                invoiceId: invoiceId
+              });
+            }
+          } catch (affErr) {
+            console.warn("Gagal mencatat komisi afiliasi pendaftaran:", affErr);
+          }
+        }
+
+        toast.success("Pendaftaran Berhasil!", { 
+          description: `Tagihan #${invNumber} telah dibuat. Silakan selesaikan pembayaran di menu Tagihan Profil Anda.` 
+        });
+        router.push(`/profil`); 
       } else {
-        toast.success("Pendaftaran Berhasil!", { description: "Data Anda sedang ditinjau oleh Admin." });
-        router.push(`/program-pelatihan/${training.id}`);
+        toast.success("Pendaftaran Berhasil!", { description: "Pendaftaran kelas gratis telah dikonfirmasi." });
+        router.push(`/ruang-belajar`);
       }
 
     } catch (err: any) {

@@ -107,6 +107,24 @@ export const affiliateService = {
     await batch.commit();
   },
 
+  clearCommissionByInvoiceId: async (invoiceId: string): Promise<boolean> => {
+    const q = query(
+      commissionsRef(),
+      where('invoiceId', '==', invoiceId),
+      where('status', '==', 'PENDING_PAYMENT'),
+      limit(1)
+    );
+    const snap = await getDocs(q);
+    if (snap.empty) return false;
+    const docData = snap.docs[0].data();
+    await affiliateService.clearCommission(
+      snap.docs[0].id,
+      docData.affiliateId,
+      docData.commissionAmount
+    );
+    return true;
+  },
+
   cancelCommission: async (commissionId: string, affiliateId: string, commissionAmount: number): Promise<void> => {
     const batch = writeBatch(db);
     batch.update(doc(commissionsRef(), commissionId), { status: 'CANCELLED' });

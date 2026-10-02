@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { AffiliateShareButton } from '@/components/common/AffiliateShareButton';
 
 // --- HELPER UNTUK MENGUBAH LINK VIDEO MENJADI EMBED ---
 const getEmbedUrl = (url?: string) => {
@@ -600,24 +601,24 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
                       href={`https://wa.me/${cleanWhatsappNumber}?text=${waText}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full h-12 rounded-full text-sm font-bold shadow-sm transition-all duration-300 mb-5 flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1EBE5D] text-white"
+                      className="w-full h-12 rounded-full text-sm font-bold shadow-sm transition-all duration-300 mb-2.5 flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1EBE5D] text-white"
                     >
                       <MessageCircle size={18}/>
                       Tanya via WhatsApp
                     </a>
                   )}
+
+                  {/* Affiliate / Public Share CTA */}
+                  <AffiliateShareButton
+                    path={`/program-pelatihan/${training.id}`}
+                    title={training.title}
+                    description={training.description}
+                    className="w-full h-12 mb-5"
+                    variant="subtle"
+                  />
                   
                   <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 mb-6 px-1">
                     <span className="flex items-center gap-1.5"><ShieldCheck size={14} className="text-emerald-500"/> Sertifikasi & Instruktur Resmi</span>
-                    <button 
-                      onClick={() => {
-                        if (navigator.share) navigator.share({ title: training.title, url: window.location.href });
-                        else { navigator.clipboard.writeText(window.location.href); alert('Tautan disalin!'); }
-                      }}
-                      className="hover:text-amber-500 transition-colors"
-                    >
-                      <Share2 size={15}/>
-                    </button>
                   </div>
 
                   {/* What's included */}
@@ -693,6 +694,13 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
         </div>
         
         <div className="flex items-center gap-2">
+          <AffiliateShareButton
+            path={`/program-pelatihan/${training.id}`}
+            title={training.title}
+            description={training.description}
+            size="sm"
+            variant="subtle"
+          />
           {cleanWhatsappNumber && (
             <a 
               href={`https://wa.me/${cleanWhatsappNumber}?text=${waText}`}
