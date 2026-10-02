@@ -12,11 +12,8 @@ import {
   GraduationCap, 
   ArrowRight, 
   Loader2, 
-  Sparkles,
   TrendingUp,
-  Tag,
-  CornerDownLeft,
-  ChevronUp
+  Tag
 } from 'lucide-react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { catalogService } from '@/services/catalog.service';
@@ -59,7 +56,7 @@ const topSheetVariants: Variants = {
     y: '-100%', 
     opacity: 0.7, 
     transition: { 
-      duration: 0.24, 
+      duration: 0.22, 
       ease: [0.32, 0.72, 0, 1] 
     } 
   }
@@ -130,7 +127,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
               title: a.name || 'Fasilitas Kawasan',
               category: a.category || 'Ruangan & Gedung',
               type: 'asset',
-              typeName: 'Sewa Ruangan',
+              typeName: 'Ruangan',
               price: typeof a.price === 'number' ? a.price : typeof a.rentalPrice === 'number' ? a.rentalPrice : undefined,
               image: cover,
               url: `/fasilitas/${a.id}`,
@@ -158,7 +155,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
 
         setItems(combined);
       } catch (err) {
-        console.error("Gagal memuat master cache untuk pencarian:", err);
+        console.error("Gagal memuat data pencarian:", err);
       } finally {
         setLoading(false);
       }
@@ -246,21 +243,28 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
   const getTypeIcon = (type: SearchResultItem['type']) => {
     switch (type) {
       case 'catalog':
-        return <ShoppingBag size={12} className="text-emerald-600" />;
+        return <ShoppingBag size={11} className="text-emerald-600" />;
       case 'asset':
-        return <Building2 size={12} className="text-sky-600" />;
+        return <Building2 size={11} className="text-sky-600" />;
       case 'training':
-        return <GraduationCap size={12} className="text-amber-600" />;
+        return <GraduationCap size={11} className="text-amber-600" />;
       default:
-        return <Tag size={12} />;
+        return <Tag size={11} />;
     }
   };
+
+  const FILTER_TABS = [
+    { key: 'all', label: 'Semua' },
+    { key: 'catalog', label: 'Katalog' },
+    { key: 'asset', label: 'Ruangan' },
+    { key: 'training', label: 'Pelatihan' },
+  ] as const;
 
   return (
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[150] overflow-hidden">
-          {/* Backdrop Blur Gelap (Klik area bawah untuk menutup) */}
+          {/* Backdrop Blur Gelap (Klik area celah bawah untuk menutup) */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -269,7 +273,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
             className="fixed inset-0 bg-slate-950/50 backdrop-blur-xl"
           />
 
-          {/* Top Sheet Modal (Muncul Meluncur dari Atas Layar & Fullwidth dengan Sisa Celah di Bawah) */}
+          {/* Top Sheet Modal (Meluncur dari Atas Layar, Menyisakan Celah Bawah, Minimalis & Bersih) */}
           <motion.div
             variants={topSheetVariants}
             initial="hidden"
@@ -279,18 +283,13 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={{ top: 0.7, bottom: 0.05 }}
             onDragEnd={(_, info) => {
-              // Jika ditarik/swipe ke atas
               if (info.offset.y < -60 || info.velocity.y < -250) {
                 onClose();
               }
             }}
-            className="fixed top-0 left-0 right-0 w-full max-w-3xl mx-auto h-[86vh] sm:h-[88vh] bg-white/98 backdrop-blur-2xl rounded-b-[2rem] sm:rounded-b-[2.5rem] shadow-[0_25px_80px_-10px_rgba(15,23,42,0.35)] border-b border-x border-slate-200/90 flex flex-col overflow-hidden z-10"
+            className="fixed top-0 left-0 right-0 w-full max-w-3xl mx-auto h-[87vh] sm:h-[88vh] bg-white/98 backdrop-blur-2xl rounded-b-[2rem] sm:rounded-b-[2.5rem] shadow-[0_25px_80px_-10px_rgba(15,23,42,0.35)] border-b border-x border-slate-200/90 flex flex-col overflow-hidden z-10"
           >
-            {/* Ambient Accent Glow di dalam modal */}
-            <div className="absolute top-0 right-0 w-72 h-72 bg-blue-100/40 rounded-full blur-[90px] pointer-events-none -z-10" />
-            <div className="absolute bottom-10 left-0 w-72 h-72 bg-indigo-100/30 rounded-full blur-[90px] pointer-events-none -z-10" />
-
-            {/* 1. Header Search Input Bar */}
+            {/* 1. Header Search Input Bar Minimalis */}
             <div className="flex items-center gap-3 px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-white/80 shrink-0">
               <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0 shadow-2xs">
                 <Search size={18} strokeWidth={2.4} />
@@ -301,7 +300,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Cari produk katalog, sewa ruangan, atau pelatihan..."
+                placeholder="Cari katalog, ruangan, atau pelatihan..."
                 className="w-full bg-transparent text-sm sm:text-base font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-hidden"
               />
 
@@ -319,43 +318,33 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3 py-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 bg-slate-100/80 hover:bg-slate-200/80 rounded-full transition-all shrink-0 cursor-pointer"
+                className="px-3.5 py-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 bg-slate-100/90 hover:bg-slate-200/90 rounded-full transition-all shrink-0 cursor-pointer"
               >
                 Tutup
               </button>
             </div>
 
-            {/* 2. Quick Filter Tabs Horizontal Modern */}
-            <div className="flex items-center gap-2 px-4 sm:px-6 py-2.5 bg-slate-50/70 border-b border-slate-100/80 overflow-x-auto no-scrollbar shrink-0">
-              {[
-                { key: 'all', label: 'Semua Layanan' },
-                { key: 'catalog', label: '🛍️ Katalog', count: items.filter(i => i.type === 'catalog').length },
-                { key: 'asset', label: '🏢 Sewa Ruangan', count: items.filter(i => i.type === 'asset').length },
-                { key: 'training', label: '🎓 Pelatihan', count: items.filter(i => i.type === 'training').length },
-              ].map((tab) => {
-                const isActive = activeFilter === tab.key;
-                return (
-                  <button
-                    key={tab.key}
-                    type="button"
-                    onClick={() => setActiveFilter(tab.key as SearchCategoryFilter)}
-                    className={`px-3.5 py-1 text-xs font-bold rounded-full transition-all shrink-0 flex items-center gap-1.5 cursor-pointer ${
-                      isActive
-                        ? 'bg-slate-900 text-white shadow-xs'
-                        : 'bg-white/90 border border-slate-200/80 text-slate-600 hover:bg-white hover:text-slate-900'
-                    }`}
-                  >
-                    <span>{tab.label}</span>
-                    {tab.count !== undefined && tab.count > 0 && (
-                      <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
-                        isActive ? 'bg-slate-800 text-slate-200' : 'bg-slate-100 text-slate-500'
-                      }`}>
-                        {tab.count}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+            {/* 2. Baris Filter Compact & Elegan (Grid 4 Kolom: Pas 100% dengan Lebar Layar Ponsel) */}
+            <div className="px-3.5 sm:px-6 py-2.5 bg-slate-50/80 border-b border-slate-100 shrink-0">
+              <div className="grid grid-cols-4 gap-1.5 p-1 bg-slate-200/50 rounded-full w-full">
+                {FILTER_TABS.map((tab) => {
+                  const isActive = activeFilter === tab.key;
+                  return (
+                    <button
+                      key={tab.key}
+                      type="button"
+                      onClick={() => setActiveFilter(tab.key as SearchCategoryFilter)}
+                      className={`py-1.5 text-xs font-bold rounded-full transition-all text-center cursor-pointer truncate ${
+                        isActive
+                          ? 'bg-slate-900 text-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* 3. Result List Area with Custom Sleek Scrollbar */}
@@ -363,7 +352,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
                   <Loader2 size={26} className="animate-spin text-blue-600" />
-                  <p className="text-xs font-bold text-slate-500">Memuat master cache seluruh layanan...</p>
+                  <p className="text-xs font-bold text-slate-500">Memuat seluruh data layanan...</p>
                 </div>
               ) : filteredResults.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center px-4">
@@ -372,7 +361,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                   </div>
                   <h4 className="text-sm font-bold text-slate-800">Layanan tidak ditemukan</h4>
                   <p className="text-xs text-slate-500 mt-1 max-w-sm">
-                    Tidak ditemukan data untuk kata kunci &ldquo;{query}&rdquo;. Coba gunakan istilah lain atau pilih kategori di atas.
+                    Tidak ditemukan data untuk kata kunci &ldquo;{query}&rdquo;. Silakan coba istilah lain.
                   </p>
                 </div>
               ) : (
@@ -380,7 +369,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                   {!query && (
                     <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2 py-1.5">
                       <TrendingUp size={12} className="text-blue-600" />
-                      <span>Rekomendasi Layanan Kawasan</span>
+                      <span>Rekomendasi Layanan</span>
                     </div>
                   )}
 
@@ -458,29 +447,13 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
               )}
             </div>
 
-            {/* 4. Footer Shortcut Info */}
-            <div className="px-5 py-2.5 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-medium shrink-0">
-              <span className="flex items-center gap-1.5">
-                <Sparkles size={12} className="text-amber-500" />
-                <span>Terhubung Master Cache Kawasan</span>
-              </span>
-              <div className="hidden sm:flex items-center gap-3">
-                <span>Gunakan <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-[10px] font-bold text-slate-700">↑</kbd> <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-[10px] font-bold text-slate-700">↓</kbd> navigasi</span>
-                <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-[10px] font-bold text-slate-700 flex items-center gap-0.5"><CornerDownLeft size={10} /> Enter</kbd> pilih</span>
-              </div>
-            </div>
-
-            {/* 5. Bottom Swipe-Up Bar / Drag Handle (Sesuai Permintaan: Geser ke Atas untuk Tutup) */}
+            {/* 4. Bottom Drag Handle Bar (Super Minimalis, Bersih Tanpa Teks, Bisa Ditarik / Diklik) */}
             <div 
               onClick={onClose}
-              className="w-full py-2.5 sm:py-3 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing border-t border-slate-100/90 bg-slate-100/70 hover:bg-slate-200/70 transition-colors shrink-0 select-none group"
-              title="Swipe atau klik untuk menutup"
+              className="w-full py-2.5 flex items-center justify-center cursor-grab active:cursor-grabbing border-t border-slate-100/90 bg-slate-50/70 hover:bg-slate-100/80 transition-colors shrink-0 select-none group"
+              title="Tutup pencarian"
             >
-              <div className="w-12 h-1.5 rounded-full bg-slate-300 group-hover:bg-slate-400 transition-colors mb-1" />
-              <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 group-hover:text-slate-600 transition-colors uppercase tracking-wider">
-                <ChevronUp size={12} className="animate-bounce" />
-                <span>Geser ke atas atau klik untuk menutup</span>
-              </div>
+              <div className="w-10 h-1 rounded-full bg-slate-300 group-hover:bg-slate-400 transition-colors" />
             </div>
           </motion.div>
         </div>
