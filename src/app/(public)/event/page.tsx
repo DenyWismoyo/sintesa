@@ -232,15 +232,11 @@ export default function EventPage() {
                           </div>
                         </div>
 
-                        {/* Card Footer with Action Button */}
+                        {/* Card Footer */}
                         <div className="public-card-footer">
-                          <span className="text-xs font-semibold text-slate-400">Selengkapnya</span>
-                          <Link 
-                            href={`/event/${event.id}`}
-                            className="public-card-action-btn"
-                          >
-                            <ArrowRight size={17} />
-                          </Link>
+                          <span className="text-xs font-semibold text-slate-400 group-hover:text-blue-600 transition-colors">
+                            Lihat Detail Event &rarr;
+                          </span>
                         </div>
                      </div>
                   </motion.div>

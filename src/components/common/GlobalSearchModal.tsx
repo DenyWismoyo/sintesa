@@ -15,9 +15,10 @@ import {
   Sparkles,
   TrendingUp,
   Tag,
-  CornerDownLeft
+  CornerDownLeft,
+  ChevronUp
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { catalogService } from '@/services/catalog.service';
 import { assetService } from '@/services/asset.service';
 import { trainingService } from '@/services/training.service';
@@ -42,6 +43,28 @@ interface GlobalSearchModalProps {
   onClose: () => void;
 }
 
+const topSheetVariants: Variants = {
+  hidden: { y: '-100%', opacity: 0.8 },
+  visible: { 
+    y: 0, 
+    opacity: 1, 
+    transition: { 
+      type: 'spring', 
+      damping: 28, 
+      stiffness: 280, 
+      mass: 0.85 
+    } 
+  },
+  exit: { 
+    y: '-100%', 
+    opacity: 0.7, 
+    transition: { 
+      duration: 0.24, 
+      ease: [0.32, 0.72, 0, 1] 
+    } 
+  }
+};
+
 export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -59,7 +82,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
     // Auto focus ke input dengan delay aman
     setTimeout(() => {
       inputRef.current?.focus();
-    }, 50);
+    }, 60);
 
     const loadAllCachedData = async () => {
       if (items.length > 0) return;
@@ -74,7 +97,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
 
         const combined: SearchResultItem[] = [];
 
-        // 1. Data Katalog (DIUBAH DARI 'Katalog Inovasi' MENJADI 'Katalog' SESUAI REQUEST)
+        // 1. Data Katalog (DIUBAH MENJADI 'Katalog' SESUAI REQUEST USER)
         if (catalogs.status === 'fulfilled' && Array.isArray(catalogs.value)) {
           catalogs.value.forEach((c: any) => {
             if (c.isPublished !== false) {
@@ -86,7 +109,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                 title: c.name || 'Produk Katalog',
                 category: c.category || 'Katalog',
                 type: 'catalog',
-                typeName: 'Katalog', // Sesuai permintaan user: Katalog Inovasi -> Katalog
+                typeName: 'Katalog',
                 price: typeof c.price === 'number' ? c.price : undefined,
                 image: cover,
                 url: `/e-katalog/${c.id}`,
@@ -236,31 +259,40 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[150] flex items-start justify-center p-3 sm:p-5 pt-8 sm:pt-14 md:pt-16">
-          {/* Backdrop Blur Ultra Halus */}
+        <div className="fixed inset-0 z-[150] overflow-hidden">
+          {/* Backdrop Blur Gelap (Klik area bawah untuk menutup) */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-slate-950/45 backdrop-blur-xl"
+            className="fixed inset-0 bg-slate-950/50 backdrop-blur-xl"
           />
 
-          {/* Modal Container Elegan & Melengkung Mewah */}
+          {/* Top Sheet Modal (Muncul Meluncur dari Atas Layar & Fullwidth dengan Sisa Celah di Bawah) */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: -12 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: -12 }}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-2xl bg-white/95 backdrop-blur-2xl rounded-3xl shadow-[0_30px_90px_-20px_rgba(15,23,42,0.3)] border border-slate-200/80 flex flex-col overflow-hidden max-h-[88vh] z-10"
+            variants={topSheetVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0.7, bottom: 0.05 }}
+            onDragEnd={(_, info) => {
+              // Jika ditarik/swipe ke atas
+              if (info.offset.y < -60 || info.velocity.y < -250) {
+                onClose();
+              }
+            }}
+            className="fixed top-0 left-0 right-0 w-full max-w-3xl mx-auto h-[86vh] sm:h-[88vh] bg-white/98 backdrop-blur-2xl rounded-b-[2rem] sm:rounded-b-[2.5rem] shadow-[0_25px_80px_-10px_rgba(15,23,42,0.35)] border-b border-x border-slate-200/90 flex flex-col overflow-hidden z-10"
           >
-            {/* Ambient Accent Light Inside Modal */}
-            <div className="absolute top-0 right-0 w-60 h-60 bg-blue-100/50 rounded-full blur-[80px] pointer-events-none -z-10" />
-            <div className="absolute bottom-0 left-0 w-60 h-60 bg-indigo-100/40 rounded-full blur-[80px] pointer-events-none -z-10" />
+            {/* Ambient Accent Glow di dalam modal */}
+            <div className="absolute top-0 right-0 w-72 h-72 bg-blue-100/40 rounded-full blur-[90px] pointer-events-none -z-10" />
+            <div className="absolute bottom-10 left-0 w-72 h-72 bg-indigo-100/30 rounded-full blur-[90px] pointer-events-none -z-10" />
 
-            {/* Search Input Bar Super Elegan */}
-            <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100/80 bg-white/70">
-              <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+            {/* 1. Header Search Input Bar */}
+            <div className="flex items-center gap-3 px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-white/80 shrink-0">
+              <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0 shadow-2xs">
                 <Search size={18} strokeWidth={2.4} />
               </div>
               
@@ -287,16 +319,16 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 bg-slate-100/80 hover:bg-slate-200/80 rounded-full transition-all shrink-0 cursor-pointer"
+                className="px-3 py-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 bg-slate-100/80 hover:bg-slate-200/80 rounded-full transition-all shrink-0 cursor-pointer"
               >
                 Tutup
               </button>
             </div>
 
-            {/* Quick Filter Tabs Horizontal Modern */}
-            <div className="flex items-center gap-2 px-5 py-3 bg-slate-50/60 border-b border-slate-100/80 overflow-x-auto no-scrollbar">
+            {/* 2. Quick Filter Tabs Horizontal Modern */}
+            <div className="flex items-center gap-2 px-4 sm:px-6 py-2.5 bg-slate-50/70 border-b border-slate-100/80 overflow-x-auto no-scrollbar shrink-0">
               {[
-                { key: 'all', label: 'Semua' },
+                { key: 'all', label: 'Semua Layanan' },
                 { key: 'catalog', label: '🛍️ Katalog', count: items.filter(i => i.type === 'catalog').length },
                 { key: 'asset', label: '🏢 Sewa Ruangan', count: items.filter(i => i.type === 'asset').length },
                 { key: 'training', label: '🎓 Pelatihan', count: items.filter(i => i.type === 'training').length },
@@ -307,10 +339,10 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                     key={tab.key}
                     type="button"
                     onClick={() => setActiveFilter(tab.key as SearchCategoryFilter)}
-                    className={`px-3.5 py-1.5 text-xs font-bold rounded-full transition-all shrink-0 flex items-center gap-1.5 cursor-pointer ${
+                    className={`px-3.5 py-1 text-xs font-bold rounded-full transition-all shrink-0 flex items-center gap-1.5 cursor-pointer ${
                       isActive
-                        ? 'bg-slate-900 text-white shadow-sm'
-                        : 'bg-white/80 border border-slate-200/80 text-slate-600 hover:bg-white hover:text-slate-900'
+                        ? 'bg-slate-900 text-white shadow-xs'
+                        : 'bg-white/90 border border-slate-200/80 text-slate-600 hover:bg-white hover:text-slate-900'
                     }`}
                   >
                     <span>{tab.label}</span>
@@ -326,15 +358,15 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
               })}
             </div>
 
-            {/* Result List Area with Custom Scrollbar */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-3 sm:p-4 space-y-1">
+            {/* 3. Result List Area with Custom Sleek Scrollbar */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-3 sm:p-5 space-y-1">
               {loading ? (
-                <div className="flex flex-col items-center justify-center py-16 text-slate-400 gap-3">
+                <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
                   <Loader2 size={26} className="animate-spin text-blue-600" />
                   <p className="text-xs font-bold text-slate-500">Memuat master cache seluruh layanan...</p>
                 </div>
               ) : filteredResults.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-14 text-center px-4">
+                <div className="flex flex-col items-center justify-center py-16 text-center px-4">
                   <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-3 shadow-2xs">
                     <Search size={22} />
                   </div>
@@ -365,7 +397,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                             : 'hover:bg-slate-50/80 border border-transparent'
                         }`}
                       >
-                        {/* Thumbnail dengan Aspect Ratio Rapi */}
+                        {/* Thumbnail */}
                         <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-slate-100 border border-slate-200/60 overflow-hidden shrink-0 relative flex items-center justify-center">
                           {item.image ? (
                             <Image
@@ -426,8 +458,8 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
               )}
             </div>
 
-            {/* Footer Shortcut Info */}
-            <div className="px-5 py-3 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-medium">
+            {/* 4. Footer Shortcut Info */}
+            <div className="px-5 py-2.5 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-medium shrink-0">
               <span className="flex items-center gap-1.5">
                 <Sparkles size={12} className="text-amber-500" />
                 <span>Terhubung Master Cache Kawasan</span>
@@ -435,6 +467,19 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
               <div className="hidden sm:flex items-center gap-3">
                 <span>Gunakan <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-[10px] font-bold text-slate-700">↑</kbd> <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-[10px] font-bold text-slate-700">↓</kbd> navigasi</span>
                 <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-[10px] font-bold text-slate-700 flex items-center gap-0.5"><CornerDownLeft size={10} /> Enter</kbd> pilih</span>
+              </div>
+            </div>
+
+            {/* 5. Bottom Swipe-Up Bar / Drag Handle (Sesuai Permintaan: Geser ke Atas untuk Tutup) */}
+            <div 
+              onClick={onClose}
+              className="w-full py-2.5 sm:py-3 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing border-t border-slate-100/90 bg-slate-100/70 hover:bg-slate-200/70 transition-colors shrink-0 select-none group"
+              title="Swipe atau klik untuk menutup"
+            >
+              <div className="w-12 h-1.5 rounded-full bg-slate-300 group-hover:bg-slate-400 transition-colors mb-1" />
+              <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 group-hover:text-slate-600 transition-colors uppercase tracking-wider">
+                <ChevronUp size={12} className="animate-bounce" />
+                <span>Geser ke atas atau klik untuk menutup</span>
               </div>
             </div>
           </motion.div>

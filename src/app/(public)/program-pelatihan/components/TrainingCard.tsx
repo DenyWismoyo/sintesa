@@ -166,15 +166,6 @@ export default function TrainingCard({ training }: TrainingCardProps) {
               )}
             </p>
           </div>
-
-          {/* Action Button Circular Pill Micro-Interaction */}
-          <Link 
-            href={`/program-pelatihan/${training.id}`}
-            className="public-card-action-btn group-hover:bg-amber-500 group-hover:text-white transition-all shadow-xs group-hover:shadow-md shrink-0"
-            title={`Lihat detail ${training.title}`}
-          >
-            <ArrowRight size={17} className="group-hover:translate-x-0.5 transition-transform" />
-          </Link>
         </div>
 
       </div>

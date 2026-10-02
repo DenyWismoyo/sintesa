@@ -86,21 +86,6 @@ export default function RoomCard({ room, onShowDetail, onBook }: RoomCardProps) 
               </div>
             )}
           </div>
-          
-          {/* Tombol Aksi */}
-          <button 
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onBook(room); }} 
-            title="Pesan Ruangan"
-            className="public-card-action-btn"
-          >
-            <div className="absolute inset-0 flex items-center justify-center translate-y-0 group-hover:-translate-y-full opacity-100 group-hover:opacity-0 transition-all duration-300">
-              <CalendarIcon size={17} />
-            </div>
-            <div className="absolute inset-0 flex items-center justify-center translate-y-full group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300">
-              <ArrowRight size={17} className="-rotate-45" />
-            </div>
-          </button>
         </div>
       </div>
     </motion.div>

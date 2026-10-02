@@ -18,15 +18,6 @@ export default function ProductCard({ product }: ProductCardProps) {
   const imageUrl = getThumbnailUrl(rawImageUrl);
   const [imgError, setImgError] = useState(false);
 
-  const renderCtaIcon = () => {
-    switch(product.ctaType) {
-      case 'WHATSAPP': return <MessageCircle size={17} />;
-      case 'EXTERNAL_LINK': return <ExternalLink size={17} />;
-      case 'BOOKING_FORM': return <CalendarDays size={17} />;
-      default: return <ShoppingCart size={17} />;
-    }
-  };
-
   return (
     <div className="public-card public-card-hover group relative flex flex-col h-full overflow-hidden z-10">
       
@@ -101,7 +92,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
         )}
 
-        {/* Area Harga & Aksi Bawah */}
+        {/* Area Harga */}
         <div className="public-card-footer">
           <div>
             <span className="public-card-price-label">Mulai dari</span>
@@ -115,21 +106,6 @@ export default function ProductCard({ product }: ProductCardProps) {
               </span>
             )}
           </div>
-          
-          {/* Tombol Aksi */}
-          <Link 
-            href={`/e-katalog/${product.id}`}
-            prefetch={true}
-            className="public-card-action-btn"
-            title={`Buka ${product.name}`}
-          >
-            <div className="absolute inset-0 flex items-center justify-center translate-y-0 group-hover:-translate-y-full transition-transform duration-300">
-              {renderCtaIcon()}
-            </div>
-            <div className="absolute inset-0 flex items-center justify-center translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-              <ArrowRight size={17} className="-rotate-45" />
-            </div>
-          </Link>
         </div>
       </div>
     </div>
