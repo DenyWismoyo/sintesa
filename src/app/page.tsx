@@ -155,12 +155,14 @@ export default function SmartHubLanding() {
   const latestArticles = articles.slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] font-sans overflow-x-hidden flex flex-col relative text-slate-800">
+    <div className="min-h-screen bg-[#FAFAFA] font-sans overflow-x-clip flex flex-col relative text-slate-800">
       
-      {/* Ambient Glows */}
-      <div className="absolute top-[-10%] left-[-10%] w-[65vw] h-[65vw] bg-sky-100/50 rounded-full blur-[130px] pointer-events-none mix-blend-multiply" />
-      <div className="absolute top-[25%] right-[-10%] w-[50vw] h-[50vw] bg-amber-50/60 rounded-full blur-[120px] pointer-events-none mix-blend-multiply" />
-      <div className="absolute bottom-[-10%] left-[-5%] w-[60vw] h-[60vw] bg-violet-100/40 rounded-full blur-[140px] pointer-events-none mix-blend-multiply" />
+      {/* Ambient Glows (Isolated in clipped background container to prevent double scrollbars) */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[65vw] h-[65vw] bg-sky-100/50 rounded-full blur-[130px] mix-blend-multiply" />
+        <div className="absolute top-[25%] right-[-10%] w-[50vw] h-[50vw] bg-amber-50/60 rounded-full blur-[120px] mix-blend-multiply" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[60vw] h-[60vw] bg-violet-100/40 rounded-full blur-[140px] mix-blend-multiply" />
+      </div>
 
       {/* --- TOP NAVBAR --- */}
       <header className="relative z-30 w-full bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0">
