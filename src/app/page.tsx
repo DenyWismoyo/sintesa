@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import PublicNavbar from '@/components/common/PublicNavbar';
 import {
   Building2,
   GraduationCap,
@@ -31,9 +32,6 @@ import {
   ShoppingBag,
   Ticket
 } from 'lucide-react';
-import { useAuth } from '@/lib/AuthContext';
-import { auth } from '@/lib/firebase';
-import { signOut } from 'firebase/auth';
 import { usePublicStats } from '@/hooks/usePublicStats';
 import { useTraining } from '@/hooks/useTraining';
 import { useEvents } from '@/hooks/useEvents';
@@ -130,22 +128,11 @@ const LAYANAN_UTAMA = [
 ];
 
 export default function SmartHubLanding() {
-  const { user, loading: authLoading } = useAuth();
   const { stats, isLoading: statsLoading } = usePublicStats();
 
   const { trainings = [], loading: loadingTrainings } = useTraining();
   const { events = [], loading: loadingEvents } = useEvents();
   const { articles = [], loading: loadingArticles } = useArticles({ publishedOnly: true, maxLimit: 3 });
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      document.cookie = 'userRole=; path=/; max-age=0;';
-      toast.success('Berhasil Keluar', { description: 'Sesi Anda telah berakhir.' });
-    } catch (error) {
-      console.error('Gagal logout:', error);
-    }
-  };
 
   // Ambil 3 Pelatihan Terpopuler/Terbaru
   const featuredTrainings = trainings.slice(0, 3);
@@ -164,84 +151,11 @@ export default function SmartHubLanding() {
         <div className="absolute bottom-[-10%] left-[-5%] w-[60vw] h-[60vw] bg-violet-100/40 rounded-full blur-[140px] mix-blend-multiply" />
       </div>
 
-      {/* --- TOP NAVBAR --- */}
-      <header className="relative z-30 w-full bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0">
-        <div className="max-w-[1920px] mx-auto px-6 lg:px-12 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3.5 group">
-            <div className="h-10 relative flex items-center justify-center">
-              <Image 
-                src="/logo.png" 
-                alt="Solo Technopark" 
-                width={80} 
-                height={42} 
-                className="h-10 w-auto object-contain group-hover:scale-105 transition-transform" 
-                priority
-              />
-            </div>
-            <div className="h-6 w-px bg-slate-200 hidden sm:block" />
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-base font-black tracking-tight text-slate-900 leading-none">SOLO TECHNOPARK</span>
-                <span className="text-[10px] font-black text-red-600 bg-red-50 border border-red-200/60 px-1.5 py-0.2 rounded">KST</span>
-              </div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">solotechnopark.id</p>
-            </div>
-          </Link>
-
-          {/* Quick Menu Navigasi Desktop */}
-          <nav className="hidden xl:flex items-center gap-6 text-xs font-bold text-slate-600">
-            <Link href="/e-katalog" className="hover:text-emerald-600 transition-colors">Katalog</Link>
-            <Link href="/fasilitas" className="hover:text-sky-600 transition-colors">Fasilitas</Link>
-            <Link href="/program-pelatihan" className="hover:text-amber-600 transition-colors">Pelatihan</Link>
-            <Link href="/ekosistem" className="hover:text-indigo-600 transition-colors">Ekosistem</Link>
-            <Link href="/event" className="hover:text-violet-600 transition-colors">Event</Link>
-            <Link href="/artikel" className="hover:text-blue-600 transition-colors">Artikel</Link>
-            <Link href="/faq" className="hover:text-slate-900 transition-colors">Bantuan</Link>
-          </nav>
-
-          {/* Auth Action Buttons */}
-          <div className="flex items-center gap-2.5">
-            {authLoading ? (
-              <div className="w-28 h-9 bg-slate-100 animate-pulse rounded-full" />
-            ) : user ? (
-              <>
-                <Link 
-                  href="/portal" 
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200/80 text-blue-700 text-xs font-bold rounded-full transition-all shadow-2xs"
-                >
-                  <Sparkles size={14} className="text-blue-600" />
-                  <span>Portal Saya</span>
-                </Link>
-                <Link 
-                  href="/profil" 
-                  className="flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-full transition-all shadow-2xs"
-                >
-                  <User size={14} />
-                  <span className="hidden sm:inline">Profil</span>
-                </Link>
-                <button 
-                  onClick={handleLogout}
-                  className="p-2 bg-white border border-slate-200 hover:border-red-200 hover:bg-red-50 text-slate-400 hover:text-red-600 rounded-full transition-all shadow-2xs"
-                  title="Keluar"
-                >
-                  <LogOut size={15} />
-                </button>
-              </>
-            ) : (
-              <Link 
-                href="/login" 
-                className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-full transition-all shadow-sm hover:-translate-y-0.5"
-              >
-                <LogIn size={15} />
-                <span>Masuk Portal</span>
-              </Link>
-            )}
-          </div>
-        </div>
-      </header>
+      {/* --- PUBLIC NAVBAR TERPADU (IDENTIK DI SEMUA HALAMAN) --- */}
+      <PublicNavbar />
 
       {/* --- HERO SECTION UTAMA --- */}
-      <section className="relative z-10 w-full max-w-[1920px] mx-auto px-6 lg:px-12 pt-14 pb-20 lg:pt-20 lg:pb-24 flex flex-col items-center text-center">
+      <section className="relative z-10 w-full max-w-[1920px] mx-auto px-6 lg:px-12 pt-20 sm:pt-24 lg:pt-28 pb-20 lg:pb-24 flex flex-col items-center text-center">
         
         <motion.div 
           initial={{ opacity: 0, y: 15 }}
