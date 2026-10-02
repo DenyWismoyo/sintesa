@@ -124,10 +124,24 @@ export const catalogService = {
       const docSnap = await getDoc(doc(db, COLLECTION_NAME, id));
       if (docSnap.exists()) {
         const data = docSnap.data();
-        if (data.imageUrl) await storageService.deleteFile(data.imageUrl);
+        const urlsToDelete = new Set<string>();
+
+        // Ambil URL dari seluruh field gambar yang mungkin ada
+        if (data.imageUrl) urlsToDelete.add(data.imageUrl);
+        if (data.coverImage) urlsToDelete.add(data.coverImage);
+        if (Array.isArray(data.images)) {
+          data.images.forEach((img: any) => { if (typeof img === 'string' && img) urlsToDelete.add(img); });
+        }
         if (Array.isArray(data.galleryImages)) {
-          for (const imgUrl of data.galleryImages) {
+          data.galleryImages.forEach((img: any) => { if (typeof img === 'string' && img) urlsToDelete.add(img); });
+        }
+
+        // Hapus berkas dari Cloud Storage
+        for (const imgUrl of urlsToDelete) {
+          try {
             await storageService.deleteFile(imgUrl);
+          } catch (delErr) {
+            console.warn(`[STORAGE] Gagal menghapus file ${imgUrl}:`, delErr);
           }
         }
       }

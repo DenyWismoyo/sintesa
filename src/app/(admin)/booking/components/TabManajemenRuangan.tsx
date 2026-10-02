@@ -24,16 +24,18 @@ const parseFacilities = (facilitiesStr?: string) => {
 };
 
 type SortOption = 'price_desc' | 'price_asc' | 'name_asc';
+type FilterOption = 'all' | 'commercial' | 'internal';
 
 export default function TabManajemenRuangan() {
-  // PERBAIKAN: Gunakan publicRooms dari useAssets yang sudah dikalibrasi dengan Master Cache
-  const { publicRooms: rooms, loadingRooms: loading, saveAssetWithImage } = useAssets();
+  // Gunakan allRooms agar admin dapat mengelola SELURUH ruangan (baik yang sudah komersial maupun yang belum)
+  const { allRooms: rooms, loadingRooms: loading, saveAssetWithImage } = useAssets();
   
   const [selectedRoom, setSelectedRoom] = useState<Asset | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
   const [sortBy, setSortBy] = useState<SortOption>('price_desc');
+  const [filterType, setFilterType] = useState<FilterOption>('all');
 
   // Form State
   const [capacity, setCapacity] = useState<number>(0);
@@ -48,8 +50,18 @@ export default function TabManajemenRuangan() {
   const [priceValue, setPriceValue] = useState<number>(0);
   const [pricingType, setPricingType] = useState<string>('Hari');
 
+  const commercialCount = useMemo(() => rooms.filter(r => r.isRentable).length, [rooms]);
+  const internalCount = useMemo(() => rooms.filter(r => !r.isRentable).length, [rooms]);
+
   const sortedRooms = useMemo(() => {
-    return [...rooms].sort((a, b) => {
+    let list = [...rooms];
+    if (filterType === 'commercial') {
+      list = list.filter(r => r.isRentable);
+    } else if (filterType === 'internal') {
+      list = list.filter(r => !r.isRentable);
+    }
+
+    return list.sort((a, b) => {
       const priceA = a.priceValue || 0;
       const priceB = b.priceValue || 0;
       
@@ -57,7 +69,7 @@ export default function TabManajemenRuangan() {
       if (sortBy === 'price_asc') return priceA - priceB;
       return (a.name || '').localeCompare(b.name || '');
     });
-  }, [rooms, sortBy]);
+  }, [rooms, filterType, sortBy]);
 
   const openEditModal = (room: Asset) => {
     setSelectedRoom(room);
@@ -139,31 +151,72 @@ export default function TabManajemenRuangan() {
   return (
     <div className="animate-in fade-in space-y-6">
       
-      {/* Header & Sorting Feature */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="bg-slate-50 text-slate-600 px-4 py-3 rounded-xl text-sm flex items-center gap-3 border border-slate-200 flex-1 w-full shadow-sm">
-          <Info className="h-5 w-5 shrink-0 text-blue-500" />
-          <p>Aktifkan <b>komersialisasi ruangan</b> di sini agar ruangan dapat disewa oleh publik melalui web katalog.</p>
-        </div>
-        
-        <div className="flex items-center gap-3 shrink-0 w-full md:w-auto">
-          <div className="relative w-full md:w-56">
-            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-              <ArrowDownUp className="h-4 w-4 text-slate-400" />
-            </div>
-            <select 
-              value={sortBy} 
-              onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="w-full h-11 pl-9 pr-8 bg-white border border-slate-200 text-slate-700 font-semibold text-sm rounded-xl shadow-sm appearance-none outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer transition-all"
-            >
-              <option value="price_desc">Harga Tertinggi</option>
-              <option value="price_asc">Harga Terendah</option>
-              <option value="name_asc">Nama (A-Z)</option>
-            </select>
-            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-              <svg className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+      {/* Header, Filter Pills & Sorting */}
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="bg-slate-50 text-slate-600 px-4 py-3 rounded-xl text-sm flex items-center gap-3 border border-slate-200 flex-1 w-full shadow-sm">
+            <Info className="h-5 w-5 shrink-0 text-blue-500" />
+            <p>Atur <b>spesifikasi fasilitas & harga sewa</b> di sini. Aktifkan saklar Komersialisasi agar ruangan dapat disewa publik via web katalog.</p>
+          </div>
+          
+          <div className="flex items-center gap-3 shrink-0 w-full md:w-auto">
+            <div className="relative w-full md:w-56">
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                <ArrowDownUp className="h-4 w-4 text-slate-400" />
+              </div>
+              <select 
+                value={sortBy} 
+                onChange={(e) => setSortBy(e.target.value as SortOption)}
+                className="w-full h-11 pl-9 pr-8 bg-white border border-slate-200 text-slate-700 font-semibold text-sm rounded-xl shadow-sm appearance-none outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer transition-all"
+              >
+                <option value="price_desc">Harga Tertinggi</option>
+                <option value="price_asc">Harga Terendah</option>
+                <option value="name_asc">Nama (A-Z)</option>
+              </select>
+              <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                <svg className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
             </div>
           </div>
+        </div>
+
+        {/* Filter Pills */}
+        <div className="flex gap-2 border-b border-slate-200/80 pb-3">
+          <button
+            type="button"
+            onClick={() => setFilterType('all')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              filterType === 'all'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            Semua Ruangan ({rooms.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilterType('commercial')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              filterType === 'commercial'
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+            Komersial Disewakan ({commercialCount})
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilterType('internal')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              filterType === 'internal'
+                ? 'bg-slate-700 text-white shadow-sm'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            <span className="w-2 h-2 rounded-full bg-slate-400"></span>
+            Khusus Internal ({internalCount})
+          </button>
         </div>
       </div>
 
@@ -179,16 +232,29 @@ export default function TabManajemenRuangan() {
                 ) : (
                   <ImageIcon className="text-slate-300 h-10 w-10" />
                 )}
-                <div className="absolute top-4 left-4">
+                <div className="absolute top-4 left-4 flex gap-1.5 flex-wrap">
                   <div className="bg-white/95 backdrop-blur-sm text-slate-700 text-[10px] px-2.5 py-1 rounded-md font-bold shadow-sm uppercase tracking-wider border border-white/50">
                     {room.status}
                   </div>
+                  {room.isRentable ? (
+                    <div className="bg-emerald-600 text-white text-[10px] px-2.5 py-1 rounded-md font-bold shadow-sm uppercase tracking-wider">
+                      Komersial
+                    </div>
+                  ) : (
+                    <div className="bg-slate-700 text-white text-[10px] px-2.5 py-1 rounded-md font-bold shadow-sm uppercase tracking-wider">
+                      Internal
+                    </div>
+                  )}
                 </div>
-                {room.isRentable && (
+                {room.isRentable ? (
                   <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl shadow-lg border border-white/50 flex items-center gap-1.5">
                     <DollarSign className="w-4 h-4 text-emerald-500" /> 
                     <span className="font-black text-slate-800 text-sm">Rp {room.priceValue?.toLocaleString('id-ID')}</span>
                     <span className="text-[10px] font-bold text-slate-500 uppercase">/ {room.pricingType || 'Sewa'}</span>
+                  </div>
+                ) : (
+                  <div className="absolute bottom-4 right-4 bg-slate-800/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg backdrop-blur-sm shadow-sm">
+                    Khusus Internal (Gratis)
                   </div>
                 )}
               </div>

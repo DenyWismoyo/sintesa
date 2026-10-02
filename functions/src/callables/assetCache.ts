@@ -63,19 +63,28 @@ export const rebuildAssetMasterCache = onCall(async (request) => {
 
         // Bawa data krusial untuk indikator UI
         imageUrl: data.imageUrl || null, 
+        galleryUrls: Array.isArray(data.galleryUrls) ? data.galleryUrls : [],
+        description: data.description || '',
         unresolvedReportsCount: data.unresolvedReportsCount || 0,
         createdAt: data.createdAt || 0
       });
     });
 
     // 4. Simpan ke dalam SATU dokumen tunggal (Aggregated Document)
-    await db.collection(`artifacts/${appId}/public/data/cache_assets`).doc('master').set({
+    const cachePayload = {
       lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
       count: compressedAssets.length,
       data: compressedAssets // Array seluruh aset ringkas
-    });
+    };
 
-    console.log(`[ASSET CACHE] Berhasil mengkompresi ${compressedAssets.length} aset menjadi 1 dokumen cache.`);
+    const sizeKB = Buffer.byteLength(JSON.stringify(cachePayload), 'utf8') / 1024;
+    if (sizeKB > 850) {
+      console.warn(`[ASSET CACHE WARNING] Ukuran cache aset ${sizeKB.toFixed(1)} KB mendekati batas 1MB Firestore.`);
+    }
+
+    await db.collection(`artifacts/${appId}/public/data/cache_assets`).doc('master').set(cachePayload);
+
+    console.log(`[ASSET CACHE] Berhasil mengkompresi ${compressedAssets.length} aset (${sizeKB.toFixed(1)} KB) menjadi 1 dokumen cache.`);
 
     return { success: true, count: compressedAssets.length };
 

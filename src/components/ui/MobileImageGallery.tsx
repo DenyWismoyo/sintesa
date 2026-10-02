@@ -53,18 +53,17 @@ export default function MobileImageGallery({
   }
 
   return (
-    <div className={`w-full ${className}`} onKeyDown={handleKeyDown} tabIndex={0}>
-      
-      {/* --- 1. TAMPILAN MOBILE & TABLET (SWIPEABLE SLIDER / CAROUSEL - YouTube 16:9) --- */}
-      <div className="block lg:hidden relative -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full aspect-video rounded-none sm:rounded-[1.75rem] overflow-hidden bg-slate-100 shadow-none sm:shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] group">
+    <div className={`w-full select-none ${className}`} onKeyDown={handleKeyDown} tabIndex={0}>
+      {/* --- 1. MAIN HERO VIEWER (STANDAR 16:9 DI DESKTOP MAUPUN HP) --- */}
+      <div className="relative -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full aspect-video rounded-none sm:rounded-3xl overflow-hidden bg-slate-100 border-0 sm:border sm:border-slate-200/80 shadow-none sm:shadow-sm group">
         <AnimatePresence initial={false} mode="wait">
           <motion.div
             key={currentIndex}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="w-full h-full relative cursor-pointer"
+            transition={{ duration: 0.2 }}
+            className="w-full h-full relative cursor-zoom-in"
             onClick={() => onOpenLightbox && onOpenLightbox(currentIndex)}
           >
             {!imgErrors[currentIndex] ? (
@@ -72,7 +71,7 @@ export default function MobileImageGallery({
                 src={images[currentIndex]}
                 alt={`${title} - Foto ${currentIndex + 1}`}
                 fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 50vw"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1200px"
                 className="object-cover"
                 priority={currentIndex === 0}
                 onError={() => handleError(currentIndex)}
@@ -84,18 +83,18 @@ export default function MobileImageGallery({
               </div>
             )}
             
-            {/* Scrim halus di bagian bawah gambar */}
-            <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-slate-950/40 via-slate-950/10 to-transparent pointer-events-none" />
+            {/* Subtle Gradient Scrim at bottom */}
+            <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
           </motion.div>
         </AnimatePresence>
 
-        {/* Floating Counter Badge & Zoom Icon */}
-        <div className="absolute bottom-3.5 right-3.5 z-20 flex items-center gap-2">
+        {/* Floating Controls: Counter & Fullscreen Zoom Button */}
+        <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-20 flex items-center gap-2">
           {total > 1 && (
-            <div className="bg-white/90 backdrop-blur-md text-slate-800 text-[11px] font-black px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1 tracking-wider">
+            <div className="bg-slate-950/70 backdrop-blur-md text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1 tracking-wider border border-white/10">
               <span>{currentIndex + 1}</span>
-              <span className="text-slate-400 font-normal">/</span>
-              <span className="text-slate-500">{total}</span>
+              <span className="text-white/40 font-normal">/</span>
+              <span>{total}</span>
             </div>
           )}
           {onOpenLightbox && (
@@ -105,148 +104,76 @@ export default function MobileImageGallery({
                 e.stopPropagation();
                 onOpenLightbox(currentIndex);
               }}
-              className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-md text-slate-700 flex items-center justify-center shadow-sm hover:bg-white active:scale-95 transition-all"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-950/70 backdrop-blur-md text-white flex items-center justify-center shadow-sm hover:bg-slate-900 border border-white/10 active:scale-95 transition-all"
               title="Perbesar Layar Penuh"
               aria-label="Perbesar Layar Penuh"
             >
-              <Maximize2 size={14} />
+              <Maximize2 size={15} />
             </button>
           )}
         </div>
 
-        {/* Panah Navigasi Sentuh Kiri / Kanan (Hanya jika foto > 1) */}
+        {/* Panah Navigasi Kiri & Kanan (Hanya jika total foto > 1) */}
         {total > 1 && (
           <>
             <button
               type="button"
               onClick={handlePrev}
-              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/85 hover:bg-white text-slate-800 flex items-center justify-center shadow-md active:scale-90 transition-all opacity-80 hover:opacity-100"
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/90 hover:bg-white text-slate-800 flex items-center justify-center shadow-md active:scale-90 transition-all opacity-80 group-hover:opacity-100"
               aria-label="Foto Sebelumnya"
             >
-              <ChevronLeft size={18} />
+              <ChevronLeft size={20} />
             </button>
             <button
               type="button"
               onClick={handleNext}
-              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/85 hover:bg-white text-slate-800 flex items-center justify-center shadow-md active:scale-90 transition-all opacity-80 hover:opacity-100"
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/90 hover:bg-white text-slate-800 flex items-center justify-center shadow-md active:scale-90 transition-all opacity-80 group-hover:opacity-100"
               aria-label="Foto Selanjutnya"
             >
-              <ChevronRight size={18} />
+              <ChevronRight size={20} />
             </button>
-
-            {/* Pagination Dots di Bawah Tengah */}
-            <div className="absolute bottom-3.5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5">
-              {images.slice(0, 7).map((_, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setCurrentIndex(idx);
-                  }}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
-                    currentIndex === idx 
-                      ? 'w-5 bg-white shadow-xs' 
-                      : 'w-1.5 bg-white/50 hover:bg-white/80'
-                  }`}
-                  aria-label={`Ke foto ${idx + 1}`}
-                />
-              ))}
-            </div>
           </>
         )}
       </div>
 
-      {/* --- 2. TAMPILAN DESKTOP (AIRBNB CLEAN SPLIT GRID) --- */}
-      <div className="hidden lg:block w-full h-[52vh] max-h-[540px] min-h-[420px] rounded-[2rem] overflow-hidden relative group bg-slate-100 shadow-[0_8px_30px_-6px_rgba(15,23,42,0.06)]">
-        <div className="w-full h-full flex gap-3">
-          
-          {/* Gambar Utama (Kiri - 55%) */}
-          <div 
-            className="w-[55%] h-full cursor-zoom-in relative overflow-hidden group/main"
-            onClick={() => onOpenLightbox && onOpenLightbox(0)}
-          >
-            {!imgErrors[0] ? (
+      {/* --- 2. THUMBNAIL CAROUSEL STRIP (RASIO 16:9 KONSISTEN) --- */}
+      {total > 1 && (
+        <div className="mt-3 sm:mt-4 flex items-center gap-2.5 sm:gap-3 overflow-x-auto pb-1.5 pt-0.5 no-scrollbar">
+          {images.map((img, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => setCurrentIndex(idx)}
+              className={`relative w-20 sm:w-28 md:w-32 aspect-video rounded-xl sm:rounded-2xl overflow-hidden shrink-0 border-2 transition-all ${
+                currentIndex === idx
+                  ? 'border-sky-600 ring-2 ring-sky-500/25 scale-102 sm:scale-105 shadow-sm'
+                  : 'border-slate-200/90 opacity-60 hover:opacity-100 hover:border-slate-300'
+              }`}
+              aria-label={`Pilih foto ${idx + 1}`}
+            >
               <Image
-                src={images[0]}
-                alt={title}
+                src={getThumbnailUrl(img)}
+                alt={`${title} - Thumbnail ${idx + 1}`}
                 fill
-                sizes="(max-width: 1280px) 60vw, 50vw"
-                className="object-cover transition-transform duration-700 group-hover/main:scale-105"
-                priority
-                onError={() => handleError(0)}
+                sizes="(max-width: 640px) 80px, 128px"
+                className="object-cover"
               />
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center text-slate-300 bg-slate-100">
-                <ImageIcon size={48} className="opacity-40" />
-                <span className="text-xs uppercase font-bold tracking-widest mt-2">Gambar Tidak Tersedia</span>
-              </div>
-            )}
-            <div className="absolute inset-0 bg-black/5 opacity-0 group-hover/main:opacity-100 transition-opacity" />
-          </div>
+            </button>
+          ))}
 
-          {/* Grid Gambar Kecil (Kanan - 45%) */}
-          <div className="w-[45%] h-full grid grid-cols-2 grid-rows-2 gap-3">
-            {images.slice(1, 5).map((img, idx) => {
-              const actualIdx = idx + 1;
-              return (
-                <div 
-                  key={actualIdx} 
-                  className="w-full h-full relative cursor-zoom-in overflow-hidden group/item bg-slate-100"
-                  onClick={() => onOpenLightbox && onOpenLightbox(actualIdx)}
-                >
-                  {!imgErrors[actualIdx] ? (
-                    <Image
-                      src={getThumbnailUrl(img)}
-                      alt={`${title} - Thumbnail ${actualIdx}`}
-                      fill
-                      sizes="25vw"
-                      className="object-cover transition-transform duration-700 group-hover/item:scale-105"
-                      onError={() => handleError(actualIdx)}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-300">
-                      <ImageIcon size={24} className="opacity-40" />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-black/5 group-hover/item:bg-black/15 transition-colors" />
-
-                  {/* Overlay "+X Foto Lainnya" pada slot ke-4 jika foto > 5 */}
-                  {idx === 3 && total > 5 && (
-                    <div className="absolute inset-0 bg-slate-950/60 hover:bg-slate-950/70 transition-colors flex items-center justify-center backdrop-blur-xs">
-                      <span className="text-white font-black text-base flex items-center gap-2">
-                        <ImageIcon size={18} /> +{total - 5} Foto
-                      </span>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-
-            {/* Placeholder jika foto kurang dari 5 */}
-            {Array.from({ length: Math.max(0, 4 - (total - 1)) }).map((_, i) => (
-              <div key={`empty-${i}`} className="w-full h-full bg-slate-50/80 flex items-center justify-center">
-                <ImageIcon className="w-6 h-6 text-slate-200" />
-              </div>
-            ))}
-          </div>
-
+          {/* Quick Lightbox Action Button */}
+          {onOpenLightbox && (
+            <button
+              type="button"
+              onClick={() => onOpenLightbox(0)}
+              className="h-11 sm:h-14 px-3.5 sm:px-4 rounded-xl sm:rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-900 text-xs font-bold shrink-0 flex items-center gap-2 transition-all"
+            >
+              <ImageIcon size={16} className="text-slate-500" />
+              <span>Semua ({total})</span>
+            </button>
+          )}
         </div>
-
-        {/* Tombol Lihat Semua Foto di Pojok Kanan Bawah */}
-        {total > 1 && onOpenLightbox && (
-          <button 
-            type="button"
-            onClick={() => onOpenLightbox(0)}
-            className="absolute bottom-5 right-5 bg-white/95 backdrop-blur-md border-0 font-bold shadow-lg hover:bg-white text-slate-800 text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all hover:scale-105 active:scale-95"
-          >
-            <ImageIcon className="w-4 h-4 text-slate-600" /> 
-            <span>Tampilkan semua ({total} foto)</span>
-          </button>
-        )}
-
-      </div>
-
+      )}
     </div>
   );
 }

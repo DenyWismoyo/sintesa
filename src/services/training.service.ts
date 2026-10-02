@@ -1,11 +1,36 @@
 import { collection, collectionGroup, doc, addDoc, updateDoc, deleteDoc, query, orderBy, getDocs, getDoc, where, limit, startAfter, setDoc, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { getAppId } from '@/lib/appId';
 import { storageService } from '@/services/storage.service';
 import { Training, TrainingSchema } from '@/types';
 
 const COLLECTION_NAME = 'trainings';
 
 export const trainingService = {
+  // P5: Master Cache 1-Read Pattern untuk halaman publik & admin
+  getAllTrainingsCached: async (): Promise<Training[]> => {
+    try {
+      const appId = getAppId();
+      // 1. Baca dari cache master
+      const cacheRef = doc(db, `artifacts/${appId}/public/data/cache_trainings`, 'master');
+      const cacheSnap = await getDoc(cacheRef);
+
+      if (cacheSnap.exists()) {
+        const cacheData = cacheSnap.data();
+        if (cacheData && Array.isArray(cacheData.data)) {
+          return cacheData.data as Training[];
+        }
+      }
+
+      // 2. Fallback jika cache belum terbentuk
+      console.warn("[TRAINING CACHE] Cache master belum terbentuk, fallback ke Full Fetch.");
+      return await trainingService.getTrainings(100);
+    } catch (error) {
+      console.error("Error fetching cached trainings:", error);
+      return await trainingService.getTrainings(100);
+    }
+  },
+
   getTrainings: async (maxLimit: number = 100): Promise<Training[]> => {
     const q = query(collection(db, COLLECTION_NAME), orderBy('createdAt', 'desc'), limit(maxLimit));
     const snapshot = await getDocs(q);

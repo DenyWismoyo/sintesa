@@ -4,47 +4,27 @@ import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tansta
 import { tenantService } from '@/services/tenant.service';
 import { Tenant, TeamMember, StartupProduct, StartupMilestone, TenantMonev, TenantKPI, MentoringSession, TenantRevenue } from '@/types';
 import { doc, getDoc } from 'firebase/firestore';
-import { httpsCallable } from 'firebase/functions';
-import { db, functions } from '@/lib/firebase'; 
-import { getAppId } from '@/lib/appId';
+import { db } from '@/lib/firebase'; 
 
 export function useTenants() {
   const queryClient = useQueryClient();
 
-  const triggerCacheRebuild = async () => {
-    try {
-      const appId = getAppId();
-      const rebuildTenantMasterCache = httpsCallable(functions, 'rebuildTenantMasterCache');
-      
-      rebuildTenantMasterCache({ appId }).then(() => {
-        console.log("[CACHE] Cache Master Tenant berhasil diperbarui.");
-      }).catch(err => {
-        console.error("[CACHE ERROR] Gagal memperbarui Cache Master Tenant", err);
-      });
-    } catch (error) {
-      console.error("[CACHE ERROR] Terjadi kesalahan trigger", error);
-    }
-  };
-
-  // QUERY: MENGAMBIL SELURUH TENANT DARI CACHE (1 Read)
+  // QUERY: MENGAMBIL SELURUH TENANT DARI CACHE (1 Read) - SINGLE SOURCE OF TRUTH
   const {
     data: allTenants = [],
     isLoading: loadingAll,
+    error: allTenantsError,
     refetch: refetchAll,
   } = useQuery({
     queryKey: ['allTenants'],
     queryFn: tenantService.getAllTenants,
-    staleTime: 1000 * 60 * 2, // 2 menit agar tidak refetch berlebihan tiap window focus tapi tetap responsif
+    staleTime: 1000 * 60 * 5, // 5 menit agar responsif dan hemat read
   });
 
-  const { data: tenantData, isLoading: loading, error: queryError, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
-    queryKey: ['tenants'],
-    queryFn: ({ pageParam }) => tenantService.getPaginatedTenants(20, pageParam as number | undefined),
-    initialPageParam: undefined as number | undefined, getNextPageParam: (lastPage) => lastPage.lastVisible,
-    staleTime: 1000 * 60 * 30, refetchOnWindowFocus: false,
-  });
-
-  const tenants = tenantData?.pages.flatMap(page => page.tenants) || [];
+  // P7: Konsolidasi single source of truth ke master cache allTenants
+  const tenants = allTenants;
+  const loading = loadingAll;
+  const queryError = allTenantsError;
 
   const useTenantProfile = (identifier: string | null | undefined) => useQuery({ 
     queryKey: ['tenantProfile', identifier], 
@@ -66,13 +46,16 @@ export function useTenants() {
     staleTime: 1000 * 60 * 30 
   });
 
+  // P3: Fix addMutation kosong
   const addMutation = useMutation({ 
     mutationFn: async ({ id, data }: { id?: string; data: Partial<Tenant> }) => {
+      if (id) {
+        return await tenantService.updateTenant(id, data);
+      }
+      return await tenantService.createTenant(data as any);
     },
     onSuccess: () => { 
         queryClient.invalidateQueries({ queryKey: ['allTenants'] }); 
-        queryClient.invalidateQueries({ queryKey: ['tenants'] }); 
-        triggerCacheRebuild();
     } 
   });
 
@@ -86,9 +69,7 @@ export function useTenants() {
           );
         });
 
-        queryClient.invalidateQueries({ queryKey: ['tenants'] }); 
         queryClient.invalidateQueries({ queryKey: ['tenantProfile'] }); 
-        triggerCacheRebuild(); 
     } 
   });
 
@@ -99,8 +80,6 @@ export function useTenants() {
           if (!oldData) return oldData;
           return oldData.filter((t: any) => t.id !== deletedId);
         });
-        queryClient.invalidateQueries({ queryKey: ['tenants'] }); 
-        triggerCacheRebuild();
     } 
   });
 
@@ -124,8 +103,6 @@ export function useTenants() {
       }
 
       queryClient.invalidateQueries({ queryKey: ['allTenants'] });
-      queryClient.invalidateQueries({ queryKey: ['tenants'] });
-      triggerCacheRebuild();
 
       return { success: true };
     } catch (err: any) { return { success: false, error: err.message }; }
@@ -135,8 +112,6 @@ export function useTenants() {
     try {
       await tenantService.submitCurationApplication(tenantData, productData);
       queryClient.invalidateQueries({ queryKey: ['allTenants'] });
-      queryClient.invalidateQueries({ queryKey: ['tenants'] });
-      triggerCacheRebuild();
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message };
@@ -173,7 +148,9 @@ export function useTenants() {
     loadingAll,
     refetchAll,
     error: queryError ? queryError.message : null, 
-    fetchNextPage, hasNextPage, isFetchingNextPage, 
+    fetchNextPage: () => {},
+    hasNextPage: false,
+    isFetchingNextPage: false,
     addTenant, submitCuration, updateTenant, removeTenant, useTenantProfile 
   };
 }

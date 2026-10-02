@@ -1,50 +1,45 @@
 'use client';
 
-import { useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { trainingService } from '@/services/training.service';
 import { Training } from '@/types';
 
 export function useTraining() {
   const queryClient = useQueryClient();
 
+  // P5: Menggunakan Master Cache Pelatihan (1 Read)
   const { 
-    data: trainingData, 
+    data: trainings = [], 
     isLoading: loading, 
-    error: queryError,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage 
-  } = useInfiniteQuery({
-    queryKey: ['trainings'],
-    queryFn: ({ pageParam }) => trainingService.getPaginatedTrainings(20, pageParam as number | undefined),
-    initialPageParam: undefined as number | undefined,
-    getNextPageParam: (lastPage) => lastPage.lastVisible,
-    staleTime: 1000 * 60 * 30,
+    error: queryError 
+  } = useQuery({
+    queryKey: ['allTrainingsCached'],
+    queryFn: trainingService.getAllTrainingsCached,
+    staleTime: 5 * 60 * 1000, // 5 menit cache di client
     refetchOnWindowFocus: false,
   });
 
-  const trainings = trainingData?.pages.flatMap(page => page.trainings) || [];
   const error = queryError instanceof Error ? queryError.message : (queryError ? String(queryError) : null);
 
   const addMutation = useMutation({
     mutationFn: (data: Omit<Training, 'id' | 'registeredCount'>) => trainingService.addTraining(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['trainings'] })
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['allTrainingsCached'] })
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string, data: Partial<Training> }) => trainingService.updateTraining(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['trainings'] })
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['allTrainingsCached'] })
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => trainingService.deleteTraining(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['trainings'] })
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['allTrainingsCached'] })
   });
 
   const registerMutation = useMutation({
     mutationFn: ({ trainingId, userData }: { trainingId: string, userData: any }) => 
       trainingService.registerForTraining(trainingId, userData),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['trainings'] })
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['allTrainingsCached'] })
   });
 
   // WRAPPERS
@@ -83,7 +78,12 @@ export function useTraining() {
   };
 
   return {
-    trainings, loading, error, fetchNextPage, hasNextPage, isFetchingNextPage,
+    trainings, 
+    loading, 
+    error, 
+    fetchNextPage: () => {}, 
+    hasNextPage: false, 
+    isFetchingNextPage: false,
     addTraining, updateTraining, deleteTraining, registerForTraining, uploadImage
   };
 }

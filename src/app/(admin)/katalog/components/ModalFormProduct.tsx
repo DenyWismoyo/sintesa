@@ -191,144 +191,262 @@ export default function ModalFormProduct({ isOpen, onClose, onSubmit, initialDat
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-[96vw] max-w-[850px] max-h-[92vh] sm:max-h-[88vh] overflow-hidden flex flex-col p-0 bg-slate-50 rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/80">
-        <DialogHeader className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-150 bg-white shrink-0">
-          <DialogTitle className="text-base sm:text-lg font-black text-slate-800">{initialData ? 'Edit Katalog Produk' : 'Tambah Katalog Baru'}</DialogTitle>
-          <DialogDescription className="text-xs text-slate-500 hidden sm:block mt-0.5">Pengaturan lengkap untuk menyesuaikan semua jenis produk, layanan, atau paket (bundle) Anda.</DialogDescription>
+      <DialogContent className="w-[96vw] sm:max-w-4xl lg:max-w-5xl max-h-[92vh] sm:max-h-[90vh] overflow-hidden flex flex-col p-0 bg-slate-50 rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/80">
+        <DialogHeader className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-200 bg-white shrink-0">
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle className="text-base sm:text-lg font-black text-slate-800">
+                {initialData ? 'Edit Katalog Produk' : 'Tambah Katalog Baru'}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-slate-500 mt-0.5">
+                Pengaturan lengkap produk, layanan, atau paket bundle technopark.
+              </DialogDescription>
+            </div>
+            {formData.productType === 'BUNDLE' && (
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-lg border border-indigo-200">
+                <Package size={14} /> Mode Paket / Bundling
+              </span>
+            )}
+          </div>
         </DialogHeader>
 
-        {/* Tab Navigation */}
+        {/* Tab Navigation Responsive */}
         <div className="flex border-b border-slate-200 bg-white px-3 sm:px-6 shrink-0 overflow-x-auto no-scrollbar gap-1 sm:gap-2">
-          <button type="button" onClick={() => setActiveTab('info')} className={`px-2.5 sm:px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold border-b-2 flex items-center gap-1.5 transition-colors whitespace-nowrap ${activeTab === 'info' ? 'border-blue-600 text-blue-700 font-bold' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+          <button 
+            type="button" 
+            onClick={() => setActiveTab('info')} 
+            className={`px-3 py-2.5 text-xs sm:text-sm font-semibold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap ${
+              activeTab === 'info' 
+                ? 'border-blue-600 text-blue-700 font-bold bg-blue-50/50 rounded-t-lg' 
+                : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+            }`}
+          >
             <Info size={15}/> Info Utama
           </button>
           
           {formData.productType === 'BUNDLE' && (
-            <button type="button" onClick={() => setActiveTab('bundle')} className={`px-2.5 sm:px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold border-b-2 flex items-center gap-1.5 transition-colors whitespace-nowrap ${activeTab === 'bundle' ? 'border-indigo-600 text-indigo-700 font-bold' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
-              <Package size={15}/> Komponen Bundle
+            <button 
+              type="button" 
+              onClick={() => setActiveTab('bundle')} 
+              className={`px-3 py-2.5 text-xs sm:text-sm font-semibold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap ${
+                activeTab === 'bundle' 
+                  ? 'border-indigo-600 text-indigo-700 font-bold bg-indigo-50/50 rounded-t-lg' 
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <Package size={15}/> Komponen Bundle ({bundleItems.length})
             </button>
           )}
 
-          <button type="button" onClick={() => setActiveTab('detail')} className={`px-2.5 sm:px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold border-b-2 flex items-center gap-1.5 transition-colors whitespace-nowrap ${activeTab === 'detail' ? 'border-blue-600 text-blue-700 font-bold' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+          <button 
+            type="button" 
+            onClick={() => setActiveTab('detail')} 
+            className={`px-3 py-2.5 text-xs sm:text-sm font-semibold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap ${
+              activeTab === 'detail' 
+                ? 'border-blue-600 text-blue-700 font-bold bg-blue-50/50 rounded-t-lg' 
+                : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+            }`}
+          >
             <Tag size={15}/> Detail & Highlight
           </button>
-          <button type="button" onClick={() => setActiveTab('aksi')} className={`px-2.5 sm:px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold border-b-2 flex items-center gap-1.5 transition-colors whitespace-nowrap ${activeTab === 'aksi' ? 'border-blue-600 text-blue-700 font-bold' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+          <button 
+            type="button" 
+            onClick={() => setActiveTab('aksi')} 
+            className={`px-3 py-2.5 text-xs sm:text-sm font-semibold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap ${
+              activeTab === 'aksi' 
+                ? 'border-blue-600 text-blue-700 font-bold bg-blue-50/50 rounded-t-lg' 
+                : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+            }`}
+          >
             <Settings size={15}/> Sumber & Aksi
           </button>
-          <button type="button" onClick={() => setActiveTab('galeri')} className={`px-2.5 sm:px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold border-b-2 flex items-center gap-1.5 transition-colors whitespace-nowrap ${activeTab === 'galeri' ? 'border-blue-600 text-blue-700 font-bold' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
-            <ImageIcon size={15}/> Galeri Foto
+          <button 
+            type="button" 
+            onClick={() => setActiveTab('galeri')} 
+            className={`px-3 py-2.5 text-xs sm:text-sm font-semibold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap ${
+              activeTab === 'galeri' 
+                ? 'border-blue-600 text-blue-700 font-bold bg-blue-50/50 rounded-t-lg' 
+                : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+            }`}
+          >
+            <ImageIcon size={15}/> Galeri Foto ({existingImages.length + newImageFiles.length})
           </button>
         </div>
 
         <form id="katalog-form" onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           <div className="flex-1 overflow-y-auto p-3.5 sm:p-5 space-y-3.5 sm:space-y-4 no-scrollbar">
             
-            {/* --- TAB 1: INFO UTAMA --- */}
-            <div className={activeTab === 'info' ? 'block space-y-3.5 sm:space-y-4 animate-in fade-in' : 'hidden'}>
-              
-              {/* TIPE PRODUK SELECTION COMPACT */}
-              <div className="bg-indigo-50/70 p-3 sm:p-3.5 rounded-xl border border-indigo-100/90 space-y-2">
-                 <div className="flex items-center justify-between">
-                   <Label className="text-xs font-bold text-indigo-950 uppercase tracking-wider">Tipe Katalog</Label>
-                   <span className="text-[10px] text-indigo-600 font-medium">Pilih jenis produk</span>
-                 </div>
-                 <div className="grid grid-cols-2 gap-2 p-1 bg-white/90 rounded-lg border border-indigo-150">
-                  <button 
-                    type="button" 
-                    onClick={() => setFormData({...formData, productType: 'SINGLE'})} 
-                    className={`flex items-center justify-center gap-2 py-2 px-2.5 rounded-md text-xs font-bold transition-all ${
-                      formData.productType === 'SINGLE' 
-                        ? 'bg-blue-600 text-white shadow-xs' 
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
-                    }`}
-                  >
-                    <Tag size={14} className={formData.productType === 'SINGLE' ? 'text-white' : 'text-blue-600'} />
-                    <span>Standar / Tunggal</span>
-                  </button>
-                  <button 
-                    type="button" 
-                    onClick={() => setFormData({...formData, productType: 'BUNDLE'})} 
-                    className={`flex items-center justify-center gap-2 py-2 px-2.5 rounded-md text-xs font-bold transition-all ${
-                      formData.productType === 'BUNDLE' 
-                        ? 'bg-indigo-600 text-white shadow-xs' 
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
-                    }`}
-                  >
-                    <Package size={14} className={formData.productType === 'BUNDLE' ? 'text-white' : 'text-indigo-600'} />
-                    <span>Paket / Bundling</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="bg-white p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-2xs space-y-3">
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-slate-700">Nama Produk / Layanan / Paket *</Label>
-                  <Input required value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Contoh: Paket Inkubasi Startup Premium" className="h-9 sm:h-10 text-xs sm:text-sm bg-slate-50/70" />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-slate-700">Kategori *</Label>
-                    <Input 
-                      required 
-                      value={formData.category || ''} 
-                      onChange={e => setFormData({...formData, category: e.target.value})} 
-                      placeholder="Cth: Ruangan, Jasa, Pelatihan..." 
-                      className="h-9 sm:h-10 text-xs sm:text-sm bg-slate-50/70" 
-                      list="category-suggestions"
-                    />
-                    <datalist id="category-suggestions">
-                      <option value="Ruangan" />
-                      <option value="Peralatan" />
-                      <option value="Layanan Teknis" />
-                      <option value="Pelatihan" />
-                      <option value="Paket Binaan" />
-                    </datalist>
+            {/* --- TAB 1: INFO UTAMA (GRID 2 KOLOM DI DESKTOP) --- */}
+            <div className={activeTab === 'info' ? 'block animate-in fade-in duration-200' : 'hidden'}>
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-start">
+                
+                {/* KOLOM KIRI (7/12): IDENTITAS & DESKRIPSI */}
+                <div className="lg:col-span-7 space-y-4">
+                  {/* TIPE PRODUK */}
+                  <div className="bg-indigo-50/80 p-3 sm:p-3.5 rounded-xl border border-indigo-100 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-bold text-indigo-950 uppercase tracking-wider">Tipe Katalog</Label>
+                      <span className="text-[11px] text-indigo-600 font-medium">Pilih jenis produk</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 p-1 bg-white/90 rounded-lg border border-indigo-150">
+                      <button 
+                        type="button" 
+                        onClick={() => setFormData({...formData, productType: 'SINGLE'})} 
+                        className={`flex items-center justify-center gap-2 py-2 px-3 rounded-md text-xs font-bold transition-all ${
+                          formData.productType === 'SINGLE' 
+                            ? 'bg-blue-600 text-white shadow-xs' 
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
+                        }`}
+                      >
+                        <Tag size={14} className={formData.productType === 'SINGLE' ? 'text-white' : 'text-blue-600'} />
+                        <span>Standar / Tunggal</span>
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => setFormData({...formData, productType: 'BUNDLE'})} 
+                        className={`flex items-center justify-center gap-2 py-2 px-3 rounded-md text-xs font-bold transition-all ${
+                          formData.productType === 'BUNDLE' 
+                            ? 'bg-indigo-600 text-white shadow-xs' 
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
+                        }`}
+                      >
+                        <Package size={14} className={formData.productType === 'BUNDLE' ? 'text-white' : 'text-indigo-600'} />
+                        <span>Paket / Bundling</span>
+                      </button>
+                    </div>
                   </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-slate-700">Status Tampil *</Label>
-                    <Select value={formData.isPublished ? "1" : "0"} onValueChange={val => setFormData({...formData, isPublished: val === "1"})}>
-                      <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm bg-slate-50/70"><SelectValue placeholder="Pilih Status" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">Aktif (Ditampilkan)</SelectItem>
-                        <SelectItem value="0">Draft (Sembunyikan)</SelectItem>
-                      </SelectContent>
-                    </Select>
+
+                  {/* IDENTITAS PRODUK */}
+                  <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-3.5">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-bold text-slate-700">Nama Produk / Layanan / Paket *</Label>
+                      <Input 
+                        required 
+                        value={formData.name || ''} 
+                        onChange={e => setFormData({...formData, name: e.target.value})} 
+                        placeholder="Contoh: Welding FCAW 1F-4F (Plat)" 
+                        className="h-10 text-xs sm:text-sm bg-slate-50/70 focus:bg-white font-semibold" 
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-bold text-slate-700">Deskripsi Singkat (Muncul di Card Depan)</Label>
+                      <Input 
+                        maxLength={160} 
+                        value={formData.shortDescription || ''} 
+                        onChange={e => setFormData({...formData, shortDescription: e.target.value})} 
+                        placeholder="Satu kalimat ringkas menarik calon pengunjung..." 
+                        className="h-10 text-xs sm:text-sm bg-slate-50/70 focus:bg-white" 
+                      />
+                      <p className="text-[10px] text-slate-400 text-right">Maks. 160 karakter</p>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-bold text-slate-700">Deskripsi Lengkap / Rincian</Label>
+                      <Textarea 
+                        rows={4}
+                        value={formData.description || ''} 
+                        onChange={e => setFormData({...formData, description: e.target.value})} 
+                        placeholder="Jelaskan secara mendalam tentang manfaat, fasilitas, silabus, atau ketentuan produk ini..." 
+                        className="text-xs sm:text-sm bg-slate-50/70 focus:bg-white resize-none" 
+                      />
+                    </div>
                   </div>
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-slate-700">Deskripsi Singkat (Muncul di Card)</Label>
-                  <Input maxLength={150} value={formData.shortDescription || ''} onChange={e => setFormData({...formData, shortDescription: e.target.value})} placeholder="Satu kalimat singkat untuk memikat pengunjung..." className="h-9 sm:h-10 text-xs sm:text-sm bg-slate-50/70" />
-                </div>
-              </div>
 
-              {/* HARGA (Sembunyikan jika Bundle dan Auto-Calculate) */}
-              {!(formData.productType === 'BUNDLE' && formData.isPriceCalculated) && (
-                <div className="bg-white p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-2xs space-y-3">
-                  <h4 className="font-bold text-xs sm:text-sm text-slate-800 border-b border-slate-100 pb-1.5">Harga & Transaksi</h4>
-                  
-                  {formData.productType === 'BUNDLE' && (
-                    <div className="bg-amber-50 p-2.5 rounded-lg border border-amber-100 text-[11px] text-amber-700 font-medium flex items-start gap-2">
-                      <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                      <p>Harga final flat rate untuk paket ini terlepas dari isi komponennya.</p>
+                {/* KOLOM KANAN (5/12): KATEGORI, STATUS & HARGA */}
+                <div className="lg:col-span-5 space-y-4">
+                  {/* KATEGORI & STATUS */}
+                  <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-3.5">
+                    <h4 className="font-bold text-xs sm:text-sm text-slate-800 border-b border-slate-100 pb-2">
+                      Kategori & Publikasi
+                    </h4>
+                    
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-bold text-slate-700">Kategori Produk *</Label>
+                      <Input 
+                        required 
+                        value={formData.category || ''} 
+                        onChange={e => setFormData({...formData, category: e.target.value})} 
+                        placeholder="Cth: Pelatihan / Ruangan / Jasa" 
+                        className="h-10 text-xs sm:text-sm bg-slate-50/70 focus:bg-white" 
+                        list="category-suggestions"
+                      />
+                      <datalist id="category-suggestions">
+                        <option value="Pelatihan" />
+                        <option value="Ruangan" />
+                        <option value="Peralatan" />
+                        <option value="Layanan Teknis" />
+                        <option value="Paket Binaan" />
+                        <option value="Konsultasi" />
+                      </datalist>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-bold text-slate-700">Status Tampil *</Label>
+                      <Select value={formData.isPublished ? "1" : "0"} onValueChange={val => setFormData({...formData, isPublished: val === "1"})}>
+                        <SelectTrigger className="h-10 text-xs sm:text-sm bg-slate-50/70 focus:bg-white">
+                          <SelectValue placeholder="Pilih Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">🟢 Aktif (Ditampilkan ke Publik)</SelectItem>
+                          <SelectItem value="0">⚪ Draft (Sembunyikan Sementara)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* HARGA & TRANSAKSI */}
+                  {!(formData.productType === 'BUNDLE' && formData.isPriceCalculated) && (
+                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-3.5">
+                      <h4 className="font-bold text-xs sm:text-sm text-slate-800 border-b border-slate-100 pb-2">
+                        Harga & Transaksi
+                      </h4>
+                      
+                      {formData.productType === 'BUNDLE' && (
+                        <div className="bg-amber-50 p-2.5 rounded-lg border border-amber-100 text-[11px] text-amber-700 font-medium flex items-start gap-2">
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                          <p>Harga final flat rate untuk paket ini terlepas dari isi komponennya.</p>
+                        </div>
+                      )}
+
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-slate-700">Harga (Rp) *</Label>
+                        <Input 
+                          type="number" 
+                          required 
+                          value={formData.price || ''} 
+                          onChange={e => setFormData({...formData, price: Number(e.target.value)})} 
+                          placeholder="0" 
+                          className="h-10 text-xs sm:text-sm bg-slate-50/70 focus:bg-white font-bold text-blue-700" 
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-slate-700">Satuan Harga *</Label>
+                        <Input 
+                          required 
+                          value={formData.pricingType || ''} 
+                          onChange={e => setFormData({...formData, pricingType: e.target.value})} 
+                          placeholder="Cth: Per Hari / Per Paket / Per Orang" 
+                          className="h-10 text-xs sm:text-sm bg-slate-50/70 focus:bg-white" 
+                        />
+                      </div>
+
+                      <label className="flex items-center gap-2 cursor-pointer pt-1 w-fit">
+                        <input 
+                          type="checkbox" 
+                          checked={formData.isNegotiable || false} 
+                          onChange={e => setFormData({...formData, isNegotiable: e.target.checked})} 
+                          className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 cursor-pointer" 
+                        />
+                        <span className="text-xs font-medium text-slate-700">Tandai sebagai &quot;Harga Bisa Nego&quot; / &quot;Hubungi Kami&quot;</span>
+                      </label>
                     </div>
                   )}
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold text-slate-700">Harga (Rp) *</Label>
-                      <Input type="number" required value={formData.price || ''} onChange={e => setFormData({...formData, price: Number(e.target.value)})} placeholder="0" className="h-9 sm:h-10 text-xs sm:text-sm bg-slate-50/70 font-bold" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold text-slate-700">Satuan Harga *</Label>
-                      <Input required value={formData.pricingType || ''} onChange={e => setFormData({...formData, pricingType: e.target.value})} placeholder="Cth: Per Hari / Per Paket" className="h-9 sm:h-10 text-xs sm:text-sm bg-slate-50/70" />
-                    </div>
-                  </div>
-                  <label className="flex items-center gap-2 cursor-pointer pt-1 w-fit">
-                    <input type="checkbox" checked={formData.isNegotiable || false} onChange={e => setFormData({...formData, isNegotiable: e.target.checked})} className="w-3.5 h-3.5 text-blue-600 rounded border-slate-300 focus:ring-blue-500" />
-                    <span className="text-xs font-medium text-slate-600">Tandai sebagai "Harga Bisa Nego" / "Hubungi Kami"</span>
-                  </label>
                 </div>
-              )}
+
+              </div>
             </div>
 
             {/* --- TAB BUNDLE: KOMPONEN PAKET --- */}
@@ -565,52 +683,146 @@ export default function ModalFormProduct({ isOpen, onClose, onSubmit, initialDat
               </div>
             </div>
 
-            {/* --- TAB 4: GALERI FOTO --- */}
-            <div className={activeTab === 'galeri' ? 'block space-y-3.5 sm:space-y-4 animate-in fade-in' : 'hidden'}>
-              <div className="bg-white p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-2xs space-y-3">
-                <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+            {/* --- TAB 4: GALERI FOTO (EASY DELETE DI PONSEL & DESKTOP) --- */}
+            <div className={activeTab === 'galeri' ? 'block space-y-4 animate-in fade-in duration-200' : 'hidden'}>
+              <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
+                
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
                    <div>
-                     <Label className="text-xs sm:text-sm font-bold text-slate-800">Galeri Foto Produk</Label>
-                     <p className="text-[10px] text-slate-500">Maks. 5 foto (16:9 disarankan).</p>
+                     <Label className="text-sm font-black text-slate-800">Galeri Foto Produk</Label>
+                     <p className="text-xs text-slate-500 mt-0.5">
+                       Unggah hingga 5 foto landscape (16:9 disarankan). Foto pertama otomatis menjadi cover utama.
+                     </p>
                    </div>
-                   <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-100 rounded-md text-slate-600">
-                     {existingImages.length + newImageFiles.length} / 5
-                   </span>
+                   <div className="flex items-center gap-2">
+                     <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${
+                       (existingImages.length + newImageFiles.length) > 0 ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-slate-100 text-slate-600'
+                     }`}>
+                       {existingImages.length + newImageFiles.length} dari 5 Foto
+                     </span>
+                     {(existingImages.length + newImageFiles.length) < 5 && (
+                       <Button 
+                         type="button" 
+                         size="sm" 
+                         onClick={() => fileInputRef.current?.click()} 
+                         className="h-8 text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold gap-1.5"
+                       >
+                         <UploadCloud size={14} />
+                         <span>Tambah Foto</span>
+                       </Button>
+                     )}
+                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
+                {/* GRID FOTO */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+                  {/* FOTO EKSISTING */}
                   {existingImages.map((url, idx) => (
-                    <div key={`ex-${idx}`} className="relative aspect-video rounded-lg sm:rounded-xl border border-slate-200 bg-slate-50 overflow-hidden group shadow-2xs">
-                      <img src={url} alt={`Existing ${idx}`} className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-2xs">
-                        <button type="button" onClick={() => removeExistingImage(idx)} className="bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600"><Trash2 className="h-3.5 w-3.5" /></button>
+                    <div 
+                      key={`ex-${idx}`} 
+                      className={`relative aspect-video rounded-xl border-2 overflow-hidden shadow-xs bg-slate-100 transition-all ${
+                        idx === 0 ? 'border-blue-500 ring-2 ring-blue-200' : 'border-slate-200'
+                      }`}
+                    >
+                      <img src={url} alt={`Foto ${idx + 1}`} className="w-full h-full object-cover" />
+                      
+                      {/* BADGE COVER */}
+                      {idx === 0 && (
+                        <span className="absolute top-2 left-2 bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow-md tracking-wider">
+                          COVER UTAMA
+                        </span>
+                      )}
+
+                      {/* TOMBOL HAPUS PERMANEN (MUDAH DI SENTUH DI PONSEL & DESKTOP) */}
+                      <button 
+                        type="button" 
+                        onClick={() => removeExistingImage(idx)} 
+                        title="Hapus foto ini"
+                        className="absolute top-2 right-2 z-20 w-8 h-8 rounded-lg bg-red-600 hover:bg-red-700 active:scale-90 text-white shadow-lg flex items-center justify-center transition-all cursor-pointer border border-white/50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+
+                      {/* BAR AKSI BAWAH */}
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 flex items-center justify-between">
+                        <span className="text-[10px] font-medium text-white/90">Foto #{idx + 1}</span>
+                        <button 
+                          type="button" 
+                          onClick={() => removeExistingImage(idx)}
+                          className="text-[11px] font-bold text-red-300 hover:text-red-100 flex items-center gap-1 cursor-pointer"
+                        >
+                          <Trash2 size={12} /> Hapus
+                        </button>
                       </div>
-                      {idx === 0 && <span className="absolute top-1.5 left-1.5 bg-blue-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded shadow-xs">COVER</span>}
                     </div>
                   ))}
 
+                  {/* FOTO BARU YANG DIPILIH */}
                   {newImagePreviews.map((preview, idx) => (
-                    <div key={`nw-${idx}`} className="relative aspect-video rounded-lg sm:rounded-xl border-2 border-emerald-400 bg-emerald-50 overflow-hidden group shadow-2xs">
-                      <img src={preview} alt={`New ${idx}`} className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-2xs">
-                        <button type="button" onClick={() => removeNewImage(idx)} className="bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600"><Trash2 className="h-3.5 w-3.5" /></button>
+                    <div 
+                      key={`nw-${idx}`} 
+                      className="relative aspect-video rounded-xl border-2 border-emerald-500 bg-emerald-50 overflow-hidden shadow-xs ring-2 ring-emerald-200 transition-all"
+                    >
+                      <img src={preview} alt={`Foto Baru ${idx + 1}`} className="w-full h-full object-cover" />
+                      
+                      {/* BADGE BARU */}
+                      <span className="absolute top-2 left-2 bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow-md tracking-wider">
+                        FOTO BARU
+                      </span>
+
+                      {/* TOMBOL HAPUS PERMANEN */}
+                      <button 
+                        type="button" 
+                        onClick={() => removeNewImage(idx)} 
+                        title="Batal / Hapus foto baru ini"
+                        className="absolute top-2 right-2 z-20 w-8 h-8 rounded-lg bg-red-600 hover:bg-red-700 active:scale-90 text-white shadow-lg flex items-center justify-center transition-all cursor-pointer border border-white/50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+
+                      {/* BAR AKSI BAWAH */}
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 flex items-center justify-between">
+                        <span className="text-[10px] font-medium text-white/90">Menunggu Disimpan</span>
+                        <button 
+                          type="button" 
+                          onClick={() => removeNewImage(idx)}
+                          className="text-[11px] font-bold text-red-300 hover:text-red-100 flex items-center gap-1 cursor-pointer"
+                        >
+                          <Trash2 size={12} /> Hapus
+                        </button>
                       </div>
-                      <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-xs">BARU</span>
                     </div>
                   ))}
 
+                  {/* CARD TAMBAH FOTO */}
                   {(existingImages.length + newImageFiles.length) < 5 && (
-                    <div onClick={() => fileInputRef.current?.click()} className="aspect-video rounded-lg sm:rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-blue-50 hover:border-blue-400 transition-colors flex flex-col items-center justify-center text-slate-400 cursor-pointer shadow-2xs">
-                      <UploadCloud className="h-6 w-6 mb-1 text-slate-400" />
-                      <span className="text-[9px] font-bold uppercase tracking-wider">Tambah Foto</span>
-                      <input ref={fileInputRef} type="file" multiple accept="image/*" onChange={handleImageChange} className="hidden" />
+                    <div 
+                      onClick={() => fileInputRef.current?.click()} 
+                      className="aspect-video rounded-xl border-2 border-dashed border-slate-300 bg-slate-50/80 hover:bg-blue-50/60 hover:border-blue-400 transition-all flex flex-col items-center justify-center text-slate-500 cursor-pointer shadow-2xs group"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-white shadow-2xs flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform mb-1.5 border border-slate-200">
+                        <UploadCloud className="h-5 w-5" />
+                      </div>
+                      <span className="text-xs font-bold text-slate-700 group-hover:text-blue-600 transition-colors">
+                        Pilih Gambar
+                      </span>
+                      <span className="text-[10px] text-slate-400 mt-0.5">JPG, PNG, atau WEBP</span>
+                      <input 
+                        ref={fileInputRef} 
+                        type="file" 
+                        multiple 
+                        accept="image/*" 
+                        onChange={handleImageChange} 
+                        className="hidden" 
+                      />
                     </div>
                   )}
                 </div>
                 
                 {(existingImages.length + newImageFiles.length) === 0 && (
-                   <div className="flex items-center gap-2 text-amber-700 bg-amber-50 p-2.5 rounded-lg text-[11px] font-medium border border-amber-200">
-                      <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" /> Unggah minimal 1 foto agar katalog menarik pengunjung.
+                   <div className="flex items-center gap-2.5 text-amber-800 bg-amber-50 p-3 rounded-xl text-xs font-medium border border-amber-200">
+                      <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" /> 
+                      Unggah minimal 1 foto agar katalog memiliki gambar sampul dan menarik perhatian pengunjung.
                    </div>
                 )}
               </div>
@@ -618,12 +830,16 @@ export default function ModalFormProduct({ isOpen, onClose, onSubmit, initialDat
 
           </div>
 
-          <DialogFooter className="px-4 py-2.5 sm:px-6 sm:py-3.5 bg-white border-t border-slate-200 shrink-0 flex items-center justify-between shadow-xs">
-            <div className="text-[11px] text-slate-400 font-medium hidden sm:block">* Pastikan kolom bertanda bintang diisi.</div>
+          <DialogFooter className="px-4 py-3 sm:px-6 sm:py-3.5 bg-white border-t border-slate-200 shrink-0 flex items-center justify-between shadow-xs">
+            <div className="text-[11px] text-slate-400 font-medium hidden sm:block">
+              * Pastikan semua kolom penting terisi sebelum menyimpan.
+            </div>
             <div className="flex gap-2 w-full sm:w-auto">
-              <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting} className="flex-1 sm:flex-none h-9 text-xs sm:text-sm">Batal</Button>
-              <Button type="submit" form="katalog-form" disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700 flex-1 sm:flex-none h-9 text-xs sm:text-sm">
-                {isSubmitting ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> Menyimpan...</> : 'Simpan Katalog'}
+              <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting} className="flex-1 sm:flex-none h-10 text-xs sm:text-sm font-semibold">
+                Batal
+              </Button>
+              <Button type="submit" form="katalog-form" disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700 text-white font-bold flex-1 sm:flex-none h-10 text-xs sm:text-sm">
+                {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Menyimpan...</> : 'Simpan Katalog'}
               </Button>
             </div>
           </DialogFooter>

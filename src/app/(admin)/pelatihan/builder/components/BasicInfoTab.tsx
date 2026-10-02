@@ -3,7 +3,7 @@ import React from 'react';
 import { Training } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UploadCloud, Image as ImageIcon, X } from 'lucide-react';
+import { UploadCloud, Image as ImageIcon, X, Trash2 } from 'lucide-react';
 
 interface TabProps {
   form: Partial<Training>;
@@ -150,13 +150,26 @@ export default function BasicInfoTab({ form, setForm, imageFile, setImageFile }:
       {/* Upload File Poster & Input Video Google Drive */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
         <div className="space-y-2">
-          <Label className="text-sm font-bold text-slate-700">Poster / Thumbnail Kelas</Label>
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-bold text-slate-700">Poster / Thumbnail Kelas (16:9)</Label>
+            {previewUrl && (
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer"
+              >
+                <Trash2 size={13} /> Hapus Poster
+              </button>
+            )}
+          </div>
           
           {!previewUrl ? (
-            <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center text-center bg-slate-50 hover:bg-slate-100 transition-colors relative aspect-video w-full">
-              <UploadCloud size={32} className="text-slate-400 mb-2" />
-              <p className="text-sm font-semibold text-slate-600">Klik untuk mengunggah gambar</p>
-              <p className="text-xs text-slate-400 mt-1">PNG, JPG, atau WEBP (Maks 2MB) • Format YouTube 16:9</p>
+            <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center text-center bg-slate-50 hover:bg-blue-50/60 hover:border-blue-300 transition-colors relative aspect-video w-full cursor-pointer group shadow-2xs">
+              <div className="w-10 h-10 rounded-full bg-white shadow-2xs flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform mb-2 border border-slate-200">
+                <UploadCloud size={20} />
+              </div>
+              <p className="text-xs font-bold text-slate-700 group-hover:text-blue-600 transition-colors">Klik untuk mengunggah gambar</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">PNG, JPG, atau WEBP • Rasio 16:9</p>
               <input 
                 type="file" 
                 accept="image/*" 
@@ -165,16 +178,32 @@ export default function BasicInfoTab({ form, setForm, imageFile, setImageFile }:
               />
             </div>
           ) : (
-            <div className="relative border border-slate-200 rounded-xl overflow-hidden aspect-video w-full bg-slate-100 flex items-center justify-center group">
+            <div className="relative border border-slate-200 rounded-xl overflow-hidden aspect-video w-full bg-slate-100 flex items-center justify-center shadow-2xs">
               <img src={previewUrl} alt="Preview Poster" className="object-cover w-full h-full" />
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <button 
-                  type="button" 
-                  onClick={handleRemoveImage}
-                  className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 flex items-center gap-2 px-4 font-semibold text-sm shadow-lg"
-                >
-                  <X size={16} /> Hapus Poster
-                </button>
+              
+              {/* TOMBOL HAPUS CEPAT PERMANEN (MUDAH DI HP & DESKTOP) */}
+              <button 
+                type="button" 
+                onClick={handleRemoveImage}
+                title="Hapus poster kelas ini"
+                className="absolute top-2 right-2 z-20 w-8 h-8 rounded-lg bg-red-600 hover:bg-red-700 active:scale-90 text-white shadow-md flex items-center justify-center transition-all cursor-pointer border border-white/50"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2.5 flex items-center justify-between">
+                <span className="text-[10px] font-medium text-white/90">
+                  {imageFile ? 'Poster Baru Dipilih' : 'Poster Kelas'}
+                </span>
+                <label className="text-[11px] font-bold text-white hover:text-blue-200 bg-white/20 hover:bg-white/30 px-2.5 py-0.5 rounded transition-colors cursor-pointer">
+                  Ganti Poster
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                    className="hidden" 
+                  />
+                </label>
               </div>
             </div>
           )}

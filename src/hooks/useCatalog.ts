@@ -3,28 +3,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { catalogService } from '@/services/catalog.service';
 import { ProductCatalog } from '@/types';
-import { httpsCallable } from 'firebase/functions';
-import { functions } from '@/lib/firebase';
-import { getAppId } from '@/lib/appId';
 
 export function useCatalog() {
   const queryClient = useQueryClient();
-
-  // --- BACKGROUND CACHE REBUILD ---
-  const triggerCacheRebuild = async () => {
-    try {
-      const appId = getAppId();
-      const rebuildCatalogMasterCache = httpsCallable(functions, 'rebuildCatalogMasterCache');
-      // Berjalan di latar belakang tanpa memblokir UI
-      rebuildCatalogMasterCache({ appId }).then(() => {
-        console.log("[CACHE] Cache Master Katalog berhasil diperbarui.");
-      }).catch(err => {
-        console.error("[CACHE ERROR] Gagal memperbarui Cache Master Katalog", err);
-      });
-    } catch (error) {
-      console.error("[CACHE ERROR] Terjadi kesalahan trigger katalog", error);
-    }
-  };
 
   // --- QUERY UTAMA MENGGUNAKAN CACHE ---
   const { 
@@ -39,6 +20,7 @@ export function useCatalog() {
   });
 
   // --- MUTATIONS WITH OPTIMISTIC UPDATES ---
+  // P10: Rebuild cache master ditangani otomatis oleh onCatalogWrittenInvalidateCache trigger
   const addMutation = useMutation({
     mutationFn: async (data: Omit<ProductCatalog, 'id'>) => catalogService.createProduct(data),
     onSuccess: (newDocRef, variables) => {
@@ -47,7 +29,6 @@ export function useCatalog() {
         if (!oldData) return [{ id: newDocRef.id, ...variables }];
         return [{ id: newDocRef.id, ...variables }, ...oldData];
       });
-      triggerCacheRebuild(); // Perbarui dokumen cache Firestore di latar belakang
     }
   });
 
@@ -59,7 +40,6 @@ export function useCatalog() {
         if (!oldData) return oldData;
         return oldData.map((item: any) => item.id === variables.id ? { ...item, ...variables.data } : item);
       });
-      triggerCacheRebuild(); // Perbarui dokumen cache Firestore di latar belakang
     }
   });
 
@@ -71,7 +51,6 @@ export function useCatalog() {
         if (!oldData) return oldData;
         return oldData.filter((item: any) => item.id !== deletedId);
       });
-      triggerCacheRebuild(); // Perbarui dokumen cache Firestore di latar belakang
     }
   });
 

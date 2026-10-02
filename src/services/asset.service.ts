@@ -9,16 +9,26 @@ const ASSET_COLLECTION = 'assets';
 const REPORT_COLLECTION = 'asset_reports';
 
 export const assetService = {
-  // 1. Mengambil Master Cache (Metode 1-Read)
+  // 1. Mengambil Master Cache (Metode 1-Read) dengan Safety Fallback
   getAssetCache: async (): Promise<any[]> => {
-    const appId = getAppId();
-    const docRef = doc(db, `artifacts/${appId}/public/data/cache_assets`, 'master');
-    const snap = await getDoc(docRef);
-    
-    if (snap.exists()) {
-      return snap.data().data || [];
+    try {
+      const appId = getAppId();
+      const docRef = doc(db, `artifacts/${appId}/public/data/cache_assets`, 'master');
+      const snap = await getDoc(docRef);
+      
+      if (snap.exists()) {
+        const cacheData = snap.data();
+        if (cacheData && Array.isArray(cacheData.data) && cacheData.data.length > 0) {
+          return cacheData.data;
+        }
+      }
+      // Fallback jika dokumen cache belum ada / kosong
+      console.warn("[ASSET CACHE] Cache master kosong atau belum terbentuk, fallback ke query langsung.");
+      return await assetService.getAssets(500);
+    } catch (err) {
+      console.error("[ASSET CACHE ERROR] Gagal membaca cache aset:", err);
+      return await assetService.getAssets(500);
     }
-    return [];
   },
 
   // 2. Memanggil Cloud Function untuk menyusun ulang Cache
@@ -33,7 +43,7 @@ export const assetService = {
     }
   },
 
-  getAssets: async (maxLimit: number = 100): Promise<Asset[]> => {
+  getAssets: async (maxLimit: number = 1000): Promise<Asset[]> => {
     const q = query(collection(db, ASSET_COLLECTION), orderBy('createdAt', 'desc'), limit(maxLimit));
     const snap = await getDocs(q);
     const assets: Asset[] = [];

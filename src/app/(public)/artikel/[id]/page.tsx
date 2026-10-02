@@ -9,13 +9,13 @@ type Props = {
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://katalog.solotechnopark.id';
 
-export const revalidate = 60; // ISR cache 60 detik
+export const revalidate = 3600; // P9: ISR cache 3600 detik (1 Jam) — 0 Firestore reads untuk publik
 
 async function fetchArticleServer(idOrSlug: string): Promise<Article | null> {
   try {
-    let art = await getServerDocRest<Article>('articles', idOrSlug, 60);
+    let art = await getServerDocRest<Article>('articles', idOrSlug, 3600);
     if (!art) {
-      art = await getServerDocBySlugRest<Article>('articles', idOrSlug, 60);
+      art = await getServerDocBySlugRest<Article>('articles', idOrSlug, 3600);
     }
     return art;
   } catch {

@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { billingService } from '@/services/billing.service';
 import { financeService } from '@/services/finance.service';
 import { Invoice, PaymentHistory } from '@/types';
@@ -13,26 +12,31 @@ export function useBilling(userEmail?: string | null) {
   const isPublicUser = userEmail !== undefined && userEmail !== 'MUTATION_ONLY'; 
   const isAdmin = userEmail === undefined; 
 
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (isMutationOnly) { setLoading(false); return; }
-    setLoading(true); setError(null);
-    let unsubscribe: () => void;
-
-    try {
+  // P6: Menggunakan useQuery dengan staleTime 30s & polling 60s
+  // Menghilangkan biaya kebocoran subscribe onSnapshot ratusan dokumen
+  const { 
+    data: invoices = [], 
+    isLoading: loading, 
+    error: rawError 
+  } = useQuery({
+    queryKey: ['invoices', userEmail || 'ALL'],
+    queryFn: async () => {
+      if (isMutationOnly) return [];
       if (isAdmin) {
-        unsubscribe = billingService.subscribeToInvoices((data) => { setInvoices(data); setLoading(false); });
-      } else if (isPublicUser && userEmail) {
-        unsubscribe = billingService.subscribeToMyInvoices(userEmail, (data) => { setInvoices(data); setLoading(false); });
-      } else {
-         setLoading(false);
+        return await billingService.getInvoices(100);
       }
-    } catch (err: any) { setError(err.message); setLoading(false); }
-    return () => { if (unsubscribe) unsubscribe(); };
-  }, [isAdmin, isPublicUser, userEmail, isMutationOnly]);
+      if (isPublicUser && userEmail) {
+        return await billingService.getMyInvoices(userEmail);
+      }
+      return [];
+    },
+    enabled: !isMutationOnly && (isAdmin || (isPublicUser && !!userEmail)),
+    staleTime: 30 * 1000,       // 30 detik data tetap fresh di client
+    refetchInterval: 60 * 1000, // Polling tiap 60 detik (menggantikan onSnapshot unconstrained)
+    refetchOnWindowFocus: true,
+  });
+
+  const error = rawError instanceof Error ? rawError.message : (rawError ? String(rawError) : null);
 
   const createInvoiceMutation = useMutation({
     mutationFn: async (data: Omit<Invoice, 'id'>) => {

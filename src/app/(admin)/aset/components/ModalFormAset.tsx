@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Asset, AssetCategory, AssetCondition, AssetStatus } from '@/types';
-import { X, Loader2, UploadCloud, Info, BadgeDollarSign } from 'lucide-react';
-import { toast } from 'sonner'; // Tambahkan import toast
+import { X, Loader2, UploadCloud, Info, BadgeDollarSign, Trash2, Image as ImageIcon } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Props {
   assetToEdit: Asset | 'NEW';
@@ -12,6 +12,7 @@ interface Props {
 export default function ModalFormAset({ assetToEdit, onClose, onSave }: Props) {
   const isEdit = assetToEdit !== 'NEW';
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
@@ -35,7 +36,8 @@ export default function ModalFormAset({ assetToEdit, onClose, onSave }: Props) {
     fundingSource: '', 
     description: '',
     capacity: 0, 
-    facilities: '' 
+    facilities: '',
+    imageUrl: ''
   });
 
   useEffect(() => {
@@ -43,10 +45,10 @@ export default function ModalFormAset({ assetToEdit, onClose, onSave }: Props) {
       setForm({
         ...form,
         ...assetToEdit,
-        // Konversi tipe lama "Ruangan / Gedung" menjadi "Ruangan" secara otomatis
         category: assetToEdit.category === 'Ruangan / Gedung' ? 'Ruangan' : assetToEdit.category,
         capacity: assetToEdit.capacity || 0,
-        facilities: assetToEdit.facilities || ''
+        facilities: assetToEdit.facilities || '',
+        imageUrl: assetToEdit.imageUrl || ''
       });
       if (assetToEdit.imageUrl) {
         setPreviewUrl(assetToEdit.imageUrl);
@@ -60,6 +62,13 @@ export default function ModalFormAset({ assetToEdit, onClose, onSave }: Props) {
       setImageFile(file);
       setPreviewUrl(URL.createObjectURL(file));
     }
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setPreviewUrl('');
+    setForm(prev => ({ ...prev, imageUrl: '' }));
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -124,21 +133,65 @@ export default function ModalFormAset({ assetToEdit, onClose, onSave }: Props) {
             
             {/* UPLOAD FOTO */}
             <section className="flex flex-col md:flex-row gap-4 sm:gap-6 items-start">
-              <div className="w-full md:w-1/3 shrink-0">
-                <label className={labelClassName}>Foto Aset (16:9)</label>
-                <div className="border-2 border-dashed border-slate-200 rounded-xl aspect-video w-full flex flex-col items-center justify-center bg-slate-50/70 hover:bg-blue-50 hover:border-blue-300 transition-colors cursor-pointer group relative overflow-hidden shadow-2xs">
-                  {previewUrl ? (
-                    <img src={previewUrl} alt="Preview" className="absolute inset-0 w-full h-full object-cover" />
-                  ) : (
-                    <>
-                      <div className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-xs mb-1.5 group-hover:scale-110 transition-transform">
-                        <UploadCloud className="w-4 h-4 text-blue-500" />
-                      </div>
-                      <p className="text-[11px] font-bold text-slate-500">Unggah Foto</p>
-                    </>
+              <div className="w-full md:w-1/3 shrink-0 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className={labelClassName}>Foto Aset (16:9)</label>
+                  {previewUrl && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="text-[11px] font-bold text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer"
+                    >
+                      <Trash2 size={12} /> Hapus Foto
+                    </button>
                   )}
-                  <input type="file" accept="image/*" onChange={handleImageChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                 </div>
+
+                <input 
+                  ref={fileInputRef} 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleImageChange} 
+                  className="hidden" 
+                />
+
+                {previewUrl ? (
+                  <div className="relative rounded-xl border border-slate-200 aspect-video w-full overflow-hidden bg-slate-100 shadow-2xs group">
+                    <img src={previewUrl} alt="Preview Aset" className="w-full h-full object-cover" />
+                    
+                    {/* TOMBOL HAPUS CEPAT (MUDAH DI SENTUH DI PONSEL & DESKTOP) */}
+                    <button 
+                      type="button" 
+                      onClick={handleRemoveImage} 
+                      title="Hapus foto aset ini"
+                      className="absolute top-2 right-2 z-20 w-8 h-8 rounded-lg bg-red-600 hover:bg-red-700 active:scale-90 text-white shadow-md flex items-center justify-center transition-all cursor-pointer border border-white/50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 flex items-center justify-between">
+                      <span className="text-[10px] font-medium text-white/90">Foto Terpasang</span>
+                      <button 
+                        type="button" 
+                        onClick={() => fileInputRef.current?.click()} 
+                        className="text-[11px] font-bold text-white hover:text-blue-200 bg-white/20 hover:bg-white/30 px-2 py-0.5 rounded transition-colors cursor-pointer"
+                      >
+                        Ganti Foto
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="border-2 border-dashed border-slate-200 rounded-xl aspect-video w-full flex flex-col items-center justify-center bg-slate-50/70 hover:bg-blue-50 hover:border-blue-300 transition-colors cursor-pointer group shadow-2xs"
+                  >
+                    <div className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-xs mb-1.5 group-hover:scale-110 transition-transform border border-slate-100">
+                      <UploadCloud className="w-4 h-4 text-blue-500" />
+                    </div>
+                    <p className="text-[11px] font-bold text-slate-700 group-hover:text-blue-600 transition-colors">Unggah Foto Aset</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">JPG, PNG, atau WEBP</p>
+                  </div>
+                )}
               </div>
               
               <div className="w-full flex-1 space-y-3 sm:space-y-4">

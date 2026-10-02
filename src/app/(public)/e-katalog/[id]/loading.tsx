@@ -21,14 +21,13 @@ export default function LoadingDetailKatalog() {
           <Skeleton className="h-5 w-1/3 max-w-xs rounded-full bg-slate-100" />
         </div>
 
-        {/* Hero Gallery Skeleton (Airbnb Style: 50% left, 2x2 grid right) */}
-        <div className="w-full h-[40vh] sm:h-[50vh] lg:h-[60vh] mb-12 rounded-[2rem] overflow-hidden bg-slate-100 flex gap-2 sm:gap-3 p-1">
-          <Skeleton className="w-full lg:w-1/2 h-full rounded-[1.75rem] bg-slate-200/80" />
-          <div className="hidden lg:grid w-1/2 h-full grid-cols-2 grid-rows-2 gap-3">
-            <Skeleton className="w-full h-full rounded-2xl bg-slate-200/60" />
-            <Skeleton className="w-full h-full rounded-2xl bg-slate-200/60" />
-            <Skeleton className="w-full h-full rounded-2xl bg-slate-200/60" />
-            <Skeleton className="w-full h-full rounded-2xl bg-slate-200/60" />
+        {/* Hero Gallery Skeleton (Standardized 16:9 Aspect Ratio) */}
+        <div className="w-full mb-8 sm:mb-12">
+          <Skeleton className="w-full aspect-video rounded-2xl sm:rounded-3xl bg-slate-200/80" />
+          <div className="mt-3 sm:mt-4 flex gap-2.5 sm:gap-3 overflow-hidden">
+            <Skeleton className="w-20 sm:w-28 md:w-32 aspect-video rounded-xl sm:rounded-2xl bg-slate-200/60 shrink-0" />
+            <Skeleton className="w-20 sm:w-28 md:w-32 aspect-video rounded-xl sm:rounded-2xl bg-slate-200/60 shrink-0" />
+            <Skeleton className="w-20 sm:w-28 md:w-32 aspect-video rounded-xl sm:rounded-2xl bg-slate-200/60 shrink-0" />
           </div>
         </div>
 

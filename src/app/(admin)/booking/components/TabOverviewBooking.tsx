@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Booking, Invoice } from '@/types';
 import { db } from '@/lib/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
@@ -7,7 +7,7 @@ import { useCatalog } from '@/hooks/useCatalog';
 import { useAssets } from '@/hooks/useAssets'; 
 import { affiliateService } from '@/services/affiliate.service'; 
 
-import { CheckCircle2, XCircle, Clock, MapPin, Loader2, FileText, AlertTriangle, Receipt, ListTodo, History, Calculator, RefreshCw, FilePlus2, Calendar as CalendarIcon } from 'lucide-react';
+import { CheckCircle2, XCircle, Clock, MapPin, Loader2, FileText, AlertTriangle, Receipt, ListTodo, History, Calculator, RefreshCw, FilePlus2, Calendar as CalendarIcon, Users, LayoutTemplate, Sparkles, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,17 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
 import ModalFormInvoice from '../../billing/component/ModalFormInvoice';
+
+const parseFacilities = (facilitiesStr?: string): { label: string; value: string }[] => {
+  if (!facilitiesStr) return [];
+  try {
+    const parsed = JSON.parse(facilitiesStr);
+    if (Array.isArray(parsed)) return parsed;
+    return facilitiesStr.split(',').map(f => ({ label: 'Fasilitas', value: f.trim() })).filter(f => f.value);
+  } catch {
+    return facilitiesStr.split(',').map(f => ({ label: 'Fasilitas', value: f.trim() })).filter(f => f.value);
+  }
+};
 
 interface Props {
   bookings: Booking[];
@@ -24,7 +35,7 @@ interface Props {
 export default function TabOverviewBooking({ bookings, appId }: Props) {
   const { createNewInvoice, invoices } = useBilling();
   const { products } = useCatalog();
-  const { publicRooms } = useAssets(); 
+  const { publicRooms, allRooms } = useAssets(); 
   
   const [subTab, setSubTab] = useState<'Antrean' | 'Riwayat' | 'Tagihan Mandiri'>('Antrean');
   
@@ -368,6 +379,15 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
     }
   };
 
+  const matchedRoom = useMemo(() => {
+    if (!selectedBooking) return null;
+    return allRooms.find(r => r.id === selectedBooking.assetId || r.name.toLowerCase() === selectedBooking.assetName.toLowerCase());
+  }, [selectedBooking, allRooms]);
+
+  const matchedSpecs = useMemo(() => {
+    return parseFacilities(matchedRoom?.facilities);
+  }, [matchedRoom]);
+
   return (
     <div className="bg-white rounded-2xl shadow-2xs border border-slate-200/90 overflow-hidden animate-in fade-in">
       <div className="flex border-b border-slate-150 bg-white justify-between items-center pr-4 sm:pr-6">
@@ -425,6 +445,24 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
                         <div className="font-bold text-blue-700 text-sm flex items-center gap-1.5 mb-1">
                           <MapPin size={13}/> {booking.assetName}
                         </div>
+                        {(() => {
+                          const r = allRooms.find(item => item.id === booking.assetId || item.name.toLowerCase() === booking.assetName.toLowerCase());
+                          if (!r || (!r.capacity && !r.layout)) return null;
+                          return (
+                            <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                              {r.capacity ? (
+                                <span className="text-[10px] bg-blue-50 text-blue-700 font-semibold px-1.5 py-0.5 rounded border border-blue-200/60 flex items-center gap-1">
+                                  <Users size={10}/> {r.capacity} Org
+                                </span>
+                              ) : null}
+                              {r.layout ? (
+                                <span className="text-[10px] bg-amber-50 text-amber-700 font-semibold px-1.5 py-0.5 rounded border border-amber-200/60 flex items-center gap-1">
+                                  <LayoutTemplate size={10}/> {r.layout}
+                                </span>
+                              ) : null}
+                            </div>
+                          );
+                        })()}
                         <div className="text-xs font-medium text-slate-500 flex items-center gap-1.5">
                           <Clock size={13} className="text-slate-400"/> {booking.startDate} ({booking.startTime || '08:00'} - {booking.endTime || '17:00'})
                         </div>
@@ -470,6 +508,24 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
                       <MapPin size={13} className="shrink-0 text-blue-600" />
                       <span className="truncate">{booking.assetName}</span>
                     </div>
+                    {(() => {
+                      const r = allRooms.find(item => item.id === booking.assetId || item.name.toLowerCase() === booking.assetName.toLowerCase());
+                      if (!r || (!r.capacity && !r.layout)) return null;
+                      return (
+                        <div className="flex items-center gap-1.5 py-0.5 flex-wrap">
+                          {r.capacity ? (
+                            <span className="text-[10px] bg-blue-50 text-blue-700 font-semibold px-1.5 py-0.5 rounded border border-blue-200/60 flex items-center gap-1">
+                              <Users size={10}/> {r.capacity} Org
+                            </span>
+                          ) : null}
+                          {r.layout ? (
+                            <span className="text-[10px] bg-amber-50 text-amber-700 font-semibold px-1.5 py-0.5 rounded border border-amber-200/60 flex items-center gap-1">
+                              <LayoutTemplate size={10}/> {r.layout}
+                            </span>
+                          ) : null}
+                        </div>
+                      );
+                    })()}
                     <div className="text-slate-600 flex items-center gap-1.5 text-[11px]">
                       <Clock size={13} className="shrink-0 text-slate-400" />
                       <span>{booking.startDate} ({booking.startTime || '08:00'} - {booking.endTime || '17:00'})</span>
@@ -662,10 +718,65 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
           {selectedBooking && (
             <form onSubmit={handleApproveWithBilling} className="flex flex-col">
               <div className="p-6 space-y-5">
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-sm space-y-3">
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-sm space-y-2.5">
                   <div className="flex justify-between items-center"><span className="text-slate-500">Fasilitas:</span><span className="font-bold text-slate-800">{selectedBooking.assetName}</span></div>
                   <div className="flex justify-between items-center"><span className="text-slate-500">Penyewa:</span><span className="font-bold text-slate-800">{selectedBooking.userName}</span></div>
+                  {selectedBooking.agency && (
+                    <div className="flex justify-between items-center"><span className="text-slate-500">Instansi:</span><span className="font-semibold text-slate-700">{selectedBooking.agency}</span></div>
+                  )}
+                  {selectedBooking.purpose && (
+                    <div className="pt-2 border-t border-slate-200/60">
+                      <span className="text-[11px] text-slate-400 font-medium block">Agenda / Keperluan:</span>
+                      <p className="text-xs text-slate-700 font-medium mt-0.5">{selectedBooking.purpose}</p>
+                    </div>
+                  )}
                 </div>
+
+                {/* KARTU SPESIFIKASI RUANGAN */}
+                {matchedRoom && (
+                  <div className="p-3.5 bg-gradient-to-br from-blue-50/50 to-slate-50 rounded-2xl border border-blue-100 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-blue-900 flex items-center gap-1.5">
+                        <Sparkles size={14} className="text-blue-600" /> Spesifikasi Ruangan
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border border-blue-200 text-blue-800">
+                        {matchedRoom.isRentable ? 'Komersial Disewakan' : 'Khusus Internal'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="flex items-center gap-2 bg-white p-2 rounded-xl border border-slate-150 shadow-2xs">
+                        <Users size={14} className="text-blue-600 shrink-0" />
+                        <div className="min-w-0">
+                          <span className="text-[9px] text-slate-400 block font-medium">Kapasitas</span>
+                          <span className="font-bold text-slate-800 text-[11px] truncate">
+                            {matchedRoom.capacity ? `${matchedRoom.capacity} Orang` : 'Fleksibel'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 bg-white p-2 rounded-xl border border-slate-150 shadow-2xs">
+                        <LayoutTemplate size={14} className="text-amber-600 shrink-0" />
+                        <div className="min-w-0">
+                          <span className="text-[9px] text-slate-400 block font-medium">Layout</span>
+                          <span className="font-bold text-slate-800 text-[11px] truncate">
+                            {matchedRoom.layout || 'Bebas Atur'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {matchedSpecs.length > 0 && (
+                      <div className="pt-1.5 flex flex-wrap gap-1">
+                        {matchedSpecs.map((spec: any, i: number) => (
+                          <span key={i} className="text-[10px] bg-white text-slate-600 px-2 py-0.5 rounded-md border border-slate-200 flex items-center gap-1">
+                            <CheckCircle2 size={10} className="text-emerald-500" /> {spec.value || spec.label}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {recommendedPrice > 0 ? (
                   <div className="border-2 border-dashed border-indigo-200 bg-indigo-50/30 p-4 rounded-2xl flex justify-between items-center">

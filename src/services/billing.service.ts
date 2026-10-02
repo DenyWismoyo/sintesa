@@ -1,4 +1,4 @@
-import { collection, doc, addDoc, updateDoc, deleteDoc, query, orderBy, getDocs, where, getDoc, limit, onSnapshot, Unsubscribe, writeBatch, increment } from 'firebase/firestore';
+import { collection, doc, addDoc, updateDoc, deleteDoc, query, orderBy, getDocs, where, getDoc, limit, startAfter, onSnapshot, Unsubscribe, writeBatch, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { getAppId } from '@/lib/appId';
 import { storageService } from '@/services/storage.service';
@@ -9,24 +9,31 @@ export const billingService = {
   getInvoiceRef: () => collection(db, 'artifacts', getAppId(), 'public', 'data', 'invoices'),
   getInvoiceDoc: (id: string) => doc(db, 'artifacts', getAppId(), 'public', 'data', 'invoices', id),
 
-  subscribeToInvoices: (callback: (invoices: Invoice[]) => void, maxLimit: number = 500): Unsubscribe => {
-    const q = query(billingService.getInvoiceRef(), orderBy('createdAt', 'desc'), limit(maxLimit));
-    return onSnapshot(q, (snap) => {
+  // P6: Query paginasi terstruktur untuk menghemat read hingga 90%
+  getPaginatedInvoices: async (maxLimit: number = 50, statusFilter?: string, lastCreatedAt?: number) => {
+    try {
+      let constraints: any[] = [orderBy('createdAt', 'desc')];
+      if (statusFilter && statusFilter !== 'ALL') {
+        constraints.unshift(where('status', '==', statusFilter));
+      }
+      if (lastCreatedAt) {
+        constraints.push(startAfter(lastCreatedAt));
+      }
+      constraints.push(limit(maxLimit));
+
+      const q = query(billingService.getInvoiceRef(), ...constraints);
+      const snap = await getDocs(q);
       let invoices = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Invoice));
       
-      // --- PERBAIKAN: FILTER TAGIHAN INVALID / INTERNAL ---
-      // Menyembunyikan tagihan sisa uji coba lama atau tagihan internal 
-      // agar tidak mengotori daftar tagihan di menu Billing.
-      invoices = invoices.filter(inv => {
-        const isInternalName = inv.customerName?.toLowerCase().includes('internal');
-        return !isInternalName; // Jangan tampilkan jika mengandung kata "internal"
-      });
-
-      callback(invoices);
-    }, (error) => {
-      console.error("Error mendengarkan pembaruan invoice:", error);
-    });
+      invoices = invoices.filter(inv => !inv.customerName?.toLowerCase().includes('internal'));
+      const lastVisible = snap.docs.length > 0 ? snap.docs[snap.docs.length - 1].data().createdAt : null;
+      return { invoices, lastVisible };
+    } catch (err) {
+      console.error("Error getPaginatedInvoices:", err);
+      return { invoices: [], lastVisible: null };
+    }
   },
+
 
   subscribeToMyInvoices: (email: string, callback: (invoices: Invoice[]) => void): Unsubscribe => {
     const q = query(billingService.getInvoiceRef(), where('customerEmail', '==', email));

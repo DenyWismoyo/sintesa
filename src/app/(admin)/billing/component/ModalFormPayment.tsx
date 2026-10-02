@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, WalletCards, Loader2, Upload, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, WalletCards, Loader2, Upload, CheckCircle, Trash2, FileText } from 'lucide-react';
 import { Invoice, Account } from '@/types';
 
 interface Props {
@@ -21,6 +21,7 @@ export default function ModalFormPayment({ invoice, accounts, onClose, onSave, p
   const [selectedBankId, setSelectedBankId] = useState('');
   
   const [file, setFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
 
   const isVerifying = !!pendingHistoryItem;
@@ -88,12 +89,50 @@ export default function ModalFormPayment({ invoice, accounts, onClose, onSave, p
           </div>
 
           {!isVerifying && (
-            <div className="border-2 border-dashed border-slate-200 rounded-2xl p-5 flex flex-col items-center justify-center bg-slate-50 hover:bg-blue-50 hover:border-blue-300 transition-colors cursor-pointer group relative mt-2">
-              <input type="file" accept="image/*,.pdf" onChange={(e) => setFile(e.target.files?.[0] || null)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mb-2 shadow-sm group-hover:scale-110 transition-transform">
-                <Upload className="w-4 h-4 text-blue-500" />
-              </div>
-              <p className="text-sm font-bold text-slate-700 text-center">{file ? file.name : 'Upload Bukti Manual (Opsional)'}</p>
+            <div className="space-y-1.5 mt-2">
+              <input 
+                ref={fileInputRef}
+                type="file" 
+                accept="image/*,.pdf" 
+                onChange={(e) => setFile(e.target.files?.[0] || null)} 
+                className="hidden" 
+              />
+              
+              {file ? (
+                <div className="flex items-center justify-between p-3.5 bg-blue-50/70 border border-blue-200 rounded-xl">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                      <FileText size={18} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-800 truncate">{file.name}</p>
+                      <p className="text-[10px] text-slate-500">{(file.size / 1024).toFixed(1)} KB • Siap diunggah</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFile(null);
+                      if (fileInputRef.current) fileInputRef.current.value = '';
+                    }}
+                    className="p-1.5 rounded-lg text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors cursor-pointer shrink-0 ml-2"
+                    title="Hapus file ini"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ) : (
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-slate-200 rounded-xl p-4 flex flex-col items-center justify-center bg-slate-50 hover:bg-blue-50 hover:border-blue-300 transition-colors cursor-pointer group shadow-2xs"
+                >
+                  <div className="w-9 h-9 bg-white rounded-full flex items-center justify-center mb-1.5 shadow-2xs group-hover:scale-110 transition-transform border border-slate-100">
+                    <Upload className="w-4 h-4 text-blue-500" />
+                  </div>
+                  <p className="text-xs font-bold text-slate-700 group-hover:text-blue-600 transition-colors">Upload Bukti Transfer Manual (Opsional)</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">JPG, PNG, atau PDF</p>
+                </div>
+              )}
             </div>
           )}
 

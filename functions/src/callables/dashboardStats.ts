@@ -21,7 +21,7 @@ export const getDashboardStats = onCall(async (request) => {
   }
 
   // --- 3. EKSEKUSI DATA OPERASIONAL ---
-  const data = request.data;
+  const data = request.data || {};
   const appId = data.appId || 'blud-app-dev';
   
   const filterMonth = data.month !== undefined ? data.month : new Date().getMonth();
@@ -29,6 +29,22 @@ export const getDashboardStats = onCall(async (request) => {
 
   const startDate = new Date(filterYear, filterMonth, 1).getTime();
   const endDate = new Date(filterYear, filterMonth + 1, 0, 23, 59, 59).getTime();
+
+  // P11: Cek cache server-side Firestore (TTL 5 Menit)
+  const cacheDocRef = db.doc(`artifacts/${appId}/public/data/cache_dashboard/stats_${filterYear}_${filterMonth}`);
+  if (!data.bypassCache) {
+    try {
+      const cacheSnap = await cacheDocRef.get();
+      if (cacheSnap.exists) {
+        const cacheData = cacheSnap.data();
+        if (cacheData && cacheData.expiresAt && cacheData.expiresAt > Date.now()) {
+          return cacheData.payload;
+        }
+      }
+    } catch (cacheErr) {
+      console.warn("[DASHBOARD CACHE READ WARN]", cacheErr);
+    }
+  }
 
   try {
     // 1. DATA AKUMULATIF (GLOBAL & OPERASIONAL)
@@ -100,7 +116,7 @@ export const getDashboardStats = onCall(async (request) => {
       count: chartResults[index].data().count || 0
     }));
 
-    return {
+    const resultPayload = {
       success: true,
       period: { month: monthNames[filterMonth], year: filterYear },
       stats: {
@@ -118,6 +134,19 @@ export const getDashboardStats = onCall(async (request) => {
         charts: { bookings6Months: chartsBookings }
       }
     };
+
+    // Simpan ke Firestore cache dengan TTL 5 Menit
+    try {
+      await cacheDocRef.set({
+        cachedAt: admin.firestore.FieldValue.serverTimestamp(),
+        expiresAt: Date.now() + (5 * 60 * 1000),
+        payload: resultPayload
+      });
+    } catch (saveErr) {
+      console.warn("[DASHBOARD CACHE WRITE WARN]", saveErr);
+    }
+
+    return resultPayload;
 
   } catch (error: any) {
     throw new HttpsError('internal', 'Gagal memuat statistik dari server: ' + error.message);

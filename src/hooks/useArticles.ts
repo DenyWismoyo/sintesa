@@ -19,7 +19,7 @@ export function useArticles(options?: { publishedOnly?: boolean; category?: stri
   } = useQuery({
     queryKey,
     queryFn: () => articleService.getArticles(options),
-    staleTime: 3 * 60 * 1000, // 3 menit
+    staleTime: 15 * 60 * 1000, // 15 menit (artikel publik jarang berubah)
     refetchOnWindowFocus: false,
   });
 

@@ -47,21 +47,43 @@ export const bookingService = {
   },
 
   async trackBookingsByEmail(email: string): Promise<Booking[]> {
-    const q = query(
-      collection(db, getBasePath()), 
-      where('userEmail', '==', email)
-    );
-    const snap = await getDocs(q);
-    const bookings: Booking[] = [];
-    snap.docs.forEach(docSnap => {
-      const parsed = BookingSchema.safeParse({ id: docSnap.id, ...docSnap.data() });
-      if (parsed.success) {
-        bookings.push(parsed.data);
-      } else {
-        bookings.push({ id: docSnap.id, ...docSnap.data() } as Booking);
-      }
-    });
-    return bookings;
+    try {
+      // P8: Tambahkan orderBy createdAt desc untuk urutan pasti booking terbaru
+      const q = query(
+        collection(db, getBasePath()), 
+        where('userEmail', '==', email),
+        orderBy('createdAt', 'desc')
+      );
+      const snap = await getDocs(q);
+      const bookings: Booking[] = [];
+      snap.docs.forEach(docSnap => {
+        const parsed = BookingSchema.safeParse({ id: docSnap.id, ...docSnap.data() });
+        if (parsed.success) {
+          bookings.push(parsed.data);
+        } else {
+          bookings.push({ id: docSnap.id, ...docSnap.data() } as Booking);
+        }
+      });
+      return bookings;
+    } catch (err) {
+      // Fallback in-memory sorting jika Firestore composite index sedang provisioning
+      console.warn("[BOOKING TRACK] Fallback to in-memory sort:", err);
+      const q = query(
+        collection(db, getBasePath()), 
+        where('userEmail', '==', email)
+      );
+      const snap = await getDocs(q);
+      const bookings: Booking[] = [];
+      snap.docs.forEach(docSnap => {
+        const parsed = BookingSchema.safeParse({ id: docSnap.id, ...docSnap.data() });
+        if (parsed.success) {
+          bookings.push(parsed.data);
+        } else {
+          bookings.push({ id: docSnap.id, ...docSnap.data() } as Booking);
+        }
+      });
+      return bookings.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    }
   },
 
   async updateBookingStatus(bookingId: string, status: 'pending' | 'approved' | 'rejected' | 'completed', notes?: string) {

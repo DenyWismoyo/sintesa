@@ -16,11 +16,23 @@ export default function RoomDetailModal({
   onBook: (r: Asset) => void;
 }) {
   const [imgError, setImgError] = useState(false);
-  useEffect(() => { setImgError(false); }, [room]);
+  const [selectedPhoto, setSelectedPhoto] = useState<string>('');
+
+  useEffect(() => { 
+    setImgError(false); 
+    setSelectedPhoto(room?.imageUrl || '');
+  }, [room]);
 
   if (!room) return null;
   const isKomersial = room.isRentable === true || String(room.isRentable) === 'true';
   const harga = Number(room.priceValue) || 0;
+
+  const galleryList = Array.from(new Set([
+    room.imageUrl,
+    ...(room.galleryUrls || [])
+  ])).filter(Boolean) as string[];
+
+  const currentPhoto = selectedPhoto || room.imageUrl || '';
 
   let specs: any[] = [];
   try { 
@@ -40,8 +52,8 @@ export default function RoomDetailModal({
 
         {/* Cover Image Header */}
         <div className="h-52 sm:h-72 relative shrink-0 bg-slate-100 group">
-          {room.imageUrl && !imgError ? (
-            <img src={room.imageUrl} alt={room.name} onError={() => setImgError(true)} className="w-full h-full object-cover" />
+          {currentPhoto && !imgError ? (
+            <img src={currentPhoto} alt={room.name} onError={() => setImgError(true)} className="w-full h-full object-cover transition-all duration-300" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-slate-300 bg-slate-50">
               <ImageIcon size={44} className="opacity-40" />
@@ -50,6 +62,29 @@ export default function RoomDetailModal({
           
           {/* Subtle Scrim for readable title */}
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent"></div>
+
+          {/* Thumbnail preview bar for multiple photos */}
+          {galleryList.length > 1 && (
+            <div className="absolute top-3 left-4 flex items-center gap-1.5 z-20 bg-slate-950/60 backdrop-blur-md p-1.5 rounded-xl border border-white/10 shadow-lg">
+              {galleryList.slice(0, 5).map((url, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setSelectedPhoto(url)}
+                  className={`w-9 sm:w-11 h-6 sm:h-7 rounded-lg overflow-hidden border transition-all ${
+                    currentPhoto === url 
+                      ? 'border-sky-400 ring-2 ring-sky-400/50 scale-105' 
+                      : 'border-white/30 opacity-70 hover:opacity-100'
+                  }`}
+                >
+                  <img src={url} alt={`Thumb ${idx + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+              {galleryList.length > 5 && (
+                <span className="text-[10px] font-bold text-white px-1">+{galleryList.length - 5}</span>
+              )}
+            </div>
+          )}
           
           <button 
             onClick={onClose} 

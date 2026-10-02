@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AffiliateShareButton } from '@/components/common/AffiliateShareButton';
 import { SocialShareBar } from '@/components/common/SocialShareBar';
+import SectionContainer from '@/components/ui/SectionContainer';
 
 // --- HELPER UNTUK MENGUBAH LINK VIDEO MENJADI EMBED ---
 const getEmbedUrl = (url?: string) => {
@@ -214,13 +215,10 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
   const waText = encodeURIComponent(`Halo admin Solo Technopark, saya tertarik dengan pelatihan *${training.title}*. Bisa dibantu informasi pendaftarannya?`);
 
   return (
-    <div className="bg-[#FAFAFA] min-h-screen pb-32 font-sans relative selection:bg-amber-100 selection:text-amber-900">
-      
-      {/* --- HERO SECTION (Tema Terang Bersih & Elegan) --- */}
-      <div className="relative pt-6 sm:pt-10 pb-8 sm:pb-12 px-4 sm:px-6 lg:px-10 bg-gradient-to-b from-amber-50/50 via-white to-[#FAFAFA] border-b border-slate-100">
-        <div className="w-full max-w-[1400px] mx-auto">
-          
-          {/* Top Breadcrumb Nav */}
+    <SectionContainer accent="amber" width="default">
+      <div className="py-6 sm:py-10 space-y-8">
+        
+        {/* Top Breadcrumb Nav */}
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-bold text-slate-500 mb-5">
             <div className="flex items-center gap-2">
               <Link href="/program-pelatihan" className="hover:text-amber-600 transition-colors flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full border border-slate-200/80 shadow-xs">
@@ -366,12 +364,9 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
             </div>
 
           </div>
-        </div>
-      </div>
 
-      {/* --- MAIN CONTENT & SIDEBAR CONTAINER --- */}
-      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 mt-6 lg:mt-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12">
+          {/* --- MAIN CONTENT & SIDEBAR CONTAINER --- */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12 pt-2">
           
           {/* KOLOM KIRI: KONTEN DETAIL */}
           <div className="lg:col-span-7 xl:col-span-8 space-y-6">
@@ -765,7 +760,6 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
 
             </div>
           </div>
-          
         </div>
       </div>
 
@@ -847,7 +841,6 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
           </motion.div>
         )}
       </AnimatePresence>
-
-    </div>
+    </SectionContainer>
   );
 }

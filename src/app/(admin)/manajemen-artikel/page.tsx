@@ -776,28 +776,42 @@ export default function ManajemenArtikelPage() {
 
                 {/* Pratinjau Thumbnail Gambar - YouTube 16:9 Ratio */}
                 {formData.coverImageUrl && (
-                  <div className="mt-2.5 relative rounded-2xl overflow-hidden border border-slate-200 w-full max-w-sm aspect-video bg-slate-100 flex items-center justify-center group shadow-2xs">
+                  <div className="mt-2.5 relative rounded-2xl overflow-hidden border border-slate-200 w-full max-w-sm aspect-video bg-slate-100 flex items-center justify-center shadow-2xs group">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img 
                       src={formData.coverImageUrl} 
                       alt="Pratinjau Cover" 
                       className="w-full h-full object-cover" 
                     />
-                    <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <button 
-                        type="button" 
-                        onClick={() => setIsImagePickerOpen(true)}
-                        className="bg-white/90 hover:bg-white text-slate-800 text-[11px] font-bold px-3 py-1.5 rounded-xl shadow-xs"
-                      >
-                        Ganti Gambar
-                      </button>
-                      <button 
-                        type="button" 
-                        onClick={() => setFormData(prev => ({ ...prev, coverImageUrl: '' }))}
-                        className="bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl shadow-xs"
-                      >
-                        Hapus
-                      </button>
+
+                    {/* TOMBOL HAPUS CEPAT PERMANEN (MUDAH DI HP & DESKTOP) */}
+                    <button 
+                      type="button" 
+                      onClick={() => setFormData(prev => ({ ...prev, coverImageUrl: '' }))}
+                      title="Hapus gambar cover ini"
+                      className="absolute top-2 right-2 z-20 w-8 h-8 rounded-lg bg-red-600 hover:bg-red-700 active:scale-90 text-white shadow-md flex items-center justify-center transition-all cursor-pointer border border-white/50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2.5 flex items-center justify-between">
+                      <span className="text-[10px] font-medium text-white/90">Gambar Sampul</span>
+                      <div className="flex items-center gap-1.5">
+                        <button 
+                          type="button" 
+                          onClick={() => setIsImagePickerOpen(true)}
+                          className="text-[11px] font-bold text-white hover:text-blue-200 bg-white/20 hover:bg-white/30 px-2.5 py-0.5 rounded transition-colors cursor-pointer"
+                        >
+                          Ganti
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={() => setFormData(prev => ({ ...prev, coverImageUrl: '' }))}
+                          className="text-[11px] font-bold text-red-300 hover:text-red-100 flex items-center gap-0.5 cursor-pointer ml-1"
+                        >
+                          <Trash2 size={11} /> Hapus
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}

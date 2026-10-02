@@ -45,18 +45,19 @@ export function useAssets() {
   const assets = useMemo(() => rawAssets.map(normalizeAsset), [rawAssets]);
 
   // 2. DERIVED STATE: Mengambil ruangan langsung dari Cache di memory browser!
-  const publicRooms = useMemo(() => {
-    // Filter menjadi jauh lebih kuat karena melewati normalisasi DAN validasi Komersialisasi
+  // Seluruh aset yang merupakan Ruangan / Fasilitas Gedung
+  const allRooms = useMemo(() => {
     return assets.filter(a => {
       const cat = (a.category || '').toLowerCase();
       const type = (a.assetType || '').toLowerCase();
-      
-      const isRoom = cat === 'ruangan' || type.includes('ruang') || type.includes('lapangan');
-      const isCommercial = a.isRentable === true; // VALIDASI BARU: Harus dicentang "Komersial"
-
-      return isRoom && isCommercial;
+      return cat === 'ruangan' || type.includes('ruang') || type.includes('gedung') || type.includes('lapangan');
     });
   }, [assets]);
+
+  // Hanya ruangan yang aktif dikomersialkan (untuk sewa publik)
+  const publicRooms = useMemo(() => {
+    return allRooms.filter(a => a.isRentable === true);
+  }, [allRooms]);
   
   const loadingRooms = loadingAssets;
 
@@ -81,7 +82,6 @@ export function useAssets() {
     mutationFn: async (data: Partial<Asset>) => {
       const normalizedData = normalizeAsset(data);
       await assetService.createAsset(normalizedData);
-      await assetService.rebuildAssetCache(); 
     },
     // Optimistic Update untuk Aset Baru
     onMutate: async (data) => {
@@ -106,7 +106,6 @@ export function useAssets() {
     mutationFn: async ({ id, data }: { id: string, data: Partial<Asset> }) => {
       const normalizedData = normalizeAsset(data);
       await assetService.updateAsset(id, normalizedData);
-      await assetService.rebuildAssetCache(); 
     },
     onMutate: async ({ id, data }) => {
       const normalizedData = normalizeAsset(data);
@@ -128,7 +127,6 @@ export function useAssets() {
   const deleteAssetMutation = useMutation({
     mutationFn: async (id: string) => {
       await assetService.deleteAsset(id);
-      await assetService.rebuildAssetCache();
     },
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey: ['asset_master_cache'] });
@@ -147,7 +145,6 @@ export function useAssets() {
   const resolveReportMutation = useMutation({
     mutationFn: async ({ reportId, assetId }: { reportId: string, assetId: string }) => {
       await assetService.resolveReport(reportId, assetId);
-      await assetService.rebuildAssetCache(); 
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['openReports'] });
@@ -158,7 +155,6 @@ export function useAssets() {
   const addMaintenanceMutation = useMutation({
     mutationFn: async ({ assetId, record }: { assetId: string, record: MaintenanceRecord }) => {
       await assetService.addMaintenance(assetId, record);
-      await assetService.rebuildAssetCache();
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['asset_master_cache'] })
   });
@@ -177,7 +173,6 @@ export function useAssets() {
       
       await assetService.createReport(finalReport);
       await assetService.updateAsset(reportData.assetId, { unresolvedReportsCount: increment(1) });
-      await assetService.rebuildAssetCache();
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['openReports'] });
@@ -205,8 +200,6 @@ export function useAssets() {
       } else {
         await assetService.createAsset({ ...finalData, createdAt: Date.now(), maintenanceHistory: [], unresolvedReportsCount: 0 });
       }
-
-      await assetService.rebuildAssetCache(); 
     },
     onMutate: async ({ assetData }) => {
       await queryClient.cancelQueries({ queryKey: ['asset_master_cache'] });
@@ -245,7 +238,7 @@ export function useAssets() {
   const submitReport = async (reportData: any, imageFiles: File[]) => { try { await submitReportMutation.mutateAsync({ reportData, imageFiles }); return { success: true }; } catch (err: any) { return { success: false, error: err.message }; } };
 
   return {
-    assets, publicRooms, loadingRooms, openReports, loading, error, 
+    assets, allRooms, publicRooms, loadingRooms, openReports, loading, error, 
     fetchNextPage: () => {}, hasNextPage: false, isFetchingNextPage: false,
     addAsset, updateAsset, saveAssetWithImage,
     deleteAsset, resolveReport, addMaintenance, getAsset, submitReport 

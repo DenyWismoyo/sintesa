@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useEvents } from '@/hooks/useEvents';
 import { eventService } from '@/services/event.service';
 import { AppEvent } from '@/types';
 import { 
   Plus, Edit, Trash2, Search, Calendar, 
   MapPin, Loader2, Image as ImageIcon, CheckCircle, XCircle,
-  AlignLeft, Ticket, Settings, Users, Globe, ShieldAlert, Sparkles
+  AlignLeft, Ticket, Settings, Users, Globe, ShieldAlert, Sparkles, UploadCloud
 } from 'lucide-react';
 import { AdminPageHeader, AdminFilterBar, AdminResponsiveView } from '@/components/admin';
 
@@ -19,6 +19,7 @@ export default function ManajemenEventPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [activeTab, setActiveTab] = useState<'BASIC' | 'CONTENT' | 'TICKETING' | 'SETTINGS'>('BASIC');
@@ -30,7 +31,8 @@ export default function ManajemenEventPage() {
     speakers: [], agendas: [], sponsors: [],
     ticketingTiers: [], customRegistrationFields: [],
     displaySettings: { showSpeakers: true, showAgenda: true, showSponsors: true },
-    isPublished: true, isFree: true, price: 0
+    isPublished: true, isFree: true, price: 0,
+    imageUrl: ''
   });
 
   const filteredEvents = events.filter(e => {
@@ -50,7 +52,8 @@ export default function ManajemenEventPage() {
         speakers: evt.speakers || [], agendas: evt.agendas || [], sponsors: evt.sponsors || [],
         ticketingTiers: evt.ticketingTiers || [], customRegistrationFields: evt.customRegistrationFields || [],
         displaySettings: evt.displaySettings || { showSpeakers: true, showAgenda: true, showSponsors: true },
-        isPublished: evt.isPublished, isFree: evt.isFree ?? true, price: evt.price || 0
+        isPublished: evt.isPublished, isFree: evt.isFree ?? true, price: evt.price || 0,
+        imageUrl: evt.imageUrl || ''
       });
     } else {
       setEditingId(null);
@@ -59,7 +62,8 @@ export default function ManajemenEventPage() {
         description: '', isOnline: false, meetingUrl: '', status: 'Draft', registrationType: 'INTERNAL',
         speakers: [], agendas: [], sponsors: [], ticketingTiers: [], customRegistrationFields: [],
         displaySettings: { showSpeakers: true, showAgenda: true, showSponsors: true },
-        isPublished: true, isFree: true, price: 0
+        isPublished: true, isFree: true, price: 0,
+        imageUrl: ''
       });
     }
     setImageFile(null);
@@ -71,6 +75,12 @@ export default function ManajemenEventPage() {
     setIsModalOpen(false);
     setEditingId(null);
     setImageFile(null);
+  };
+
+  const handleRemovePoster = () => {
+    setImageFile(null);
+    setFormData(prev => ({ ...prev, imageUrl: '' }));
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -407,9 +417,71 @@ export default function ManajemenEventPage() {
                         </select>
                       </div>
 
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5">Poster/Cover Image</label>
-                        <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] || null)} className={`${inputClass} !p-1.5 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer`} />
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <label className="block text-xs font-bold text-slate-700">Poster / Cover Event (16:9)</label>
+                          {(imageFile || formData.imageUrl) && (
+                            <button
+                              type="button"
+                              onClick={handleRemovePoster}
+                              className="text-[11px] font-bold text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer"
+                            >
+                              <Trash2 size={12} /> Hapus Poster
+                            </button>
+                          )}
+                        </div>
+
+                        <input 
+                          ref={fileInputRef} 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={(e) => setImageFile(e.target.files?.[0] || null)} 
+                          className="hidden" 
+                        />
+
+                        {(imageFile || formData.imageUrl) ? (
+                          <div className="relative rounded-xl border border-slate-200 aspect-video w-full max-w-sm overflow-hidden bg-slate-100 shadow-2xs group">
+                            <img 
+                              src={imageFile ? URL.createObjectURL(imageFile) : formData.imageUrl} 
+                              alt="Poster Event" 
+                              className="w-full h-full object-cover" 
+                            />
+                            
+                            {/* TOMBOL HAPUS CEPAT PERMANEN (MUDAH DI HP & DESKTOP) */}
+                            <button 
+                              type="button" 
+                              onClick={handleRemovePoster} 
+                              title="Hapus poster event ini"
+                              className="absolute top-2 right-2 z-20 w-8 h-8 rounded-lg bg-red-600 hover:bg-red-700 active:scale-90 text-white shadow-md flex items-center justify-center transition-all cursor-pointer border border-white/50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+
+                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 flex items-center justify-between">
+                              <span className="text-[10px] font-medium text-white/90">
+                                {imageFile ? 'Poster Baru Dipilih' : 'Poster Saat Ini'}
+                              </span>
+                              <button 
+                                type="button" 
+                                onClick={() => fileInputRef.current?.click()} 
+                                className="text-[11px] font-bold text-white hover:text-blue-200 bg-white/20 hover:bg-white/30 px-2.5 py-0.5 rounded transition-colors cursor-pointer"
+                              >
+                                Ganti Poster
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div 
+                            onClick={() => fileInputRef.current?.click()}
+                            className="border-2 border-dashed border-slate-200 rounded-xl aspect-video w-full max-w-sm flex flex-col items-center justify-center bg-slate-50/70 hover:bg-blue-50 hover:border-blue-300 transition-colors cursor-pointer group shadow-2xs"
+                          >
+                            <div className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-xs mb-1.5 group-hover:scale-110 transition-transform border border-slate-100">
+                              <UploadCloud className="w-4 h-4 text-blue-500" />
+                            </div>
+                            <p className="text-[11px] font-bold text-slate-700 group-hover:text-blue-600 transition-colors">Unggah Poster Acara</p>
+                            <p className="text-[10px] text-slate-400 mt-0.5">JPG, PNG, atau WEBP (16:9)</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

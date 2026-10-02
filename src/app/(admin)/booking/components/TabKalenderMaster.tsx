@@ -3,8 +3,9 @@ import { Booking } from '@/types';
 import { Calendar, dateFnsLocalizer, View } from 'react-big-calendar';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { id } from 'date-fns/locale'; 
-import { X, MapPin, Clock, User, FileText, CheckCircle2, AlertTriangle, Building, Plus, Calendar as CalendarIcon } from 'lucide-react';
+import { X, MapPin, Clock, User, FileText, CheckCircle2, AlertTriangle, Building, Plus, Calendar as CalendarIcon, Users, LayoutTemplate, Sparkles } from 'lucide-react';
 import ModalAdminCreateBooking from './ModalAdminCreateBooking';
+import { useAssets } from '@/hooks/useAssets';
 
 // @ts-ignore
 import 'react-big-calendar/lib/css/react-big-calendar.css';
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export default function TabKalenderMaster({ bookings }: Props) {
+  const { allRooms } = useAssets();
   // State untuk melihat detail modal
   const [selectedEvent, setSelectedEvent] = useState<Booking | null>(null);
 
@@ -249,13 +251,36 @@ export default function TabKalenderMaster({ bookings }: Props) {
             </div>
 
             <div className="p-6 space-y-6">
-              <div className="flex gap-4">
+              <div className="flex gap-4 items-start">
                 <div className="h-12 w-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0 border border-indigo-100">
                   <Building size={24} />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Fasilitas / Ruangan</p>
                   <h3 className="font-bold text-slate-800 text-base leading-tight">{selectedEvent.assetName}</h3>
+                  {(() => {
+                    const r = allRooms.find(item => item.id === selectedEvent.assetId || item.name.toLowerCase() === selectedEvent.assetName.toLowerCase());
+                    if (!r) return null;
+                    return (
+                      <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                        {r.capacity ? (
+                          <span className="text-[10px] bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded-md border border-blue-200/60 flex items-center gap-1">
+                            <Users size={11} /> {r.capacity} Orang
+                          </span>
+                        ) : null}
+                        {r.layout ? (
+                          <span className="text-[10px] bg-amber-50 text-amber-700 font-semibold px-2 py-0.5 rounded-md border border-amber-200/60 flex items-center gap-1">
+                            <LayoutTemplate size={11} /> {r.layout}
+                          </span>
+                        ) : null}
+                        {r.location && r.location !== '-' ? (
+                          <span className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
+                            <MapPin size={11} /> {r.location}
+                          </span>
+                        ) : null}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 

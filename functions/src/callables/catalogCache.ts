@@ -45,13 +45,20 @@ export const rebuildCatalogMasterCache = onCall(async (request) => {
       });
     });
 
-    await db.collection(`artifacts/${appId}/public/data/cache_catalogs`).doc('master').set({
+    const cachePayload = {
       lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
       count: compressedCatalogs.length,
       data: compressedCatalogs 
-    });
+    };
 
-    console.log(`[CATALOG CACHE] Berhasil kompresi ${compressedCatalogs.length} katalog.`);
+    const sizeKB = Buffer.byteLength(JSON.stringify(cachePayload), 'utf8') / 1024;
+    if (sizeKB > 850) {
+      console.warn(`[CATALOG CACHE WARNING] Ukuran cache ${sizeKB.toFixed(1)} KB mendekati batas 1MB Firestore.`);
+    }
+
+    await db.collection(`artifacts/${appId}/public/data/cache_catalogs`).doc('master').set(cachePayload);
+
+    console.log(`[CATALOG CACHE] Berhasil kompresi ${compressedCatalogs.length} katalog (${sizeKB.toFixed(1)} KB).`);
     return { success: true, count: compressedCatalogs.length };
   } catch (error: any) {
     console.error("[CATALOG CACHE ERROR]", error);

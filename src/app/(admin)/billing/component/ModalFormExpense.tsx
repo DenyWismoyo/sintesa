@@ -1,6 +1,6 @@
 // Lokasi Directory: src/app/billing/component/ModalFormExpense.tsx
-import React, { useState } from 'react';
-import { X, Upload, Receipt, Loader2, AlertCircle, Building, WalletCards } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { X, Upload, Receipt, Loader2, AlertCircle, WalletCards, FileText, Trash2 } from 'lucide-react';
 import { Expense, Account } from '@/types';
 
 interface Props {
@@ -28,6 +28,7 @@ export default function ModalFormExpense({ onClose, onSubmit, accounts }: Props)
   });
   
   const [file, setFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,15 +129,80 @@ export default function ModalFormExpense({ onClose, onSubmit, accounts }: Props)
               </div>
             </div>
 
-            <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center bg-slate-50 hover:bg-blue-50 hover:border-blue-300 transition-colors cursor-pointer group relative">
-              <input type="file" accept="image/*,.pdf" onChange={(e) => setFile(e.target.files?.[0] || null)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
-                <Upload className="w-5 h-5 text-blue-500" />
-              </div>
-              <p className="text-sm font-bold text-slate-700">{file ? file.name : 'Upload Bukti Nota/Kwitansi'}</p>
-              <p className="text-xs text-slate-500 mt-1">Format JPG, PNG atau PDF (Maks 2MB)</p>
+            {/* UPLOAD BUKTI NOTA */}
+            <div>
+              <label className="text-xs font-bold text-slate-700 mb-2 block uppercase tracking-wider">
+                Bukti Nota / Kwitansi <span className="text-slate-400 font-normal normal-case">(Opsional, JPG/PNG/PDF, maks 2MB)</span>
+              </label>
+              {/* Hidden input file dengan ref */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,.pdf"
+                className="hidden"
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+              />
+
+              {file ? (
+                /* === CARD PREVIEW FILE — terlihat jelas di mobile & desktop === */
+                <div className="flex items-center gap-3 p-3.5 bg-green-50 border border-green-200 rounded-xl">
+                  {/* Ikon tipe file */}
+                  <div className="w-11 h-11 bg-white border border-green-200 rounded-lg flex items-center justify-center shrink-0 shadow-sm">
+                    {file.type.startsWith('image/') ? (
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt="preview"
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                    ) : (
+                      <FileText className="w-5 h-5 text-red-500" />
+                    )}
+                  </div>
+                  {/* Info file */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-slate-800 truncate">{file.name}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      {(file.size / 1024).toFixed(0)} KB
+                      {file.type.startsWith('image/') ? ' · Gambar' : ' · PDF'}
+                    </p>
+                  </div>
+                  {/* Tombol aksi — selalu terlihat, mudah di-tap mobile */}
+                  <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-3 py-1.5 text-xs font-bold text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 active:scale-95 transition-all"
+                    >
+                      Ganti
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFile(null);
+                        if (fileInputRef.current) fileInputRef.current.value = '';
+                      }}
+                      className="px-3 py-1.5 text-xs font-bold text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 active:scale-95 transition-all flex items-center gap-1.5"
+                    >
+                      <Trash2 size={12} /> Hapus
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* === ZONA UPLOAD — klik tombol, bukan overlay transparan === */
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full border-2 border-dashed border-slate-200 rounded-xl p-5 flex flex-col items-center justify-center gap-2 bg-slate-50 hover:bg-blue-50 hover:border-blue-300 active:scale-[0.99] transition-all"
+                >
+                  <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
+                    <Upload className="w-5 h-5 text-blue-500" />
+                  </div>
+                  <p className="text-sm font-bold text-slate-700">Upload Bukti Nota / Kwitansi</p>
+                  <p className="text-xs text-slate-400">Ketuk / klik untuk memilih file</p>
+                </button>
+              )}
             </div>
-            
+
           </form>
         </div>
 

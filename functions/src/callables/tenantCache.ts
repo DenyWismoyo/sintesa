@@ -47,13 +47,20 @@ export const rebuildTenantMasterCache = onCall(async (request) => {
       });
     });
 
-    await db.collection(`artifacts/${appId}/public/data/cache_tenants`).doc('master').set({
+    const cachePayload = {
       lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
       count: compressedTenants.length,
       data: compressedTenants 
-    });
+    };
 
-    console.log(`[TENANT CACHE] Berhasil mengkompresi ${compressedTenants.length} data tenant.`);
+    const sizeKB = Buffer.byteLength(JSON.stringify(cachePayload), 'utf8') / 1024;
+    if (sizeKB > 850) {
+      console.warn(`[TENANT CACHE WARNING] Ukuran cache tenant ${sizeKB.toFixed(1)} KB mendekati batas 1MB Firestore.`);
+    }
+
+    await db.collection(`artifacts/${appId}/public/data/cache_tenants`).doc('master').set(cachePayload);
+
+    console.log(`[TENANT CACHE] Berhasil mengkompresi ${compressedTenants.length} data tenant (${sizeKB.toFixed(1)} KB).`);
     return { success: true, count: compressedTenants.length };
 
   } catch (error: any) {
