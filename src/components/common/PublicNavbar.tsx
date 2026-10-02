@@ -302,38 +302,21 @@ export default function PublicNavbar() {
             : 'bg-white/85 backdrop-blur-md border-b border-slate-200/60 py-2 sm:py-2.5'
         }`}
       >
-        <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between gap-2.5 sm:gap-4">
+        <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
           
-          {/* SISI KIRI: HANYA LOGO RESMI (TULISAN TEKS DIHILANGKAN SESUAI INSTRUKSI) */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            <Link href="/" className="flex items-center group shrink-0" title="Beranda Solo Technopark">
-              <div className="h-8 sm:h-9 flex items-center justify-center relative">
-                <Image
-                  src="/logo.png"
-                  alt="Solo Technopark"
-                  width={76}
-                  height={40}
-                  className="h-8 sm:h-9 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
-                  priority
-                />
-              </div>
-            </Link>
-
-            {/* SEARCH TRIGGER DI HEADER (MOBILE & TABLET / DESKTOP RINGKAS) */}
-            <button
-              type="button"
-              onClick={() => setIsSearchOpen(true)}
-              className="flex items-center gap-2 h-9 px-3 sm:px-3.5 rounded-full bg-slate-100/90 hover:bg-slate-200/80 border border-slate-200/60 text-slate-400 hover:text-slate-600 text-xs font-medium transition-all w-36 sm:w-56 md:w-64 cursor-pointer"
-            >
-              <Search size={14} className="text-slate-500 shrink-0" />
-              <span className="truncate text-slate-500 text-[11px] sm:text-xs">
-                Cari layanan kawasan...
-              </span>
-              <kbd className="ml-auto hidden md:inline-block px-1.5 py-0.2 text-[9px] font-bold bg-white text-slate-400 rounded border border-slate-200">
-                ⌘K
-              </kbd>
-            </button>
-          </div>
+          {/* SISI KIRI: HANYA LOGO RESMI SOLO TECHNOPARK (BERSIH TANPA TEKS) */}
+          <Link href="/" className="flex items-center group shrink-0" title="Beranda Solo Technopark">
+            <div className="h-8 sm:h-9 flex items-center justify-center relative">
+              <Image
+                src="/logo.png"
+                alt="Solo Technopark"
+                width={76}
+                height={40}
+                className="h-8 sm:h-9 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+                priority
+              />
+            </div>
+          </Link>
 
           {/* SISI TENGAH: NAVIGASI DESKTOP */}
           <nav className="hidden lg:flex flex-1 items-center justify-center gap-1 xl:gap-1.5 max-w-3xl">
@@ -356,20 +339,48 @@ export default function PublicNavbar() {
             })}
           </nav>
 
-          {/* SISI KANAN: AUTH WIDGET DESKTOP */}
-          <div className="hidden lg:flex items-center justify-end shrink-0 min-w-[130px]">
+          {/* SISI KANAN DESKTOP: SEARCH BAR + AUTH WIDGET */}
+          <div className="hidden lg:flex items-center gap-3 shrink-0 min-w-[200px] justify-end">
+            <button
+              type="button"
+              onClick={() => setIsSearchOpen(true)}
+              className="flex items-center gap-2 h-9 px-3.5 rounded-full bg-slate-100/90 hover:bg-slate-200/80 border border-slate-200/60 text-slate-400 hover:text-slate-600 text-xs font-medium transition-all w-44 xl:w-56 cursor-pointer"
+            >
+              <Search size={14} className="text-slate-500 shrink-0" />
+              <span className="truncate text-slate-500 text-[11px] xl:text-xs">
+                Cari layanan...
+              </span>
+              <kbd className="ml-auto hidden xl:inline-block px-1.5 py-0.2 text-[9px] font-bold bg-white text-slate-400 rounded border border-slate-200">
+                ⌘K
+              </kbd>
+            </button>
+
             {renderDesktopAuth()}
           </div>
 
-          {/* TOMBOL HAMBURGER MOBILE (MINIMALIS & ELEGAN) */}
-          <button
-            type="button"
-            aria-label="Buka Navigasi"
-            onClick={() => setIsMobileMenuOpen(true)}
-            className="lg:hidden w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-slate-100/80 hover:bg-slate-200/80 active:scale-95 text-slate-700 transition-all shadow-2xs shrink-0 cursor-pointer"
-          >
-            <Menu size={18} strokeWidth={2.2} />
-          </button>
+          {/* SISI KANAN PONSEL / TABLET: TOMBOL SEARCH & HAMBURGER BERDAMPINGAN */}
+          <div className="flex lg:hidden items-center gap-2 shrink-0">
+            {/* Tombol Search di Ponsel (Sesuai instruksi: di bagian kanan dekat dengan menu hamburger) */}
+            <button
+              type="button"
+              aria-label="Cari Layanan"
+              onClick={() => setIsSearchOpen(true)}
+              className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-slate-100/90 hover:bg-slate-200/80 active:scale-95 text-slate-700 transition-all shadow-2xs shrink-0 cursor-pointer"
+              title="Cari Layanan"
+            >
+              <Search size={17} strokeWidth={2.2} />
+            </button>
+
+            {/* Tombol Hamburger di Ponsel */}
+            <button
+              type="button"
+              aria-label="Buka Navigasi"
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-slate-100/80 hover:bg-slate-200/80 active:scale-95 text-slate-700 transition-all shadow-2xs shrink-0 cursor-pointer"
+            >
+              <Menu size={18} strokeWidth={2.2} />
+            </button>
+          </div>
         </div>
       </header>
 

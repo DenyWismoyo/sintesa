@@ -854,6 +854,88 @@
   color: #0f172a;
 }
 
+/* 7.2. Custom UI Dropdown & Borderless Filter System */
+.borderless-filter-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  padding: 0;
+  border: none !important;
+}
+
+.borderless-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.125rem;
+  padding: 0 0.875rem;
+  border-radius: 9999px;
+  background-color: rgba(241, 245, 249, 0.9);
+  color: #334155;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: none !important;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.borderless-dropdown-trigger:hover {
+  background-color: rgba(226, 232, 240, 0.95);
+  color: #0f172a;
+}
+
+.borderless-dropdown-trigger.active {
+  background-color: #0f172a;
+  color: #ffffff;
+  box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.15);
+}
+
+.borderless-dropdown-menu {
+  position: absolute;
+  z-index: 60;
+  margin-top: 0.375rem;
+  min-width: 11rem;
+  padding: 0.375rem;
+  border-radius: 1rem;
+  background-color: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.1), 0 4px 12px -2px rgba(15, 23, 42, 0.05);
+}
+
+.borderless-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+  background: transparent;
+  border: none !important;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.borderless-dropdown-item:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+.borderless-dropdown-item.selected {
+  background-color: #eff6ff;
+  color: #2563eb;
+  font-weight: 700;
+}
+
 /* 8. Skeleton Shimmer Effect */
 @keyframes public-shimmer {
   0% {

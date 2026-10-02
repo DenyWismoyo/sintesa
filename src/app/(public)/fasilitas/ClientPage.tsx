@@ -17,6 +17,7 @@ import SectionContainer from '@/components/ui/SectionContainer';
 import PageHero from '@/components/ui/PageHero';
 import PillTabs from '@/components/ui/PillTabs';
 import EmptyState from '@/components/ui/EmptyState';
+import BorderlessSelect from '@/components/ui/BorderlessSelect';
 import RoomCard from './components/RoomCard';
 import RoomDetailModal from './components/RoomDetailModal';
 import BookingWizardModal from './components/BookingWizardModal';
@@ -129,17 +130,15 @@ export default function FasilitasPublicPage() {
         />
 
         {activeTab === 'daftar' && (
-          <div className="flex items-center gap-1.5 bg-white px-2 py-0.5 rounded-full shadow-2xs border border-slate-200/70 shrink-0">
-            <ListFilter size={13} className="text-slate-400 shrink-0 ml-1" />
-            <select 
-              value={sortBy} 
-              onChange={(e) => setSortBy(e.target.value)} 
-              className="public-select h-7 text-xs"
-            >
-              <option value="priceValue:desc">Harga Tertinggi</option>
-              <option value="priceValue:asc">Harga Terendah</option>
-            </select>
-          </div>
+          <BorderlessSelect
+            value={sortBy}
+            onChange={setSortBy}
+            options={[
+              { value: 'priceValue:desc', label: 'Harga Tertinggi' },
+              { value: 'priceValue:asc', label: 'Harga Terendah' },
+            ]}
+            prefixIcon={<ListFilter size={13} />}
+          />
         )}
       </div>
 

@@ -13,6 +13,7 @@ import SectionContainer from '@/components/ui/SectionContainer';
 import PageHero from '@/components/ui/PageHero';
 import PillTabs from '@/components/ui/PillTabs';
 import EmptyState from '@/components/ui/EmptyState';
+import BorderlessSelect from '@/components/ui/BorderlessSelect';
 import TrainingCard from './components/TrainingCard';
 
 const containerVariants: Variants = {
@@ -111,16 +112,16 @@ export default function ProgramPelatihanPublik() {
             <SlidersHorizontal size={14} /> Filter:
           </div>
           
-          <select
+          <BorderlessSelect
             value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value)}
-            className="public-select shrink-0"
-          >
-            <option value="all">Semua Tipe</option>
-            <option value="Video Course">Video Course</option>
-            <option value="Online Live">Online Live</option>
-            <option value="Offline">Offline / Tatap Muka</option>
-          </select>
+            onChange={setSelectedType}
+            options={[
+              { value: 'all', label: 'Semua Tipe' },
+              { value: 'Video Course', label: 'Video Course' },
+              { value: 'Online Live', label: 'Online Live' },
+              { value: 'Offline', label: 'Offline / Tatap Muka' },
+            ]}
+          />
 
           <div className="flex bg-slate-100/80 p-0.5 rounded-full shrink-0">
             {(['all', 'free', 'paid'] as const).map((price) => (

@@ -2,7 +2,6 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { 
@@ -15,7 +14,8 @@ import {
   Loader2, 
   Sparkles,
   TrendingUp,
-  Tag
+  Tag,
+  CornerDownLeft
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { catalogService } from '@/services/catalog.service';
@@ -56,13 +56,12 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
   useEffect(() => {
     if (!isOpen) return;
 
-    // Auto focus ke input
+    // Auto focus ke input dengan delay aman
     setTimeout(() => {
       inputRef.current?.focus();
     }, 50);
 
     const loadAllCachedData = async () => {
-      // Jika sudah ada data, tidak perlu re-fetch
       if (items.length > 0) return;
 
       setLoading(true);
@@ -75,7 +74,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
 
         const combined: SearchResultItem[] = [];
 
-        // 1. Proses Data Katalog
+        // 1. Data Katalog (DIUBAH DARI 'Katalog Inovasi' MENJADI 'Katalog' SESUAI REQUEST)
         if (catalogs.status === 'fulfilled' && Array.isArray(catalogs.value)) {
           catalogs.value.forEach((c: any) => {
             if (c.isPublished !== false) {
@@ -87,17 +86,17 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                 title: c.name || 'Produk Katalog',
                 category: c.category || 'Katalog',
                 type: 'catalog',
-                typeName: 'Katalog Inovasi',
+                typeName: 'Katalog', // Sesuai permintaan user: Katalog Inovasi -> Katalog
                 price: typeof c.price === 'number' ? c.price : undefined,
                 image: cover,
                 url: `/e-katalog/${c.id}`,
-                snippet: c.shortDescription || c.description?.slice(0, 90)
+                snippet: c.shortDescription || c.description?.slice(0, 85)
               });
             }
           });
         }
 
-        // 2. Proses Data Sewa Ruangan / Fasilitas Aset
+        // 2. Data Sewa Ruangan / Fasilitas Aset
         if (assets.status === 'fulfilled' && Array.isArray(assets.value)) {
           assets.value.forEach((a: any) => {
             const cover = Array.isArray(a.images) && a.images.length > 0 
@@ -112,12 +111,12 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
               price: typeof a.price === 'number' ? a.price : typeof a.rentalPrice === 'number' ? a.rentalPrice : undefined,
               image: cover,
               url: `/fasilitas/${a.id}`,
-              snippet: a.location ? `Lokasi: ${a.location}` : a.description?.slice(0, 90)
+              snippet: a.location ? `Lokasi: ${a.location}` : a.description?.slice(0, 85)
             });
           });
         }
 
-        // 3. Proses Data Pelatihan Diklat
+        // 3. Data Pelatihan Diklat
         if (trainings.status === 'fulfilled' && Array.isArray(trainings.value)) {
           trainings.value.forEach((t: any) => {
             combined.push({
@@ -125,11 +124,11 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
               title: t.title || 'Program Pelatihan',
               category: t.category || 'Pelatihan Vokasi',
               type: 'training',
-              typeName: 'Program Pelatihan',
+              typeName: 'Pelatihan',
               price: typeof t.price === 'number' ? t.price : 0,
               image: t.coverImage,
               url: `/program-pelatihan/${t.id}`,
-              snippet: t.type ? `Format: ${t.type}` : t.description?.slice(0, 90)
+              snippet: t.type ? `Format: ${t.type}` : t.description?.slice(0, 85)
             });
           });
         }
@@ -151,7 +150,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
     return items.filter(item => {
       const matchFilter = activeFilter === 'all' || item.type === activeFilter;
       if (!matchFilter) return false;
-      if (!q) return true; // Tampilkan rekomendasi jika query masih kosong
+      if (!q) return true;
       return (
         item.title.toLowerCase().includes(q) ||
         item.category.toLowerCase().includes(q) ||
@@ -160,7 +159,6 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
     });
   }, [items, query, activeFilter]);
 
-  // Reset selectedIndex saat hasil berubah
   useEffect(() => {
     setSelectedIndex(0);
   }, [query, activeFilter]);
@@ -212,86 +210,93 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
   const getBadgeStyle = (type: SearchResultItem['type']) => {
     switch (type) {
       case 'catalog':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
+        return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20';
       case 'asset':
-        return 'bg-sky-50 text-sky-700 border-sky-200/80';
+        return 'bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/20';
       case 'training':
-        return 'bg-amber-50 text-amber-700 border-amber-200/80';
+        return 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20';
       default:
-        return 'bg-slate-50 text-slate-700 border-slate-200';
+        return 'bg-slate-500/10 text-slate-700 border-slate-500/20';
     }
   };
 
   const getTypeIcon = (type: SearchResultItem['type']) => {
     switch (type) {
       case 'catalog':
-        return <ShoppingBag size={13} className="text-emerald-600" />;
+        return <ShoppingBag size={12} className="text-emerald-600" />;
       case 'asset':
-        return <Building2 size={13} className="text-sky-600" />;
+        return <Building2 size={12} className="text-sky-600" />;
       case 'training':
-        return <GraduationCap size={13} className="text-amber-600" />;
+        return <GraduationCap size={12} className="text-amber-600" />;
       default:
-        return <Tag size={13} />;
+        return <Tag size={12} />;
     }
   };
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[150] flex items-start justify-center p-3 sm:p-4 md:p-6 pt-12 sm:pt-16 md:pt-20">
-          {/* Backdrop Blur */}
+        <div className="fixed inset-0 z-[150] flex items-start justify-center p-3 sm:p-5 pt-8 sm:pt-14 md:pt-16">
+          {/* Backdrop Blur Ultra Halus */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-slate-950/60 backdrop-blur-md"
+            className="fixed inset-0 bg-slate-950/45 backdrop-blur-xl"
           />
 
-          {/* Modal Container */}
+          {/* Modal Container Elegan & Melengkung Mewah */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: -10 }}
+            initial={{ opacity: 0, scale: 0.96, y: -12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: -10 }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-2xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-100 flex flex-col overflow-hidden max-h-[85vh] z-10"
+            exit={{ opacity: 0, scale: 0.96, y: -12 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className="relative w-full max-w-2xl bg-white/95 backdrop-blur-2xl rounded-3xl shadow-[0_30px_90px_-20px_rgba(15,23,42,0.3)] border border-slate-200/80 flex flex-col overflow-hidden max-h-[88vh] z-10"
           >
-            {/* Search Input Bar */}
-            <div className="flex items-center gap-3 px-4 sm:px-5 py-3.5 sm:py-4 border-b border-slate-100 bg-white">
-              <Search size={20} className="text-slate-400 shrink-0" />
+            {/* Ambient Accent Light Inside Modal */}
+            <div className="absolute top-0 right-0 w-60 h-60 bg-blue-100/50 rounded-full blur-[80px] pointer-events-none -z-10" />
+            <div className="absolute bottom-0 left-0 w-60 h-60 bg-indigo-100/40 rounded-full blur-[80px] pointer-events-none -z-10" />
+
+            {/* Search Input Bar Super Elegan */}
+            <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100/80 bg-white/70">
+              <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                <Search size={18} strokeWidth={2.4} />
+              </div>
+              
               <input
                 ref={inputRef}
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Cari produk katalog, sewa ruangan, atau pelatihan..."
-                className="w-full bg-transparent text-sm sm:text-base font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-hidden"
+                className="w-full bg-transparent text-sm sm:text-base font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-hidden"
               />
+
               {query && (
                 <button
                   type="button"
                   onClick={() => setQuery('')}
-                  className="p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
+                  className="p-1.5 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
+                  title="Hapus pencarian"
                 >
-                  <X size={16} />
+                  <X size={15} />
                 </button>
               )}
+
               <button
                 type="button"
                 onClick={onClose}
-                className="px-2.5 py-1 text-xs font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors shrink-0"
+                className="px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 bg-slate-100/80 hover:bg-slate-200/80 rounded-full transition-all shrink-0 cursor-pointer"
               >
                 Tutup
               </button>
             </div>
 
-            {/* Quick Filter Tabs */}
-            <div className="flex items-center gap-1.5 px-4 sm:px-5 py-2.5 bg-slate-50/80 border-b border-slate-100 overflow-x-auto no-scrollbar">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0 mr-1 hidden sm:inline">
-                Sumber:
-              </span>
+            {/* Quick Filter Tabs Horizontal Modern */}
+            <div className="flex items-center gap-2 px-5 py-3 bg-slate-50/60 border-b border-slate-100/80 overflow-x-auto no-scrollbar">
               {[
-                { key: 'all', label: 'Semua Layanan' },
+                { key: 'all', label: 'Semua' },
                 { key: 'catalog', label: '🛍️ Katalog', count: items.filter(i => i.type === 'catalog').length },
                 { key: 'asset', label: '🏢 Sewa Ruangan', count: items.filter(i => i.type === 'asset').length },
                 { key: 'training', label: '🎓 Pelatihan', count: items.filter(i => i.type === 'training').length },
@@ -302,15 +307,17 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                     key={tab.key}
                     type="button"
                     onClick={() => setActiveFilter(tab.key as SearchCategoryFilter)}
-                    className={`px-3 py-1 text-xs font-bold rounded-full transition-all shrink-0 flex items-center gap-1.5 ${
+                    className={`px-3.5 py-1.5 text-xs font-bold rounded-full transition-all shrink-0 flex items-center gap-1.5 cursor-pointer ${
                       isActive
-                        ? 'bg-slate-900 text-white shadow-xs'
-                        : 'bg-white border border-slate-200/80 text-slate-600 hover:bg-slate-100/70'
+                        ? 'bg-slate-900 text-white shadow-sm'
+                        : 'bg-white/80 border border-slate-200/80 text-slate-600 hover:bg-white hover:text-slate-900'
                     }`}
                   >
                     <span>{tab.label}</span>
                     {tab.count !== undefined && tab.count > 0 && (
-                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-slate-800 text-slate-200' : 'bg-slate-100 text-slate-500'}`}>
+                      <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
+                        isActive ? 'bg-slate-800 text-slate-200' : 'bg-slate-100 text-slate-500'
+                      }`}>
                         {tab.count}
                       </span>
                     )}
@@ -320,26 +327,26 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
             </div>
 
             {/* Result List Area with Custom Scrollbar */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-3 sm:p-4 divide-y divide-slate-50">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-3 sm:p-4 space-y-1">
               {loading ? (
-                <div className="flex flex-col items-center justify-center py-12 text-slate-400 gap-2.5">
-                  <Loader2 size={24} className="animate-spin text-blue-600" />
-                  <p className="text-xs font-semibold">Mengambil data dari cache kawasan...</p>
+                <div className="flex flex-col items-center justify-center py-16 text-slate-400 gap-3">
+                  <Loader2 size={26} className="animate-spin text-blue-600" />
+                  <p className="text-xs font-bold text-slate-500">Memuat master cache seluruh layanan...</p>
                 </div>
               ) : filteredResults.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center px-4">
-                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+                <div className="flex flex-col items-center justify-center py-14 text-center px-4">
+                  <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-3 shadow-2xs">
                     <Search size={22} />
                   </div>
-                  <h4 className="text-sm font-bold text-slate-800">Tidak ada hasil ditemukan</h4>
+                  <h4 className="text-sm font-bold text-slate-800">Layanan tidak ditemukan</h4>
                   <p className="text-xs text-slate-500 mt-1 max-w-sm">
-                    Tidak ditemukan produk, ruangan, atau pelatihan untuk kata kunci &ldquo;{query}&rdquo;. Silakan coba istilah lain.
+                    Tidak ditemukan data untuk kata kunci &ldquo;{query}&rdquo;. Coba gunakan istilah lain atau pilih kategori di atas.
                   </p>
                 </div>
               ) : (
-                <div className="space-y-1">
+                <>
                   {!query && (
-                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2 pb-2">
+                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2 py-1.5">
                       <TrendingUp size={12} className="text-blue-600" />
                       <span>Rekomendasi Layanan Kawasan</span>
                     </div>
@@ -352,14 +359,14 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                         key={`${item.type}-${item.id}`}
                         onClick={() => handleSelectItem(item.url)}
                         onMouseEnter={() => setSelectedIndex(idx)}
-                        className={`group flex items-center gap-3 p-2.5 sm:p-3 rounded-xl cursor-pointer transition-all ${
+                        className={`group flex items-center gap-3.5 p-3 rounded-2xl cursor-pointer transition-all ${
                           isSelected
-                            ? 'bg-blue-50/80 border border-blue-200/80 shadow-2xs'
-                            : 'hover:bg-slate-50 border border-transparent'
+                            ? 'bg-blue-50/90 border border-blue-200/90 shadow-2xs'
+                            : 'hover:bg-slate-50/80 border border-transparent'
                         }`}
                       >
-                        {/* Thumbnail */}
-                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-slate-100 border border-slate-200/60 overflow-hidden shrink-0 relative flex items-center justify-center">
+                        {/* Thumbnail dengan Aspect Ratio Rapi */}
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-slate-100 border border-slate-200/60 overflow-hidden shrink-0 relative flex items-center justify-center">
                           {item.image ? (
                             <Image
                               src={item.image}
@@ -377,8 +384,8 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
 
                         {/* Text Detail */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border flex items-center gap-1 ${getBadgeStyle(item.type)}`}>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 ${getBadgeStyle(item.type)}`}>
                               {getTypeIcon(item.type)}
                               <span>{item.typeName}</span>
                             </span>
@@ -401,7 +408,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                         {/* Price & Action */}
                         <div className="flex flex-col items-end shrink-0 pl-2">
                           {item.price !== undefined ? (
-                            <span className="text-xs font-black text-slate-900">
+                            <span className={`text-xs font-black ${item.price === 0 ? 'text-emerald-600 font-bold' : 'text-slate-900'}`}>
                               {item.price === 0 ? 'Gratis' : formatRupiah(item.price)}
                             </span>
                           ) : null}
@@ -415,19 +422,19 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                       </div>
                     );
                   })}
-                </div>
+                </>
               )}
             </div>
 
             {/* Footer Shortcut Info */}
-            <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-medium">
+            <div className="px-5 py-3 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-medium">
               <span className="flex items-center gap-1.5">
                 <Sparkles size={12} className="text-amber-500" />
-                <span>Terhubung langsung ke Master Cache Kawasan</span>
+                <span>Terhubung Master Cache Kawasan</span>
               </span>
               <div className="hidden sm:flex items-center gap-3">
                 <span>Gunakan <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-[10px] font-bold text-slate-700">↑</kbd> <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-[10px] font-bold text-slate-700">↓</kbd> navigasi</span>
-                <span><kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-[10px] font-bold text-slate-700">Enter</kbd> pilih</span>
+                <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-[10px] font-bold text-slate-700 flex items-center gap-0.5"><CornerDownLeft size={10} /> Enter</kbd> pilih</span>
               </div>
             </div>
           </motion.div>
