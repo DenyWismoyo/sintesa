@@ -158,7 +158,21 @@ batch.update(accountRef, { balance: increment(amount) });
 await batch.commit(); // Atomic!
 ```
 
-### 6. Standar Cloud Functions (Codebase "sintesa" & Region "asia-southeast2")
+### 6. Pola Integrasi Dua Arah: Menu Publik ↔ Menu Admin
+
+Setiap aksi transaksi di halaman publik harus memiliki konektivitas fungsional penuh dengan menu admin:
+1. **Pendaftaran Pelatihan (`/program-pelatihan/[id]/daftar`) ↔ Admin Pelatihan (`/pelatihan/[id]/peserta`) & Billing (`/billing`)**:
+   - Pendaftaran berbayar otomatis membuat entri invoice di `artifacts/{appId}/public/data/invoices` dengan `referenceType: 'TRAINING'` dan `referralCode` (jika ada).
+   - Kelas gratis langsung terkonfirmasi ke `/ruang-belajar`.
+   - Admin dapat memverifikasi kelulusan tugas dan administrasi peserta di `/pelatihan/[id]/peserta`.
+2. **Booking Fasilitas (`/fasilitas`) ↔ Admin Booking (`/booking`) & Aset (`/aset`)**:
+   - Pengajuan publik masuk ke antrean persetujuan admin `/booking` dengan status `pending` dan membawa `referralCode`.
+   - Approval admin otomatis meng-generate invoice sewa di `/billing` dengan `referenceType: 'BOOKING'`.
+3. **Ekosistem Afiliasi ↔ Billing**:
+   - Setiap pembayaran invoice berstatus `PAID` mentrigger `billingService.syncBackToOrigin()`.
+   - `syncBackToOrigin()` tidak hanya memperbarui status entitas asal (booking/kelas), tetapi juga otomatis meng-clear komisi mitra afiliasi yang mereferensikan transaksi tersebut (`affiliateService.clearCommissionByInvoiceId`).
+
+### 7. Standar Cloud Functions (Codebase "sintesa" & Region "asia-southeast2")
 
 Sistem Sintesa hidup berdampingan dengan aplikasi lain di Firebase `teknopark-surakarta`:
 - **Codebase:** WAJIB `"sintesa"` di `firebase.json`. Jangan gunakan `default`.
@@ -167,7 +181,7 @@ Sistem Sintesa hidup berdampingan dengan aplikasi lain di Firebase `teknopark-su
 - **Client Access:** Selalu impor singleton `functions` dari `@/lib/firebase`. JANGAN panggil `getFunctions()` secara mandiri tanpa argumen region.
 - **Deploy Command:** `firebase deploy --only functions:sintesa`
 
-### 7. Menambah Role Baru — Checklist
+### 8. Menambah Role Baru — Checklist
 
 Jika menambah role baru, update SEMUA lokasi ini:
 - [ ] `src/config/roles.ts` → `APP_ROLES` const
