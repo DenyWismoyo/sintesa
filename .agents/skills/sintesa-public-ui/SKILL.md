@@ -62,6 +62,11 @@ Gunakan class ini secara seragam untuk menggantikan deklarasi grid inline:
 <!-- Responsive: 1 col (mobile) -> 2 cols (xl) -->
 ```
 
+> [!IMPORTANT]
+> **Aturan Anti-Overflow Kartu Publik**:
+> Dilarang keras menggunakan layout horizontal berdampingan (`sm:flex-row` dengan media lebar statis seperti `aspect-[2/3]` 220px-280px) pada daftar item dalam grid. Format tersebut terbukti menyebabkan teks dan tombol terlempar keluar dari kartu pada viewport 640px–1024px.
+> Seluruh kartu daftar publik WAJIB menggunakan **Anatomi Kartu Vertikal** (Media di atas dengan `h-52 sm:h-56`, Body di tengah, Footer di bawah).
+
 ---
 
 ## 🗂️ Anatomi Kartu Publik Standar (Card Anatomy)

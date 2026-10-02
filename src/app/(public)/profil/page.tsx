@@ -3,12 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { useRouter } from 'next/navigation';
-import { User, BookOpen, CreditCard, LogOut, ArrowLeft, Loader2, GraduationCap, Key, CheckCircle, Sparkles, ChevronRight, ArrowRight } from 'lucide-react';
+import { User, BookOpen, CreditCard, LogOut, ArrowLeft, Loader2, GraduationCap, Key, CheckCircle, Sparkles, ChevronRight, ArrowRight, Share2 } from 'lucide-react';
 import SectionContainer from '@/components/ui/SectionContainer';
 import TabDataDiri from './components/TabDataDiri';
 import TabRiwayat from './components/TabRiwayat';
 import TabTagihan from './components/TabTagihan';
 import TabAlumni from './components/TabAlumni';
+import TabAfiliasi from './components/TabAfiliasi';
 import { auth } from '@/lib/firebase';
 import { toast } from 'sonner';
 import { alumniService } from '@/services/alumni.service';
@@ -18,7 +19,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function ProfilPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'data-diri' | 'riwayat' | 'tagihan' | 'alumni'>('data-diri');
+  const [activeTab, setActiveTab] = useState<'data-diri' | 'riwayat' | 'tagihan' | 'alumni' | 'afiliasi'>('data-diri');
   
   const [alumniData, setAlumniData] = useState<Alumni | null>(null);
   const [isCheckingAlumni, setIsCheckingAlumni] = useState(true);
@@ -89,6 +90,7 @@ export default function ProfilPage() {
     { id: 'data-diri', label: 'Data Diri', icon: User, color: 'text-blue-600', bg: 'bg-blue-50' },
     { id: 'riwayat', label: 'Riwayat Pelatihan', icon: BookOpen, color: 'text-amber-600', bg: 'bg-amber-50' },
     { id: 'tagihan', label: 'Tagihan & Pembayaran', icon: CreditCard, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+    { id: 'afiliasi', label: 'Program Afiliasi', icon: Share2, color: 'text-violet-600', bg: 'bg-violet-50' },
   ];
 
   if (!isCheckingAlumni && alumniData) {
@@ -224,6 +226,7 @@ export default function ProfilPage() {
               {activeTab === 'riwayat' && <TabRiwayat userEmail={user.email!} />}
               {activeTab === 'tagihan' && <TabTagihan userEmail={user.email!} />}
               {activeTab === 'alumni' && alumniData && <TabAlumni initialData={alumniData} />}
+              {activeTab === 'afiliasi' && <TabAfiliasi user={user} />}
             </motion.div>
           </AnimatePresence>
         </motion.div>

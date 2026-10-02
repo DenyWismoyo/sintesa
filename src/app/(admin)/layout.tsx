@@ -24,7 +24,8 @@ import {
   ShieldAlert,
   Video,
   Home,
-  Newspaper
+  Newspaper,
+  Share2
 } from 'lucide-react';
 
 // --- KONFIGURASI MENU ---
@@ -47,6 +48,7 @@ const MENU_GROUPS = [
     items: [
       { name: 'Katalog Produk', href: '/katalog', icon: ShoppingBag },
       { name: 'Billing & Invoice', href: '/billing', icon: Receipt },
+      { name: 'Program Afiliasi', href: '/afiliasi', icon: Share2 },
     ]
   },
   {

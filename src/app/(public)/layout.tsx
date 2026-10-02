@@ -15,6 +15,8 @@ import { toast } from 'sonner';
 
 // --- IMPORT KONFIGURASI ROLE ---
 import { isInternalStaff, APP_ROLES } from '@/config/roles';
+import { AffiliateTracker } from '@/components/common/AffiliateTracker';
+import { Suspense } from 'react';
 
 const NAV_MENUS = [
   //{ name: 'Beranda', path: '/portal' },
@@ -286,6 +288,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
 
       {/* --- MAIN CONTENT AREA DENGAN PADDING ERGONOMIS MOBILE TANPA OVERLAP DENGAN FIXED NAVBAR --- */}
       <main className="flex-1 w-full flex flex-col relative z-10 pt-[5.25rem] sm:pt-24 pb-8 sm:pb-12">
+        <Suspense fallback={null}><AffiliateTracker /></Suspense>
         {children}
       </main>
 

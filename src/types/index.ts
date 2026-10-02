@@ -30,3 +30,6 @@ export * from './article.types';
 
 // 9. AI Intelligence Layer
 export * from './ai';
+
+// 10. Affiliate & Referral Marketing Program
+export * from './affiliate.types';
