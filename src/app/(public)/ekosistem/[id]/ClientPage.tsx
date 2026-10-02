@@ -144,7 +144,7 @@ export default function TenantDetailClient({ tenantId, initialTenant }: TenantDe
         </div>
 
         {/* --- 2. HERO PROFILE HEADER --- */}
-        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div className="bg-white -mx-4 sm:mx-0 rounded-none sm:rounded-3xl border-0 sm:border sm:border-slate-200/80 shadow-none sm:shadow-xs overflow-hidden">
           {/* Cover Banner */}
           <div className="h-40 sm:h-52 w-full bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 relative overflow-hidden">
             {tenant.coverImageUrl && (
@@ -154,7 +154,7 @@ export default function TenantDetailClient({ tenantId, initialTenant }: TenantDe
           </div>
 
           {/* Profile Info Overlay */}
-          <div className="px-6 sm:px-10 pb-8 relative -mt-16 sm:-mt-20">
+          <div className="px-4 sm:px-10 pb-6 sm:pb-8 relative -mt-16 sm:-mt-20">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
               
               {/* Logo & Basic Info */}

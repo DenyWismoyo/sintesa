@@ -117,7 +117,7 @@ export default function TrainingCard({ training }: TrainingCardProps) {
       </div>
 
       {/* 2. Konten Text Mengikuti Standar Public Card Body */}
-      <div className="public-card-body flex flex-col flex-1 p-5">
+      <div className="public-card-body p-4 sm:p-5">
         
         {/* Judul Pelatihan */}
         <h3 className="public-card-title group-hover:text-amber-600 transition-colors line-clamp-2 leading-snug mb-2" title={training.title}>

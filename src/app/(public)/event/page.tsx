@@ -126,7 +126,7 @@ export default function EventPage() {
           <>
             {/* HERO EVENT SECTION */}
             {heroEvent && searchTerm === '' && activeCategory === 'Semua Kategori' && (
-              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="w-full bg-slate-900 rounded-[2rem] p-6 sm:p-8 md:p-12 mb-10 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 group shadow-xl">
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="-mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full bg-slate-900 rounded-none sm:rounded-[2rem] p-5 sm:p-8 md:p-12 mb-8 sm:mb-10 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 group shadow-none sm:shadow-xl">
                  {heroEvent.imageUrl && (
                    <img src={heroEvent.imageUrl} alt={heroEvent.title} className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:scale-105 group-hover:opacity-40 transition-all duration-700 ease-out mix-blend-overlay" />
                  )}

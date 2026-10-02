@@ -158,7 +158,7 @@ export default function RoomDetailClient({ roomId, initialRoom }: RoomDetailClie
           
           {/* Kolom Kiri: Galeri Foto */}
           <div className="lg:col-span-7 space-y-4">
-            <div className="aspect-video w-full rounded-3xl overflow-hidden bg-slate-100 border border-slate-200 shadow-sm relative group">
+            <div className="aspect-video -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full rounded-none sm:rounded-3xl overflow-hidden bg-slate-100 border-0 sm:border sm:border-slate-200 shadow-none sm:shadow-sm relative group">
               {activePhoto ? (
                 <img src={activePhoto} alt={room.name} className="w-full h-full object-cover" />
               ) : (

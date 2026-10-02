@@ -169,7 +169,7 @@ export default function EventDetailClient({ eventId, initialEvent }: EventDetail
         </div>
 
         {/* --- 2. HERO COVER & EVENT HEADER --- */}
-        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div className="bg-white -mx-4 sm:mx-0 rounded-none sm:rounded-3xl border-0 sm:border sm:border-slate-200/80 shadow-none sm:shadow-xs overflow-hidden">
           {/* Cover Image / Gradient - YouTube 16:9 Ratio */}
           <div className="relative aspect-video w-full bg-slate-900 overflow-hidden">
             {event.imageUrl ? (
@@ -189,7 +189,7 @@ export default function EventDetailClient({ eventId, initialEvent }: EventDetail
           </div>
 
           {/* Main Title & Action Bar */}
-          <div className="p-6 sm:p-8 space-y-6">
+          <div className="p-4 sm:p-8 space-y-6">
             <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
               <div className="space-y-3 max-w-3xl">
                 <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">

@@ -396,7 +396,7 @@ export default function ArticleDetailClient({ initialArticle, idOrSlug }: Client
 
         {/* Hero Cover Image - YouTube 16:9 Aspect Ratio on Mobile & Desktop */}
         {article.coverImageUrl ? (
-          <div className="mb-6 sm:mb-10 rounded-xl sm:rounded-3xl overflow-hidden border-0 sm:border sm:border-slate-200/80 shadow-none sm:shadow-sm aspect-video relative bg-slate-100">
+          <div className="mb-6 sm:mb-10 -mx-3 sm:mx-0 w-[calc(100%+1.5rem)] sm:w-full rounded-none sm:rounded-3xl overflow-hidden border-0 sm:border sm:border-slate-200/80 shadow-none sm:shadow-sm aspect-video relative bg-slate-100">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img 
               src={article.coverImageUrl} 

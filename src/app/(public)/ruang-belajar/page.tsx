@@ -246,10 +246,10 @@ export default function MyLearningDashboard() {
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
-                  className="public-card p-4 flex flex-col group relative"
+                  className="public-card public-card-hover flex flex-col group relative overflow-hidden"
                 >
                   {/* Thumbnail Cover */}
-                  <div className="relative aspect-video bg-slate-100 rounded-2xl shrink-0 overflow-hidden mb-4">
+                  <div className="public-card-media relative aspect-video bg-slate-100 shrink-0 overflow-hidden">
                     {training.imageUrl ? (
                       <img
                         src={training.imageUrl}
@@ -286,7 +286,7 @@ export default function MyLearningDashboard() {
                   </div>
 
                   {/* Body Content */}
-                  <div className="flex flex-col flex-1">
+                  <div className="public-card-body">
                     <h3 className="text-base font-bold text-slate-900 mb-1.5 line-clamp-2 leading-snug group-hover:text-amber-600 transition-colors">
                       {training.title}
                     </h3>

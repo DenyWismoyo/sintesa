@@ -99,7 +99,7 @@ export default function TenantCard({ tenant }: TenantCardProps) {
   return (
     <motion.div variants={itemVariants} layoutId={`card-${tenant.id}`}>
       <Link href={`/ekosistem/${tenant.id}`} className="block group h-full">
-        <div className={`public-card public-card-hover h-full p-6 lg:p-8 hover:shadow-xl ${theme.shadowHover} transition-all duration-500 flex flex-col relative overflow-hidden`}>
+        <div className={`public-card public-card-hover h-full p-4 sm:p-6 lg:p-8 hover:shadow-xl ${theme.shadowHover} transition-all duration-500 flex flex-col relative overflow-hidden`}>
           
           {/* Subtle Top Glow Border */}
           <div className={`absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent ${theme.glow} to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-500 z-20`} />

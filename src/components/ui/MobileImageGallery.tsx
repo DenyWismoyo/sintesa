@@ -56,7 +56,7 @@ export default function MobileImageGallery({
     <div className={`w-full ${className}`} onKeyDown={handleKeyDown} tabIndex={0}>
       
       {/* --- 1. TAMPILAN MOBILE & TABLET (SWIPEABLE SLIDER / CAROUSEL - YouTube 16:9) --- */}
-      <div className="block lg:hidden relative w-full aspect-video rounded-[1.5rem] sm:rounded-[1.75rem] overflow-hidden bg-slate-100 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] group">
+      <div className="block lg:hidden relative -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full aspect-video rounded-none sm:rounded-[1.75rem] overflow-hidden bg-slate-100 shadow-none sm:shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] group">
         <AnimatePresence initial={false} mode="wait">
           <motion.div
             key={currentIndex}

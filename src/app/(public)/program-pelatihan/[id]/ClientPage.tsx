@@ -283,9 +283,9 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
               </p>
 
               {/* Mobile Media Cover (Tampil di Layar Ponsel & Tablet < lg) */}
-              <div className="block lg:hidden mb-6">
+              <div className="block lg:hidden mb-6 -mx-4 sm:mx-0">
                 <div 
-                  className={`w-full relative aspect-video bg-slate-100 rounded-2xl overflow-hidden border border-slate-200/80 shadow-sm group ${training.promoVideoUrl ? 'cursor-pointer' : ''}`}
+                  className={`w-full relative aspect-video bg-slate-100 rounded-none sm:rounded-2xl overflow-hidden border-0 sm:border sm:border-slate-200/80 shadow-none sm:shadow-sm group ${training.promoVideoUrl ? 'cursor-pointer' : ''}`}
                   onClick={() => training.promoVideoUrl && setIsVideoModalOpen(true)}
                 >
                   {training.imageUrl ? (

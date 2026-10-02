@@ -135,7 +135,7 @@ export default function ArtikelListClient() {
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col group relative"
+                    className="bg-white border-b sm:border border-slate-100 sm:border-slate-200/80 rounded-none sm:rounded-3xl overflow-hidden shadow-none sm:shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col group relative -mx-3 sm:mx-0 w-[calc(100%+1.5rem)] sm:w-auto"
                   >
                     {/* Media Cover Image */}
                     <Link href={`/artikel/${article.id}`} className="block w-full aspect-video bg-slate-100 relative overflow-hidden shrink-0">
