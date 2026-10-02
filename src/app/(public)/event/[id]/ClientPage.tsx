@@ -170,8 +170,8 @@ export default function EventDetailClient({ eventId, initialEvent }: EventDetail
 
         {/* --- 2. HERO COVER & EVENT HEADER --- */}
         <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
-          {/* Cover Image / Gradient */}
-          <div className="relative aspect-[21/9] sm:aspect-[24/9] w-full bg-slate-900 overflow-hidden">
+          {/* Cover Image / Gradient - YouTube 16:9 Ratio */}
+          <div className="relative aspect-video w-full bg-slate-900 overflow-hidden">
             {event.imageUrl ? (
               <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
             ) : (

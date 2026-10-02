@@ -153,10 +153,10 @@ export default function BasicInfoTab({ form, setForm, imageFile, setImageFile }:
           <Label className="text-sm font-bold text-slate-700">Poster / Thumbnail Kelas</Label>
           
           {!previewUrl ? (
-            <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center text-center bg-slate-50 hover:bg-slate-100 transition-colors relative h-[200px]">
+            <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center text-center bg-slate-50 hover:bg-slate-100 transition-colors relative aspect-video w-full">
               <UploadCloud size={32} className="text-slate-400 mb-2" />
               <p className="text-sm font-semibold text-slate-600">Klik untuk mengunggah gambar</p>
-              <p className="text-xs text-slate-400 mt-1">PNG, JPG, atau WEBP (Maks 2MB)</p>
+              <p className="text-xs text-slate-400 mt-1">PNG, JPG, atau WEBP (Maks 2MB) • Format YouTube 16:9</p>
               <input 
                 type="file" 
                 accept="image/*" 
@@ -165,7 +165,7 @@ export default function BasicInfoTab({ form, setForm, imageFile, setImageFile }:
               />
             </div>
           ) : (
-            <div className="relative border border-slate-200 rounded-xl overflow-hidden h-[200px] bg-slate-100 flex items-center justify-center group">
+            <div className="relative border border-slate-200 rounded-xl overflow-hidden aspect-video w-full bg-slate-100 flex items-center justify-center group">
               <img src={previewUrl} alt="Preview Poster" className="object-cover w-full h-full" />
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <button 

@@ -85,7 +85,7 @@ export default function TabDaftarKatalog({ products, loading, isFetchingDetail, 
                 <tr key={product.id} className="hover:bg-slate-50/80 transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden border border-slate-200 transition-transform group-hover:scale-105 shadow-sm">
+                      <div className="w-16 aspect-video rounded-lg bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden border border-slate-200 transition-transform group-hover:scale-105 shadow-sm">
                         {product.images && product.images.length > 0 ? (
                           <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
                         ) : (

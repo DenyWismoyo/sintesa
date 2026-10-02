@@ -27,7 +27,7 @@ export default function RoomCard({ room, onShowDetail, onBook }: RoomCardProps) 
       onClick={() => onShowDetail(room)}
     >
       {/* Area Gambar dengan Scrim dan Floating Badges */}
-      <div className="public-card-media h-48 sm:h-56 xl:h-64">
+      <div className="public-card-media aspect-video">
         <OptimizedImage 
           src={room.imageUrl} 
           alt={room.name} 

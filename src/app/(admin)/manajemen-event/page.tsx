@@ -177,9 +177,9 @@ export default function ManajemenEventPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
                         {evt.imageUrl ? (
-                          <img src={evt.imageUrl} alt={evt.title} className="w-12 h-12 rounded-xl object-cover border border-slate-200 shadow-sm" />
+                          <img src={evt.imageUrl} alt={evt.title} className="w-16 aspect-video rounded-lg object-cover border border-slate-200 shadow-sm shrink-0" />
                         ) : (
-                          <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shadow-sm"><ImageIcon size={20} /></div>
+                          <div className="w-16 aspect-video rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shadow-sm shrink-0"><ImageIcon size={18} /></div>
                         )}
                         <div>
                           <p className="font-bold text-slate-800 text-sm line-clamp-1 group-hover:text-blue-600 transition-colors">{evt.title}</p>

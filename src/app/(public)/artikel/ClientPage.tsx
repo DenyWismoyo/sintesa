@@ -138,7 +138,7 @@ export default function ArtikelListClient() {
                     className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col group relative"
                   >
                     {/* Media Cover Image */}
-                    <Link href={`/artikel/${article.id}`} className="block w-full h-44 sm:h-48 bg-slate-100 relative overflow-hidden shrink-0">
+                    <Link href={`/artikel/${article.id}`} className="block w-full aspect-video bg-slate-100 relative overflow-hidden shrink-0">
                       {article.coverImageUrl ? (
                         <img 
                           src={article.coverImageUrl} 

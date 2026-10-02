@@ -158,7 +158,7 @@ export default function RoomDetailClient({ roomId, initialRoom }: RoomDetailClie
           
           {/* Kolom Kiri: Galeri Foto */}
           <div className="lg:col-span-7 space-y-4">
-            <div className="aspect-[16/10] sm:aspect-[16/9] w-full rounded-3xl overflow-hidden bg-slate-100 border border-slate-200 shadow-sm relative group">
+            <div className="aspect-video w-full rounded-3xl overflow-hidden bg-slate-100 border border-slate-200 shadow-sm relative group">
               {activePhoto ? (
                 <img src={activePhoto} alt={room.name} className="w-full h-full object-cover" />
               ) : (
@@ -176,7 +176,7 @@ export default function RoomDetailClient({ roomId, initialRoom }: RoomDetailClie
               </div>
             </div>
 
-            {/* Thumbnail Carousel */}
+            {/* Thumbnail Carousel - YouTube 16:9 ratio */}
             {galleryList.length > 1 && (
               <div className="flex items-center gap-3 overflow-x-auto pb-2 custom-scrollbar">
                 {galleryList.map((url, idx) => (
@@ -184,7 +184,7 @@ export default function RoomDetailClient({ roomId, initialRoom }: RoomDetailClie
                     key={idx}
                     type="button"
                     onClick={() => setActivePhoto(url)}
-                    className={`w-20 h-14 sm:w-24 sm:h-16 rounded-2xl overflow-hidden shrink-0 border-2 transition-all ${
+                    className={`w-24 sm:w-28 aspect-video rounded-xl overflow-hidden shrink-0 border-2 transition-all ${
                       activePhoto === url ? 'border-sky-600 scale-105 shadow-md' : 'border-slate-200 opacity-70 hover:opacity-100'
                     }`}
                   >

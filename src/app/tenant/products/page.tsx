@@ -305,23 +305,23 @@ export default function TenantProductsPage() {
 
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
                           {existingImages.map((url, idx) => (
-                            <div key={`exist-${idx}`} className="relative aspect-square rounded-[1.5rem] border border-slate-200 overflow-hidden group shadow-sm bg-white">
+                            <div key={`exist-${idx}`} className="relative aspect-video rounded-[1.5rem] border border-slate-200 overflow-hidden group shadow-sm bg-white">
                               <img src={url} alt={`Existing ${idx}`} className="w-full h-full object-cover" />
                               <button type="button" onClick={() => removeExistingImage(idx)} className="absolute top-3 right-3 bg-red-500 text-white rounded-xl p-2 opacity-0 group-hover:opacity-100 transition-all shadow-lg hover:scale-110"><X size={16} /></button>
                             </div>
                           ))}
                           {imagePreviews.map((preview, idx) => (
-                            <div key={`new-${idx}`} className="relative aspect-square rounded-[1.5rem] border-2 border-indigo-300 overflow-hidden group shadow-sm bg-white">
+                            <div key={`new-${idx}`} className="relative aspect-video rounded-[1.5rem] border-2 border-indigo-300 overflow-hidden group shadow-sm bg-white">
                               <img src={preview} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
                               <div className="absolute top-3 left-3 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg shadow-md">Baru</div>
                               <button type="button" onClick={() => removePreview(idx)} className="absolute top-3 right-3 bg-red-500 text-white rounded-xl p-2 opacity-0 group-hover:opacity-100 transition-all shadow-lg hover:scale-110"><X size={16} /></button>
                             </div>
                           ))}
-                          <label className="aspect-square border-2 border-dashed border-slate-300 hover:border-indigo-500 hover:bg-indigo-50 rounded-[1.5rem] flex flex-col items-center justify-center gap-3 cursor-pointer transition-all text-slate-500 group bg-white shadow-sm">
-                            <div className="w-14 h-14 rounded-full bg-slate-50 group-hover:bg-white flex items-center justify-center transition-colors shadow-sm">
-                              <UploadCloud size={28} className="group-hover:text-indigo-600 text-slate-400 transition-colors" />
+                          <label className="aspect-video border-2 border-dashed border-slate-300 hover:border-indigo-500 hover:bg-indigo-50 rounded-[1.5rem] flex flex-col items-center justify-center gap-3 cursor-pointer transition-all text-slate-500 group bg-white shadow-sm">
+                            <div className="w-12 h-12 rounded-full bg-slate-50 group-hover:bg-white flex items-center justify-center transition-colors shadow-sm">
+                              <UploadCloud size={24} className="group-hover:text-indigo-600 text-slate-400 transition-colors" />
                             </div>
-                            <span className="text-sm font-bold text-center group-hover:text-indigo-600 transition-colors">Tambah Foto</span>
+                            <span className="text-xs font-bold text-center group-hover:text-indigo-600 transition-colors">Tambah Foto (16:9)</span>
                             <input type="file" accept="image/*" multiple onChange={handleImageChange} className="hidden" />
                           </label>
                         </div>

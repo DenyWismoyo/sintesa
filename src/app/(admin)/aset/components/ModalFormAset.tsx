@@ -125,8 +125,8 @@ export default function ModalFormAset({ assetToEdit, onClose, onSave }: Props) {
             {/* UPLOAD FOTO */}
             <section className="flex flex-col md:flex-row gap-6 items-start">
               <div className="w-full md:w-1/3 shrink-0">
-                <label className={labelClassName}>Foto Aset</label>
-                <div className="border-2 border-dashed border-slate-200 rounded-2xl h-48 flex flex-col items-center justify-center bg-slate-50 hover:bg-blue-50 hover:border-blue-300 transition-colors cursor-pointer group relative overflow-hidden">
+                <label className={labelClassName}>Foto Aset (Format YouTube 16:9)</label>
+                <div className="border-2 border-dashed border-slate-200 rounded-2xl aspect-video w-full flex flex-col items-center justify-center bg-slate-50 hover:bg-blue-50 hover:border-blue-300 transition-colors cursor-pointer group relative overflow-hidden">
                   {previewUrl ? (
                     <img src={previewUrl} alt="Preview" className="absolute inset-0 w-full h-full object-cover" />
                   ) : (

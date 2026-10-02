@@ -321,7 +321,7 @@ function SearchPageContent() {
               >
                 <div>
                   {/* Media Thumbnail */}
-                  <div className="h-44 w-full bg-slate-100 overflow-hidden relative">
+                  <div className="w-full aspect-video bg-slate-100 overflow-hidden relative">
                     {item.imageUrl ? (
                       <img
                         src={item.imageUrl}

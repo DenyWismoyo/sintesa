@@ -126,8 +126,8 @@ export default function TabDaftarAset({ selectedForPrint, setSelectedForPrint, o
                       </td>
                       <td className="px-6 py-4">
                         <div onClick={() => onOpenDetail(asset)} className="flex items-center gap-3 cursor-pointer group" title="Klik untuk lihat detail">
-                          <div className="h-11 w-11 shrink-0 bg-slate-100 rounded-xl border border-slate-200 overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:shadow-md">
-                            {asset.imageUrl ? <img src={asset.imageUrl} alt={asset.name} className="h-full w-full object-cover" /> : <ImageIcon className="text-slate-400" size={20} />}
+                          <div className="w-14 aspect-video shrink-0 bg-slate-100 rounded-lg border border-slate-200 overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:shadow-md">
+                            {asset.imageUrl ? <img src={asset.imageUrl} alt={asset.name} className="h-full w-full object-cover" /> : <ImageIcon className="text-slate-400" size={16} />}
                           </div>
                           <div>
                             <div className="font-bold text-slate-800 flex items-center gap-2 group-hover:text-blue-600 transition-colors">

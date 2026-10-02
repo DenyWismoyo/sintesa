@@ -31,7 +31,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     <div className="public-card public-card-hover group relative flex flex-col h-full overflow-hidden z-10">
       
       {/* Area Media Gambar & Floating Badges */}
-      <div className="public-card-media h-52 sm:h-56 relative">
+      <div className="public-card-media aspect-video relative">
         <Link 
           href={`/e-katalog/${product.id}`} 
           prefetch={true} 

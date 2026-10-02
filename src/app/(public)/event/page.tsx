@@ -189,7 +189,7 @@ export default function EventPage() {
                     layoutId={`event-${event.id}`} 
                     className="public-card public-card-hover group flex flex-col overflow-hidden relative"
                   >
-                     <div className="public-card-media h-48">
+                     <div className="public-card-media aspect-video">
                         {event.imageUrl ? (
                           <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
                         ) : (

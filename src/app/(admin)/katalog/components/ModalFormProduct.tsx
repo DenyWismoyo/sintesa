@@ -563,7 +563,7 @@ export default function ModalFormProduct({ isOpen, onClose, onSubmit, initialDat
                 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   {existingImages.map((url, idx) => (
-                    <div key={`ex-${idx}`} className="relative aspect-square rounded-xl border border-slate-200 bg-slate-50 overflow-hidden group shadow-sm">
+                    <div key={`ex-${idx}`} className="relative aspect-video rounded-xl border border-slate-200 bg-slate-50 overflow-hidden group shadow-sm">
                       <img src={url} alt={`Existing ${idx}`} className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
                         <button type="button" onClick={() => removeExistingImage(idx)} className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 hover:scale-110 transition-transform"><Trash2 className="h-4 w-4" /></button>
@@ -573,7 +573,7 @@ export default function ModalFormProduct({ isOpen, onClose, onSubmit, initialDat
                   ))}
 
                   {newImagePreviews.map((preview, idx) => (
-                    <div key={`nw-${idx}`} className="relative aspect-square rounded-xl border-2 border-emerald-400 bg-emerald-50 overflow-hidden group shadow-sm">
+                    <div key={`nw-${idx}`} className="relative aspect-video rounded-xl border-2 border-emerald-400 bg-emerald-50 overflow-hidden group shadow-sm">
                       <img src={preview} alt={`New ${idx}`} className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
                         <button type="button" onClick={() => removeNewImage(idx)} className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 hover:scale-110 transition-transform"><Trash2 className="h-4 w-4" /></button>
@@ -583,9 +583,9 @@ export default function ModalFormProduct({ isOpen, onClose, onSubmit, initialDat
                   ))}
 
                   {(existingImages.length + newImageFiles.length) < 5 && (
-                    <div onClick={() => fileInputRef.current?.click()} className="aspect-square rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 transition-colors flex flex-col items-center justify-center text-slate-400 cursor-pointer shadow-sm">
+                    <div onClick={() => fileInputRef.current?.click()} className="aspect-video rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 transition-colors flex flex-col items-center justify-center text-slate-400 cursor-pointer shadow-sm">
                       <UploadCloud className="h-8 w-8 mb-2" />
-                      <span className="text-[10px] font-bold uppercase tracking-wider">Tambah Foto</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider">Tambah Foto (16:9)</span>
                       <input ref={fileInputRef} type="file" multiple accept="image/*" onChange={handleImageChange} className="hidden" />
                     </div>
                   )}

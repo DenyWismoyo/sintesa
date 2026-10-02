@@ -56,7 +56,7 @@ export default function TrainingCard({ training }: TrainingCardProps) {
     <div className="public-card public-card-hover group relative flex flex-col h-full overflow-hidden z-10 transition-all duration-300">
       
       {/* 1. Header Media & Floating Badges */}
-      <div className="public-card-media h-52 sm:h-56 relative overflow-hidden">
+      <div className="public-card-media aspect-video relative overflow-hidden">
         <Link 
           href={`/program-pelatihan/${training.id}`}
           className="block w-full h-full relative overflow-hidden"

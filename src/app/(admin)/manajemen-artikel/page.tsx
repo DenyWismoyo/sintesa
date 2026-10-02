@@ -569,8 +569,8 @@ export default function ManajemenArtikelPage() {
                 key={article.id} 
                 className="bg-white border border-slate-200/80 rounded-3xl overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col group"
               >
-                {/* Thumbnail Header */}
-                <div className="h-44 bg-slate-100 relative overflow-hidden shrink-0">
+                {/* Thumbnail Header - YouTube 16:9 Ratio */}
+                <div className="w-full aspect-video bg-slate-100 relative overflow-hidden shrink-0">
                   {article.coverImageUrl ? (
                     <img 
                       src={article.coverImageUrl} 
@@ -774,9 +774,9 @@ export default function ManajemenArtikelPage() {
                   className="h-10 rounded-xl text-xs bg-white"
                 />
 
-                {/* Pratinjau Thumbnail Gambar */}
+                {/* Pratinjau Thumbnail Gambar - YouTube 16:9 Ratio */}
                 {formData.coverImageUrl && (
-                  <div className="mt-2.5 relative rounded-2xl overflow-hidden border border-slate-200 h-28 bg-slate-100 flex items-center justify-center group shadow-2xs">
+                  <div className="mt-2.5 relative rounded-2xl overflow-hidden border border-slate-200 w-full max-w-sm aspect-video bg-slate-100 flex items-center justify-center group shadow-2xs">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img 
                       src={formData.coverImageUrl} 
