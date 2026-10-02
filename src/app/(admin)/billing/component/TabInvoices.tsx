@@ -165,7 +165,8 @@ export default function TabInvoices({ rawInvoices, activeTab = 'ALL', onGenerate
         </div>
       </div>
 
-      <div className="overflow-x-auto w-full min-h-[400px]">
+      {/* DESKTOP TABLE VIEW */}
+      <div className="hidden lg:block overflow-x-auto w-full min-h-[400px]">
         <table className="w-full text-sm text-left whitespace-nowrap border-collapse">
           <thead className="text-xs text-slate-500 bg-slate-50/80 border-b border-slate-100 uppercase tracking-wider font-semibold">
             <tr>
@@ -191,7 +192,6 @@ export default function TabInvoices({ rawInvoices, activeTab = 'ALL', onGenerate
                 const summary = getItemSummary(invoice);
                 const needsAllocation = invoice.status === 'PAID' && !invoice.isAllocated;
                 
-                // CEK APAKAH ADA BUKTI YANG PERLU DIVERIFIKASI ATAU SUKSES (Bisa cetak kwitansi)
                 const hasPendingProof = invoice.history?.some((h: any) => h.status === 'PENDING');
                 const hasSuccessfulPayment = invoice.history?.some((h: any) => h.status === 'SUCCESS');
 
@@ -222,7 +222,6 @@ export default function TabInvoices({ rawInvoices, activeTab = 'ALL', onGenerate
                     <td className="px-6 py-5 align-top">
                       <div className="mb-2">{renderStatusWithDetails(invoice)}</div>
                       
-                      {/* INDIKATOR VERIFIKASI */}
                       {hasPendingProof && (
                         <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-amber-100 border border-amber-200 text-amber-800 text-[10px] font-black rounded uppercase tracking-wider mb-2 animate-pulse">
                           <AlertCircle className="w-3 h-3" /> Ada Bukti Transfer!
@@ -242,30 +241,29 @@ export default function TabInvoices({ rawInvoices, activeTab = 'ALL', onGenerate
 
                     <td className="px-6 py-5 align-middle text-center">
                       <div className="flex items-center justify-center gap-2">
-                        <button onClick={() => onViewDetail(invoice)} className={`p-2 rounded-lg transition-all shadow-sm ${hasPendingProof ? 'bg-amber-600 text-white hover:bg-amber-700 animate-bounce' : 'text-slate-500 bg-white border border-slate-200 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50'}`} title="Lihat Detail & Validasi">
+                        <button onClick={() => onViewDetail(invoice)} className={`p-2 rounded-lg transition-all shadow-xs ${hasPendingProof ? 'bg-amber-600 text-white hover:bg-amber-700 animate-bounce' : 'text-slate-500 bg-white border border-slate-200 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50'}`} title="Lihat Detail & Validasi">
                           <Eye className="w-4 h-4" />
                         </button>
 
-                        {/* TOMBOL CETAK KWITANSI (MUNCUL JIKA ADA PEMBAYARAN) */}
                         {hasSuccessfulPayment && onOpenKwitansi && (
-                          <button onClick={() => onOpenKwitansi(invoice)} className="p-2 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-all shadow-sm" title="Cetak Kwitansi">
+                          <button onClick={() => onOpenKwitansi(invoice)} className="p-2 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-all shadow-xs" title="Cetak Kwitansi">
                             <Receipt className="w-4 h-4" />
                           </button>
                         )}
                         
                         {needsAllocation && onAllocateBAS && (
-                          <button onClick={() => onAllocateBAS(invoice)} className="p-2 text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-lg transition-all shadow-sm" title="Alokasi ke BAS">
+                          <button onClick={() => onAllocateBAS(invoice)} className="p-2 text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-lg transition-all shadow-xs" title="Alokasi ke BAS">
                             <Network className="w-4 h-4" />
                           </button>
                         )}
                         
                         {['PENDING', 'OVERDUE'].includes(invoice.status) && !hasPendingProof && (
                           <>
-                            <button onClick={() => onEditInvoice(invoice)} className="p-2 text-slate-500 hover:text-amber-600 bg-white border border-slate-200 hover:border-amber-200 hover:bg-amber-50 rounded-lg transition-all shadow-sm" title="Edit Tagihan">
+                            <button onClick={() => onEditInvoice(invoice)} className="p-2 text-slate-500 hover:text-amber-600 bg-white border border-slate-200 hover:border-amber-200 hover:bg-amber-50 rounded-lg transition-all shadow-xs" title="Edit Tagihan">
                               <Edit className="w-4 h-4" />
                             </button>
                             
-                            <button onClick={() => onGenerateLink(invoice)} disabled={processingId === invoice.id} className="p-2 text-slate-500 hover:text-blue-600 bg-white border border-slate-200 hover:border-blue-200 hover:bg-blue-50 rounded-lg transition-all shadow-sm disabled:opacity-50" title="Salin Link Pembayaran">
+                            <button onClick={() => onGenerateLink(invoice)} disabled={processingId === invoice.id} className="p-2 text-slate-500 hover:text-blue-600 bg-white border border-slate-200 hover:border-blue-200 hover:bg-blue-50 rounded-lg transition-all shadow-xs disabled:opacity-50" title="Salin Link Pembayaran">
                               {processingId === invoice.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <LinkIcon className="w-4 h-4" />}
                             </button>
                           </>
@@ -278,6 +276,126 @@ export default function TabInvoices({ rawInvoices, activeTab = 'ALL', onGenerate
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* MOBILE CARD VIEW */}
+      <div className="lg:hidden p-3 sm:p-4 space-y-3">
+        {displayData.length === 0 ? (
+          <div className="text-center py-16 text-slate-500 bg-white rounded-2xl border border-slate-100">
+            <Search className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+            <p className="font-bold text-slate-700 text-sm">Tidak ada tagihan ditemukan</p>
+          </div>
+        ) : (
+          displayData.map((invoice) => {
+            const summary = getItemSummary(invoice);
+            const needsAllocation = invoice.status === 'PAID' && !invoice.isAllocated;
+            const hasPendingProof = invoice.history?.some((h: any) => h.status === 'PENDING');
+            const hasSuccessfulPayment = invoice.history?.some((h: any) => h.status === 'SUCCESS');
+
+            return (
+              <div 
+                key={invoice.id} 
+                className={`bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-3 transition-all ${
+                  hasPendingProof ? 'ring-2 ring-amber-400 bg-amber-50/20' : ''
+                }`}
+              >
+                {/* Header: No Invoice, Layanan, Status */}
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="font-mono text-xs font-bold text-slate-800">
+                      {invoice.invoiceNumber}
+                    </span>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold ${summary.color}`}>
+                        {summary.icon}
+                        <span className="truncate max-w-[180px]">{summary.text}</span>
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    {renderStatusWithDetails(invoice)}
+                  </div>
+                </div>
+
+                {/* Pelanggan & Nominal */}
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between gap-3">
+                  <div>
+                    <div className="font-bold text-slate-800 text-sm">{invoice.customerName}</div>
+                    {invoice.customerPhone && (
+                      <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                        <Phone className="w-3 h-3 text-slate-400" /> {invoice.customerPhone}
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[10px] text-slate-400 uppercase font-semibold">Total Tagihan</div>
+                    <div className="font-black text-slate-900 text-sm sm:text-base">
+                      {formatRupiah(invoice.totalAmount)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Indikator Proof & Tempo */}
+                <div className="flex items-center justify-between text-[11px] text-slate-500">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-slate-400" /> Tempo: {invoice.dueDate}
+                  </span>
+                  {hasPendingProof && (
+                    <span className="font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full text-[10px] animate-pulse">
+                      Ada Bukti Transfer
+                    </span>
+                  )}
+                  {needsAllocation && (
+                    <span className="font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded text-[10px]">
+                      Perlu Alokasi BAS
+                    </span>
+                  )}
+                </div>
+
+                {/* Action Buttons: Touch Friendly */}
+                <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
+                  <button
+                    onClick={() => onViewDetail(invoice)}
+                    className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>Lihat & Validasi</span>
+                  </button>
+
+                  {hasSuccessfulPayment && onOpenKwitansi && (
+                    <button
+                      onClick={() => onOpenKwitansi(invoice)}
+                      className="p-2.5 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition-colors"
+                      title="Cetak Kwitansi"
+                    >
+                      <Receipt className="w-4 h-4" />
+                    </button>
+                  )}
+
+                  {needsAllocation && onAllocateBAS && (
+                    <button
+                      onClick={() => onAllocateBAS(invoice)}
+                      className="p-2.5 text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-xl transition-colors"
+                      title="Alokasi BAS"
+                    >
+                      <Network className="w-4 h-4" />
+                    </button>
+                  )}
+
+                  {['PENDING', 'OVERDUE'].includes(invoice.status) && !hasPendingProof && (
+                    <button
+                      onClick={() => onEditInvoice(invoice)}
+                      className="p-2.5 text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors"
+                      title="Edit Tagihan"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

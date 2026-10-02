@@ -9,6 +9,7 @@ import { Invoice, Expense, Account } from '@/types';
 import { Toaster, toast } from 'sonner';
 
 import { Plus, Receipt, Loader2, PieChart, LayoutDashboard, WalletCards, Landmark, Network, Download, TrendingUp, ArrowRightLeft, CheckCircle } from 'lucide-react';
+import { AdminPageHeader } from '@/components/admin';
 
 import StatCardBilling from './component/StatCardBilling';
 import TabInvoices from './component/TabInvoices';
@@ -262,16 +263,13 @@ export default function BillingPage() {
       <PrintInvoiceLayout invoice={printingInvoice} accounts={accounts || []} />
       <PrintKwitansiLayout invoice={selectedKwitansiInvoice} payment={printingKwitansiPayment} penyetorName={kwitansiPenyetor} penerimaName={kwitansiPenerima} />
 
-      <div className="flex justify-between items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">
-            {isKasirPendapatan ? 'Manajemen Penagihan (AR)' : isKasirPengeluaran ? 'Manajemen Pengeluaran (AP)' : 'Sistem Keuangan & ERP'}
-          </h1>
-          <p className="text-sm text-slate-500">
-            {isKasirPendapatan ? 'Kelola tagihan, invoice, dan penerimaan pembayaran' : isKasirPengeluaran ? 'Ajukan pencairan dana dan catat bukti transaksi belanja' : 'Sistem Akuntansi Otomatis berbasis Cloud.'}
-          </p>
-        </div>
-      </div>
+      {/* 1. ADMIN PAGE HEADER */}
+      <AdminPageHeader
+        title={isKasirPendapatan ? 'Manajemen Penagihan (AR)' : isKasirPengeluaran ? 'Manajemen Pengeluaran (AP)' : 'Sistem Keuangan & Billing'}
+        subtitle={isKasirPendapatan ? 'Kelola tagihan pelanggan, verifikasi bukti transfer, dan penerbitan kwitansi resmi.' : isKasirPengeluaran ? 'Ajukan pencairan dana dan catat bukti transaksi belanja BLUD.' : 'Sistem Penagihan, Rekonsiliasi Kas, dan Akuntansi Otomatis berbasis Cloud.'}
+        badge={pendingVerificationsCount > 0 ? `${pendingVerificationsCount} Perlu Verifikasi Bukti` : undefined}
+        breadcrumbs={[{ label: 'Billing & Invoice' }]}
+      />
 
       {VISIBLE_VIEWS.length > 1 && (
         <div className="flex bg-white border border-slate-200 p-1.5 rounded-2xl overflow-x-auto hide-scrollbar">

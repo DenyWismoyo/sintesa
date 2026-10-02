@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useRef } from 'react';
 import { useAuth } from '@/lib/AuthContext';
@@ -12,6 +12,7 @@ import {
   Search, ChevronDown, Eye, Check, X, Banknote, UploadCloud, Settings2,
   ExternalLink, Copy, BadgeCheck, AlertTriangle, Loader2, Link2, RefreshCcw, Ban
 } from 'lucide-react';
+import { AdminPageHeader } from '@/components/admin';
 
 const TAB_LIST = [
   { id: 'verifikasi', label: 'Antrean Verifikasi', icon: Clock },
@@ -134,20 +135,14 @@ export default function AfiliasPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/60">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-1">
-            <div className="w-9 h-9 bg-indigo-100 rounded-xl flex items-center justify-center">
-              <Share2 className="w-5 h-5 text-indigo-600" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">Program Afiliasi</h1>
-              <p className="text-xs text-slate-500 font-medium">Kelola mitra afiliasi, verifikasi, komisi & pencairan dana</p>
-            </div>
-          </div>
-        </div>
+    <div className="space-y-6 pb-24 animate-in fade-in">
+      {/* 1. ADMIN PAGE HEADER */}
+      <AdminPageHeader
+        title="Program Afiliasi Mitra"
+        subtitle="Kelola mitra referral, verifikasi pendaftar, monitoring buku besar komisi, dan persetujuan pencairan dana."
+        badge={pending.length > 0 ? `${pending.length} Menunggu Verifikasi` : 'Semua Mitra Terverifikasi'}
+        breadcrumbs={[{ label: 'Program Afiliasi' }]}
+      />
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -414,7 +409,6 @@ export default function AfiliasPage() {
             )}
           </div>
         </div>
-      </div>
 
       {/* Modal: Setujui Mitra */}
       {approveModal?.open && (

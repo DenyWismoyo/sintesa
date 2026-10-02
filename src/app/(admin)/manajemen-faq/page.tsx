@@ -8,11 +8,14 @@ import {
   Loader2, CheckCircle, XCircle, HelpCircle,
   Pin, ThumbsUp, ThumbsDown, Users, Tag, AlertCircle
 } from 'lucide-react';
+import { AdminPageHeader, AdminFilterBar } from '@/components/admin';
 
 export default function ManajemenFAQPage() {
   const { faqs, loading, error, addFaq, updateFaq, removeFaq } = useFaqs();
   
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [selectedAudience, setSelectedAudience] = useState('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,11 +38,14 @@ export default function ManajemenFAQPage() {
     { value: 'ADMIN', label: 'Hanya Internal Admin' }
   ];
 
-  const filteredFaqs = faqs.filter(f => 
-    f.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    f.answer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    f.category?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredFaqs = faqs.filter(f => {
+    const matchSearch = f.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      f.answer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      f.category?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchCategory = selectedCategory === 'ALL' || f.category === selectedCategory;
+    const matchAudience = selectedAudience === 'ALL' || f.targetAudience === selectedAudience;
+    return matchSearch && matchCategory && matchAudience;
+  });
 
   const handleOpenModal = (faq?: FAQ) => {
     if (faq) {
@@ -114,102 +120,141 @@ export default function ManajemenFAQPage() {
 
   return (
     <div className="w-full space-y-6 pb-24 animate-in fade-in duration-300">
-      {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Knowledge Base (FAQ)</h1>
-          <p className="text-sm text-slate-500 mt-1">Kelola Pusat Bantuan Cerdas Omni-Hub STP</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
+      {/* STANDARDIZED HEADER */}
+      <AdminPageHeader
+        title="Knowledge Base (FAQ)"
+        description="Kelola bank informasi & tanya-jawab resmi untuk pengunjung, tenant, dan internal kawasan."
+        badge={`${faqs.length} Total FAQ`}
+        breadcrumbs={[
+          { label: 'Admin', href: '/dashboard' },
+          { label: 'FAQ' }
+        ]}
+        actions={
           <button 
             onClick={() => handleOpenModal()}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm shadow-blue-200 transition-colors"
+            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm shadow-blue-200 transition-colors w-full sm:w-auto"
           >
             <Plus size={18} /> Tambah FAQ
           </button>
-        </div>
-      </div>
+        }
+      />
 
-      {error && <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-medium border border-red-100 flex items-center gap-2"><AlertCircle size={18}/> {error}</div>}
+      {error && (
+        <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-sm font-medium border border-red-100 flex items-center gap-2">
+          <AlertCircle size={18} /> {error}
+        </div>
+      )}
       
-      {/* TOOLBAR */}
-      <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-4 justify-between items-center">
-        <div className="relative w-full sm:w-96">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <input 
-            type="text" 
-            placeholder="Cari pertanyaan, jawaban, atau kategori..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-slate-50 focus:bg-white transition-colors"
-          />
-        </div>
-        <div className="text-sm font-bold text-slate-500 hidden sm:block px-4">
-           Total: {filteredFaqs.length} Dokumen
-        </div>
-      </div>
+      {/* STANDARDIZED FILTER BAR */}
+      <AdminFilterBar
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Cari pertanyaan, jawaban, atau kata kunci..."
+        filters={[
+          {
+            key: 'category',
+            label: 'Kategori',
+            value: selectedCategory,
+            onChange: setSelectedCategory,
+            options: [
+              { label: 'Semua Kategori', value: 'ALL' },
+              ...categories.map(c => ({ label: c, value: c }))
+            ]
+          },
+          {
+            key: 'audience',
+            label: 'Audiens',
+            value: selectedAudience,
+            onChange: setSelectedAudience,
+            options: [
+              { label: 'Semua Audiens', value: 'ALL' },
+              ...audiences.map(a => ({ label: a.label, value: a.value }))
+            ]
+          }
+        ]}
+        activeCount={(selectedCategory !== 'ALL' ? 1 : 0) + (selectedAudience !== 'ALL' ? 1 : 0)}
+        onReset={() => {
+          setSearchTerm('');
+          setSelectedCategory('ALL');
+          setSelectedAudience('ALL');
+        }}
+      />
 
       {/* LIST CONTENT */}
       <div className="space-y-4">
         {loading ? (
-          <div className="p-20 text-center text-slate-500 flex flex-col items-center bg-white rounded-3xl border border-slate-200 shadow-sm">
-            <Loader2 className="animate-spin mb-4 text-blue-500" size={36} />
-            <span className="font-bold">Memuat bank pengetahuan...</span>
+          <div className="p-16 text-center text-slate-500 flex flex-col items-center bg-white rounded-3xl border border-slate-200 shadow-xs">
+            <Loader2 className="animate-spin mb-3 text-blue-500" size={32} />
+            <span className="font-bold text-sm">Memuat bank pengetahuan...</span>
           </div>
         ) : filteredFaqs.length === 0 ? (
-          <div className="p-20 text-center text-slate-500 flex flex-col items-center bg-white rounded-3xl border border-slate-200 shadow-sm border-dashed">
-            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4"><HelpCircle className="text-slate-300" size={40} /></div>
-            <p className="font-bold text-slate-700 text-lg">Belum ada data FAQ</p>
-            <p className="text-sm mt-1">Tambahkan pertanyaan baru untuk membantu pengguna.</p>
+          <div className="p-16 text-center text-slate-500 flex flex-col items-center bg-white rounded-3xl border border-slate-200 shadow-xs border-dashed">
+            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-3">
+              <HelpCircle className="text-slate-300" size={32} />
+            </div>
+            <p className="font-bold text-slate-700 text-base">Belum ada data FAQ</p>
+            <p className="text-xs text-slate-500 mt-1">Tambahkan pertanyaan baru untuk membantu pengunjung.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4">
             {filteredFaqs.map((faq) => (
-              <div key={faq.id} className={`p-6 border ${faq.isPinned ? 'border-amber-200 bg-amber-50/30 shadow-md' : 'border-slate-200 bg-white shadow-sm hover:shadow-md'} hover:border-blue-200 transition-all rounded-3xl flex items-start gap-5 group relative`}>
-                
+              <div 
+                key={faq.id} 
+                className={`p-4 sm:p-6 border ${faq.isPinned ? 'border-amber-200 bg-amber-50/20 shadow-xs' : 'border-slate-200 bg-white shadow-xs hover:shadow-md'} hover:border-blue-200 transition-all rounded-2xl sm:rounded-3xl flex flex-col sm:flex-row items-start gap-4 sm:gap-5 group relative`}
+              >
                 {faq.isPinned && (
-                  <div className="absolute top-0 right-0 p-3 text-amber-500" title="Disematkan di Beranda">
-                    <Pin size={20} className="fill-amber-500/20" />
+                  <div className="absolute top-3 right-3 text-amber-500" title="Disematkan di Beranda">
+                    <Pin size={18} className="fill-amber-500/20" />
                   </div>
                 )}
 
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border ${faq.isPinned ? 'bg-amber-100 text-amber-600 border-amber-200' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
-                  <HelpCircle size={24} />
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 border ${faq.isPinned ? 'bg-amber-100 text-amber-600 border-amber-200' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
+                  <HelpCircle size={22} />
                 </div>
                 
-                <div className="flex-1 pr-8">
-                  <div className="flex justify-between items-start gap-4">
-                    <h3 className="font-black text-slate-800 text-lg mb-1 leading-tight group-hover:text-blue-600 transition-colors">{faq.question}</h3>
-                    <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                      <button onClick={() => handleOpenModal(faq)} className="p-2 text-slate-400 hover:text-blue-600 bg-white border border-slate-200 hover:border-blue-200 hover:bg-blue-50 rounded-xl transition-all shadow-sm" title="Edit">
-                        <Edit size={16} />
-                      </button>
-                      <button onClick={() => handleDelete(faq.id!)} className="p-2 text-slate-400 hover:text-red-600 bg-white border border-slate-200 hover:border-red-200 hover:bg-red-50 rounded-xl transition-all shadow-sm" title="Hapus">
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
+                <div className="flex-1 w-full min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-2 pr-6">
+                    <h3 className="font-bold text-slate-800 text-base leading-snug group-hover:text-blue-600 transition-colors">
+                      {faq.question}
+                    </h3>
                   </div>
                   
-                  <p className="text-sm text-slate-600 leading-relaxed mb-5 line-clamp-3 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">{faq.answer}</p>
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4 bg-slate-50/60 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-100 whitespace-pre-line">
+                    {faq.answer}
+                  </p>
                   
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-black text-slate-600 uppercase tracking-widest shadow-sm">
-                      {faq.category}
-                    </span>
-                    <span className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-lg text-[10px] font-black text-indigo-700 uppercase tracking-widest shadow-sm">
-                      <Users size={14} /> {faq.targetAudience}
-                    </span>
-                    
-                    {faq.relatedTags && faq.relatedTags.length > 0 && (
-                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 border-l-2 border-slate-200 pl-3">
-                        <Tag size={14} /> {faq.relatedTags.join(', ')}
-                      </div>
-                    )}
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="px-2.5 py-1 bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 uppercase tracking-wider">
+                        {faq.category}
+                      </span>
+                      <span className="flex items-center gap-1 px-2.5 py-1 bg-indigo-50 border border-indigo-100 rounded-lg text-[10px] font-bold text-indigo-700 uppercase tracking-wider">
+                        <Users size={12} /> {faq.targetAudience}
+                      </span>
+                      
+                      {faq.relatedTags && faq.relatedTags.length > 0 && (
+                        <div className="hidden sm:flex items-center gap-1 text-[10px] font-medium text-slate-500">
+                          <Tag size={12} /> {faq.relatedTags.slice(0, 3).join(', ')}
+                        </div>
+                      )}
+                    </div>
 
-                    <div className="flex items-center gap-4 ml-auto text-xs font-bold text-slate-500 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm">
-                      <span className="flex items-center gap-1.5 text-emerald-600"><ThumbsUp size={14} /> {faq.helpfulCount || 0}</span>
-                      <div className="w-px h-3 bg-slate-300"></div>
-                      <span className="flex items-center gap-1.5 text-rose-500"><ThumbsDown size={14} /> {faq.unhelpfulCount || 0}</span>
+                    {/* Touch Friendly Action Buttons */}
+                    <div className="flex items-center gap-1.5 ml-auto">
+                      <button 
+                        onClick={() => handleOpenModal(faq)} 
+                        className="min-h-[38px] px-3 text-xs font-bold text-slate-600 hover:text-blue-600 bg-white border border-slate-200 hover:border-blue-200 hover:bg-blue-50 rounded-xl transition-all shadow-xs flex items-center gap-1"
+                        title="Edit FAQ"
+                      >
+                        <Edit size={14} /> Edit
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(faq.id!)} 
+                        className="min-h-[38px] px-3 text-xs font-bold text-red-600 bg-white border border-slate-200 hover:border-red-200 hover:bg-red-50 rounded-xl transition-all shadow-xs flex items-center gap-1"
+                        title="Hapus FAQ"
+                      >
+                        <Trash2 size={14} /> Hapus
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -221,18 +266,18 @@ export default function ManajemenFAQPage() {
 
       {/* MODAL FORM DINAMIS */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
-          <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-3xl overflow-hidden my-auto max-h-[90vh] flex flex-col border border-slate-100 animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/40 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-3xl overflow-hidden my-auto max-h-[92vh] sm:max-h-[90vh] flex flex-col border border-slate-100 animate-in zoom-in-95 duration-200">
             
-            <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-md shrink-0">
+            <div className="px-4 sm:px-8 py-4 sm:py-6 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-md shrink-0">
               <div>
-                <h3 className="text-xl font-black text-slate-800 tracking-tight">{editingId ? 'Edit Data FAQ' : 'Tambah FAQ Baru'}</h3>
-                <p className="text-sm font-medium text-slate-500 mt-1">Isi pertanyaan dan jawaban yang jelas untuk pengguna.</p>
+                <h3 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight">{editingId ? 'Edit Data FAQ' : 'Tambah FAQ Baru'}</h3>
+                <p className="text-xs sm:text-sm font-medium text-slate-500 mt-0.5">Isi pertanyaan dan jawaban yang jelas untuk pengguna.</p>
               </div>
-              <button onClick={handleCloseModal} className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 p-2.5 rounded-full transition-colors"><XCircle size={24} /></button>
+              <button onClick={handleCloseModal} className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 p-2 sm:p-2.5 rounded-full transition-colors"><XCircle size={22} /></button>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-8 overflow-y-auto custom-scrollbar bg-slate-50/50 flex-1">
+            <form onSubmit={handleSubmit} className="p-4 sm:p-8 overflow-y-auto custom-scrollbar bg-slate-50/50 flex-1">
               <div className="space-y-6">
                 
                 {/* Switcher Pin */}
@@ -307,9 +352,19 @@ export default function ManajemenFAQPage() {
 
               </div>
 
-              <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-slate-200 sticky bottom-0 bg-slate-50/90 backdrop-blur-md pb-2">
-                <button type="button" onClick={handleCloseModal} className="px-6 py-3 text-sm font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors shadow-sm">Batal</button>
-                <button type="submit" disabled={isSubmitting} className="flex items-center gap-2 px-8 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:bg-blue-700 transition-colors disabled:opacity-50">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 pt-4 sm:pt-6 mt-6 border-t border-slate-200 sticky bottom-0 bg-slate-50/95 backdrop-blur-md pb-2">
+                <button 
+                  type="button" 
+                  onClick={handleCloseModal} 
+                  className="w-full sm:w-auto min-h-[42px] px-6 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors shadow-xs text-center"
+                >
+                  Batal
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={isSubmitting} 
+                  className="w-full sm:w-auto min-h-[42px] flex items-center justify-center gap-2 px-6 sm:px-8 py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:bg-blue-700 transition-colors disabled:opacity-50 text-center"
+                >
                   {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18} />} 
                   {isSubmitting ? 'Menyimpan...' : 'Simpan FAQ'}
                 </button>

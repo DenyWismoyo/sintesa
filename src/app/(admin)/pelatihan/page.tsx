@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Plus, Search, Edit, Trash2, Calendar, Loader2, LayoutGrid, Users, BookOpen, Tag, Info, GraduationCap, Briefcase } from 'lucide-react';
+import { AdminPageHeader } from '@/components/admin';
 import { useTraining } from '@/hooks/useTraining';
 import { canPerformAction, PERMISSIONS } from '@/config/roles';
 import { toast } from 'sonner';
@@ -60,37 +61,41 @@ export default function AdminPelatihanPage() {
   return (
     <div className="w-full space-y-6 pb-24 animate-in fade-in duration-300">
       
-      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-6 transition-all">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-          <div className="shrink-0 border-r-0 sm:border-r border-slate-100 pr-0 sm:pr-8">
-            <h1 className="text-2xl font-black text-slate-800 tracking-tight leading-none">Pusat Pembelajaran</h1>
-            <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-widest leading-none">Pelatihan, LMS & Karier Alumni</p>
-          </div>
-          
-          {canManageLMS && activeView === 'lms' && (
-            <button onClick={() => router.push('/pelatihan/builder')} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl text-sm font-bold shadow-lg shadow-blue-200 transition-all shrink-0">
-              <Plus size={18} /> Buat Kelas Baru
+      {/* 1. ADMIN PAGE HEADER */}
+      <AdminPageHeader
+        title="Pusat Pembelajaran & LMS"
+        subtitle="Manajemen program diklat, kelas digital, peserta kursus, dan database master alumni."
+        badge={`${totalClasses} Program Terdaftar`}
+        breadcrumbs={[{ label: 'Pelatihan & LMS' }]}
+        actions={
+          canManageLMS && activeView === 'lms' ? (
+            <button 
+              onClick={() => router.push('/pelatihan/builder')} 
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-xs shadow-blue-200 transition-all shrink-0"
+            >
+              <Plus size={16} /> Buat Kelas Baru
             </button>
-          )}
-        </div>
+          ) : undefined
+        }
+      />
 
-        {activeView === 'lms' && canManageLMS && (
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="group relative bg-slate-50/50 px-5 py-4 rounded-2xl border border-slate-100 flex items-center gap-4 overflow-hidden shadow-sm">
-              <div className="p-3 rounded-xl bg-blue-50 text-blue-600"><BookOpen size={18} strokeWidth={2.5}/></div>
-              <div className="flex flex-col"><span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total Kelas</span><h3 className="text-2xl font-black text-slate-800">{totalClasses}</h3></div>
-            </div>
-            <div className="group relative bg-slate-50/50 px-5 py-4 rounded-2xl border border-slate-100 flex items-center gap-4 overflow-hidden shadow-sm">
-              <div className="p-3 rounded-xl bg-emerald-50 text-emerald-600"><Users size={18} strokeWidth={2.5}/></div>
-              <div className="flex flex-col"><span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total Pendaftar</span><h3 className="text-2xl font-black text-slate-800">{activeParticipants}</h3></div>
-            </div>
-            <div className="group relative bg-slate-50/50 px-5 py-4 rounded-2xl border border-slate-100 flex items-center gap-4 overflow-hidden shadow-sm">
-              <div className="p-3 rounded-xl bg-indigo-50 text-indigo-600"><Tag size={18} strokeWidth={2.5}/></div>
-              <div className="flex flex-col"><span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Kelas Digital</span><h3 className="text-2xl font-black text-slate-800">{onlineClasses}</h3></div>
-            </div>
+      {/* METRIC CARDS BANNER */}
+      {activeView === 'lms' && canManageLMS && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-3.5 shadow-xs">
+            <div className="p-3 rounded-xl bg-blue-50 text-blue-600"><BookOpen size={18} strokeWidth={2.5}/></div>
+            <div className="flex flex-col"><span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Kelas</span><h3 className="text-xl sm:text-2xl font-black text-slate-800">{totalClasses}</h3></div>
           </div>
-        )}
-      </div>
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-3.5 shadow-xs">
+            <div className="p-3 rounded-xl bg-emerald-50 text-emerald-600"><Users size={18} strokeWidth={2.5}/></div>
+            <div className="flex flex-col"><span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Peserta</span><h3 className="text-xl sm:text-2xl font-black text-slate-800">{activeParticipants}</h3></div>
+          </div>
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-3.5 shadow-xs">
+            <div className="p-3 rounded-xl bg-indigo-50 text-indigo-600"><Tag size={18} strokeWidth={2.5}/></div>
+            <div className="flex flex-col"><span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Kelas Digital</span><h3 className="text-xl sm:text-2xl font-black text-slate-800">{onlineClasses}</h3></div>
+          </div>
+        </div>
+      )}
 
       <div className="flex p-1.5 bg-slate-100/80 backdrop-blur rounded-2xl w-max shadow-inner border border-slate-200 overflow-x-auto max-w-full custom-scrollbar">
         {canManageLMS && (

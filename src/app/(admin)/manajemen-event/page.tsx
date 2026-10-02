@@ -7,13 +7,15 @@ import { AppEvent } from '@/types';
 import { 
   Plus, Edit, Trash2, Search, Calendar, 
   MapPin, Loader2, Image as ImageIcon, CheckCircle, XCircle,
-  AlignLeft, Ticket, Settings, Users, Globe, ShieldAlert
+  AlignLeft, Ticket, Settings, Users, Globe, ShieldAlert, Sparkles
 } from 'lucide-react';
+import { AdminPageHeader, AdminFilterBar, AdminResponsiveView } from '@/components/admin';
 
 export default function ManajemenEventPage() {
   const { events, loading, error, addEvent, updateEvent, removeEvent } = useEvents();
   
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -31,10 +33,12 @@ export default function ManajemenEventPage() {
     isPublished: true, isFree: true, price: 0
   });
 
-  const filteredEvents = events.filter(e => 
-    e.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    e.location.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredEvents = events.filter(e => {
+    const matchSearch = e.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      e.location.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchStatus = statusFilter === 'ALL' || e.status === statusFilter;
+    return matchSearch && matchStatus;
+  });
 
   const handleOpenModal = (evt?: AppEvent) => {
     if (evt) {
@@ -121,41 +125,68 @@ export default function ManajemenEventPage() {
 
   return (
     <div className="w-full space-y-6 pb-24 animate-in fade-in duration-300">
-      {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Manajemen Event & Acara</h1>
-          <p className="text-sm text-slate-500 mt-1">Kelola dan desain publikasi event secara Hyper-Dynamic.</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
+      {/* STANDARDIZED HEADER */}
+      <AdminPageHeader
+        title="Manajemen Event & Acara"
+        description="Kelola jadwal, publikasi, dan konfigurasi tiket agenda di Solo Technopark."
+        badge={`${events.length} Total Event`}
+        breadcrumbs={[
+          { label: 'Admin', href: '/dashboard' },
+          { label: 'Event & Acara' }
+        ]}
+        actions={
           <button 
             onClick={() => handleOpenModal()} 
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm shadow-blue-200 transition-colors"
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm shadow-blue-200 transition-colors w-full sm:w-auto justify-center"
           >
             <Plus size={18} /> Buat Event Baru
           </button>
-        </div>
-      </div>
+        }
+      />
 
-      {error && <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 text-sm font-medium border border-red-100 flex items-center gap-2"><ShieldAlert size={18}/> {error}</div>}
+      {error && (
+        <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-sm font-medium border border-red-100 flex items-center gap-2">
+          <ShieldAlert size={18} /> {error}
+        </div>
+      )}
       
-      {/* TOOLBAR */}
-      <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-4 justify-between items-center">
-        <div className="relative w-full sm:w-96">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <input 
-            type="text" 
-            placeholder="Cari nama event atau lokasi..." 
-            value={searchTerm} 
-            onChange={(e) => setSearchTerm(e.target.value)} 
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-slate-50 focus:bg-white transition-colors" 
-          />
-        </div>
-      </div>
+      {/* STANDARDIZED FILTER BAR */}
+      <AdminFilterBar
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Cari nama event, pembicara, atau lokasi..."
+        filters={[
+          {
+            key: 'status',
+            label: 'Status',
+            value: statusFilter,
+            onChange: setStatusFilter,
+            options: [
+              { label: 'Semua Status', value: 'ALL' },
+              { label: 'Upcoming', value: 'Upcoming' },
+              { label: 'Ongoing', value: 'Ongoing' },
+              { label: 'Completed', value: 'Completed' },
+              { label: 'Draft', value: 'Draft' },
+            ]
+          }
+        ]}
+        activeCount={statusFilter !== 'ALL' ? 1 : 0}
+        onReset={() => {
+          setSearchTerm('');
+          setStatusFilter('ALL');
+        }}
+      />
 
-      {/* TABLE */}
-      <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto min-h-[400px]">
+      {/* RESPONSIVE VIEW: DESKTOP TABLE + MOBILE CARD */}
+      <AdminResponsiveView
+        items={filteredEvents}
+        isLoading={loading}
+        loadingMessage="Memuat agenda event..."
+        emptyTitle="Belum Ada Event"
+        emptySubtitle={searchTerm ? "Tidak ditemukan event yang cocok dengan filter pencarian." : "Mulai rancang dan publikasikan event pertama Anda."}
+        emptyActionLabel="Buat Event Baru"
+        onEmptyAction={() => handleOpenModal()}
+        renderDesktopTable={() => (
           <table className="w-full text-left text-sm whitespace-nowrap border-collapse">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-100 text-slate-500 text-xs uppercase tracking-wider font-semibold">
@@ -167,111 +198,174 @@ export default function ManajemenEventPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {loading ? (
-                <tr><td colSpan={5} className="p-16 text-center text-slate-500"><Loader2 className="animate-spin text-blue-500 mx-auto mb-3" size={28} />Memuat data event...</td></tr>
-              ) : filteredEvents.length === 0 ? (
-                <tr><td colSpan={5} className="p-16 text-center text-slate-500 font-medium">Belum ada data event yang ditambahkan.</td></tr>
-              ) : (
-                filteredEvents.map((evt) => (
-                  <tr key={evt.id} className="hover:bg-slate-50/80 transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-4">
-                        {evt.imageUrl ? (
-                          <img src={evt.imageUrl} alt={evt.title} className="w-16 aspect-video rounded-lg object-cover border border-slate-200 shadow-sm shrink-0" />
-                        ) : (
-                          <div className="w-16 aspect-video rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shadow-sm shrink-0"><ImageIcon size={18} /></div>
-                        )}
-                        <div>
-                          <p className="font-bold text-slate-800 text-sm line-clamp-1 group-hover:text-blue-600 transition-colors">{evt.title}</p>
-                          <div className="flex items-center gap-2 mt-1.5">
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 border border-slate-200 text-slate-600 uppercase tracking-wider">{evt.type}</span>
-                            {evt.isOnline && <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 border border-blue-200 text-blue-700 uppercase tracking-wider">Online</span>}
-                          </div>
+              {filteredEvents.map((evt) => (
+                <tr key={evt.id} className="hover:bg-slate-50/80 transition-colors group">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-4">
+                      {evt.imageUrl ? (
+                        <img src={evt.imageUrl} alt={evt.title} className="w-16 aspect-video rounded-lg object-cover border border-slate-200 shadow-sm shrink-0" />
+                      ) : (
+                        <div className="w-16 aspect-video rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shadow-sm shrink-0">
+                          <ImageIcon size={18} />
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-bold text-slate-800 text-sm line-clamp-1 group-hover:text-blue-600 transition-colors">{evt.title}</p>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 border border-slate-200 text-slate-600 uppercase tracking-wider">{evt.type}</span>
+                          {evt.isOnline && <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 border border-blue-200 text-blue-700 uppercase tracking-wider">Online</span>}
                         </div>
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col gap-1.5 text-xs text-slate-600 font-medium">
-                        <span className="flex items-center gap-1.5"><Calendar size={14} className="text-blue-500" /> {evt.date} • {evt.time}</span>
-                        <span className="flex items-center gap-1.5"><MapPin size={14} className="text-amber-500" /> {evt.isOnline ? 'Platform Virtual' : evt.location}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col items-start gap-1">
-                        <span className="text-xs font-bold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
-                          {evt.registrationType === 'EXTERNAL' ? 'Via Platform Luar' : `${evt.ticketingTiers?.length || 0} Tier Tiket`}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col gap-1.5 text-xs text-slate-600 font-medium">
+                      <span className="flex items-center gap-1.5"><Calendar size={14} className="text-blue-500" /> {evt.date} • {evt.time}</span>
+                      <span className="flex items-center gap-1.5"><MapPin size={14} className="text-amber-500" /> {evt.isOnline ? 'Platform Virtual' : evt.location}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col items-start gap-1">
+                      <span className="text-xs font-bold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
+                        {evt.registrationType === 'EXTERNAL' ? 'Via Platform Luar' : `${evt.ticketingTiers?.length || 0} Tier Tiket`}
+                      </span>
+                      {evt.registrationType === 'INTERNAL' && (evt.ticketingTiers?.length === 0) && (
+                        <span className={`text-[10px] font-bold mt-1 ${evt.isFree ? 'text-emerald-600' : 'text-orange-600'}`}>
+                          {evt.isFree ? 'GRATIS (Legacy)' : `Rp ${evt.price?.toLocaleString('id-ID')} (Legacy)`}
                         </span>
-                        {evt.registrationType === 'INTERNAL' && (evt.ticketingTiers?.length === 0) && (
-                           <span className={`text-[10px] font-bold mt-1 ${evt.isFree ? 'text-emerald-600' : 'text-orange-600'}`}>
-                             {evt.isFree ? 'GRATIS (Legacy)' : `Rp ${evt.price?.toLocaleString('id-ID')} (Legacy)`}
-                           </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col gap-1.5 items-start">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-bold tracking-wider uppercase border shadow-sm ${
-                          evt.status === 'Completed' ? 'bg-slate-50 border-slate-200 text-slate-600' :
-                          evt.status === 'Ongoing' ? 'bg-blue-50 border-blue-200 text-blue-700' :
-                          evt.status === 'Upcoming' ? 'bg-amber-50 border-amber-200 text-amber-700' :
-                          'bg-slate-50 border-slate-200 text-slate-500'
-                        }`}>
-                          {evt.status || 'DRAFT'}
-                        </span>
-                        {!evt.isPublished && <span className="text-[10px] text-red-600 font-bold flex items-center gap-1"><ShieldAlert size={12}/> Hidden</span>}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <button onClick={() => handleOpenModal(evt)} className="p-2 text-slate-500 hover:text-blue-600 bg-white border border-slate-200 hover:border-blue-200 hover:bg-blue-50 rounded-lg transition-all shadow-sm" title="Edit">
-                          <Edit size={16} />
-                        </button>
-                        <button onClick={() => handleDelete(evt.id!, evt.title)} className="p-2 text-slate-500 hover:text-red-600 bg-white border border-slate-200 hover:border-red-200 hover:bg-red-50 rounded-lg transition-all shadow-sm" title="Hapus">
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col gap-1.5 items-start">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-bold tracking-wider uppercase border shadow-sm ${
+                        evt.status === 'Completed' ? 'bg-slate-50 border-slate-200 text-slate-600' :
+                        evt.status === 'Ongoing' ? 'bg-blue-50 border-blue-200 text-blue-700' :
+                        evt.status === 'Upcoming' ? 'bg-amber-50 border-amber-200 text-amber-700' :
+                        'bg-slate-50 border-slate-200 text-slate-500'
+                      }`}>
+                        {evt.status || 'DRAFT'}
+                      </span>
+                      {!evt.isPublished && <span className="text-[10px] text-red-600 font-bold flex items-center gap-1"><ShieldAlert size={12}/> Hidden</span>}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <div className="flex items-center justify-center gap-2">
+                      <button onClick={() => handleOpenModal(evt)} className="p-2 text-slate-500 hover:text-blue-600 bg-white border border-slate-200 hover:border-blue-200 hover:bg-blue-50 rounded-lg transition-all shadow-sm" title="Edit">
+                        <Edit size={16} />
+                      </button>
+                      <button onClick={() => handleDelete(evt.id!, evt.title)} className="p-2 text-slate-500 hover:text-red-600 bg-white border border-slate-200 hover:border-red-200 hover:bg-red-50 rounded-lg transition-all shadow-sm" title="Hapus">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
-        </div>
-      </div>
+        )}
+        renderMobileCard={(evt) => (
+          <div key={evt.id} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+            <div className="flex items-start gap-3">
+              {evt.imageUrl ? (
+                <img src={evt.imageUrl} alt={evt.title} className="w-16 h-16 rounded-xl object-cover border border-slate-200 shrink-0" />
+              ) : (
+                <div className="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
+                  <ImageIcon size={20} />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-700 uppercase tracking-wider">
+                    {evt.type}
+                  </span>
+                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${
+                    evt.status === 'Completed' ? 'bg-slate-100 text-slate-600' :
+                    evt.status === 'Ongoing' ? 'bg-blue-100 text-blue-700' :
+                    evt.status === 'Upcoming' ? 'bg-amber-100 text-amber-700' :
+                    'bg-slate-100 text-slate-500'
+                  }`}>
+                    {evt.status || 'DRAFT'}
+                  </span>
+                  {evt.isOnline && (
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                      Online
+                    </span>
+                  )}
+                </div>
+                <h4 className="font-bold text-slate-900 text-sm leading-snug line-clamp-2">
+                  {evt.title}
+                </h4>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600 pt-2 border-t border-slate-100">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Calendar size={14} className="text-blue-500 shrink-0" />
+                <span className="truncate">{evt.date} • {evt.time}</span>
+              </div>
+              <div className="flex items-center gap-1.5 min-w-0">
+                <MapPin size={14} className="text-amber-500 shrink-0" />
+                <span className="truncate">{evt.isOnline ? 'Platform Virtual' : evt.location}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+              <span className="text-xs font-bold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
+                {evt.registrationType === 'EXTERNAL' ? 'Platform Luar' : `${evt.ticketingTiers?.length || 0} Tier Tiket`}
+              </span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => handleOpenModal(evt)}
+                  className="min-h-[40px] px-3 flex items-center gap-1 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-blue-50 hover:text-blue-600 rounded-xl border border-slate-200 transition-colors"
+                >
+                  <Edit size={14} /> Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(evt.id!, evt.title)}
+                  className="min-h-[40px] px-3 flex items-center gap-1 text-xs font-bold text-red-600 bg-red-50/50 hover:bg-red-50 rounded-xl border border-red-200 transition-colors"
+                >
+                  <Trash2 size={14} /> Hapus
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      />
 
       {/* MODAL FORM BUILDER (WIZARD) - Redesigned */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm overflow-hidden animate-in fade-in duration-200">
-          <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col border border-slate-100 animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/40 backdrop-blur-sm overflow-hidden animate-in fade-in duration-200">
+          <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-5xl h-[94vh] sm:h-[90vh] flex flex-col border border-slate-100 animate-in zoom-in-95 duration-200">
             
             {/* Modal Header */}
-            <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-md shrink-0">
+            <div className="px-4 sm:px-8 py-3.5 sm:py-5 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-md shrink-0">
               <div>
-                <h3 className="text-xl font-black text-slate-800 tracking-tight">{editingId ? 'Edit Event Setup' : 'Event Builder Baru'}</h3>
-                <p className="text-sm text-slate-500 mt-0.5">Mode Hyper-Dynamic. Konfigurasi semua aspek acara.</p>
+                <h3 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight">{editingId ? 'Edit Event Setup' : 'Event Builder Baru'}</h3>
+                <p className="text-xs sm:text-sm text-slate-500 mt-0.5">Mode Hyper-Dynamic. Konfigurasi semua aspek acara.</p>
               </div>
-              <button onClick={handleCloseModal} className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 p-2.5 rounded-full transition-colors"><XCircle size={24} /></button>
+              <button onClick={handleCloseModal} className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 p-2 sm:p-2.5 rounded-full transition-colors"><XCircle size={22} /></button>
             </div>
             
             <div className="flex flex-col md:flex-row flex-1 overflow-hidden bg-slate-50/50">
               {/* Sidebar Navigation */}
-              <div className="w-full md:w-64 bg-white border-r border-slate-100 p-6 shrink-0 flex flex-row md:flex-col gap-2 overflow-x-auto hide-scrollbar">
-                <button type="button" onClick={() => setActiveTab('BASIC')} className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'BASIC' ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 border border-transparent'}`}>
-                  <AlignLeft size={18} /> Basic Info
+              <div className="w-full md:w-64 bg-white border-r border-slate-100 p-3 sm:p-6 shrink-0 flex flex-row md:flex-col gap-1.5 sm:gap-2 overflow-x-auto hide-scrollbar">
+                <button type="button" onClick={() => setActiveTab('BASIC')} className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'BASIC' ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 border border-transparent'}`}>
+                  <AlignLeft size={16} /> Basic Info
                 </button>
-                <button type="button" onClick={() => setActiveTab('CONTENT')} className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'CONTENT' ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 border border-transparent'}`}>
-                  <Users size={18} /> Konten & Acara
+                <button type="button" onClick={() => setActiveTab('CONTENT')} className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'CONTENT' ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 border border-transparent'}`}>
+                  <Users size={16} /> Konten & Acara
                 </button>
-                <button type="button" onClick={() => setActiveTab('TICKETING')} className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'TICKETING' ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 border border-transparent'}`}>
-                  <Ticket size={18} /> Ticketing & Form
+                <button type="button" onClick={() => setActiveTab('TICKETING')} className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'TICKETING' ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 border border-transparent'}`}>
+                  <Ticket size={16} /> Ticketing & Form
                 </button>
-                <button type="button" onClick={() => setActiveTab('SETTINGS')} className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'SETTINGS' ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 border border-transparent'}`}>
-                  <Settings size={18} /> Pengaturan
+                <button type="button" onClick={() => setActiveTab('SETTINGS')} className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'SETTINGS' ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 border border-transparent'}`}>
+                  <Settings size={16} /> Pengaturan
                 </button>
               </div>
 
               {/* Main Content Area */}
-              <form id="eventForm" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+              <form id="eventForm" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 sm:p-8 custom-scrollbar">
                 
                 {/* TAB 1: BASIC INFO */}
                 {activeTab === 'BASIC' && (
@@ -466,9 +560,20 @@ export default function ManajemenEventPage() {
             </div>
 
             {/* Modal Footer (Sticky) */}
-            <div className="px-8 py-5 border-t border-slate-100 bg-white flex justify-end gap-3 shrink-0 rounded-b-[24px]">
-              <button type="button" onClick={handleCloseModal} className="px-6 py-3 text-sm font-bold text-slate-600 border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors">Batalkan</button>
-              <button type="submit" form="eventForm" disabled={isSubmitting} className="flex items-center gap-2 px-8 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all disabled:opacity-50">
+            <div className="px-4 sm:px-8 py-3.5 sm:py-5 border-t border-slate-100 bg-white flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 shrink-0 rounded-b-[24px]">
+              <button 
+                type="button" 
+                onClick={handleCloseModal} 
+                className="w-full sm:w-auto min-h-[44px] px-6 py-2.5 text-sm font-bold text-slate-600 border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors text-center"
+              >
+                Batalkan
+              </button>
+              <button 
+                type="submit" 
+                form="eventForm" 
+                disabled={isSubmitting} 
+                className="w-full sm:w-auto min-h-[44px] flex items-center justify-center gap-2 px-6 sm:px-8 py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all disabled:opacity-50"
+              >
                 {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18} />} 
                 {isSubmitting ? 'Menyimpan...' : 'Simpan Konfigurasi Event'}
               </button>

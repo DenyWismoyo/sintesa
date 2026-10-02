@@ -1,7 +1,13 @@
+"use client";
+
 import { useState } from 'react';
 import { AssetCondition } from '@/types';
-import { Search, Loader2, AlertTriangle, Eye, QrCode, Edit, Image as ImageIcon, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
+import { 
+  Search, Loader2, AlertTriangle, Eye, QrCode, Edit, Image as ImageIcon, 
+  MapPin, ChevronLeft, ChevronRight, CheckSquare, Square
+} from 'lucide-react';
 import { useAssetSearch } from '@/hooks/useAssetSearch';
+import { AdminFilterBar, AdminResponsiveView } from '@/components/admin';
 
 interface Props {
   selectedForPrint: string[];
@@ -11,7 +17,13 @@ interface Props {
   onOpenQr: (asset: any) => void;
 }
 
-export default function TabDaftarAset({ selectedForPrint, setSelectedForPrint, onOpenDetail, onOpenForm, onOpenQr }: Props) {
+export default function TabDaftarAset({ 
+  selectedForPrint, 
+  setSelectedForPrint, 
+  onOpenDetail, 
+  onOpenForm, 
+  onOpenQr 
+}: Props) {
   const [searchInput, setSearchInput] = useState('');
   const [activeTab, setActiveTab] = useState<'Semua' | 'Komersial' | 'Inventaris'>('Semua');
   const [filterCategory, setFilterCategory] = useState<string>('Semua');
@@ -51,58 +63,94 @@ export default function TabDaftarAset({ selectedForPrint, setSelectedForPrint, o
     }
   };
 
+  const conditionColor = (cond: string) => {
+    switch (cond) {
+      case 'Baik': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'Rusak Ringan': return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'Rusak Berat': return 'bg-red-50 text-red-700 border-red-200';
+      default: return 'bg-slate-50 text-slate-700 border-slate-200';
+    }
+  };
+
+  const statusColor = (st: string) => {
+    switch (st) {
+      case 'Tersedia': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'Disewa': return 'bg-purple-50 text-purple-700 border-purple-200';
+      case 'Pemeliharaan': return 'bg-amber-50 text-amber-700 border-amber-200';
+      default: return 'bg-slate-50 text-slate-600 border-slate-200';
+    }
+  };
+
   return (
-    <div className="space-y-4 animate-in fade-in duration-300">
-      
-      {/* Area Filter - Clean styling */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
-        <div className="relative w-full xl:w-80 shrink-0">
-          <Search className="absolute inset-y-0 left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input 
-            type="text" 
-            placeholder="Cari nama, merek, atau kode..." 
-            value={searchInput} 
-            onChange={(e) => handleFilterChange(setSearchInput, e.target.value)} 
-            className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm outline-none transition-all" 
-          />
-        </div>
-        
-        <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
-          <div className="flex bg-slate-100 p-1 rounded-xl">
-            {(['Semua', 'Komersial', 'Inventaris'] as const).map((tab) => (
-              <button key={tab} onClick={() => handleFilterChange(setActiveTab, tab)} className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all ${activeTab === tab ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>{tab}</button>
-            ))}
-          </div>
-          
-          <select value={filterLocation} onChange={(e) => handleFilterChange(setFilterLocation, e.target.value)} className="px-3 py-2.5 bg-slate-50 focus:bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none text-slate-700 max-w-[130px] truncate transition-colors">
-            <option value="Semua">Semua Lokasi</option>
-            {facets.locations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
-          </select>
-
-          <select value={filterCategory} onChange={(e) => { handleFilterChange(setFilterCategory, e.target.value); setFilterType('Semua'); }} className="px-3 py-2.5 bg-slate-50 focus:bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none text-slate-700 max-w-[130px] truncate transition-colors">
-            <option value="Semua">Semua Kategori</option>
-            {facets.categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-          </select>
-
-          <select value={filterType} onChange={(e) => handleFilterChange(setFilterType, e.target.value)} className="px-3 py-2.5 bg-slate-50 focus:bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none text-slate-700 max-w-[130px] truncate transition-colors">
-            <option value="Semua">Semua Jenis</option>
-            {facets.types.map(type => <option key={type} value={type}>{type}</option>)}
-          </select>
-
-          <select value={filterCondition} onChange={(e) => handleFilterChange(setFilterCondition, e.target.value as any)} className="px-3 py-2.5 bg-slate-50 focus:bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none text-slate-700 max-w-[130px] truncate transition-colors">
-            <option value="Semua">Semua Kondisi</option>
-            {facets.conditions.map(cond => <option key={cond} value={cond}>{cond}</option>)}
-          </select>
-        </div>
+    <div className="space-y-4">
+      {/* 1. SEGMENTED TABS UTAMA */}
+      <div className="flex bg-slate-100/80 p-1 rounded-xl w-fit">
+        {(['Semua', 'Komersial', 'Inventaris'] as const).map((tab) => (
+          <button 
+            key={tab} 
+            onClick={() => handleFilterChange(setActiveTab, tab)} 
+            className={`px-4 py-1.5 text-xs sm:text-sm font-bold rounded-lg transition-all ${
+              activeTab === tab 
+                ? 'bg-white text-blue-700 shadow-xs' 
+                : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-[400px]">
-        <div className="overflow-x-auto flex-1">
+      {/* 2. ADMIN FILTER BAR */}
+      <AdminFilterBar
+        searchTerm={searchInput}
+        onSearchChange={(v) => handleFilterChange(setSearchInput, v)}
+        searchPlaceholder="Cari nama, merek, atau kode inventaris..."
+        totalHits={totalHits}
+        totalLabel="aset"
+        filters={[
+          {
+            id: 'location',
+            label: 'Lokasi Aset',
+            value: filterLocation,
+            options: [{ value: 'Semua', label: 'Semua Lokasi' }, ...facets.locations.map(l => ({ value: l, label: l }))],
+            onChange: (v) => handleFilterChange(setFilterLocation, v),
+            icon: <MapPin className="w-3.5 h-3.5" />
+          },
+          {
+            id: 'category',
+            label: 'Kategori',
+            value: filterCategory,
+            options: [{ value: 'Semua', label: 'Semua Kategori' }, ...facets.categories.map(c => ({ value: c, label: c }))],
+            onChange: (v) => { handleFilterChange(setFilterCategory, v); setFilterType('Semua'); }
+          },
+          {
+            id: 'condition',
+            label: 'Kondisi Fisik',
+            value: filterCondition,
+            options: [{ value: 'Semua', label: 'Semua Kondisi' }, ...facets.conditions.map(c => ({ value: c, label: c }))],
+            onChange: (v) => handleFilterChange(setFilterCondition, v)
+          }
+        ]}
+      />
+
+      {/* 3. ADMIN RESPONSIVE VIEW */}
+      <AdminResponsiveView
+        items={assets}
+        loading={loading}
+        emptyTitle="Aset Tidak Ditemukan"
+        emptyMessage="Tidak ada aset yang cocok dengan kata kunci atau filter yang Anda pilih."
+        // DESKTOP TABLE VIEW
+        renderDesktopTable={(items) => (
           <table className="w-full text-sm text-left border-collapse">
             <thead className="text-xs text-slate-500 font-semibold bg-slate-50/80 border-b border-slate-200">
               <tr>
                 <th className="px-4 py-4 w-12 text-center">
-                  <input type="checkbox" className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer w-4 h-4 transition-all" checked={assets.length > 0 && assets.every((item: any) => item.id && selectedForPrint.includes(item.id))} onChange={handleSelectAllCurrent} />
+                  <input 
+                    type="checkbox" 
+                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer w-4 h-4 transition-all" 
+                    checked={items.length > 0 && items.every((item: any) => item.id && selectedForPrint.includes(item.id))} 
+                    onChange={handleSelectAllCurrent} 
+                  />
                 </th>
                 <th className="px-6 py-4 font-semibold uppercase tracking-wider">Merek & Informasi</th>
                 <th className="px-6 py-4 font-semibold uppercase tracking-wider">Nama Aset & Kategori</th>
@@ -111,109 +159,199 @@ export default function TabDaftarAset({ selectedForPrint, setSelectedForPrint, o
                 <th className="px-6 py-4 font-semibold uppercase tracking-wider text-center">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {loading && assets.length === 0 ? (
-                <tr><td colSpan={6} className="px-6 py-16 text-center text-slate-500"><Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto mb-3" /> Mencari data di server...</td></tr>
-              ) : assets.length === 0 ? (
-                <tr><td colSpan={6} className="px-6 py-16 text-center text-slate-500">Aset tidak ditemukan dalam pencarian.</td></tr>
-              ) : (
-                assets.map((asset: any) => {
-                  const hasReport = asset.unresolvedReportsCount > 0;
-                  return (
-                    <tr key={asset.id} className={`hover:bg-slate-50/80 transition-colors ${selectedForPrint.includes(asset.id!) ? 'bg-blue-50/30' : ''} ${hasReport ? 'bg-red-50/30' : ''}`}>
-                      <td className="px-4 py-4 text-center">
-                        <input type="checkbox" className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer w-4 h-4 transition-all" checked={selectedForPrint.includes(asset.id!)} onChange={() => handleToggleSelect(asset.id!)} />
-                      </td>
-                      <td className="px-6 py-4">
-                        <div onClick={() => onOpenDetail(asset)} className="flex items-center gap-3 cursor-pointer group" title="Klik untuk lihat detail">
-                          <div className="w-14 aspect-video shrink-0 bg-slate-100 rounded-lg border border-slate-200 overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:shadow-md">
-                            {asset.imageUrl ? <img src={asset.imageUrl} alt={asset.name} className="h-full w-full object-cover" /> : <ImageIcon className="text-slate-400" size={16} />}
-                          </div>
-                          <div>
-                            <div className="font-bold text-slate-800 flex items-center gap-2 group-hover:text-blue-600 transition-colors">
-                              {asset.brandType && asset.brandType !== '-' ? asset.brandType : 'Tanpa Merek'}
-                              {hasReport && <span title="Ada Laporan Publik!" className="flex"><AlertTriangle size={16} className="text-red-500 animate-pulse" /></span>}
-                            </div>
-                            <div className="font-mono text-[11px] text-slate-500 mt-1 flex items-center gap-2">
-                              <span className="bg-slate-100 px-2 py-0.5 rounded-md">{asset.inventoryNumber}</span>
-                              {asset.registerNumber && <span className="text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md font-bold">REG: {asset.registerNumber}</span>}
-                            </div>
-                          </div>
+            <tbody className="divide-y divide-slate-100 bg-white">
+              {items.map((asset: any) => {
+                const hasReport = asset.unresolvedReportsCount > 0;
+                return (
+                  <tr key={asset.id} className={`hover:bg-slate-50/80 transition-colors ${selectedForPrint.includes(asset.id!) ? 'bg-blue-50/30' : ''} ${hasReport ? 'bg-red-50/30' : ''}`}>
+                    <td className="px-4 py-4 text-center">
+                      <input 
+                        type="checkbox" 
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer w-4 h-4 transition-all" 
+                        checked={selectedForPrint.includes(asset.id!)} 
+                        onChange={() => handleToggleSelect(asset.id!)} 
+                      />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div onClick={() => onOpenDetail(asset)} className="flex items-center gap-3 cursor-pointer group" title="Klik untuk lihat detail">
+                        <div className="w-14 h-10 shrink-0 bg-slate-100 rounded-lg border border-slate-200 overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:shadow-xs">
+                          {asset.imageUrl ? <img src={asset.imageUrl} alt={asset.name} className="h-full w-full object-cover" /> : <ImageIcon className="text-slate-400" size={16} />}
                         </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div onClick={() => onOpenDetail(asset)} className="cursor-pointer group">
-                          <div className="text-slate-800 font-bold mb-1 group-hover:text-blue-600 transition-colors">{asset.name}</div>
-                          <div className="flex items-center gap-2 mb-1.5">
-                            <span className="text-[11px] text-slate-500 font-medium">{asset.category}</span>
-                            {asset.assetType && asset.assetType !== '-' && <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">{asset.assetType}</span>}
+                        <div>
+                          <div className="font-bold text-slate-800 flex items-center gap-2 group-hover:text-blue-600 transition-colors">
+                            {asset.brandType && asset.brandType !== '-' ? asset.brandType : 'Tanpa Merek'}
+                            {hasReport && <span title="Ada Laporan Publik!" className="flex"><AlertTriangle size={15} className="text-red-500 animate-pulse" /></span>}
                           </div>
-                          <div className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
-                            <MapPin size={12} className="text-blue-500" /> {asset.location}
+                          <div className="font-mono text-[11px] text-slate-500 mt-1 flex items-center gap-2">
+                            <span className="bg-slate-100 px-2 py-0.5 rounded-md">{asset.inventoryNumber}</span>
+                            {asset.registerNumber && <span className="text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md font-bold">REG: {asset.registerNumber}</span>}
                           </div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 space-y-2">
-                        {/* Soft Badges */}
-                        <div className="flex flex-col gap-1.5 items-start">
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold border ${asset.condition === 'Baik' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : asset.condition === 'Rusak Ringan' ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
-                            {asset.condition}
-                          </span>
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold border ${asset.status === 'Tersedia' ? 'bg-blue-50 text-blue-700 border-blue-100' : asset.status === 'Disewa' ? 'bg-purple-50 text-purple-700 border-purple-100' : 'bg-slate-50 text-slate-600 border-slate-200'}`}>
-                            {asset.status}
-                          </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div onClick={() => onOpenDetail(asset)} className="cursor-pointer group">
+                        <div className="text-slate-800 font-bold mb-1 group-hover:text-blue-600 transition-colors">{asset.name}</div>
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <span className="text-[11px] text-slate-500 font-medium">{asset.category}</span>
+                          {asset.assetType && asset.assetType !== '-' && <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">{asset.assetType}</span>}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                         {hasReport ? (
-                            <span className="text-xs font-bold text-red-600 bg-red-50 border border-red-100 px-3 py-1.5 rounded-lg">{asset.unresolvedReportsCount} Laporan</span>
-                         ) : (
-                            <span className="text-xs text-slate-400 font-medium italic">-</span>
-                         )}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <button onClick={() => onOpenDetail(asset)} className="text-slate-500 hover:text-blue-600 p-2 bg-white border border-slate-200 rounded-lg hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm" title="Lihat Detail & Laporan"><Eye size={16} /></button>
-                          <button onClick={() => onOpenQr(asset)} className="text-slate-500 hover:text-slate-700 p-2 bg-white border border-slate-200 rounded-lg hover:border-slate-300 hover:bg-slate-50 transition-all shadow-sm" title="QR Code Aset"><QrCode size={16} /></button>
-                          <button onClick={() => onOpenForm(asset)} className="text-blue-500 hover:text-blue-700 p-2 bg-white border border-slate-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all shadow-sm" title="Edit Aset"><Edit size={16} /></button>
+                        <div className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                          <MapPin size={12} className="text-blue-500" /> {asset.location}
                         </div>
-                      </td>
-                    </tr>
-                  )
-                })
-              )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 space-y-2">
+                      <div className="flex flex-col gap-1.5 items-start">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-bold border ${conditionColor(asset.condition)}`}>
+                          {asset.condition}
+                        </span>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-bold border ${statusColor(asset.status)}`}>
+                          {asset.status}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {hasReport ? (
+                        <span className="text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-2.5 py-1 rounded-md">
+                          {asset.unresolvedReportsCount} Laporan
+                        </span>
+                      ) : (
+                        <span className="text-xs text-slate-400 font-medium italic">-</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button onClick={() => onOpenDetail(asset)} className="text-slate-500 hover:text-blue-600 p-2 bg-white border border-slate-200 rounded-lg hover:border-blue-200 hover:bg-blue-50 transition-all shadow-xs" title="Lihat Detail & Laporan"><Eye size={15} /></button>
+                        <button onClick={() => onOpenQr(asset)} className="text-slate-500 hover:text-slate-700 p-2 bg-white border border-slate-200 rounded-lg hover:border-slate-300 hover:bg-slate-50 transition-all shadow-xs" title="QR Code Aset"><QrCode size={15} /></button>
+                        <button onClick={() => onOpenForm(asset)} className="text-blue-500 hover:text-blue-700 p-2 bg-white border border-slate-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all shadow-xs" title="Edit Aset"><Edit size={15} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
-        </div>
-        
-        {/* FOOTER PAGINATION */}
-        <div className="px-6 py-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between bg-slate-50/50 gap-4">
-          <span className="text-sm text-slate-500 font-medium">
-            Menampilkan <span className="font-bold text-slate-700">{totalHits}</span> aset
-          </span>
-          {totalPages > 1 && (
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
-                disabled={currentPage === 1 || loading}
-                className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 text-slate-600 shadow-sm transition-all"
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <span className="text-sm font-bold text-slate-700 px-3">
-                {currentPage} / {totalPages}
-              </span>
-              <button 
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
-                disabled={currentPage === totalPages || loading}
-                className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 text-slate-600 shadow-sm transition-all"
-              >
-                <ChevronRight size={16} />
-              </button>
+        )}
+        // MOBILE CARD VIEW
+        renderMobileCard={(asset: any) => {
+          const hasReport = asset.unresolvedReportsCount > 0;
+          const isSelected = selectedForPrint.includes(asset.id!);
+          return (
+            <div className="space-y-3">
+              {/* Header Card: Checkbox, Foto, Title, Merek */}
+              <div className="flex items-start gap-3">
+                <input 
+                  type="checkbox" 
+                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer w-4 h-4 mt-1 transition-all shrink-0" 
+                  checked={isSelected} 
+                  onChange={() => handleToggleSelect(asset.id!)} 
+                />
+                <div className="w-14 h-14 rounded-xl bg-slate-100 shrink-0 overflow-hidden border border-slate-200 flex items-center justify-center">
+                  {asset.imageUrl ? (
+                    <img src={asset.imageUrl} alt={asset.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <ImageIcon className="text-slate-400" size={18} />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                      {asset.category}
+                    </span>
+                    {hasReport && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-black text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded animate-pulse">
+                        <AlertTriangle className="w-3 h-3" /> {asset.unresolvedReportsCount} Laporan
+                      </span>
+                    )}
+                  </div>
+                  <h4 
+                    onClick={() => onOpenDetail(asset)}
+                    className="font-bold text-slate-800 text-sm mt-1 line-clamp-1 cursor-pointer hover:text-blue-600 transition-colors"
+                  >
+                    {asset.name}
+                  </h4>
+                  <p className="text-xs text-slate-500 font-mono mt-0.5">
+                    {asset.inventoryNumber}
+                  </p>
+                </div>
+              </div>
+
+              {/* Badges & Lokasi */}
+              <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
+                <div className="flex items-center gap-1.5 text-slate-500 text-[11px] truncate">
+                  <MapPin size={12} className="text-blue-500 shrink-0" />
+                  <span className="truncate">{asset.location || 'Kawasan STP'}</span>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${conditionColor(asset.condition)}`}>
+                    {asset.condition}
+                  </span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${statusColor(asset.status)}`}>
+                    {asset.status}
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-3 gap-2 pt-1">
+                <button
+                  onClick={() => onOpenDetail(asset)}
+                  className="flex items-center justify-center gap-1.5 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-xl border border-slate-200 transition-colors"
+                >
+                  <Eye className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Detail</span>
+                </button>
+                <button
+                  onClick={() => onOpenQr(asset)}
+                  className="flex items-center justify-center gap-1.5 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-xl border border-slate-200 transition-colors"
+                >
+                  <QrCode className="w-3.5 h-3.5 text-slate-500" />
+                  <span>QR Code</span>
+                </button>
+                <button
+                  onClick={() => onOpenForm(asset)}
+                  className="flex items-center justify-center gap-1.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-xl border border-blue-200 transition-colors"
+                >
+                  <Edit className="w-3.5 h-3.5" />
+                  <span>Ubah</span>
+                </button>
+              </div>
             </div>
-          )}
-        </div>
-      </div>
+          );
+        }}
+        // PAGINATION
+        pagination={
+          totalPages > 1 ? (
+            <div className="bg-white rounded-2xl border border-slate-200 p-3 sm:px-6 sm:py-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+              <span className="text-xs sm:text-sm text-slate-500 font-medium">
+                Menampilkan <span className="font-bold text-slate-700">{totalHits}</span> aset
+              </span>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                  disabled={currentPage === 1 || loading}
+                  className="p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 shadow-xs transition-all"
+                  title="Halaman Sebelumnya"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <span className="text-xs sm:text-sm font-bold text-slate-700 px-3">
+                  {currentPage} / {totalPages}
+                </span>
+                <button 
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                  disabled={currentPage === totalPages || loading}
+                  className="p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 shadow-xs transition-all"
+                  title="Halaman Berikutnya"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          ) : null
+        }
+      />
     </div>
   );
 }

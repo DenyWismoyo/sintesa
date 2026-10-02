@@ -1,16 +1,18 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Plus, Edit2, Trash2, Video, Search, Loader2, X, RefreshCw, UploadCloud } from "lucide-react";
+import { Plus, Edit2, Trash2, Video, Search, Loader2, X, RefreshCw, UploadCloud, Tag } from "lucide-react";
 import { KrenovaContent } from "@/types";
 import { krenovaService } from "@/services/krenova.service";
 import { storageService } from "@/services/storage.service";
 import { toast } from "sonner";
+import { AdminPageHeader, AdminFilterBar } from "@/components/admin";
 
 export default function ManajemenKrenovaPage() {
   const [contents, setContents] = useState<KrenovaContent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState("ALL");
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -155,94 +157,133 @@ export default function ManajemenKrenovaPage() {
   };
 
   // Filter Data
-  const filteredContents = contents.filter(c => 
-    c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.type.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredContents = contents.filter(c => {
+    const matchQuery = c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.tags?.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchType = typeFilter === "ALL" || c.type === typeFilter;
+    return matchQuery && matchType;
+  });
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto min-h-screen bg-slate-50">
+    <div className="w-full space-y-6 pb-20 animate-in fade-in duration-300">
       
-      {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
-            <Video className="w-6 h-6 text-indigo-600" /> Manajemen KRENOVA
-          </h1>
-          <p className="text-slate-500 mt-1">Kelola konten video untuk halaman Virtual Curator KRENOVA.</p>
-        </div>
-        <button 
-          onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-lg shadow-indigo-600/20"
-        >
-          <Plus className="w-5 h-5" /> Tambah Video
-        </button>
-      </div>
+      {/* STANDARDIZED HEADER */}
+      <AdminPageHeader
+        title="Manajemen KRENOVA"
+        description="Kelola konten video pitching inovasi untuk kurator virtual Solo Technopark."
+        badge={`${contents.length} Video`}
+        breadcrumbs={[
+          { label: 'Admin', href: '/dashboard' },
+          { label: 'Krenova' }
+        ]}
+        actions={
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              onClick={loadData}
+              className="min-h-[40px] px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold inline-flex items-center justify-center gap-1.5 transition-colors"
+              title="Refresh Data"
+            >
+              <RefreshCw className="w-4 h-4" /> Refresh
+            </button>
+            <button 
+              onClick={() => handleOpenModal()}
+              className="min-h-[40px] flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-colors shadow-sm shadow-indigo-200"
+            >
+              <Plus className="w-4 h-4" /> Tambah Video
+            </button>
+          </div>
+        }
+      />
 
-      {/* FILTER & SEARCH */}
-      <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-6 flex items-center gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-          <input 
-            type="text" 
-            placeholder="Cari judul atau tipe video..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-          />
-        </div>
-        <button onClick={loadData} className="p-2.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors" title="Refresh Data">
-          <RefreshCw className="w-5 h-5" />
-        </button>
-      </div>
+      {/* STANDARDIZED FILTER BAR */}
+      <AdminFilterBar
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Cari judul, tag, atau deskripsi video..."
+        filters={[
+          {
+            key: 'type',
+            label: 'Tipe Video',
+            value: typeFilter,
+            onChange: setTypeFilter,
+            options: [
+              { label: 'Semua Tipe', value: 'ALL' },
+              { label: 'Teaser', value: 'teaser' },
+              { label: 'Pitching', value: 'pitching' },
+              { label: 'Highlight', value: 'highlight' },
+            ]
+          }
+        ]}
+        activeCount={typeFilter !== 'ALL' ? 1 : 0}
+        onReset={() => {
+          setSearchQuery('');
+          setTypeFilter('ALL');
+        }}
+      />
 
       {/* CONTENT GRID */}
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-20">
+        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-slate-200 shadow-xs">
           <Loader2 className="w-10 h-10 text-indigo-500 animate-spin mb-4" />
-          <p className="text-slate-500 font-medium">Memuat data konten...</p>
+          <p className="text-slate-500 font-medium text-sm">Memuat data konten...</p>
         </div>
       ) : filteredContents.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200 border-dashed p-12 text-center">
+        <div className="bg-white rounded-3xl border border-slate-200 border-dashed p-12 text-center">
           <Video className="w-12 h-12 text-slate-300 mx-auto mb-4" />
           <h3 className="text-lg font-bold text-slate-700 mb-1">Belum ada konten KRENOVA</h3>
-          <p className="text-slate-500">Klik tombol "Tambah Video" untuk mulai mengunggah data.</p>
+          <p className="text-slate-500 text-sm">Klik tombol "Tambah Video" untuk mulai mengunggah data.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredContents.map((item) => (
-            <div key={item.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
-              <div className="aspect-video bg-slate-100 relative overflow-hidden">
+            <div key={item.id} className="bg-white rounded-3xl border border-slate-200/90 overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col group">
+              <div className="aspect-video bg-slate-100 relative overflow-hidden shrink-0">
                 {item.thumbnailUrl ? (
-                  <img src={item.thumbnailUrl} alt={item.title} className="w-full h-full object-cover" />
+                  <img src={item.thumbnailUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-slate-400">
                     <Video className="w-8 h-8 opacity-50" />
                   </div>
                 )}
-                <div className="absolute top-3 left-3 px-2.5 py-1 bg-black/60 backdrop-blur-sm rounded-lg text-white text-xs font-bold uppercase tracking-wider">
+                <div className="absolute top-3 left-3 px-2.5 py-1 bg-black/60 backdrop-blur-sm rounded-lg text-white text-[10px] font-black uppercase tracking-wider">
                   {item.type}
                 </div>
-                {/* Actions overlay */}
-                <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => handleOpenModal(item)} className="p-2 bg-white/90 hover:bg-white text-indigo-600 rounded-lg shadow-sm transition-colors">
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  <button onClick={() => item.id && handleDelete(item.id, item.videoUrl, item.thumbnailUrl)} className="p-2 bg-white/90 hover:bg-white text-rose-600 rounded-lg shadow-sm transition-colors">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
               </div>
-              <div className="p-5">
-                <h3 className="font-bold text-slate-900 line-clamp-1 mb-2">{item.title}</h3>
-                <p className="text-sm text-slate-500 line-clamp-2 mb-4">{item.description}</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {item.tags?.slice(0, 3).map((tag, idx) => (
-                    <span key={idx} className="px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded-md">#{tag}</span>
-                  ))}
-                  {item.tags && item.tags.length > 3 && (
-                    <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded-md">+{item.tags.length - 3}</span>
-                  )}
+              <div className="p-5 flex flex-col flex-1">
+                <h3 className="font-bold text-slate-900 text-base line-clamp-1 mb-1.5 group-hover:text-indigo-600 transition-colors">{item.title}</h3>
+                <p className="text-xs text-slate-500 line-clamp-2 mb-4 flex-1">{item.description}</p>
+                
+                {item.tags && item.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-4">
+                    {item.tags.slice(0, 3).map((tag, idx) => (
+                      <span key={idx} className="px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-md">#{tag}</span>
+                    ))}
+                    {item.tags.length > 3 && (
+                      <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-md">+{item.tags.length - 3}</span>
+                    )}
+                  </div>
+                )}
+
+                {/* Permanent Action Bar (Touch-friendly 40px) */}
+                <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-auto">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    {item.type}
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <button 
+                      onClick={() => handleOpenModal(item)} 
+                      className="min-h-[38px] px-3 bg-slate-50 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 rounded-xl border border-slate-200 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" /> Edit
+                    </button>
+                    <button 
+                      onClick={() => item.id && handleDelete(item.id, item.videoUrl, item.thumbnailUrl)} 
+                      className="min-h-[38px] px-3 bg-red-50/50 hover:bg-red-50 text-rose-600 rounded-xl border border-red-200 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Hapus
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

@@ -25,6 +25,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { AdminPageHeader, AdminFilterBar } from '@/components/admin';
 
 const CATEGORIES: ArticleCategory[] = [
   'Panduan Pelatihan',
@@ -456,92 +457,91 @@ export default function ManajemenArtikelPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto space-y-6">
+    <div className="w-full space-y-6 pb-20 animate-in fade-in duration-300">
       
-      {/* 1. Header & Quick Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="p-2 rounded-xl bg-amber-50 text-amber-600">
-              <Newspaper size={20} />
-            </span>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Manajemen Artikel & Warta</h1>
+      {/* 1. Standardized Header & Quick Actions */}
+      <AdminPageHeader
+        title="Manajemen Artikel & Warta"
+        description="Kelola publikasi berita kawasan, warta inovasi, dan panduan program pelatihan dengan Smart CTA terpadu."
+        badge={`${stats.total} Artikel`}
+        breadcrumbs={[
+          { label: 'Admin', href: '/dashboard' },
+          { label: 'Artikel & Warta' }
+        ]}
+        actions={
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Link 
+              href="/artikel" 
+              target="_blank" 
+              className="h-10 px-4 rounded-xl border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-xs font-bold inline-flex items-center justify-center gap-1.5 transition-colors flex-1 sm:flex-initial"
+            >
+              <ExternalLink size={14} /> Preview Publik
+            </Link>
+            <Button 
+              onClick={() => handleOpenModal()} 
+              className="h-10 px-5 rounded-xl bg-slate-900 hover:bg-amber-600 text-white font-bold text-xs inline-flex items-center justify-center gap-2 shadow-sm transition-all flex-1 sm:flex-initial"
+            >
+              <Plus size={16} /> Tulis Artikel
+            </Button>
           </div>
-          <p className="text-sm text-slate-500 font-normal">
-            Kelola publikasi berita kawasan, warta inovasi, dan panduan program pelatihan dengan Smart CTA terpadu.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2.5">
-          <Link 
-            href="/artikel" 
-            target="_blank" 
-            className="h-11 px-4 rounded-full border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-xs font-bold inline-flex items-center gap-1.5 transition-colors"
-          >
-            <ExternalLink size={14} /> Preview Publik
-          </Link>
-          <Button 
-            onClick={() => handleOpenModal()} 
-            className="h-11 px-5 rounded-full bg-slate-900 hover:bg-amber-500 hover:shadow-amber-500/20 text-white font-bold text-xs inline-flex items-center gap-2 shadow-sm transition-all"
-          >
-            <Plus size={16} /> Tulis Artikel Baru
-          </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* 2. Statistik Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs">
           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Total Artikel</span>
-          <p className="text-2xl sm:text-3xl font-black text-slate-900">{stats.total}</p>
+          <p className="text-xl sm:text-3xl font-black text-slate-900">{stats.total}</p>
         </div>
-        <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs">
           <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider block mb-1">Tayang (Published)</span>
-          <p className="text-2xl sm:text-3xl font-black text-emerald-600">{stats.published}</p>
+          <p className="text-xl sm:text-3xl font-black text-emerald-600">{stats.published}</p>
         </div>
-        <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs">
           <span className="text-[11px] font-bold text-amber-600 uppercase tracking-wider block mb-1">Draf Simpanan</span>
-          <p className="text-2xl sm:text-3xl font-black text-amber-600">{stats.drafts}</p>
+          <p className="text-xl sm:text-3xl font-black text-amber-600">{stats.drafts}</p>
         </div>
-        <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs">
           <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wider block mb-1">Total Pembaca</span>
-          <p className="text-2xl sm:text-3xl font-black text-blue-600">{stats.views.toLocaleString('id-ID')}</p>
+          <p className="text-xl sm:text-3xl font-black text-blue-600">{stats.views.toLocaleString('id-ID')}</p>
         </div>
       </div>
 
-      {/* 3. Filter & Search Controls */}
-      <div className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-center gap-3">
-        <div className="relative flex-1 w-full">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <Input 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Cari berdasarkan judul, kategori, atau penulis..."
-            className="pl-10 h-11 bg-slate-50 border-0 rounded-full text-xs font-medium"
-          />
-        </div>
-
-        <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto no-scrollbar">
-          <select 
-            value={selectedCategory} 
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="h-11 px-4 bg-slate-50 rounded-full text-xs font-bold text-slate-700 border-0 outline-none cursor-pointer"
-          >
-            <option value="Semua">Semua Kategori</option>
-            {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-          </select>
-
-          <select 
-            value={selectedStatus} 
-            onChange={(e) => setSelectedStatus(e.target.value as any)}
-            className="h-11 px-4 bg-slate-50 rounded-full text-xs font-bold text-slate-700 border-0 outline-none cursor-pointer"
-          >
-            <option value="ALL">Semua Status</option>
-            <option value="PUBLISHED">Tayang (Published)</option>
-            <option value="DRAFT">Draf (Draft)</option>
-          </select>
-        </div>
-      </div>
+      {/* 3. Standardized Filter Bar */}
+      <AdminFilterBar
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Cari judul, kategori, atau penulis..."
+        filters={[
+          {
+            key: 'category',
+            label: 'Kategori',
+            value: selectedCategory,
+            onChange: setSelectedCategory,
+            options: [
+              { label: 'Semua Kategori', value: 'Semua' },
+              ...CATEGORIES.map(cat => ({ label: cat, value: cat }))
+            ]
+          },
+          {
+            key: 'status',
+            label: 'Status',
+            value: selectedStatus,
+            onChange: (val) => setSelectedStatus(val as any),
+            options: [
+              { label: 'Semua Status', value: 'ALL' },
+              { label: 'Tayang (Published)', value: 'PUBLISHED' },
+              { label: 'Draf (Draft)', value: 'DRAFT' },
+            ]
+          }
+        ]}
+        activeCount={(selectedCategory !== 'Semua' ? 1 : 0) + (selectedStatus !== 'ALL' ? 1 : 0)}
+        onReset={() => {
+          setSearchTerm('');
+          setSelectedCategory('Semua');
+          setSelectedStatus('ALL');
+        }}
+      />
 
       {/* 4. Daftar Artikel (Card Grid Modern & Borderless) */}
       {loading ? (
@@ -631,28 +631,28 @@ export default function ManajemenArtikelPage() {
                       <span>{article.authorName.split(' ')[0]}</span>
                     </div>
 
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5">
                       <Link 
                         href={`/artikel/${article.id}`} 
                         target="_blank"
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                        className="min-w-[38px] min-h-[38px] rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors shadow-xs"
                         title="Lihat Tampilan Publik"
                       >
-                        <ExternalLink size={14} />
+                        <ExternalLink size={15} />
                       </Link>
                       <button 
                         onClick={() => handleOpenModal(article)}
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-slate-600 hover:text-amber-600 hover:bg-amber-50 transition-colors"
+                        className="min-w-[38px] min-h-[38px] rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:text-amber-600 hover:bg-amber-50 hover:border-amber-200 transition-colors shadow-xs"
                         title="Edit Artikel"
                       >
-                        <Edit3 size={14} />
+                        <Edit3 size={15} />
                       </button>
                       <button 
                         onClick={() => setDeleteConfirmId(article.id || null)}
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                        className="min-w-[38px] min-h-[38px] rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-colors shadow-xs"
                         title="Hapus Artikel"
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={15} />
                       </button>
                     </div>
                   </div>

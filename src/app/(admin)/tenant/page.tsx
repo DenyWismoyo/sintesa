@@ -16,7 +16,8 @@ import ModalReviewTenant from './components/ModalReviewTenant';
 import ModalFormInvoice from '../billing/component/ModalFormInvoice';
 import ModalInvoiceDetail from '../billing/component/ModalInvoiceDetail';
 
-import { Building2, KanbanSquare, Network, Receipt, ShieldCheck, UserCheck } from 'lucide-react'; 
+import { Building2, KanbanSquare, Network, Receipt, ShieldCheck, UserCheck, Plus } from 'lucide-react'; 
+import { AdminPageHeader } from '@/components/admin'; 
 
 // Import Custom Hooks
 import { useTenants } from '@/hooks/useTenants';
@@ -138,45 +139,48 @@ export default function TenantAdminPage() {
   return (
     <div className="space-y-6 pb-24 animate-in fade-in duration-300">
       
-      {/* Header & Navigasi Tab */}
-      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Manajemen Tenant & UKM</h1>
-          <p className="text-sm text-slate-500 mt-1">Kelola direktori, progres inkubasi, dan kurasi produk UKM.</p>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
-          <button onClick={handleOpenAdd} className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-blue-200 transition-all shrink-0">
-            + Tambah Tenant
+      {/* 1. ADMIN PAGE HEADER */}
+      <AdminPageHeader
+        title="Manajemen Tenant & Inkubasi"
+        subtitle="Kelola direktori startup binaan, validasi pendaftar, progres inkubasi, dan kurasi produk UKM."
+        badge={`${allTenants.length} Tenant Terdaftar`}
+        breadcrumbs={[{ label: 'Inkubasi Tenant' }]}
+        actions={
+          <button 
+            onClick={handleOpenAdd} 
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-xs shadow-blue-200 transition-all shrink-0"
+          >
+            <Plus size={16} />
+            <span>Tambah Tenant</span>
+          </button>
+        }
+      >
+        {/* NAVIGASI PILL TAB */}
+        <div className="flex bg-slate-100/80 p-1.5 rounded-xl overflow-x-auto w-full xl:w-auto hide-scrollbar">
+          <button onClick={() => setActiveTab('validasi')} className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap relative ${activeTab === 'validasi' ? 'bg-white text-amber-600 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
+            <UserCheck size={16} /> Validasi 
+            {pendingTenantsCount > 0 && (
+              <span className="bg-amber-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center ml-1">{pendingTenantsCount}</span>
+            )}
           </button>
 
-          <div className="flex bg-slate-100/80 p-1.5 rounded-xl overflow-x-auto w-full xl:w-auto hide-scrollbar">
-            
-            <button onClick={() => setActiveTab('validasi')} className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap relative ${activeTab === 'validasi' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
-              <UserCheck size={16} /> Validasi 
-              {pendingTenantsCount > 0 && (
-                <span className="bg-amber-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center ml-1">{pendingTenantsCount}</span>
-              )}
-            </button>
-
-            <button onClick={() => setActiveTab('direktori')} className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap ${activeTab === 'direktori' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
-              <Building2 size={16} /> Direktori
-            </button>
-            <button onClick={() => setActiveTab('kanban')} className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap ${activeTab === 'kanban' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
-              <KanbanSquare size={16} /> Kanban
-            </button>
-            <button onClick={() => setActiveTab('matching')} className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap ${activeTab === 'matching' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
-              <Network size={16} /> Matching
-            </button>
-            <button onClick={() => setActiveTab('kurasi')} className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap ${activeTab === 'kurasi' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
-              <ShieldCheck size={16} /> Kurasi UKM
-            </button>
-            <button onClick={() => setActiveTab('tagihan')} className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap ${activeTab === 'tagihan' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
-              <Receipt size={16} /> Tagihan
-            </button>
-          </div>
+          <button onClick={() => setActiveTab('direktori')} className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${activeTab === 'direktori' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
+            <Building2 size={16} /> Direktori
+          </button>
+          <button onClick={() => setActiveTab('kanban')} className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${activeTab === 'kanban' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
+            <KanbanSquare size={16} /> Kanban
+          </button>
+          <button onClick={() => setActiveTab('matching')} className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${activeTab === 'matching' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
+            <Network size={16} /> Matching
+          </button>
+          <button onClick={() => setActiveTab('kurasi')} className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${activeTab === 'kurasi' ? 'bg-white text-emerald-600 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
+            <ShieldCheck size={16} /> Kurasi UKM
+          </button>
+          <button onClick={() => setActiveTab('tagihan')} className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${activeTab === 'tagihan' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
+            <Receipt size={16} /> Tagihan
+          </button>
         </div>
-      </div>
+      </AdminPageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCardTenant title="Menunggu Validasi" value={pendingTenantsCount} icon={<UserCheck size={24} />} colorClass="bg-amber-50 text-amber-600" />

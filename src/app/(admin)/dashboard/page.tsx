@@ -11,6 +11,7 @@ import {
   Filter, TrendingUp, BarChart3, Bell, PackageSearch, UserPlus, 
   BookOpen, Building2, Wrench, Rocket, Layers
 } from 'lucide-react';
+import { AdminPageHeader } from '@/components/admin';
 
 const MONTHS = [
   "Januari", "Februari", "Maret", "April", "Mei", "Juni",
@@ -104,34 +105,40 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6 pb-10 animate-in fade-in">
       
-      {/* HEADER & FILTER */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight">Command Center</h1>
-          <p className="text-slate-500 mt-1.5 font-medium">
-            Pusat pantauan operasional & ekosistem BLUD. Menampilkan data <span className="font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">{MONTHS[selectedMonth]} {selectedYear}</span>
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3 bg-white p-2 rounded-2xl shadow-sm border border-slate-200 shrink-0">
-          <Filter size={18} className="text-slate-400 ml-3" />
-          <select 
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(Number(e.target.value))}
-            className="bg-transparent border-none text-sm font-bold focus:ring-0 text-slate-700 cursor-pointer outline-none"
-          >
-            {MONTHS.map((m, i) => <option key={m} value={i}>{m}</option>)}
-          </select>
-          <div className="w-px h-6 bg-slate-200"></div>
-          <select 
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="bg-transparent border-none text-sm font-bold focus:ring-0 text-slate-700 cursor-pointer outline-none pr-3"
-          >
-            {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
-          </select>
-        </div>
-      </div>
+      {/* 1. ADMIN PAGE HEADER & FILTER */}
+      <AdminPageHeader
+        title="Command Center"
+        subtitle={
+          <span>
+            Pusat pantauan operasional & ekosistem BLUD. Menampilkan data{' '}
+            <span className="font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">
+              {MONTHS[selectedMonth]} {selectedYear}
+            </span>
+          </span>
+        }
+        badge="Live Metrics"
+        breadcrumbs={[{ label: 'Dashboard' }]}
+        actions={
+          <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-2xl shadow-xs border border-slate-200">
+            <Filter size={16} className="text-slate-400" />
+            <select 
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(Number(e.target.value))}
+              className="bg-transparent border-none text-xs sm:text-sm font-bold focus:ring-0 text-slate-700 cursor-pointer outline-none"
+            >
+              {MONTHS.map((m, i) => <option key={m} value={i}>{m}</option>)}
+            </select>
+            <div className="w-px h-5 bg-slate-200"></div>
+            <select 
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+              className="bg-transparent border-none text-xs sm:text-sm font-bold focus:ring-0 text-slate-700 cursor-pointer outline-none pr-1"
+            >
+              {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
+            </select>
+          </div>
+        }
+      />
 
       {loadingStats ? (
         <div className="flex flex-col items-center justify-center py-32 bg-white rounded-3xl border border-slate-200 shadow-sm">

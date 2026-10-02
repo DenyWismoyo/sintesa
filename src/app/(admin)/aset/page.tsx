@@ -13,6 +13,7 @@ import { assetService } from '@/services/asset.service';
 import StatCard from './components/StatCard';
 import TabDaftarAset from './components/TabDaftarAset';
 import TabLaporanPublik from './components/TabLaporanPublik';
+import { AdminPageHeader } from '@/components/admin';
 import ModalDetailAset from './components/ModalDetailAset';
 import ModalFormAset from './components/ModalFormAset';
 import ModalQrCode from './components/ModalQrCode';
@@ -142,25 +143,39 @@ export default function AsetPage() {
   return (
     <>
       <div className="space-y-6 print:hidden pb-24">
-        {/* HEADER SECTION - Minimalist styling */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800">Manajemen Aset & Pemeliharaan</h1>
-            <p className="text-sm text-slate-500 mt-1">Sistem Pendataan Terpadu secara Real-time.</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <input type="file" accept=".xlsx, .xls" ref={fileInputRef} onChange={handleImportExcel} className="hidden" />
-            <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-xl text-sm font-semibold transition-colors shadow-sm">
-              <Upload size={16} className="text-slate-500" /> Import
-            </button>
-            <button onClick={exportToExcel} className="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-xl text-sm font-semibold transition-colors shadow-sm">
-              <Download size={16} className="text-emerald-500" /> Export
-            </button>
-            <button onClick={() => setFormAsset('NEW')} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-sm font-bold transition-colors shadow-sm shadow-blue-200">
-              <Plus size={18} /> Tambah Aset
-            </button>
-          </div>
-        </div>
+        {/* 1. ADMIN PAGE HEADER */}
+        <AdminPageHeader
+          title="Manajemen Aset & Fasilitas"
+          subtitle="Sistem pendataan inventaris fisik, utilisasi ruangan, dan pelaporan pemeliharaan real-time."
+          badge={`${assets.length} Item Terdaftar`}
+          breadcrumbs={[{ label: 'Manajemen Aset' }]}
+          actions={
+            <div className="flex items-center flex-wrap gap-2 w-full sm:w-auto">
+              <input type="file" accept=".xlsx, .xls" ref={fileInputRef} onChange={handleImportExcel} className="hidden" />
+              <button 
+                onClick={() => fileInputRef.current?.click()} 
+                className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-colors shadow-xs"
+              >
+                <Upload size={16} className="text-slate-500" />
+                <span>Import Excel</span>
+              </button>
+              <button 
+                onClick={exportToExcel} 
+                className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-colors shadow-xs"
+              >
+                <Download size={16} className="text-emerald-600" />
+                <span>Export Excel</span>
+              </button>
+              <button 
+                onClick={() => setFormAsset('NEW')} 
+                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-colors shadow-xs shadow-blue-200"
+              >
+                <Plus size={16} />
+                <span>Tambah Aset</span>
+              </button>
+            </div>
+          }
+        />
 
         {/* STATS SECTION */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

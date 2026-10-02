@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import TabDaftarKatalog from './components/TabDaftarKatalog';
 import ModalFormProduct from './components/ModalFormProduct';
 import { Tag, Settings, Info } from 'lucide-react';
+import { AdminPageHeader } from '@/components/admin';
 
 // Import Custom Hook Katalog
 import { useCatalog } from '@/hooks/useCatalog';
@@ -109,35 +110,33 @@ export default function KatalogAdminPage() {
   return (
     <div className="w-full space-y-6 pb-24 animate-in fade-in duration-300"> 
       
-      {/* Header Halaman */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Manajemen E-Katalog</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Kelola produk, layanan, ruangan, dan fasilitas untuk disewa publik.
-          </p>
-        </div>
-        
+      {/* 1. ADMIN PAGE HEADER */}
+      <AdminPageHeader
+        title="Manajemen E-Katalog"
+        subtitle="Kelola produk, layanan, ruangan, dan fasilitas untuk disewa atau dibeli publik."
+        badge={`${products.length} Produk Terdaftar`}
+        breadcrumbs={[{ label: 'Katalog Produk' }]}
+      >
         {/* Navigasi Pill Tab */}
         <div className="flex bg-slate-100/80 p-1.5 rounded-xl overflow-x-auto w-full md:w-auto hide-scrollbar">
           <button
             onClick={() => setActiveTab('daftar')}
-            className={`flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
-              activeTab === 'daftar' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+            className={`flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
+              activeTab === 'daftar' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
             }`}
           >
             <Tag size={16} /> Daftar Produk
           </button>
           <button
             onClick={() => setActiveTab('pengaturan')}
-            className={`flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
-              activeTab === 'pengaturan' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+            className={`flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
+              activeTab === 'pengaturan' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
             }`}
           >
             <Settings size={16} /> Pengaturan Katalog
           </button>
         </div>
-      </div>
+      </AdminPageHeader>
 
       {/* Banner Info - Clean Styling */}
       <div className="bg-white border border-slate-200 rounded-2xl p-5 flex items-start gap-4 shadow-sm">

@@ -3,7 +3,9 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 import { useAuth } from '@/lib/AuthContext';
 import { hasAccess, isInternalStaff, ROLE_LABELS } from '@/config/roles';
 import { 
@@ -72,6 +74,7 @@ const MENU_GROUPS = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { role, loading } = useAuth(); // AMBIL DATA ROLE USER
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -80,6 +83,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (href === '/dashboard' && pathname === '/dashboard') return true;
     if (href !== '/dashboard' && pathname.startsWith(href)) return true;
     return false;
+  };
+
+  const currentMenu = MENU_GROUPS.flatMap(g => g.items).find(item => isActive(item.href));
+
+  const handleLogout = async () => {
+    if (window.confirm("Apakah Anda yakin ingin keluar dari sistem admin?")) {
+      try {
+        await signOut(auth);
+        router.push('/login');
+      } catch (err) {
+        console.error("Gagal logout:", err);
+      }
+    }
   };
 
   // Komponen Navigasi Render (Memfilter menu berdasarkan Hak Akses)
@@ -230,7 +246,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
           </button>
           
-          <button className="w-10 h-10 rounded-xl flex items-center justify-center text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors group relative">
+          <button 
+            onClick={handleLogout}
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors group relative"
+            title="Keluar dari Sistem"
+          >
             <LogOut className="w-5 h-5" />
             <div className="absolute left-14 hidden group-hover:flex items-center z-50 animate-in slide-in-from-left-2 duration-200">
               <div className="w-0 h-0 border-y-[6px] border-y-transparent border-r-[6px] border-r-red-600" />
@@ -245,26 +265,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* 2. AREA UTAMA */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         
-        <header className="md:hidden h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 z-20 flex-shrink-0">
+        <header className="md:hidden h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 z-20 shrink-0">
           <div className="flex items-center gap-3">
              <Link href="/" title="Beranda Katalog STP">
                <Image src="/icon-192x192.png" alt="Solo Technopark" width={32} height={32} className="w-8 h-8 object-contain rounded-lg shadow-xs" priority />
              </Link>
              <div className="flex flex-col">
-               <span className="font-bold text-slate-800 leading-tight">Admin Panel</span>
-               <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">{ROLE_LABELS[role || '']}</span>
+               <span className="font-bold text-slate-800 text-sm leading-tight">
+                 {currentMenu?.name || 'Admin Panel'}
+               </span>
+               <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">
+                 {ROLE_LABELS[role || ''] || role}
+               </span>
              </div>
           </div>
           <button 
             onClick={() => setIsMobileMenuOpen(true)}
-            className="p-2 -mr-2 text-slate-600 hover:bg-slate-100 rounded-lg"
+            className="p-2 -mr-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+            aria-label="Buka Menu Navigasi"
           >
             <Menu className="w-6 h-6" />
           </button>
         </header>
 
         <main className="flex-1 overflow-y-auto relative scroll-smooth">
-          <div className="min-h-full p-6 md:p-8">
+          <div className="min-h-full p-3.5 sm:p-5 md:p-8">
              {/* Karena pengecekan di tahap atas sudah selesai, komponen halaman langsung diload di sini secara aman */}
              {children}
           </div>
@@ -275,15 +300,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {isMobileMenuOpen && (
         <div className="md:hidden fixed inset-0 z-50 flex">
           <div 
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
             onClick={() => setIsMobileMenuOpen(false)}
           />
           <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white shadow-2xl animate-in slide-in-from-left duration-300">
             <div className="h-16 border-b border-slate-100 flex items-center justify-between px-4">
-              <span className="font-bold text-slate-800">Menu Navigasi</span>
+              <span className="font-bold text-slate-800 text-sm">Menu Navigasi Admin</span>
               <button 
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg"
+                className="p-2 text-slate-500 hover:bg-slate-100 rounded-xl transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -293,14 +318,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <NavigationItems isMobile={true} />
             </div>
 
-            {/* AREA FOOTER MOBILE DENGAN TOMBOL HOME BARU */}
+            {/* AREA FOOTER MOBILE DENGAN TOMBOL HOME & LOGOUT */}
             <div className="p-4 border-t border-slate-100 flex flex-col gap-2">
-               <Link href="/" className="flex items-center gap-3 w-full px-4 py-3 text-slate-700 hover:bg-slate-100 rounded-xl font-medium transition-colors">
-                  <Home className="w-5 h-5" />
+               <Link 
+                 href="/" 
+                 onClick={() => setIsMobileMenuOpen(false)}
+                 className="flex items-center gap-3 w-full px-4 py-2.5 text-slate-700 hover:bg-slate-100 rounded-xl font-medium text-sm transition-colors"
+               >
+                  <Home className="w-4 h-4 text-slate-500" />
                   Kembali ke Beranda
                </Link>
-               <button className="flex items-center gap-3 w-full px-4 py-3 text-red-600 hover:bg-red-50 rounded-xl font-medium transition-colors">
-                  <LogOut className="w-5 h-5" />
+               <button 
+                 onClick={() => {
+                   setIsMobileMenuOpen(false);
+                   handleLogout();
+                 }}
+                 className="flex items-center gap-3 w-full px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-xl font-bold text-sm transition-colors"
+               >
+                  <LogOut className="w-4 h-4" />
                   Keluar dari Sistem
                </button>
             </div>

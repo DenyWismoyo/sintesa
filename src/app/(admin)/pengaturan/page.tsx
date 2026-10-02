@@ -7,6 +7,7 @@ import TabFinanceSettings from './components/TabFinanceSettings';
 import TabKeamanan from './components/TabKeamanan';
 import { useAuth } from '@/lib/AuthContext';
 import { canPerformAction, PERMISSIONS } from '@/config/roles';
+import { AdminPageHeader } from '@/components/admin';
 
 export default function PengaturanPage() {
   const { role } = useAuth();
@@ -36,26 +37,31 @@ export default function PengaturanPage() {
   // Jika user sama sekali tidak punya akses ke menu pengaturan apapun
   if (visibleTabs.length === 0) {
     return (
-      <div className="p-6 md:p-8 space-y-6 bg-slate-50/50 min-h-screen flex items-center justify-center">
-        <div className="bg-white p-10 rounded-3xl shadow-sm border border-slate-200 text-center max-w-md">
-          <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
-            <AlertTriangle className="w-10 h-10" />
+      <div className="w-full min-h-[60vh] flex items-center justify-center p-4">
+        <div className="bg-white p-8 sm:p-10 rounded-3xl shadow-sm border border-slate-200 text-center max-w-md">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5">
+            <AlertTriangle className="w-8 h-8 sm:w-10 sm:h-10" />
           </div>
-          <h2 className="text-xl font-black text-slate-800 mb-2">Akses Terbatas</h2>
-          <p className="text-slate-500 text-sm">Anda tidak memiliki hak akses (Permissions) untuk melihat atau mengubah modul pengaturan sistem.</p>
+          <h2 className="text-lg sm:text-xl font-black text-slate-800 mb-2">Akses Terbatas</h2>
+          <p className="text-slate-500 text-xs sm:text-sm">Anda tidak memiliki hak akses (Permissions) untuk melihat atau mengubah modul pengaturan sistem.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 md:p-8 space-y-6 bg-slate-50/50 min-h-screen">
+    <div className="w-full space-y-6 pb-20 animate-in fade-in duration-300">
       
-      {/* Header Halaman Pengaturan */}
-      <div>
-        <h1 className="text-3xl font-black text-slate-800 tracking-tight">Pengaturan Sistem</h1>
-        <p className="text-slate-500 mt-1 font-medium">Kelola profil instansi, preferensi keuangan, dan pengaturan global aplikasi Anda di sini.</p>
-      </div>
+      {/* Header Halaman Pengaturan Terstandarisasi */}
+      <AdminPageHeader
+        title="Pengaturan Sistem"
+        description="Kelola profil instansi, preferensi keuangan BAS, dan perizinan hak akses (RBAC)."
+        badge={`${visibleTabs.length} Modul Aktif`}
+        breadcrumbs={[
+          { label: 'Admin', href: '/dashboard' },
+          { label: 'Pengaturan' }
+        ]}
+      />
 
       <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
         
@@ -65,20 +71,20 @@ export default function PengaturanPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-7 py-4 text-sm font-bold transition-all border-b-2 whitespace-nowrap ${
+              className={`flex items-center gap-2 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-bold transition-all border-b-2 whitespace-nowrap ${
                 activeTab === tab.id
-                  ? 'text-blue-600 border-blue-600 bg-blue-50/30'
+                  ? 'text-blue-600 border-blue-600 bg-blue-50/40'
                   : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 border-transparent'
               }`}
             >
-              <tab.icon size={18} className={activeTab === tab.id ? 'text-blue-600' : 'text-slate-400'} /> 
+              <tab.icon size={16} className={activeTab === tab.id ? 'text-blue-600' : 'text-slate-400'} /> 
               {tab.label}
             </button>
           ))}
         </div>
 
         {/* Konten Area Tab */}
-        <div className="p-6 md:p-8">
+        <div className="p-4 sm:p-6 md:p-8">
           {activeTab === 'Profil' && <TabProfilInstansi />}
           {activeTab === 'Keuangan' && <TabFinanceSettings />}
           {activeTab === 'Keamanan' && <TabKeamanan />}
