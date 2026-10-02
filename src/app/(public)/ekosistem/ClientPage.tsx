@@ -2,11 +2,13 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { Cpu, MessageSquare } from 'lucide-react';
+import { Cpu, MessageSquare, Building2 } from 'lucide-react';
 import { useTenants } from '@/hooks/useTenants';
 import { useHubThreads } from '@/hooks/useHub';
 
 import SectionContainer from '@/components/ui/SectionContainer';
+import PageHero from '@/components/ui/PageHero';
+import PillTabs from '@/components/ui/PillTabs';
 import EkosistemHero, { EkosistemView } from './components/EkosistemHero';
 import TenantFilters from './components/TenantFilters';
 import TenantCard from './components/TenantCard';
@@ -54,17 +56,37 @@ export default function EkosistemSmartHubPage() {
   });
 
   return (
-    <SectionContainer accent="indigo" width="wide" containerClassName="px-0 sm:px-0 lg:px-0 max-w-full">
+    <SectionContainer accent="indigo">
       {/* 1. Modal Buat Thread */}
       <CreateThreadModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
       />
 
-      {/* 2. Page Hero & View Toggle (Breadcrumb + Title + Tab Switcher) */}
-      <EkosistemHero activeView={activeView} onViewChange={setActiveView} />
+      {/* 2. Standardized Page Hero */}
+      <EkosistemHero 
+        activeView={activeView}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        isLoading={tenantsLoading}
+        onOpenCreateThread={() => setIsCreateModalOpen(true)}
+      />
 
-      {/* 3. Main Content View Area */}
+      {/* 3. Navigation Switcher Tabs (Konsisten dengan menu Fasilitas & E-Katalog) */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <PillTabs
+          tabs={[
+            { key: 'DIRECTORY', label: 'Direktori Profil', icon: <Building2 size={15} /> },
+            { key: 'HUB', label: 'Bursa Kolaborasi', icon: <MessageSquare size={15} /> },
+          ]}
+          active={activeView}
+          onChange={(v) => setActiveView(v as EkosistemView)}
+          layoutId="ekosistem-view-switcher"
+          ariaLabel="Navigasi Ekosistem"
+        />
+      </div>
+
+      {/* 4. Main Content View Area */}
       <main className="w-full">
         <AnimatePresence mode="wait">
           {/* ======================================================== */}
@@ -79,17 +101,15 @@ export default function EkosistemSmartHubPage() {
               exit="exit"
               className="w-full"
             >
-              {/* Unified Sticky Filter Bar */}
+              {/* Unified Segment Filter Bar */}
               <TenantFilters
                 activeSegment={activeSegment}
                 onSegmentChange={setActiveSegment}
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
                 totalResults={filteredTenants.length}
               />
 
               {/* Tenants Grid */}
-              <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-10 pt-6">
+              <div className="pt-2">
                 {tenantsLoading && (
                   <div className="public-grid-4">
                     {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
@@ -163,7 +183,7 @@ export default function EkosistemSmartHubPage() {
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-10 pt-6 sm:pt-8"
+              className="w-full pt-2"
             >
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
                 {/* Sidebar Filters & Action Card */}
