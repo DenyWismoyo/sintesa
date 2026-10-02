@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X, ArrowUpRight, LogOut, User, ShieldCheck, Building2 } from 'lucide-react';
+import { Menu, X, ArrowUpRight, LogOut, User, ShieldCheck, Building2, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { useAuth } from '@/lib/AuthContext';
 import { auth } from '@/lib/firebase';
@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 // --- IMPORT KONFIGURASI ROLE ---
 import { isInternalStaff, APP_ROLES } from '@/config/roles';
 import { AffiliateTracker } from '@/components/common/AffiliateTracker';
+import { FloatingAIButton } from '@/components/common/FloatingAIButton';
 import { Suspense } from 'react';
 
 const NAV_MENUS = [
@@ -28,6 +29,7 @@ const NAV_MENUS = [
   { name: 'Artikel', path: '/artikel' },
   { name: 'Event', path: '/event' },
   { name: 'Ruang Belajar', path: '/ruang-belajar' }, 
+  { name: 'Tentang', path: '/tentang' },
   { name: 'FAQ', path: '/faq' },
 ];
 
@@ -130,11 +132,18 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
     return (
       <div className={`flex ${isMobile ? 'flex-col gap-2.5 w-full mt-6' : 'items-center gap-2'}`}>
         <Link 
+          href="/portal" 
+          onClick={() => setIsMobileMenuOpen(false)} 
+          className={`${isMobile ? 'w-full h-12 text-sm bg-blue-50 text-blue-700 border-blue-200' : 'px-4 py-2 h-9 text-xs xl:text-sm bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200/80 shadow-2xs'} border rounded-full font-bold transition-all flex items-center justify-center gap-1.5`}
+        >
+          <Sparkles size={14} className="text-blue-600" /> Portal Saya
+        </Link>
+        <Link 
           href="/profil" 
           onClick={() => setIsMobileMenuOpen(false)} 
-          className={`${isMobile ? 'w-full h-12 text-sm bg-slate-50 border-slate-200 text-slate-700' : 'px-4 py-2 h-9 text-xs xl:text-sm bg-white/80 border-slate-200/60 text-slate-700 hover:bg-slate-50 shadow-sm'} border rounded-full font-bold transition-all flex items-center justify-center gap-2`}
+          className={`${isMobile ? 'w-full h-12 text-sm bg-slate-50 border-slate-200 text-slate-700' : 'px-4 py-2 h-9 text-xs xl:text-sm bg-white/80 border-slate-200/60 text-slate-700 hover:bg-slate-50 shadow-sm'} border rounded-full font-bold transition-all flex items-center justify-center gap-1.5`}
         >
-          <User size={16} /> Profil
+          <User size={15} /> Profil
         </Link>
         <button 
           onClick={handleLogout} 
@@ -291,6 +300,9 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         <Suspense fallback={null}><AffiliateTracker /></Suspense>
         {children}
       </main>
+
+      {/* Floating Krenova AI Assistant Button */}
+      <FloatingAIButton />
 
     </div>
   );
