@@ -90,37 +90,37 @@ export default function DashboardPage() {
       animate="show" 
       className="space-y-6"
     >
-      {/* Hero ASN Welcome Banner */}
-      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-none sm:rounded-3xl border-x-0 sm:border border-emerald-700/50 bg-gradient-to-r from-emerald-800 via-teal-800 to-slate-900 p-5 sm:p-6 md:p-8 text-white shadow-none sm:shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
-        <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
+      {/* Hero Welcome Banner Techno Sign */}
+      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-emerald-800/40 bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 p-5 sm:p-6 md:p-8 text-white shadow-md shadow-emerald-950/20">
+        <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 text-xs font-medium">
               <Building className="w-3.5 h-3.5 text-emerald-300" />
-              {user?.instansi || "Perusahaan XYZ - Kantor Pusat"}
+              {user?.instansi || "UPTD KST Solo Technopark"}
             </div>
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-              Selamat Bertugas, {user?.nama || "Pegawai ASN"}
+              Selamat Bertugas, {user?.nama || "Pegawai Solo Technopark"}
             </h1>
             <p className="text-emerald-100/80 text-xs md:text-sm leading-relaxed">
-              {user?.jabatan} • NIP: {user?.nip} • Golongan {user?.golongan}
+              {user?.jabatan || "Pegawai"} • NIP: {user?.nip || "-"} • {user?.departmentName || "Solo Technopark"}
             </p>
           </div>
 
           <div className="flex w-full md:w-auto gap-2.5 pt-1 md:pt-0">
             <Link href="/presensi/scan" className="flex-1 md:flex-initial">
-              <Button className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-xs h-10 px-5 shadow-md">
+              <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs h-10 px-5 shadow-sm rounded-xl">
                 <ClockCheck className="w-4 h-4 mr-1.5" />
-                Presensi
+                Presensi Sekarang
               </Button>
             </Link>
             <Link href="/presensi/laporan" className="flex-1 md:flex-initial">
               <Button
                 variant="outline"
-                className="w-full bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs h-10 px-5"
+                className="w-full bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs h-10 px-5 rounded-xl"
               >
                 <FileSpreadsheet className="w-4 h-4 mr-1.5" />
-                LKH Harian
+                Logbook Harian
               </Button>
             </Link>
           </div>
@@ -133,22 +133,22 @@ export default function DashboardPage() {
         <QuickPresensiWidget />
 
         {/* Card Laporan Kegiatan Harian (LKH) Hari Ini */}
-        <Card className="card-interactive">
+        <Card className="bg-white border border-slate-200/80 shadow-xs rounded-2xl overflow-hidden">
           <CardHeader className="pb-3 flex flex-row items-center justify-between">
             <div>
               <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <FileSpreadsheet className="w-5 h-5 text-teal-600" />
-                LKH Harian (Kegiatan)
+                <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
+                Logbook Kegiatan Harian
               </CardTitle>
               <CardDescription className="text-xs">
-                Laporan pelaksanaan tugas kinerja ASN hari ini
+                Laporan pelaksanaan tugas kinerja pegawai hari ini
               </CardDescription>
             </div>
             <Badge
               variant={lkhToday?.status === "approved" ? "default" : lkhToday?.status === "submitted" ? "outline" : "secondary"}
               className="text-xs px-2.5 py-0.5 capitalize"
             >
-              {lkhToday?.status ? `Status: ${lkhToday.status}` : "Belum Ada LKH"}
+              {lkhToday?.status ? `Status: ${lkhToday.status}` : "Belum Ada Logbook"}
             </Badge>
           </CardHeader>
           <CardContent className="space-y-4 pt-1">
@@ -180,8 +180,8 @@ export default function DashboardPage() {
 
             <div className="flex items-center justify-between gap-3 pt-1">
               <Link href="/presensi/laporan" className="w-full">
-                <Button className="w-full text-xs h-9 bg-teal-600 hover:bg-teal-700 text-white font-medium">
-                  {kegiatanList.length > 0 ? "Buka / Lanjutkan LKH Hari Ini" : "+ Tambah Kegiatan LKH Hari Ini"}
+                <Button className="w-full text-xs h-9 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl">
+                  {kegiatanList.length > 0 ? "Buka / Lanjutkan Logbook Hari Ini" : "+ Tambah Kegiatan Logbook Hari Ini"}
                 </Button>
               </Link>
             </div>
@@ -191,7 +191,7 @@ export default function DashboardPage() {
 
       {/* Statistik Kehadiran Bulanan Berdasarkan Riwayat Nyata */}
       <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 px-3 sm:px-0">
-        <Card className="card-interactive p-4 space-y-1">
+        <Card className="bg-white border border-slate-200/80 rounded-2xl shadow-xs p-4 space-y-1">
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-500 font-medium">Hadir Tepat Waktu</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
@@ -202,16 +202,16 @@ export default function DashboardPage() {
           </div>
         </Card>
 
-        <Card className="card-interactive p-4 space-y-1">
+        <Card className="bg-white border border-slate-200/80 rounded-2xl shadow-xs p-4 space-y-1">
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-500 font-medium">Terlambat</span>
             <AlertCircle className="w-4 h-4 text-amber-500" />
           </div>
           <div className="text-2xl font-bold text-slate-900">{stats.terlambatKali} Kali</div>
-          <div className="text-[11px] text-amber-600">Evaluasi Disiplin ASN</div>
+          <div className="text-[11px] text-amber-600">Evaluasi Disiplin Pegawai</div>
         </Card>
 
-        <Card className="card-interactive p-4 space-y-1">
+        <Card className="bg-white border border-slate-200/80 rounded-2xl shadow-xs p-4 space-y-1">
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-500 font-medium">Izin / Cuti Resmi</span>
             <CalendarDays className="w-4 h-4 text-blue-500" />
@@ -220,7 +220,7 @@ export default function DashboardPage() {
           <div className="text-[11px] text-blue-600">Terlampir Surat Resmi</div>
         </Card>
 
-        <Card className="card-interactive p-4 space-y-1">
+        <Card className="bg-white border border-slate-200/80 rounded-2xl shadow-xs p-4 space-y-1">
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-500 font-medium">Penilai Kinerja</span>
             <FileText className="w-4 h-4 text-teal-600" />

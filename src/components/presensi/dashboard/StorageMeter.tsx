@@ -58,7 +58,7 @@ export default function StorageMeter({ compact = false, className = "" }: Storag
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm sm:text-base font-bold flex items-center gap-2 text-white">
             <HardDrive className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
-            Alokasi Penyimpanan ASN (1 GB Cloud Storage)
+            Alokasi Cloud Storage Pegawai (1 GB)
           </CardTitle>
           <Badge
             variant={status.statusBadgeVariant}

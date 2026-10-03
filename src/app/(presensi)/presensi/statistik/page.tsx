@@ -119,7 +119,7 @@ export default function StatistikPage() {
   return (
     <div className="space-y-6 pb-20 md:pb-8 print:p-0 print:m-0 print:space-y-4">
       <div className="print:hidden">
-        <MobilePageHeader title="Rekap & Statistik ASN" backHref="/presensi" />
+        <MobilePageHeader title="Rekap & Statistik Pegawai" backHref="/presensi" />
       </div>
 
       {/* Kop Resmi Khusus Cetak / Print Only */}
@@ -128,10 +128,10 @@ export default function StatistikPage() {
           PEMERINTAH KOTA SURAKARTA
         </h2>
         <h1 className="text-base font-extrabold tracking-tight uppercase text-slate-900">
-          BADAN KEPEGAWAIAN DAN PENGEMBANGAN SUMBER DAYA MANUSIA (BKPSDM)
+          UPTD KAWASAN SAINS DAN TEKNOLOGI SOLO TECHNOPARK
         </h1>
         <p className="text-[11px] text-slate-600">
-          Laporan Rekapitulasi Presensi Satelit GPS & Capaian Kinerja LKH Harian ASN
+          Laporan Rekapitulasi Presensi Satelit GPS & Capaian Kinerja Logbook Pegawai
         </p>
         <div className="text-[10px] text-slate-500 mt-1">
           Periode: {NAMA_BULAN[selectedBulan - 1]} {selectedTahun} • Unit Kerja: {selectedKantorName}
@@ -139,18 +139,18 @@ export default function StatistikPage() {
       </div>
 
       {/* Hero Header & Filter Controls (Disembunyikan saat Print) */}
-      <div className="print:hidden relative overflow-hidden rounded-none sm:rounded-2xl border-x-0 sm:border border-teal-800/30 bg-gradient-to-r from-slate-900 via-teal-950 to-slate-900 p-5 md:p-6 text-white shadow-none sm:shadow-md">
+      <div className="print:hidden relative overflow-hidden rounded-2xl border border-emerald-800/30 bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 p-5 md:p-6 text-white shadow-md">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-500/20 text-teal-300 text-[11px] font-medium border border-teal-400/30">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[11px] font-medium border border-emerald-400/30">
               <BarChart3 className="w-3.5 h-3.5" />
-              Laporan Analitik Eksekutif ASN
+              Laporan Analitik Eksekutif Techno Sign
             </div>
             <h1 className="text-xl md:text-2xl font-bold tracking-tight">
-              Rekapitulasi Presensi & Kinerja ASN
+              Rekapitulasi Presensi & Kinerja Pegawai
             </h1>
             <p className="text-slate-300 text-xs max-w-xl">
-              Evaluasi komprehensif tingkat kepatuhan jam kerja, rasio ketepatan waktu presensi, dan pemenuhan target standar 300 poin SKP BKN.
+              Evaluasi komprehensif tingkat kepatuhan jam kerja, rasio ketepatan waktu presensi, dan pemenuhan target kinerja pegawai Solo Technopark.
             </p>
           </div>
 
@@ -293,7 +293,7 @@ export default function StatistikPage() {
               {isLoading ? "..." : `${summary?.persentaseTargetLkhTercapai || 96}%`}
             </div>
             <div className="text-[11px] text-slate-500">
-              ASN patuh melapor & dinilai
+              Pegawai patuh melapor & dinilai
             </div>
           </CardContent>
         </Card>
@@ -310,7 +310,7 @@ export default function StatistikPage() {
                   Tren Kehadiran Hari Kerja
                 </CardTitle>
                 <CardDescription className="text-xs text-slate-500">
-                  Perbandingan kehadiran ASN pada rentang hari kerja aktif
+                  Perbandingan kehadiran pegawai pada rentang hari kerja aktif
                 </CardDescription>
               </div>
               <Badge variant="outline" className="bg-slate-50 text-slate-600 text-[10px]">
@@ -439,25 +439,25 @@ export default function StatistikPage() {
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px] text-slate-600 space-y-1">
               <div className="font-semibold text-slate-800 flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                Standar Kepatuhan ASN
+                Standar Kepatuhan Pegawai
               </div>
               <p className="text-[10px] text-slate-500 leading-relaxed">
-                Tingkat kehadiran di atas 90% menjadi syarat mutlak perolehan TPP (Tambahan Penghasilan Pegawai) Kota Surakarta.
+                Tingkat kehadiran di atas 90% menjadi standar kedisiplinan dan evaluasi kinerja pegawai Solo Technopark.
               </p>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Tabel Rekapitulasi Individu ASN */}
-      <Card>
+      {/* Tabel Rekapitulasi Individu Pegawai */}
+      <Card className="rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
         <CardHeader className="p-4 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100">
           <div>
             <CardTitle className="text-sm font-bold text-slate-900">
-              Daftar Rekapitulasi Pegawai ASN
+              Daftar Rekapitulasi Pegawai
             </CardTitle>
             <CardDescription className="text-xs text-slate-500">
-              Rincian kehadiran, poin kinerja LKH, dan predikat kedisiplinan per pegawai
+              Rincian kehadiran, poin kinerja logbook, dan predikat kedisiplinan per pegawai
             </CardDescription>
           </div>
 
@@ -479,7 +479,7 @@ export default function StatistikPage() {
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
-                  <th className="py-3 px-4">Pegawai ASN</th>
+                  <th className="py-3 px-4">Pegawai</th>
                   <th className="py-3 px-4">Jabatan & Golongan</th>
                   <th className="py-3 px-4 text-center">Hari Kerja</th>
                   <th className="py-3 px-4 text-center">Hadir</th>

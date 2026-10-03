@@ -170,7 +170,7 @@ export default function TabAbsensi() {
         fotoUrl: capturedFotoUrl,
         isValidLocation: isWithinRadius,
         alamat: activeOffice.alamat,
-        catatan: `Presensi Masuk ASN di ${activeOffice.namaKantor}`,
+        catatan: `Presensi Masuk Techno Sign di ${activeOffice.namaKantor}`,
         gpsAccuracyMeter: gpsAccuracy,
         isMockDetected,
       });
@@ -213,7 +213,7 @@ export default function TabAbsensi() {
         fotoUrl: capturedFotoUrl,
         isValidLocation: isWithinRadius,
         alamat: activeOffice.alamat,
-        catatan: `Presensi Pulang ASN di ${activeOffice.namaKantor}`,
+        catatan: `Presensi Pulang Techno Sign di ${activeOffice.namaKantor}`,
         gpsAccuracyMeter: gpsAccuracy,
         isMockDetected,
       });

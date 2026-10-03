@@ -4,12 +4,12 @@ import { NextResponse } from "next/server";
 export async function GET() {
   const manifest = {
     name: "Techno Sign - Solo Technopark",
-    short_name: "TechnoSign",
-    description: "Sistem Presensi Resmi & Logbook Kinerja Harian UPTD Kawasan Sains dan Teknologi Solo Technopark",
+    short_name: "Techno Sign",
+    description: "Sistem Presensi Digital & Kinerja Harian UPTD Kawasan Sains dan Teknologi Solo Technopark",
     start_url: "/presensi",
     scope: "/presensi",
     display: "standalone",
-    background_color: "#0f172a",
+    background_color: "#ffffff",
     theme_color: "#059669",
     orientation: "portrait-primary",
     icons: [

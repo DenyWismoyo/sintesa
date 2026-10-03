@@ -74,7 +74,7 @@ function getRoleBadge(role: UserRole) {
     default:
       return (
         <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 border-emerald-200 text-[10px] font-semibold">
-          Pegawai ASN
+          Pegawai
         </Badge>
       );
   }
@@ -134,7 +134,7 @@ export default function PegawaiManagementPage() {
     nip: "",
     nama: "",
     email: "",
-    password: "asn123456",
+    password: "stp123456",
     role: "pegawai" as UserRole,
     jabatan: "",
     golongan: "III/a - Penata Muda",
@@ -164,7 +164,7 @@ export default function PegawaiManagementPage() {
     setFormData((prev) => ({
       ...prev,
       nip: val,
-      email: prev.email || (cleanDigits ? `${cleanDigits}@asn.go.id` : ""),
+      email: prev.email || (cleanDigits ? `${cleanDigits}@solotechnopark.id` : ""),
     }));
   };
 
@@ -175,7 +175,7 @@ export default function PegawaiManagementPage() {
       nip: "",
       nama: "",
       email: "",
-      password: "asn123456",
+      password: "stp123456",
       role: "pegawai",
       jabatan: "Pranata Komputer Ahli Pertama",
       golongan: "III/a - Penata Muda",
@@ -238,7 +238,7 @@ export default function PegawaiManagementPage() {
     }
 
     const confirmed = window.confirm(
-      `Konfirmasi penonaktifan akun ASN:\n\nNama: ${targetUser.nama}\nNIP: ${targetUser.nip}\n\nApakah Anda yakin ingin menonaktifkan akun ini?`
+      `Konfirmasi penonaktifan akun pegawai:\n\nNama: ${targetUser.nama}\nNIP: ${targetUser.nip}\n\nApakah Anda yakin ingin menonaktifkan akun ini?`
     );
     if (!confirmed) return;
 
@@ -308,21 +308,21 @@ export default function PegawaiManagementPage() {
 
   return (
     <div className="space-y-6 pb-20 md:pb-6">
-      <MobilePageHeader title="Direktori Pegawai ASN" backHref="/presensi" />
+      <MobilePageHeader title="Direktori Pegawai" backHref="/presensi" />
 
       {/* Hero Stats Card */}
-      <div className="relative overflow-hidden rounded-none sm:rounded-2xl border-x-0 sm:border border-emerald-800/30 bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 p-5 md:p-6 text-white shadow-none sm:shadow-md">
+      <div className="relative overflow-hidden rounded-2xl border border-emerald-800/30 bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 p-5 md:p-6 text-white shadow-md">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[11px] font-medium border border-emerald-400/30">
               <ShieldCheck className="w-3.5 h-3.5" />
-              BKPSDM Kota Surakarta • Manajemen Pengguna
+              Solo Technopark • Manajemen Pengguna
             </div>
             <h1 className="text-xl md:text-2xl font-bold tracking-tight">
-              Data Pegawai & Pengguna ASN
+              Data Pegawai Techno Sign
             </h1>
             <p className="text-slate-300 text-xs max-w-xl">
-              Kelola master direktori ASN, penugasan kantor unit geofencing, hirarki pejabat penilai LKH, dan pembuatan akun kredensial.
+              Kelola master direktori pegawai Solo Technopark, penugasan unit kerja geofencing, hirarki atasan, dan akun kredensial.
             </p>
           </div>
 
@@ -341,15 +341,15 @@ export default function PegawaiManagementPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-5 pt-4 border-t border-slate-800/80">
           <div className="bg-slate-800/50 backdrop-blur rounded-xl p-3 border border-slate-700/50">
             <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Total Terdaftar</div>
-            <div className="text-lg md:text-xl font-bold text-white mt-0.5">{stats.total} ASN</div>
+            <div className="text-lg md:text-xl font-bold text-white mt-0.5">{stats.total} Pegawai</div>
           </div>
           <div className="bg-slate-800/50 backdrop-blur rounded-xl p-3 border border-slate-700/50">
             <div className="text-[10px] text-emerald-400 uppercase tracking-wider font-semibold">Staf Pelaksana</div>
-            <div className="text-lg md:text-xl font-bold text-emerald-300 mt-0.5">{stats.pegawaiCount} ASN</div>
+            <div className="text-lg md:text-xl font-bold text-emerald-300 mt-0.5">{stats.pegawaiCount} Pegawai</div>
           </div>
           <div className="bg-slate-800/50 backdrop-blur rounded-xl p-3 border border-slate-700/50">
             <div className="text-[10px] text-teal-400 uppercase tracking-wider font-semibold">Pejabat Penilai</div>
-            <div className="text-lg md:text-xl font-bold text-teal-300 mt-0.5">{stats.atasanCount} ASN</div>
+            <div className="text-lg md:text-xl font-bold text-teal-300 mt-0.5">{stats.atasanCount} Atasan</div>
           </div>
           <div className="bg-slate-800/50 backdrop-blur rounded-xl p-3 border border-slate-700/50">
             <div className="text-[10px] text-rose-400 uppercase tracking-wider font-semibold">Admin Sistem</div>
@@ -414,9 +414,9 @@ export default function PegawaiManagementPage() {
                 className="w-full text-xs h-10 rounded-md border border-slate-200 bg-white px-3 text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
               >
                 <option value="all">Semua Peran</option>
-                <option value="pegawai">Pegawai ASN</option>
+                <option value="pegawai">Pegawai</option>
                 <option value="atasan">Pejabat Penilai</option>
-                <option value="admin">Admin BKPSDM</option>
+                <option value="admin">Admin Techno Sign</option>
               </select>
             </div>
 
@@ -436,7 +436,7 @@ export default function PegawaiManagementPage() {
       {/* Content: Desktop Table & Mobile Cards */}
       {isLoading ? (
         <div className="h-48 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-xs text-slate-500">
-          Memuat direktori data pegawai ASN...
+          Memuat direktori data pegawai...
         </div>
       ) : pegawaiList.length === 0 ? (
         <div className="h-48 rounded-xl bg-white border border-slate-200 border-dashed flex flex-col items-center justify-center text-slate-400 gap-2 p-6 text-center">
@@ -451,7 +451,7 @@ export default function PegawaiManagementPage() {
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
-                  <th className="py-3 px-4">Pegawai ASN</th>
+                  <th className="py-3 px-4">Pegawai</th>
                   <th className="py-3 px-4">Pangkat / Golongan</th>
                   <th className="py-3 px-4">Jabatan & Subdivisi</th>
                   <th className="py-3 px-4">Kantor Penugasan</th>
@@ -639,7 +639,7 @@ export default function PegawaiManagementPage() {
                   <UserPlus className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="font-bold text-base">Pendaftaran Pegawai ASN Baru</h2>
+                  <h2 className="font-bold text-base">Pendaftaran Pegawai Baru</h2>
                   <p className="text-xs text-slate-300">Pembuatan kredensial login ganda & profil kedinasan resmi</p>
                 </div>
               </div>
@@ -671,21 +671,21 @@ export default function PegawaiManagementPage() {
                 </div>
               )}
 
-              {/* Grid 2 Kolom Identitas ASN */}
+              {/* Grid 2 Kolom Identitas Pegawai */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-slate-700">
-                    Nomor Induk Pegawai (NIP) <span className="text-rose-500">*</span>
+                    Nomor Induk Pegawai (NIP / Kode Akses) <span className="text-rose-500">*</span>
                   </Label>
                   <Input
                     type="text"
                     required
-                    placeholder="Contoh: 19930512 201901 1 003"
+                    placeholder="Contoh: 19930512 201901 1 003 atau STP-22757"
                     value={formData.nip}
                     onChange={(e) => handleNipChange(e.target.value)}
                     className="text-xs h-9"
                   />
-                  <p className="text-[10px] text-slate-400">18 digit angka standar BKN</p>
+                  <p className="text-[10px] text-slate-400">NIP resmi atau Kode Akses Pegawai</p>
                 </div>
 
                 <div className="space-y-1">
@@ -695,7 +695,7 @@ export default function PegawaiManagementPage() {
                   <Input
                     type="text"
                     required
-                    placeholder="Contoh: Rahmat Hidayat, S.STP, M.M."
+                    placeholder="Contoh: Rahmat Hidayat, S.Kom."
                     value={formData.nama}
                     onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
                     className="text-xs h-9"
@@ -713,7 +713,7 @@ export default function PegawaiManagementPage() {
                   <Input
                     type="email"
                     required
-                    placeholder="nama.pegawai@surakarta.go.id"
+                    placeholder="nama.pegawai@solotechnopark.id"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="text-xs h-9 bg-white"
@@ -743,7 +743,7 @@ export default function PegawaiManagementPage() {
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     className="text-xs h-9 bg-white font-mono"
                   />
-                  <p className="text-[10px] text-slate-400">Default sistem: <code className="text-emerald-700">asn123456</code></p>
+                  <p className="text-[10px] text-slate-400">Default sistem: <code className="text-emerald-700">stp123456</code></p>
                 </div>
               </div>
 
@@ -758,7 +758,7 @@ export default function PegawaiManagementPage() {
                     onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
                     className="w-full text-xs h-9 rounded-md border border-slate-200 bg-white px-3 text-slate-800 focus:ring-2 focus:ring-emerald-500"
                   >
-                    <option value="pegawai">Pegawai ASN (Staf)</option>
+                    <option value="pegawai">Pegawai (Staf)</option>
                     <option value="atasan">Pejabat Penilai (Atasan)</option>
                     <option value="admin">Administrator (BKPSDM)</option>
                   </select>
@@ -882,7 +882,7 @@ export default function PegawaiManagementPage() {
                   disabled={createMutation.isPending}
                   className="btn-primary btn-sm text-xs px-5 shadow-sm"
                 >
-                  {createMutation.isPending ? "Mendaftarkan Akun..." : "Daftarkan Akun ASN"}
+                  {createMutation.isPending ? "Mendaftarkan Akun..." : "Daftarkan Akun Pegawai"}
                 </Button>
               </div>
             </form>

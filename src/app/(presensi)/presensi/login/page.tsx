@@ -8,14 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import {
   Building2,
   Lock,
   ArrowRight,
   ShieldCheck,
-  CheckCircle2,
   AlertCircle,
   ExternalLink,
   Sparkles,
@@ -33,7 +31,7 @@ export default function PresensiLoginPage() {
     e.preventDefault();
     setErrorMsg("");
     if (!nipOrEmail) {
-      setErrorMsg("NIP, Access Code, atau Email kedinasan wajib diisi.");
+      setErrorMsg("Kode Akses, NIP, atau Email kedinasan wajib diisi.");
       return;
     }
     if (!password) {
@@ -50,7 +48,7 @@ export default function PresensiLoginPage() {
       if (msg.includes("wrong-password") || msg.includes("invalid-credential")) {
         setErrorMsg("Kata sandi salah. Silakan coba lagi.");
       } else if (msg.includes("user-not-found") || msg.includes("invalid-email")) {
-        setErrorMsg("Akun tidak ditemukan. Gunakan Access Code (misal: STP-22757) atau email kedinasan.");
+        setErrorMsg("Akun tidak ditemukan. Gunakan Kode Akses (misal: STP-22757) atau email kedinasan.");
       } else {
         setErrorMsg(msg || "Gagal melakukan autentikasi. Periksa kredensial Anda.");
       }
@@ -68,7 +66,7 @@ export default function PresensiLoginPage() {
     } catch (err: unknown) {
       const msg = (err as Error)?.message || "";
       if (msg.includes("popup-closed-by-user")) {
-        // Abaikan jika user menutup popup sendiri
+        // Abaikan
       } else {
         setErrorMsg("Gagal login dengan Google: " + msg);
       }
@@ -92,57 +90,52 @@ export default function PresensiLoginPage() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col justify-between bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 text-slate-100 relative overflow-hidden">
-      {/* Background Glows */}
-      <div className="absolute -top-40 -left-40 w-96 h-96 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 -right-40 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-40 left-1/3 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+    <main className="min-h-screen flex flex-col justify-between bg-[#FAFAFA] text-slate-900 relative overflow-hidden antialiased selection:bg-emerald-600 selection:text-white">
+      {/* Background Ambience khas katalog Solo Technopark */}
+      <div className="public-bg-dots" />
+      <div className="public-glow-emerald" />
+      <div className="public-bg-gradient-top" />
 
       {/* Top Header / Branding */}
-      <header className="relative z-10 w-full max-w-7xl mx-auto px-4 py-4 sm:px-6 sm:py-6 flex items-center justify-between">
+      <header className="relative z-10 w-full max-w-6xl mx-auto px-4 py-6 sm:px-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center shadow-lg shadow-emerald-500/25 border border-emerald-400/30 shrink-0">
-            <Building2 className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-800 flex items-center justify-center shadow-md shadow-emerald-600/20 text-white shrink-0">
+            <Building2 className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-base sm:text-lg tracking-tight text-white">
-                TECHNO SIGN
-              </span>
-              <Badge variant="default" className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-[9px] sm:text-[10px] px-1.5 py-0.2">
-                PRO
-              </Badge>
-            </div>
-            <p className="text-[11px] sm:text-xs text-slate-400">
-              UPTD KST Solo Technopark
+            <span className="font-extrabold text-lg sm:text-xl tracking-tight text-slate-900 block leading-tight">
+              Techno Sign
+            </span>
+            <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+              Solo Technopark
             </p>
           </div>
         </div>
 
         <Link
           href="/"
-          className="text-xs text-slate-400 hover:text-emerald-400 transition-colors flex items-center gap-1.5 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 rounded-lg px-3 py-1.5"
+          className="text-xs text-slate-600 hover:text-emerald-700 transition-colors flex items-center gap-1.5 bg-white/80 hover:bg-white border border-slate-200/80 shadow-xs rounded-xl px-3.5 py-2 font-medium"
         >
           <span>Katalog Utama</span>
-          <ExternalLink className="w-3.5 h-3.5" />
+          <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
         </Link>
       </header>
 
       {/* Main Login Card */}
-      <div className="relative z-10 w-full max-w-md mx-auto px-4 py-6">
-        <Card className="bg-slate-900/90 border-slate-800/80 backdrop-blur-xl shadow-2xl shadow-emerald-950/40 text-slate-100">
+      <div className="relative z-10 w-full max-w-md mx-auto px-4 py-8">
+        <Card className="bg-white/95 border border-slate-200/90 backdrop-blur-xl shadow-xl shadow-slate-200/50 rounded-3xl p-2 sm:p-4 text-slate-900">
           <CardHeader className="space-y-1.5 pb-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-xl font-bold tracking-tight text-white">
-                Masuk ke Presensi
+              <CardTitle className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+                Masuk Pegawai
               </CardTitle>
-              <div className="flex items-center gap-1 text-[11px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
-                <ShieldCheck className="w-3.5 h-3.5" />
+              <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-full">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                 <span>SSO Terintegrasi</span>
               </div>
             </div>
-            <CardDescription className="text-xs text-slate-400">
-              Gunakan Akun Google Kedinasan atau Access Code Pegawai Solo Technopark
+            <CardDescription className="text-xs text-slate-500 font-normal">
+              Gunakan Akun Google Kedinasan atau Kode Akses Solo Technopark
             </CardDescription>
           </CardHeader>
 
@@ -153,9 +146,9 @@ export default function PresensiLoginPage() {
               variant="outline"
               disabled={isSubmitting || isLoading}
               onClick={handleGoogleLogin}
-              className="w-full h-11 bg-white hover:bg-slate-100 text-slate-900 font-semibold border-slate-200 shadow-md flex items-center justify-center gap-2.5 transition-all"
+              className="w-full h-11 bg-white hover:bg-slate-50 text-slate-800 font-semibold border-slate-200 shadow-xs flex items-center justify-center gap-2.5 transition-all rounded-xl cursor-pointer"
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -178,18 +171,18 @@ export default function PresensiLoginPage() {
 
             <div className="relative my-3">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-800" />
+                <div className="w-full border-t border-slate-200" />
               </div>
               <div className="relative flex justify-center text-[10px] uppercase">
-                <span className="bg-slate-900 px-2 text-slate-500 font-semibold tracking-wider">
+                <span className="bg-white px-2.5 text-slate-400 font-semibold tracking-wider">
                   atau gunakan kredensial pegawai
                 </span>
               </div>
             </div>
 
             {errorMsg && (
-              <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-lg flex items-start gap-2.5 text-rose-300 text-xs animate-shake">
-                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2.5 text-rose-700 text-xs">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
                 <span>{errorMsg}</span>
               </div>
             )}
@@ -197,22 +190,22 @@ export default function PresensiLoginPage() {
             {/* FORM LOGIN MANUAL */}
             <form onSubmit={handleManualLogin} className="space-y-3.5">
               <div className="space-y-1.5">
-                <Label htmlFor="nip" className="text-xs font-medium text-slate-300">
-                  Access Code / Email / NIP
+                <Label htmlFor="nip" className="text-xs font-semibold text-slate-700">
+                  Kode Akses / Email / NIP
                 </Label>
                 <Input
                   id="nip"
                   type="text"
-                  placeholder="Contoh: STP-22757 atau email kedinasan"
+                  placeholder="Contoh: STP-22757 atau email pegawai"
                   value={nipOrEmail}
                   onChange={(e) => setNipOrEmail(e.target.value)}
-                  className="bg-slate-950/70 border-slate-800 text-slate-100 placeholder:text-slate-600 focus:border-emerald-500 focus:ring-emerald-500/20 text-sm h-10"
+                  className="bg-slate-50/70 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-emerald-600 focus:ring-emerald-500/10 text-sm h-11 rounded-xl"
                   required
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="password" className="text-xs font-medium text-slate-300">
+                <Label htmlFor="password" className="text-xs font-semibold text-slate-700">
                   Kata Sandi
                 </Label>
                 <div className="relative">
@@ -222,17 +215,17 @@ export default function PresensiLoginPage() {
                     placeholder="••••••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="bg-slate-950/70 border-slate-800 text-slate-100 placeholder:text-slate-600 focus:border-emerald-500 focus:ring-emerald-500/20 text-sm h-10 pr-9"
+                    className="bg-slate-50/70 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-emerald-600 focus:ring-emerald-500/10 text-sm h-11 pr-10 rounded-xl"
                     required
                   />
-                  <Lock className="w-4 h-4 text-slate-500 absolute right-3 top-3 pointer-events-none" />
+                  <Lock className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5 pointer-events-none" />
                 </div>
               </div>
 
               <Button
                 type="submit"
                 disabled={isSubmitting || isLoading}
-                className="w-full h-10 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm shadow-lg shadow-emerald-600/25 transition-all mt-2"
+                className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-md shadow-emerald-600/20 transition-all rounded-xl mt-2 cursor-pointer"
               >
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">
@@ -249,44 +242,44 @@ export default function PresensiLoginPage() {
             </form>
           </CardContent>
 
-          <CardFooter className="flex flex-col gap-3 pt-0 border-t border-slate-800/60 mt-3 p-4">
+          <CardFooter className="flex flex-col gap-3 pt-0 border-t border-slate-100 mt-2 p-4">
             <div className="w-full">
-              <p className="text-[11px] text-slate-400 font-medium mb-2 flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-amber-400" />
+              <p className="text-[11px] text-slate-500 font-semibold mb-2 flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-amber-500" />
                 Akses Demo Cepat Solo Technopark:
               </p>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => handleQuickLogin("yudit.cahyantoro@solotechnopark.id")}
-                  className="text-left p-2 rounded-lg bg-slate-950/60 hover:bg-emerald-950/40 border border-slate-800 hover:border-emerald-600/40 transition-colors"
+                  className="text-left p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50/80 border border-slate-200/80 hover:border-emerald-400/50 transition-all cursor-pointer group"
                 >
-                  <p className="text-[11px] font-semibold text-white truncate">Pemimpin BLUD</p>
-                  <p className="text-[9px] text-slate-400 truncate">Yudit C. N. Saputro</p>
+                  <p className="text-[11px] font-bold text-slate-900 group-hover:text-emerald-700 truncate">Pemimpin BLUD</p>
+                  <p className="text-[10px] text-slate-500 truncate">Yudit C. N. Saputro</p>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickLogin("agus.jatmiko@solotechnopark.id")}
-                  className="text-left p-2 rounded-lg bg-slate-950/60 hover:bg-emerald-950/40 border border-slate-800 hover:border-emerald-600/40 transition-colors"
+                  className="text-left p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50/80 border border-slate-200/80 hover:border-emerald-400/50 transition-all cursor-pointer group"
                 >
-                  <p className="text-[11px] font-semibold text-white truncate">Kepala Divisi IT</p>
-                  <p className="text-[9px] text-slate-400 truncate">Agus Jatmiko, S.Kom</p>
+                  <p className="text-[11px] font-bold text-slate-900 group-hover:text-emerald-700 truncate">Kepala Divisi IT</p>
+                  <p className="text-[10px] text-slate-500 truncate">Agus Jatmiko, S.Kom</p>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickLogin("admin.blud@solotechnopark.id")}
-                  className="text-left p-2 rounded-lg bg-slate-950/60 hover:bg-emerald-950/40 border border-slate-800 hover:border-emerald-600/40 transition-colors"
+                  className="text-left p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50/80 border border-slate-200/80 hover:border-emerald-400/50 transition-all cursor-pointer group"
                 >
-                  <p className="text-[11px] font-semibold text-white truncate">Admin BLUD</p>
-                  <p className="text-[9px] text-slate-400 truncate">Pusat Kendali STP</p>
+                  <p className="text-[11px] font-bold text-slate-900 group-hover:text-emerald-700 truncate">Admin BLUD</p>
+                  <p className="text-[10px] text-slate-500 truncate">Pusat Kendali STP</p>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickLogin("restu.choiri@solotechnopark.id")}
-                  className="text-left p-2 rounded-lg bg-slate-950/60 hover:bg-emerald-950/40 border border-slate-800 hover:border-emerald-600/40 transition-colors"
+                  className="text-left p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50/80 border border-slate-200/80 hover:border-emerald-400/50 transition-all cursor-pointer group"
                 >
-                  <p className="text-[11px] font-semibold text-white truncate">Staf IT & Pegawai</p>
-                  <p className="text-[9px] text-slate-400 truncate">M. Restu Choiri</p>
+                  <p className="text-[11px] font-bold text-slate-900 group-hover:text-emerald-700 truncate">Staf IT & Pegawai</p>
+                  <p className="text-[10px] text-slate-500 truncate">M. Restu Choiri</p>
                 </button>
               </div>
             </div>
@@ -295,8 +288,8 @@ export default function PresensiLoginPage() {
       </div>
 
       {/* Footer Info */}
-      <footer className="relative z-10 w-full max-w-7xl mx-auto px-4 py-4 text-center text-xs text-slate-500">
-        <p>© 2026 UPTD Kawasan Sains dan Teknologi Solo Technopark. Terintegrasi Katalog Digital BLUD.</p>
+      <footer className="relative z-10 w-full max-w-6xl mx-auto px-4 py-6 text-center text-xs text-slate-400 font-medium">
+        <p>© 2026 Techno Sign • UPTD Kawasan Sains dan Teknologi Solo Technopark</p>
       </footer>
     </main>
   );

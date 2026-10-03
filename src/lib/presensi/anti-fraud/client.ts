@@ -74,14 +74,14 @@ export function stampOfficialWatermark(
   ctx.font = `bold ${fontSizeHeader}px "Segoe UI", Roboto, sans-serif`;
   ctx.fillStyle = "#34d399"; // Emerald 400
   const row1Y = barY + Math.round(barHeight * 0.28);
-  ctx.fillText("SISTEM PRESENSI RESMI • LOKASI TERVERIFIKASI", paddingX, row1Y);
+  ctx.fillText("TECHNO SIGN • SOLO TECHNOPARK VERIFIED", paddingX, row1Y);
 
   // Baris 2: Identitas Pegawai & Kantor
   ctx.font = `600 ${fontSizeBody}px "Segoe UI", Roboto, sans-serif`;
   ctx.fillStyle = "#ffffff";
   const row2Y = barY + Math.round(barHeight * 0.55);
   ctx.fillText(
-    `Pegawai: ${nama} | Unit: ${namaKantor}`,
+    `Pegawai: ${nama} | ${namaKantor}`,
     paddingX,
     row2Y
   );

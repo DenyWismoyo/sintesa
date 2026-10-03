@@ -37,43 +37,43 @@ export default function ProfilPage() {
       <div className="px-4 sm:px-0">
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
           <IdCard className="w-6 h-6 text-emerald-600" />
-          Kartu Identitas Digital ASN
+          Kartu Identitas Digital Techno Sign
         </h1>
         <p className="text-xs text-slate-500 mt-0.5">
-          Data profil dan informasi kepegawaian resmi yang terdaftar di sistem
+          Data profil dan informasi kepegawaian resmi yang terdaftar di Solo Technopark
         </p>
       </div>
 
-      {/* ASN Digital ID Card */}
-      <Card className="overflow-hidden bg-gradient-to-b from-white to-slate-50">
+      {/* Techno Sign Digital ID Card */}
+      <Card className="overflow-hidden bg-white border border-slate-200/90 shadow-sm rounded-3xl">
         {/* Card Header Pattern */}
-        <div className="bg-gradient-to-r from-emerald-800 via-teal-800 to-slate-900 p-6 text-white relative">
+        <div className="bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 p-6 text-white relative">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Building2 className="w-5 h-5 text-emerald-400" />
               <span className="text-xs font-bold tracking-wider uppercase">
-                Pemerintah Republik Indonesia
+                UPTD KST Solo Technopark
               </span>
             </div>
-            <Badge variant="default" className="bg-emerald-500/30 text-emerald-300 border-emerald-400/40 text-[10px]">
-              PNS AKTIF
+            <Badge variant="default" className="bg-emerald-500/20 text-emerald-300 border-emerald-400/40 text-[10px]">
+              PEGAWAI AKTIF
             </Badge>
           </div>
           <div className="mt-4 flex items-center gap-4">
             <Avatar
-              fallback={user?.nama ? user.nama.substring(0, 2).toUpperCase() : "AS"}
+              fallback={user?.nama ? user.nama.substring(0, 2).toUpperCase() : "ST"}
               size="lg"
-              className="ring-4 ring-white/20 shadow-lg text-lg"
+              className="ring-4 ring-white/20 shadow-lg text-lg bg-emerald-700"
             />
             <div>
               <h2 className="text-lg sm:text-xl font-bold leading-tight">
-                {user?.nama || "Pegawai ASN"}
+                {user?.nama || "Pegawai Solo Technopark"}
               </h2>
               <p className="text-xs text-emerald-200/90 mt-0.5 font-mono">
                 NIP: {user?.nip || "-"}
               </p>
               <p className="text-[11px] text-slate-300 mt-0.5">
-                {user?.jabatan}
+                {user?.jabatan || "Staf"}
               </p>
             </div>
           </div>
@@ -102,7 +102,7 @@ export default function ProfilPage() {
                   ? "Pegawai Pelaksana"
                   : user?.role === "atasan"
                   ? "Pejabat Penilai / Atasan"
-                  : "Administrator BKPSDM"}
+                  : "Administrator Techno Sign"}
               </div>
             </div>
           </div>
@@ -111,10 +111,10 @@ export default function ProfilPage() {
             <div className="flex items-center justify-between p-2.5 rounded-lg bg-white border border-slate-200/80">
               <span className="text-slate-500 flex items-center gap-2">
                 <Building className="w-4 h-4 text-slate-400" />
-                Instansi / SKPD
+                Instansi / Lembaga
               </span>
               <span className="font-semibold text-slate-800 text-right">
-                {user?.instansi || "Badan Kepegawaian dan Pengembangan SDM"}
+                {user?.instansi || "UPTD KST Solo Technopark"}
               </span>
             </div>
 
@@ -144,10 +144,10 @@ export default function ProfilPage() {
             <Button
               variant="destructive"
               onClick={handleLogout}
-              className="w-full h-11 text-xs font-semibold shadow-xs"
+              className="w-full h-11 text-xs font-semibold shadow-xs rounded-xl"
             >
               <LogOut className="w-4 h-4 mr-2" />
-              Keluar dari Akun ASN
+              Keluar dari Akun Techno Sign
             </Button>
           </div>
         </CardContent>

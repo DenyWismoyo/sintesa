@@ -333,11 +333,11 @@ export default function LaporanPage() {
       <div className="hidden md:flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <FileSpreadsheet className="w-6 h-6 text-teal-600" />
-            Logbook Kegiatan & Kinerja Harian ASN
+            <FileSpreadsheet className="w-6 h-6 text-emerald-600" />
+            Logbook Kegiatan & Kinerja Harian Pegawai
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Integrasi <strong>152 Master Aktivitas Resmi</strong>, kalkulasi bobot poin, dan alokasi <strong>1 GB Storage</strong>
+            Integrasi <strong>Master Aktivitas Kinerja</strong>, kalkulasi bobot poin, dan alokasi <strong>1 GB Cloud Storage</strong>
           </p>
         </div>
 
@@ -612,7 +612,7 @@ export default function LaporanPage() {
                     <div className="flex items-center justify-between text-[11px]">
                       <span className="font-bold text-emerald-950 flex items-center gap-1.5">
                         <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                        Template Cepat 1-Klik ASN:
+                        Template Cepat 1-Klik:
                       </span>
                       <span className="text-[10px] text-emerald-700 font-medium">Sentuh untuk isi cepat</span>
                     </div>
@@ -635,12 +635,12 @@ export default function LaporanPage() {
                     </div>
                   </div>
 
-                  {/* Selector Kamus 152 Master Aktivitas */}
+                  {/* Selector Kamus Master Aktivitas */}
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
                       <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
                         <BookOpen className="w-3.5 h-3.5 text-emerald-600" />
-                        Kamus 152 Aktivitas Resmi ASN
+                        Kamus Master Aktivitas Kinerja
                       </Label>
                       {selectedAktivitas && (
                         <span className="text-[10px] text-emerald-700 font-bold">
@@ -761,7 +761,7 @@ export default function LaporanPage() {
                         Upload Bukti Tugas
                       </Label>
                       <span className="text-[10px] text-emerald-700 font-medium">
-                        Alokasi: 1 GB per ASN
+                        Alokasi: 1 GB Cloud Storage
                       </span>
                     </div>
 

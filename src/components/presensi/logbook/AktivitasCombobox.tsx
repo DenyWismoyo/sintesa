@@ -78,7 +78,7 @@ export default function AktivitasCombobox({
             </div>
           ) : (
             <span className="text-slate-400">
-              Pilih dari 152 Kamus Master Aktivitas ASN...
+              Pilih dari Kamus Master Aktivitas Pegawai...
             </span>
           )}
         </div>

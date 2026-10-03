@@ -38,11 +38,11 @@ export default function KinerjaTrackerCard({
               <div className="font-bold text-xs sm:text-sm tracking-tight flex items-center gap-1.5">
                 Capaian Poin Kinerja Harian
                 <Badge variant="outline" className="text-[9px] border-emerald-400/40 text-emerald-300 py-0 px-1.5">
-                  e-Kinerja BKN
+                  Kinerja Harian STP
                 </Badge>
               </div>
               <p className="text-[11px] text-emerald-200/70">
-                Target regulasi harian: <strong>{targetPoin} Poin</strong> (Standar Efektif)
+                Target harian pegawai: <strong>{targetPoin} Poin</strong> (Standar Efektif)
               </p>
             </div>
           </div>
@@ -94,7 +94,7 @@ export default function KinerjaTrackerCard({
         <div className="flex items-center justify-between text-[10px] text-slate-300 pt-1 border-t border-white/10">
           <span className="flex items-center gap-1">
             <Zap className="w-3 h-3 text-amber-400" />
-            152 Kamus Master Aktivitas Resmi Pemda Aktif
+            Kamus Aktivitas Kinerja Solo Technopark
           </span>
           <span className="text-emerald-300 font-semibold">
             {isTercapai ? "Status: Siap Diajukan ke Atasan" : "Status: Tambah Kegiatan untuk Capai Target"}

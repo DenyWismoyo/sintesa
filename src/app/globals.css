@@ -314,11 +314,12 @@
 }
 
 /* 2. Centralized Subtle Dot-Grid Texture */
-.public-bg-texture {
+.public-bg-texture,
+.public-bg-dots {
   position: absolute;
   inset: 0;
   z-index: 0;
-  opacity: 0.025;
+  opacity: 0.035;
   pointer-events: none;
   background-image: radial-gradient(#0f172a 1px, transparent 1px);
   background-size: 28px 28px;

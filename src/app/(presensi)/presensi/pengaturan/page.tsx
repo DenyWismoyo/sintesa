@@ -201,7 +201,7 @@ export default function PengaturanKantorPage() {
             Manajemen Titik Multi-Kantor Geofencing
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Konfigurasi koordinat GPS satelit, batas radius geofence, dan jam kerja unit dinas ASN
+            Konfigurasi koordinat GPS satelit, batas radius geofence, dan jam kerja unit kerja Solo Technopark
           </p>
         </div>
 
@@ -489,7 +489,7 @@ export default function PengaturanKantorPage() {
         </Card>
       )}
 
-      {/* Peta Sebaran Makro Geofence Seluruh Kantor ASN */}
+      {/* Peta Sebaran Makro Geofence Kawasan Solo Technopark */}
       <OfficeOverviewMap offices={offices} />
 
       {/* Tabel Daftar Seluruh Titik Kantor */}
@@ -497,10 +497,10 @@ export default function PengaturanKantorPage() {
         <CardHeader className="bg-slate-50 border-b border-slate-200/80 py-4 px-6">
           <CardTitle className="text-sm font-bold text-slate-900 flex items-center gap-2">
             <Compass className="w-4 h-4 text-emerald-600" />
-            Daftar Seluruh Titik Geofence Unit Kerja ASN ({offices.length})
+            Daftar Seluruh Titik Geofence Unit Kerja ({offices.length})
           </CardTitle>
           <CardDescription className="text-xs text-slate-500">
-            Setiap ASN yang berada di dalam radius masing-masing kantor ini dapat melakukan presensi terverifikasi
+            Setiap pegawai yang berada di dalam radius masing-masing kantor/zona ini dapat melakukan presensi terverifikasi
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">

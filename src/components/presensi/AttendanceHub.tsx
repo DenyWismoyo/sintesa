@@ -23,7 +23,7 @@ export default function AttendanceHub() {
   ];
 
   const setTab = (id: string) => {
-    router.push(`/presensi?tab=${id}`);
+    router.push(`/presensi/scan?tab=${id}`);
   };
 
   const queryClient = useQueryClient();

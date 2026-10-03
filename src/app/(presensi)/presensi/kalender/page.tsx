@@ -243,7 +243,7 @@ export default function KalenderPage() {
               Lembar Kehadiran: {monthNames[currentMonth]} {currentYear}
             </CardTitle>
             <CardDescription className="text-xs text-slate-500">
-              Jadwal resmi hari kerja ASN: Senin s/d Jumat (07:30 - 16:00 WIB)
+              Jadwal resmi hari kerja: Senin s/d Jumat (07:30 - 16:00 WIB)
             </CardDescription>
           </div>
 

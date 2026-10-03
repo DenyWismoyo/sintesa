@@ -83,7 +83,7 @@ export default function ApprovalPage() {
           lkhId: record.id,
           atasanId: user.id,
           atasanNama: user.nama,
-          catatanAtasan: "Disetujui serentak. Capaian kegiatan memenuhi target minimal kinerja ASN.",
+          catatanAtasan: "Disetujui serentak. Capaian kegiatan memenuhi target minimal kinerja pegawai.",
         });
       }
       if (typeof window !== "undefined" && "vibrate" in navigator) {
@@ -102,7 +102,7 @@ export default function ApprovalPage() {
 
   const handleApprove = async (record: LKHRecord) => {
     if (!user) return;
-    const note = catatanApproval[record.id] || "Disetujui. Capaian kegiatan sesuai target kinerja ASN.";
+    const note = catatanApproval[record.id] || "Disetujui. Capaian kegiatan sesuai target kinerja pegawai.";
     await approveMutation.mutateAsync({
       lkhId: record.id,
       atasanId: user.id,
