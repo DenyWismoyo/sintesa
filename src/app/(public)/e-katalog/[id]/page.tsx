@@ -7,6 +7,8 @@ import { ProductCatalog } from '@/types';
 import { catalogService } from '@/services/catalog.service';
 import { getServerDocRest } from '@/lib/serverFirestore';
 
+import { getSocialShareImageUrl } from '@/lib/imageUtils';
+
 type Props = {
   params: Promise<{ id: string }>
 };
@@ -32,7 +34,7 @@ export async function generateStaticParams() {
   }
 }
 
-// FASE 1: Supercharge generateMetadata
+// FASE 1: Supercharge generateMetadata dengan Thumbnail Ringan untuk WhatsApp & Medsos Share
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const { id } = await params;
@@ -45,9 +47,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const title = `${product.name} | E-Katalog KST Solo Technopark`;
     const description = product.shortDescription || product.description?.substring(0, 160) || 'Jelajahi inovasi dan produk dari KST Solo Technopark.';
     
-    // Dynamic OG API untuk link preview yang konsisten
-    const formattedPrice = product.price ? product.price.toLocaleString('id-ID') : '0';
-    const dynamicOgUrl = `${APP_URL}/api/og/katalog?title=${encodeURIComponent(product.name || '')}&price=${formattedPrice}`;
+    // Ambil gambar cover produk dan konversi ke thumbnail ringan (<50KB) agar lolos batas WhatsApp crawler
+    const rawImage = product.images?.[0];
+    const coverImageUrl = getSocialShareImageUrl(rawImage);
 
     return {
       title,
@@ -59,7 +61,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         siteName: 'Solo Technopark',
         images: [
           {
-            url: dynamicOgUrl,
+            url: coverImageUrl,
             width: 1200,
             height: 630,
             alt: product.name || 'Produk KST',
@@ -72,7 +74,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         card: 'summary_large_image',
         title,
         description,
-        images: [dynamicOgUrl],
+        images: [coverImageUrl],
       },
       alternates: {
         canonical: `${APP_URL}/e-katalog/${product.id || id}`,

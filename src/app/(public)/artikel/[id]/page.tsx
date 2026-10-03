@@ -23,6 +23,8 @@ async function fetchArticleServer(idOrSlug: string): Promise<Article | null> {
   }
 }
 
+import { getSocialShareImageUrl } from '@/lib/imageUtils';
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const { id } = await params;
@@ -37,7 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     const title = `${article.title} | Warta Solo Technopark`;
     const description = article.excerpt || article.content.substring(0, 160).replace(/[#*`_]/g, '');
-    const ogImage = article.coverImageUrl || `${APP_URL}/icon-katalog-stp.svg`;
+    const ogImage = getSocialShareImageUrl(article.coverImageUrl);
 
     return {
       title,

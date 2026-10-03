@@ -18,6 +18,8 @@ const getAssetServerCached = cache(async (id: string): Promise<Asset | null> => 
   return await getServerDocRest<Asset>('assets', id, 60);
 });
 
+import { getSocialShareImageUrl } from '@/lib/imageUtils';
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const { id } = await params;
@@ -29,6 +31,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     const title = `${room.name} | Sewa Fasilitas KST Solo Technopark`;
     const description = room.description?.substring(0, 160) || `Sewa ${room.name} di Solo Technopark. Kapasitas ${room.capacity || 'fleksibel'} orang dengan fasilitas modern berstandar industri.`;
+    
+    // Thumbnail ringan (<50KB) agar lolos batas ukuran WhatsApp scraper
+    const coverImageUrl = getSocialShareImageUrl(room.imageUrl);
 
     return {
       title,
@@ -38,7 +43,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         description,
         url: `${APP_URL}/fasilitas/${id}`,
         siteName: 'Solo Technopark',
-        images: room.imageUrl ? [{ url: room.imageUrl, alt: room.name }] : [],
+        images: [
+          {
+            url: coverImageUrl,
+            width: 1200,
+            height: 630,
+            alt: room.name,
+          }
+        ],
         locale: 'id_ID',
         type: 'article',
       },
@@ -46,7 +58,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         card: 'summary_large_image',
         title,
         description,
-        images: room.imageUrl ? [room.imageUrl] : [],
+        images: [coverImageUrl],
       }
     };
   } catch {

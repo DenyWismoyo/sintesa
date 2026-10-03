@@ -18,6 +18,8 @@ const getTenantServerCached = cache(async (id: string): Promise<Tenant | null> =
   return await getServerDocRest<Tenant>('tenants', id, 60);
 });
 
+import { getSocialShareImageUrl } from '@/lib/imageUtils';
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const { id } = await params;
@@ -29,6 +31,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     const title = `${tenant.name} | Ekosistem Startup Solo Technopark`;
     const description = tenant.elevatorPitch || tenant.companyDescription?.substring(0, 160) || `Profil startup dan inovator ${tenant.name} yang bernaung di ekosistem Solo Technopark.`;
+    
+    // Thumbnail ringan (<50KB) untuk share WhatsApp & Medsos
+    const coverImageUrl = getSocialShareImageUrl(tenant.logoUrl);
 
     return {
       title,
@@ -38,7 +43,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         description,
         url: `${APP_URL}/ekosistem/${id}`,
         siteName: 'Solo Technopark',
-        images: tenant.logoUrl ? [{ url: tenant.logoUrl, alt: tenant.name }] : [],
+        images: [
+          {
+            url: coverImageUrl,
+            width: 1200,
+            height: 630,
+            alt: tenant.name,
+          }
+        ],
         locale: 'id_ID',
         type: 'profile',
       },
@@ -46,7 +58,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         card: 'summary_large_image',
         title,
         description,
-        images: tenant.logoUrl ? [tenant.logoUrl] : [],
+        images: [coverImageUrl],
       }
     };
   } catch {

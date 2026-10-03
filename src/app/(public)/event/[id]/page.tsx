@@ -18,6 +18,8 @@ const getEventServerCached = cache(async (id: string): Promise<AppEvent | null> 
   return await getServerDocRest<AppEvent>('events', id, 60);
 });
 
+import { getSocialShareImageUrl } from '@/lib/imageUtils';
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const { id } = await params;
@@ -29,6 +31,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     const title = `${event.title} | Event KST Solo Technopark`;
     const description = event.description?.substring(0, 160) || 'Ikuti agenda acara teknologi, lokakarya, dan pameran inovasi di Solo Technopark.';
+    
+    // Thumbnail ringan (<50KB) untuk share WhatsApp & Medsos
+    const coverImageUrl = getSocialShareImageUrl(event.imageUrl);
 
     return {
       title,
@@ -38,7 +43,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         description,
         url: `${APP_URL}/event/${id}`,
         siteName: 'Solo Technopark',
-        images: event.imageUrl ? [{ url: event.imageUrl, alt: event.title }] : [],
+        images: [
+          {
+            url: coverImageUrl,
+            width: 1200,
+            height: 630,
+            alt: event.title,
+          }
+        ],
         locale: 'id_ID',
         type: 'article',
       },
@@ -46,7 +58,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         card: 'summary_large_image',
         title,
         description,
-        images: event.imageUrl ? [event.imageUrl] : [],
+        images: [coverImageUrl],
       }
     };
   } catch {

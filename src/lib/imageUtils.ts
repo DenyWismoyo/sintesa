@@ -27,6 +27,11 @@ export const getThumbnailUrl = (originalUrl: string | undefined | null): string 
     
     if (!fileName) return originalUrl;
 
+    // Jika sudah berupa thumbnail, tidak perlu diproses ulang
+    if (fileName.startsWith('thumb_')) {
+      return originalUrl;
+    }
+
     // 3. Tambahkan prefix 'thumb_' dan ganti ekstensi menjadi .webp (karena sharp kita set ke webp)
     // Menghapus ekstensi lama (misal .jpg/.png) dan mengganti ke .webp
     const fileNameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
@@ -43,6 +48,32 @@ export const getThumbnailUrl = (originalUrl: string | undefined | null): string 
     console.error("Error parsing thumbnail URL:", error);
     return originalUrl; // Fallback ke gambar asli jika gagal parse
   }
+};
+
+/**
+ * Utilitas untuk menghasilkan URL gambar Open Graph / Social Media Share (WhatsApp, Facebook, Twitter).
+ * Menghasilkan URL thumbnail ringan (< 50KB) agar lolos batasan crawler WhatsApp (maks 300KB).
+ */
+export const getSocialShareImageUrl = (
+  rawUrl: string | undefined | null,
+  fallbackUrl: string = 'https://katalog.solotechnopark.id/icon-katalog-stp.svg'
+): string => {
+  if (!rawUrl || typeof rawUrl !== 'string' || rawUrl.trim() === '') {
+    return fallbackUrl;
+  }
+  
+  // Jika URL berupa Firebase Storage, konversi ke thumbnail WebP ringan
+  if (rawUrl.includes('firebasestorage.googleapis.com')) {
+    return getThumbnailUrl(rawUrl);
+  }
+
+  // Jika URL relative, jadikan absolut
+  if (rawUrl.startsWith('/')) {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://katalog.solotechnopark.id';
+    return `${baseUrl}${rawUrl}`;
+  }
+
+  return rawUrl;
 };
 
 /**

@@ -22,6 +22,8 @@ const getTrainingServerCached = cache(async (id: string): Promise<Training | nul
   return await getServerDocRest<Training>('trainings', id, 60);
 });
 
+import { getSocialShareImageUrl } from '@/lib/imageUtils';
+
 // FASE 1: SEO & Dynamic Open Graph untuk Detail Pelatihan
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
@@ -34,8 +36,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     
     const title = `${training.title} | Pelatihan KST Solo Technopark`;
     const description = training.description?.substring(0, 160) || 'Ikuti pelatihan intensif dan tingkatkan keahlian Anda bersama KST Solo Technopark.';
-    const formattedPrice = training.isFree ? 'GRATIS' : (training.price ? training.price.toLocaleString('id-ID') : 'Hubungi Kami');
-    const dynamicOgUrl = `${APP_URL}/api/og/katalog?title=${encodeURIComponent(training.title || '')}&price=${encodeURIComponent(formattedPrice)}`;
+    
+    // Thumbnail cover pelatihan ringan (<50KB) untuk preview WhatsApp & Medsos
+    const coverImageUrl = getSocialShareImageUrl(training.imageUrl);
 
     return {
       title,
@@ -47,7 +50,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         siteName: 'Solo Technopark',
         images: [
           {
-            url: dynamicOgUrl,
+            url: coverImageUrl,
             width: 1200,
             height: 630,
             alt: training.title,
@@ -60,7 +63,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         card: 'summary_large_image',
         title,
         description,
-        images: [dynamicOgUrl],
+        images: [coverImageUrl],
       },
       alternates: {
         canonical: `${APP_URL}/program-pelatihan/${training.id}`,
