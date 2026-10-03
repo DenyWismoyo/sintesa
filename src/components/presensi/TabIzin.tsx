@@ -21,7 +21,8 @@ import {
   Loader2,
   Paperclip,
   Inbox,
-  AlertCircle
+  AlertCircle,
+  MessageSquare,
 } from "lucide-react";
 
 export default function TabIzin() {
@@ -40,6 +41,12 @@ export default function TabIzin() {
   const [fileToUpload, setFileToUpload] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [submittedData, setSubmittedData] = useState<{
+    jenis: string;
+    tanggalMulai: string;
+    tanggalSelesai: string;
+    alasan: string;
+  } | null>(null);
 
   const [showForm, setShowForm] = useState(false);
 
@@ -100,23 +107,66 @@ export default function TabIzin() {
       setSuccessMessage(
         `Permohonan ${jenis} Anda berhasil diajukan ke atasan untuk verifikasi.`
       );
+      setSubmittedData({
+        jenis,
+        tanggalMulai,
+        tanggalSelesai,
+        alasan,
+      });
       setAlasan("");
       setFileToUpload(null);
       setShowForm(false);
       playSuccessChime();
-      setTimeout(() => setSuccessMessage(null), 5000);
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleSendWhatsApp = (data: { jenis: string; tanggalMulai: string; tanggalSelesai: string; alasan: string }) => {
+    const approvalUrl = "https://katalog.solotechnopark.id/presensi/approval";
+    const pesan = 
+`*Pemberitahuan Pengajuan ${data.jenis} - Techno Sign Solo Technopark*
+
+Yth. Bapak/Ibu Atasan,
+Saya mengajukan permohonan *${data.jenis}* dengan rincian berikut:
+• Pegawai: ${user?.nama || "-"} (NIP: ${user?.nip || "-"})
+• Periode: ${data.tanggalMulai}${data.tanggalSelesai !== data.tanggalMulai ? ` s.d. ${data.tanggalSelesai}` : ""}
+• Alasan: ${data.alasan}
+
+Mohon kesediaan Bapak/Ibu untuk meninjau dan memberikan persetujuan melalui sistem Techno Sign:
+${approvalUrl}
+
+Terima kasih.`;
+
+    const encoded = encodeURIComponent(pesan);
+    const waUrl = `https://api.whatsapp.com/send?text=${encoded}`;
+    window.open(waUrl, "_blank");
   };
 
   return (
     <MotionStaggerContainer className="space-y-6">
       {successMessage && (
         <MotionFadeUp className="px-4 sm:px-0">
-          <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-start gap-2.5 shadow-sm">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-            <span>{successMessage}</span>
+          <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs shadow-xs space-y-3">
+            <div className="flex items-start gap-2.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+              <span className="font-semibold text-emerald-800">{successMessage}</span>
+            </div>
+            {submittedData && (
+              <div className="pt-2 border-t border-emerald-200/60 flex flex-wrap items-center justify-between gap-2">
+                <span className="text-[11px] text-emerald-700">
+                  Percepat proses dengan mengabari atasan langsung via WhatsApp:
+                </span>
+                <Button
+                  size="sm"
+                  onClick={() => handleSendWhatsApp(submittedData)}
+                  className="h-8 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-xl shadow-xs"
+                >
+                  <MessageSquare className="w-3.5 h-3.5 mr-1.5" />
+                  Kabari Atasan via WhatsApp
+                </Button>
+              </div>
+            )}
           </div>
         </MotionFadeUp>
       )}

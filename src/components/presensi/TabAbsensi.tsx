@@ -19,7 +19,8 @@ import {
   Building,
   Building2,
   AlertCircle,
-  Loader2
+  Loader2,
+  FileText,
 } from "lucide-react";
 import ContextHeroCard from "./ContextHeroCard";
 
@@ -147,6 +148,12 @@ export default function TabAbsensi() {
   const checkInTime = formatTimeString(presensiData?.checkIn?.waktu);
   const checkOutTime = formatTimeString(presensiData?.checkOut?.waktu);
   const isProcessing = checkInMutation.isPending || checkOutMutation.isPending;
+
+  const isCutiOrIzin =
+    presensiData?.status === "cuti" ||
+    presensiData?.status === "izin" ||
+    presensiData?.status === "sakit" ||
+    presensiData?.status === "dinas";
 
   const handleFotoCaptured = (fotoUrl: string, sizeBytes: number) => {
     setCapturedFotoUrl(fotoUrl);
@@ -312,7 +319,60 @@ export default function TabAbsensi() {
         </div>
       </MotionFadeUp>
 
-      {!activeOffice ? (
+      {isCutiOrIzin ? (
+        <MotionFadeUp className="mt-4 px-4 sm:px-0">
+          <div className="card-base p-6 text-center bg-gradient-to-br from-violet-50 via-purple-50 to-indigo-50 border border-violet-200/80 shadow-md sm:rounded-3xl">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-700 text-white flex items-center justify-center mx-auto mb-3.5 shadow-md">
+              <FileText className="w-7 h-7" />
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-100 text-violet-800 border border-violet-200 text-[11px] font-bold uppercase mb-2">
+              Dispensasi Presensi Kedinasan
+            </div>
+            <h3 className="text-lg font-extrabold text-slate-900 mb-1">
+              Hari Ini Berstatus: {presensiData?.status?.toUpperCase()}
+            </h3>
+            <p className="text-xs text-slate-600 max-w-md mx-auto leading-relaxed mb-4">
+              {presensiData?.keterangan || "Pengajuan izin/cuti kedinasan Anda telah disetujui secara resmi oleh atasan penilai."}
+            </p>
+
+            <div className="p-3.5 bg-white/85 backdrop-blur-xs rounded-2xl border border-violet-100 text-[11px] text-slate-600 max-w-sm mx-auto space-y-1.5 text-left shadow-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Pegawai:</span>
+                <span className="font-semibold text-slate-800">{user?.nama}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">NIP / ID:</span>
+                <span className="font-mono text-slate-700">{user?.nip}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Tanggal:</span>
+                <span className="font-semibold text-slate-800">
+                  {new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+                </span>
+              </div>
+              <div className="flex justify-between pt-1 border-t border-violet-100">
+                <span className="text-slate-400">Kewajiban Swafoto:</span>
+                <span className="font-bold text-emerald-600">Bebas Presensi Swafoto</span>
+              </div>
+            </div>
+
+            <div className="mt-5 flex items-center justify-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    window.location.search = "?tab=izin";
+                  }
+                }}
+                className="text-xs border-violet-200 text-violet-700 hover:bg-violet-100/60 rounded-xl"
+              >
+                Lihat Berkas Cuti / Izin
+              </Button>
+            </div>
+          </div>
+        </MotionFadeUp>
+      ) : !activeOffice ? (
         <MotionFadeUp className="mt-4 px-4 sm:px-0">
           <div className="card-base p-8 text-center bg-amber-50/80 backdrop-blur-xl border-amber-100 sm:border-amber-100">
             <Building2 className="w-12 h-12 text-amber-400 mx-auto mb-4" />
@@ -369,7 +429,7 @@ export default function TabAbsensi() {
           <div className="grid grid-cols-2 gap-3 pt-2 px-4 sm:px-0">
             <Button
               onClick={handleCheckIn}
-              disabled={isProcessing || !!checkInTime || !capturedFotoUrl || !isWithinRadius || gpsStatus !== "success"}
+              disabled={isProcessing || !!checkInTime || !capturedFotoUrl || !isValidLocation || gpsStatus !== "success"}
               className={`rounded-[20px] h-[60px] flex flex-col justify-center items-center gap-1 shadow-lg transition-all ${
                 checkInTime 
                   ? "bg-slate-100 text-slate-400 border-none shadow-none cursor-not-allowed" 
@@ -391,7 +451,7 @@ export default function TabAbsensi() {
 
             <Button
               onClick={handleCheckOut}
-              disabled={isProcessing || !checkInTime || !!checkOutTime || !capturedFotoUrl || gpsStatus !== "success" || capturedFotoUrl === presensiData?.checkIn?.fotoUrl}
+              disabled={isProcessing || !checkInTime || !!checkOutTime || !capturedFotoUrl || !isValidLocation || gpsStatus !== "success" || capturedFotoUrl === presensiData?.checkIn?.fotoUrl}
               className={`rounded-[20px] h-[60px] flex flex-col justify-center items-center gap-1 shadow-lg transition-all ${
                 !checkInTime || !!checkOutTime 
                   ? "bg-slate-100 text-slate-400 border-none shadow-none cursor-not-allowed" 

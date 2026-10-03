@@ -112,6 +112,22 @@ export default function LaporanPage() {
   const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
 
+  // Auto-fill dari query param (misal ditransfer dari Tugas Lembur)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const prefill = params.get("kegiatan");
+      if (prefill) {
+        setDeskripsi(prefill);
+        const matched = detectAktivitasFromLogbookText(prefill);
+        if (matched) {
+          setSelectedAktivitas(matched);
+          setOutputKegiatan(matched.satuan || "Per kegiatan");
+        }
+      }
+    }
+  }, []);
+
   // Handler untuk foto yang berhasil diupload ke Firebase Storage
   const handleFotoUploaded = (metadata: UploadedFileMetadata) => {
     setUploadedPhotos([...uploadedPhotos, metadata.url]);

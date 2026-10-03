@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePresensiAuth } from "@/lib/presensi/auth-context";
 import { usePresensiHarian } from "@/hooks/presensi/usePresensi";
 import { useKantorList } from "@/hooks/presensi/useKantor";
-import { detectNearestOffice, DEFAULT_KANTOR_LIST } from "@/data/presensi/masterKantor";
+import { detectNearestOffice, DEFAULT_KANTOR_LIST, isPointInPolygon } from "@/data/presensi/masterKantor";
 import { GeolocationPoint, KantorUnit } from "@/types/presensi";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,7 @@ import {
   Clock,
   ShieldCheck,
   Zap,
+  FileText,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -149,6 +150,19 @@ export default function QuickPresensiWidget() {
   const nearestOffice = nearestResult?.nearestOffice;
   const distance = nearestResult?.distanceMeters ?? null;
   const isWithinRadius = nearestResult?.isWithinRadius ?? false;
+
+  const isInStpPolygon = useMemo(() => {
+    if (!userCoords) return false;
+    return isPointInPolygon(userCoords);
+  }, [userCoords]);
+
+  const isValidLocation = isWithinRadius || isInStpPolygon;
+
+  const isCutiOrIzin =
+    presensiToday?.status === "cuti" ||
+    presensiToday?.status === "izin" ||
+    presensiToday?.status === "sakit" ||
+    presensiToday?.status === "dinas";
 
   const handleWidgetActionClick = () => {
     if (typeof window !== "undefined" && "vibrate" in navigator) {
@@ -298,7 +312,26 @@ export default function QuickPresensiWidget() {
 
         {/* Tombol Aksi Cepat Presensi Ponsel */}
         <div className="pt-1">
-          {isCheckedIn && isCheckedOut ? (
+          {isCutiOrIzin ? (
+            <div className="p-3.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-700 text-white shadow-sm flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <FileText className="w-5 h-5 text-violet-200" />
+                <div>
+                  <div className="text-xs font-bold uppercase tracking-tight">
+                    Dispensasi: {presensiToday?.status} Resmi
+                  </div>
+                  <div className="text-[10px] text-violet-100 truncate max-w-[200px] sm:max-w-xs">
+                    {presensiToday?.keterangan || "Izin kedinasan telah disetujui resmi"}
+                  </div>
+                </div>
+              </div>
+              <Link href="/presensi/scan?tab=izin">
+                <Badge className="bg-white/20 hover:bg-white/30 text-white text-[10px] border-none cursor-pointer">
+                  Detail Izin
+                </Badge>
+              </Link>
+            </div>
+          ) : isCheckedIn && isCheckedOut ? (
             <div className="p-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-sm flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <CheckCircle2 className="w-5 h-5 text-emerald-200" />
@@ -349,7 +382,7 @@ export default function QuickPresensiWidget() {
                 <Button
                   className={cn(
                     "btn-base w-full h-[52px] shadow-lg",
-                    isWithinRadius
+                    isValidLocation
                       ? "bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-teal-800 text-white ring-4 ring-emerald-500/25 animate-pulse"
                       : "bg-foreground hover:bg-black text-background"
                   )}
@@ -359,13 +392,15 @@ export default function QuickPresensiWidget() {
                   </div>
                   <div className="text-left">
                     <div className="leading-tight">
-                      {isWithinRadius
+                      {isValidLocation
                         ? "Ambil Swafoto Presensi Masuk"
                         : "Menuju Halaman Presensi"}
                     </div>
                     <div className="text-[10px] font-normal text-emerald-100/90 leading-tight">
-                      {isWithinRadius
-                        ? `Terdeteksi dalam radius ${nearestOffice?.namaKantor || "kantor"}`
+                      {isValidLocation
+                        ? isWithinRadius
+                          ? `Terdeteksi dalam radius ${nearestOffice?.namaKantor || "kantor"}`
+                          : `Terdeteksi di Kawasan STP (Poligon 8 Hektar)`
                         : "Periksa lokasi dan foto dinas pegawai"}
                     </div>
                   </div>
