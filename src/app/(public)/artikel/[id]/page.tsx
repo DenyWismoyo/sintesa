@@ -39,7 +39,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     const title = `${article.title} | Warta Solo Technopark`;
     const description = article.excerpt || article.content.substring(0, 160).replace(/[#*`_]/g, '');
-    const ogImage = getSocialShareImageUrl(article.coverImageUrl);
+    const rawCover = article.coverImageUrl || (article as any).imageUrl || (article as any).coverUrl || (article as any).thumbnailUrl;
+    const ogImage = getSocialShareImageUrl(rawCover);
 
     return {
       title,
@@ -59,12 +60,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             alt: article.title,
           }
         ],
+        locale: 'id_ID',
       },
       twitter: {
         card: 'summary_large_image',
         title,
         description,
         images: [ogImage],
+      },
+      alternates: {
+        canonical: `${APP_URL}/artikel/${article.slug || article.id}`,
       }
     };
   } catch {
