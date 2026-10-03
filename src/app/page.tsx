@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import PublicNavbar from '@/components/common/PublicNavbar';
 import PublicFooter from '@/components/common/PublicFooter';
-import WhatsAppFloatingConcierge from '@/components/common/WhatsAppFloatingConcierge';
 import {
   Building2,
   GraduationCap,
@@ -635,9 +634,6 @@ export default function SmartHubLanding() {
 
         </div>
       </section>
-
-      {/* --- WHATSAPP FLOATING CONCIERGE --- */}
-      <WhatsAppFloatingConcierge />
 
       {/* --- FOOTER TERPADU KAWASAN --- */}
       <PublicFooter />

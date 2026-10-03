@@ -4,7 +4,6 @@
 import React, { Suspense } from 'react';
 import PublicNavbar from '@/components/common/PublicNavbar';
 import PublicFooter from '@/components/common/PublicFooter';
-import WhatsAppFloatingConcierge from '@/components/common/WhatsAppFloatingConcierge';
 import { AffiliateTracker } from '@/components/common/AffiliateTracker';
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -20,9 +19,6 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         </Suspense>
         {children}
       </main>
-
-      {/* --- WHATSAPP FLOATING CONCIERGE (ANTI-COLLISION DENGAN STICKY BAR & FOOTER) --- */}
-      <WhatsAppFloatingConcierge />
 
       {/* --- PUBLIC FOOTER TERPADU DENGAN IDENTITAS BLUD & KONTAK RESMI --- */}
       <PublicFooter />
