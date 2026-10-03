@@ -2,10 +2,10 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { bookingService } from '@/services/booking.service';
-import { useSearch } from '@/hooks/useSearch';
+import { useAssets } from '@/hooks/useAssets';
 import { useBooking } from '@/hooks/useBooking';
 import { Asset, Booking } from '@/types';
 import { motion, Variants, AnimatePresence } from 'framer-motion';
@@ -34,23 +34,28 @@ export default function FasilitasPublicPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('priceValue:desc');
 
-  // Menggunakan Firebase Search
-  const { results: rawAssets, loading: loadingAssets } = useSearch<Asset>({
-    collection: 'assets',
-    query: searchTerm,
-    queryBy: 'name,location,facilities',
-  });
+  // Menggunakan Master Cache Aset (1-Read Pattern dari cache_assets/master)
+  const { publicRooms: rawRooms, loadingRooms: loadingAssets } = useAssets();
 
-  // 1. FILTER: Pastikan hanya kategori "Ruangan" yang muncul di public
-  let rooms = rawAssets.filter((asset) => asset.category === 'Ruangan');
-
-  // 2. SORTING: Berdasarkan Harga
-  rooms = rooms.sort((a, b) => {
-    const priceA = Number(a.priceValue) || 0;
-    const priceB = Number(b.priceValue) || 0;
-    if (sortBy === 'priceValue:desc') return priceB - priceA;
-    return priceA - priceB;
-  });
+  // 1. FILTER & SEARCH: Di memori browser (Instan & 0 Firestore read)
+  const rooms = useMemo(() => {
+    let list = rawRooms;
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase();
+      list = list.filter((r) => 
+        (r.name || '').toLowerCase().includes(q) ||
+        (r.location || '').toLowerCase().includes(q) ||
+        (r.facilities || '').toLowerCase().includes(q) ||
+        (r.description || '').toLowerCase().includes(q)
+      );
+    }
+    return list.slice().sort((a, b) => {
+      const priceA = Number(a.priceValue) || 0;
+      const priceB = Number(b.priceValue) || 0;
+      if (sortBy === 'priceValue:desc') return priceB - priceA;
+      return priceA - priceB;
+    });
+  }, [rawRooms, searchTerm, sortBy]);
 
   const { submitBooking } = useBooking('public');
   

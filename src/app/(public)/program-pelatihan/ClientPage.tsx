@@ -3,7 +3,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { useSearch } from '@/hooks/useSearch';
+import { useTraining } from '@/hooks/useTraining';
 import { motion, Variants, AnimatePresence } from 'framer-motion';
 
 import { 
@@ -54,28 +54,38 @@ export default function ProgramPelatihanPublik() {
   const [priceFilter, setPriceFilter] = useState<'all' | 'free' | 'paid'>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('Semua Kategori');
 
-  const { results: rawTrainings, loading } = useSearch<any>({
-    collection: 'trainings', 
-    query: searchTerm, 
-    queryBy: 'title,description,category,instructorNames',
-    perPage: 100 
-  });
+  // Menggunakan Master Cache Pelatihan (1-Read Pattern dari cache_trainings/master)
+  const { trainings: rawTrainings, loading } = useTraining();
 
   const activeTrainings = useMemo(() => {
-    return rawTrainings.filter((training) => {
-      const isStatusValid = training.status === 'Published' || training.status === 'Aktif';
+    return rawTrainings.filter((training: any) => {
+      const isStatusValid = training.status === 'Published' || training.status === 'Aktif' || training.isPublished === true;
       if (!isStatusValid) return false;
 
       if (selectedType !== 'all' && training.type !== selectedType) return false;
 
-      if (priceFilter === 'free' && training.isFree !== true) return false;
-      if (priceFilter === 'paid' && training.isFree === true) return false;
+      const isFree = training.isFree === true || training.pricingType === 'GRATIS' || Number(training.price) === 0;
+      if (priceFilter === 'free' && !isFree) return false;
+      if (priceFilter === 'paid' && isFree) return false;
 
       if (selectedCategory !== 'Semua Kategori' && training.category !== selectedCategory) return false;
 
+      if (searchTerm.trim()) {
+        const q = searchTerm.toLowerCase();
+        const instructorsStr = Array.isArray(training.instructors) 
+          ? training.instructors.map((i: any) => i.name).join(' ') 
+          : (training.instructorName || '');
+        const matchSearch = 
+          (training.title || '').toLowerCase().includes(q) ||
+          (training.shortDescription || '').toLowerCase().includes(q) ||
+          (training.category || '').toLowerCase().includes(q) ||
+          instructorsStr.toLowerCase().includes(q);
+        if (!matchSearch) return false;
+      }
+
       return true;
     });
-  }, [rawTrainings, selectedType, priceFilter, selectedCategory]);
+  }, [rawTrainings, searchTerm, selectedType, priceFilter, selectedCategory]);
 
   const DIKLAT_CATEGORIES = [
     'Semua Kategori',

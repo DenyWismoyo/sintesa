@@ -4,8 +4,9 @@
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, query as firestoreQuery, limit as firestoreLimit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { getAppId } from '@/lib/appId';
 import { 
   Search, 
   GraduationCap, 
@@ -51,59 +52,60 @@ function SearchPageContent() {
   const [loading, setLoading] = useState(true);
   const [allData, setAllData] = useState<SearchResultItem[]>([]);
 
-  // Fetch data dari 6 koleksi utama
+  // Fetch data dari Master Cache (Ultra-efisien: dari ~1000 reads menjadi ~6 reads)
   useEffect(() => {
     let isMounted = true;
     const fetchAllCollections = async () => {
       setLoading(true);
       try {
+        const appId = getAppId();
         const [
           trainingsSnap,
           assetsSnap,
           catalogsSnap,
+          tenantsSnap,
           articlesSnap,
-          eventsSnap,
-          tenantsSnap
+          eventsSnap
         ] = await Promise.all([
-          getDocs(collection(db, 'trainings')),
-          getDocs(collection(db, 'assets')),
-          getDocs(collection(db, 'catalogs')),
-          getDocs(collection(db, 'articles')),
-          getDocs(collection(db, 'events')),
-          getDocs(collection(db, 'tenants'))
+          getDoc(doc(db, `artifacts/${appId}/public/data/cache_trainings`, 'master')),
+          getDoc(doc(db, `artifacts/${appId}/public/data/cache_assets`, 'master')),
+          getDoc(doc(db, `artifacts/${appId}/public/data/cache_catalogs`, 'master')),
+          getDoc(doc(db, `artifacts/${appId}/public/data/cache_tenants`, 'master')),
+          getDocs(firestoreQuery(collection(db, 'articles'), firestoreLimit(30))),
+          getDocs(firestoreQuery(collection(db, 'events'), firestoreLimit(30)))
         ]);
 
         const items: SearchResultItem[] = [];
 
-        // 1. Trainings
-        trainingsSnap.forEach(docSnap => {
-          const d = docSnap.data();
+        // 1. Trainings (dari Master Cache)
+        const trainingsData = trainingsSnap.exists() ? (trainingsSnap.data()?.data || []) : [];
+        trainingsData.forEach((d: any) => {
           items.push({
-            id: docSnap.id,
+            id: d.id,
             domain: 'TRAINING',
             title: d.title || 'Program Pelatihan',
-            description: d.description || '',
-            category: d.type || 'Pelatihan',
-            imageUrl: d.imageUrl,
-            url: `/program-pelatihan/${docSnap.id}`,
+            description: d.description || d.shortDescription || '',
+            category: d.type || d.category || 'Pelatihan',
+            imageUrl: d.imageUrl || d.posterUrl,
+            url: `/program-pelatihan/${d.id}`,
             badgeLabel: 'Pelatihan',
             badgeColor: 'bg-amber-100 text-amber-800 border-amber-300',
             metaInfo: d.isFree ? 'Gratis' : (d.price ? `Rp ${Number(d.price).toLocaleString('id-ID')}` : undefined)
           });
         });
 
-        // 2. Facilities (Assets)
-        assetsSnap.forEach(docSnap => {
-          const d = docSnap.data();
+        // 2. Facilities (Assets - dari Master Cache)
+        const assetsData = assetsSnap.exists() ? (assetsSnap.data()?.data || []) : [];
+        assetsData.forEach((d: any) => {
           if (d.category === 'Ruangan' || d.isRentable) {
             items.push({
-              id: docSnap.id,
+              id: d.id,
               domain: 'FACILITY',
               title: d.name || 'Fasilitas Kawasan',
               description: d.description || '',
               category: d.category || 'Ruangan',
               imageUrl: d.imageUrl,
-              url: `/fasilitas/${docSnap.id}`,
+              url: `/fasilitas/${d.id}`,
               badgeLabel: 'Fasilitas',
               badgeColor: 'bg-sky-100 text-sky-800 border-sky-300',
               metaInfo: d.priceValue ? `Rp ${Number(d.priceValue).toLocaleString('id-ID')} / ${d.pricingType || 'Hari'}` : (d.capacity ? `${d.capacity} Orang` : undefined)
@@ -111,17 +113,17 @@ function SearchPageContent() {
           }
         });
 
-        // 3. Catalogs
-        catalogsSnap.forEach(docSnap => {
-          const d = docSnap.data();
+        // 3. Catalogs (dari Master Cache)
+        const catalogsData = catalogsSnap.exists() ? (catalogsSnap.data()?.data || []) : [];
+        catalogsData.forEach((d: any) => {
           items.push({
-            id: docSnap.id,
+            id: d.id,
             domain: 'CATALOG',
             title: d.name || d.title || 'Produk Inovasi',
-            description: d.description || '',
+            description: d.description || d.shortDescription || '',
             category: d.category || 'Produk',
-            imageUrl: d.imageUrl || (d.images && d.images[0]),
-            url: `/e-katalog/${docSnap.id}`,
+            imageUrl: d.imageUrl || d.coverImage || (d.images && d.images[0]),
+            url: `/e-katalog/${d.id}`,
             badgeLabel: 'E-Katalog',
             badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
             metaInfo: d.price ? `Rp ${Number(d.price).toLocaleString('id-ID')}` : undefined
@@ -130,7 +132,7 @@ function SearchPageContent() {
 
         // 4. Articles
         articlesSnap.forEach(docSnap => {
-          const d = docSnap.data();
+          const d = docSnap.data() as any;
           if (d.isPublished !== false) {
             items.push({
               id: docSnap.id,
@@ -149,7 +151,7 @@ function SearchPageContent() {
 
         // 5. Events
         eventsSnap.forEach(docSnap => {
-          const d = docSnap.data();
+          const d = docSnap.data() as any;
           if (d.isPublished !== false) {
             items.push({
               id: docSnap.id,
@@ -166,16 +168,16 @@ function SearchPageContent() {
           }
         });
 
-        // 6. Tenants
-        tenantsSnap.forEach(docSnap => {
-          const d = docSnap.data();
+        // 6. Tenants (dari Master Cache)
+        const tenantsData = tenantsSnap.exists() ? (tenantsSnap.data()?.data || []) : [];
+        tenantsData.forEach((d: any) => {
           items.push({
-            id: docSnap.id,
+            id: d.id,
             domain: 'TENANT',
             title: d.name || 'Startup Ekosistem',
             description: d.elevatorPitch || d.description || '',
             category: d.segment || 'StartUp',
-            imageUrl: d.logoUrl || d.imageUrl,
+            imageUrl: d.logoUrl || d.coverImageUrl || d.imageUrl,
             url: `/ekosistem`,
             badgeLabel: 'Tenant',
             badgeColor: 'bg-indigo-100 text-indigo-800 border-indigo-300',
