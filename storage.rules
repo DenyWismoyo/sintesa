@@ -133,5 +133,27 @@ service firebase.storage {
       allow read: if true;
       allow write: if isAdmin() && isImage() && isUnderSize(5);
     }
+
+    // =========================================================================
+    // MODUL TECHNO SIGN: SWAFOTO PRESENSI, BUKTI TUGAS & DOKUMEN IZIN
+    // Bucket: presensi-solo-technopark (dan default bucket jika fallback)
+    // =========================================================================
+
+    // 11. Swafoto Presensi Kamera (swafoto-presensi/{orgId}/{userId}/{year}/{month}/{fileName})
+    match /swafoto-presensi/{orgId}/{userId}/{year}/{month}/{fileName} {
+      // Swafoto dapat dibaca oleh user terautentikasi (atasan, admin, pegawai)
+      allow read: if isAuth();
+      // Pegawai hanya dapat mengunggah ke foldernya sendiri (anti-impersonation)
+      allow write: if isAuth() &&
+                   (request.auth.uid == userId || isAdmin()) &&
+                   isImage() &&
+                   isUnderSize(10);
+    }
+
+    // 12. Berkas Bukti Tugas Logbook / LKH & Surat Pengajuan Izin
+    match /presensi-pegawai/{allPaths=**} {
+      allow read: if isAuth();
+      allow write: if isAuth() && isDoc() && isUnderSize(25);
+    }
   }
 }

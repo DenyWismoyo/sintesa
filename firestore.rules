@@ -313,5 +313,113 @@ service cloud.firestore {
         allow write: if isAdmin();
       }
     }
+
+    // =========================================================================
+    // MODUL TECHNO SIGN: PRESENSI, LOGBOOK KINERJA & TITIK GEOFENCING
+    // Database: presensi-pegawai (atau default jika fallback)
+    // =========================================================================
+
+    // 13. Data Titik Kantor & Radius Geofencing
+    match /kantor/{kantorId} {
+      // Seluruh pegawai terautentikasi dapat membaca titik kantor aktif untuk validasi GPS
+      allow read: if isAuth();
+      // Konfigurasi koordinat dan radius hanya oleh admin sistem
+      allow write: if isAdmin();
+    }
+
+    // 14. Rekam Presensi Harian (Check-In & Check-Out)
+    match /presensi/{presensiId} {
+      // Pegawai membaca riwayat presensinya sendiri; atasan/admin membaca untuk pemantauan & rekap
+      allow read: if isAuth() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.atasanId == request.auth.uid ||
+        isAdmin()
+      );
+      // Pegawai mencatat presensi untuk dirinya sendiri (diverifikasi server-side)
+      allow create: if isAuth() && (
+        request.resource.data.userId == request.auth.uid || isAdmin()
+      );
+      // Update data presensi (Check-Out) hanya oleh pemilik presensi atau admin
+      allow update: if isAuth() && (
+        resource.data.userId == request.auth.uid || isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+
+    // 15. Laporan Kinerja Harian (LKH) / Logbook Pegawai
+    match /lkh/{lkhId} {
+      allow read: if isAuth() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.atasanId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if isAuth() && (
+        request.resource.data.userId == request.auth.uid || isAdmin()
+      );
+      allow update: if isAuth() && (
+        (resource.data.userId == request.auth.uid && resource.data.status in ['draft', 'rejected']) ||
+        resource.data.atasanId == request.auth.uid ||
+        isAdmin()
+      );
+      allow delete: if isAuth() && (
+        (resource.data.userId == request.auth.uid && resource.data.status in ['draft', 'rejected']) ||
+        isAdmin()
+      );
+    }
+
+    // 16. Pengajuan Izin / Cuti
+    match /izin/{izinId} {
+      allow read: if isAuth() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.atasanId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if isAuth() && (
+        request.resource.data.userId == request.auth.uid || isAdmin()
+      );
+      allow update: if isAuth() && (
+        (resource.data.userId == request.auth.uid && resource.data.status == 'diajukan') ||
+        resource.data.atasanId == request.auth.uid ||
+        isAdmin()
+      );
+      allow delete: if isAuth() && (
+        (resource.data.userId == request.auth.uid && resource.data.status == 'diajukan') ||
+        isAdmin()
+      );
+    }
+
+    // 17. Pengajuan & Rekam Lembur
+    match /lemburRecords/{lemburId} {
+      allow read: if isAuth() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.atasanId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if isAuth() && (
+        request.resource.data.userId == request.auth.uid || isAdmin()
+      );
+      allow update: if isAuth() && (
+        (resource.data.userId == request.auth.uid && resource.data.status in ['draft', 'diajukan']) ||
+        resource.data.atasanId == request.auth.uid ||
+        isAdmin()
+      );
+      allow delete: if isAuth() && (
+        (resource.data.userId == request.auth.uid && resource.data.status in ['draft', 'diajukan']) ||
+        isAdmin()
+      );
+    }
+
+    // 18. Organisasi & Unit Kerja
+    match /organizations/{orgId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // 19. Audit Log Forensik Anti-Fraud (Immutable)
+    match /auditLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAuth();
+      allow update, delete: if false;
+    }
   }
 }

@@ -1,11 +1,23 @@
 {
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
-  },
+  "firestore": [
+    {
+      "database": "(default)",
+      "rules": "firestore.rules",
+      "indexes": "firestore.indexes.json"
+    },
+    {
+      "database": "presensi-pegawai",
+      "rules": "firestore.rules",
+      "indexes": "firestore.indexes.presensi.json"
+    }
+  ],
   "storage": [
     {
       "bucket": "katalog-solo-technopark.firebasestorage.app",
+      "rules": "storage.rules"
+    },
+    {
+      "bucket": "presensi-solo-technopark",
       "rules": "storage.rules"
     }
   ],
