@@ -5,6 +5,7 @@ import React, { Suspense } from 'react';
 import PublicNavbar from '@/components/common/PublicNavbar';
 import PublicFooter from '@/components/common/PublicFooter';
 import { AffiliateTracker } from '@/components/common/AffiliateTracker';
+import CookieConsentBanner from '@/components/common/CookieConsentBanner';
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -22,6 +23,9 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
 
       {/* --- PUBLIC FOOTER TERPADU DENGAN IDENTITAS BLUD & KONTAK RESMI --- */}
       <PublicFooter />
+
+      {/* --- BANNER PERSETUJUAN COOKIE & PRIVASI (UU PDP) --- */}
+      <CookieConsentBanner />
     </div>
   );
 }
