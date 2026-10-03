@@ -18,6 +18,8 @@ export function usePresensiHarian(userId?: string, tanggal?: string) {
       return await getPresensiToday(userId, tanggal);
     },
     enabled: Boolean(userId && tanggal),
+    staleTime: 1000 * 30, // 30 detik
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -29,6 +31,7 @@ export function useRiwayatPresensi(userId?: string, limitDays: number = 7) {
       return await getPresensiHistory(userId, limitDays);
     },
     enabled: Boolean(userId),
+    staleTime: 1000 * 60 * 2, // 2 menit
   });
 }
 
@@ -40,8 +43,9 @@ export function useKehadiranStatus(userId?: string, tanggal?: string) {
       return await getKehadiranStatusHariIni(userId, tanggal);
     },
     enabled: Boolean(userId && tanggal),
-    // Status kehadiran bisa berubah cepat (misal disetujui atasan), refetch on window focus
+    staleTime: 1000 * 30, // 30 detik
     refetchOnWindowFocus: true,
+    refetchInterval: 1000 * 60, // Refetch otomatis setiap 60 detik untuk status kehadiran realtime
   });
 }
 
@@ -58,6 +62,9 @@ export function useCheckInMutation() {
       });
       queryClient.invalidateQueries({
         queryKey: ["presensi-history", variables.userId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["kehadiran-status", variables.userId],
       });
     },
   });
@@ -76,6 +83,9 @@ export function useCheckOutMutation() {
       });
       queryClient.invalidateQueries({
         queryKey: ["presensi-history", variables.userId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["kehadiran-status", variables.userId],
       });
     },
   });

@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { adminPresensiDb as adminDb } from "@/lib/presensi/firebase-admin";
 import { KantorUnit, GeolocationPoint, PresensiCheckPoint } from "@/types/presensi";
-import { DEFAULT_KANTOR_LIST, calculateHaversineDistance } from "@/data/presensi/masterKantor";
+import { DEFAULT_KANTOR_LIST, calculateHaversineDistance, isPointInPolygon } from "@/data/presensi/masterKantor";
 
 export interface ServerGeofenceResult {
   isValid: boolean;
@@ -87,7 +87,14 @@ export async function verifyGeofenceServerSide(
     targetKantor.koordinat
   );
 
-  const isValid = serverDistanceMeters <= targetKantor.radiusMeter;
+  const isWithinRadius = serverDistanceMeters <= targetKantor.radiusMeter;
+  // Validasi Dual-Layer: Periksa juga poligon fisik Kawasan Solo Technopark (8 Hektar)
+  const isWithinComplexPolygon =
+    targetKantor.id === "kantor-stp-pusat" || targetKantor.orgId === "solotechnopark"
+      ? isPointInPolygon(userCoords)
+      : false;
+
+  const isValid = isWithinRadius || isWithinComplexPolygon;
 
   if (!isValid) {
     return {
@@ -95,7 +102,7 @@ export async function verifyGeofenceServerSide(
       office: targetKantor,
       serverDistanceMeters,
       maxRadiusMeters: targetKantor.radiusMeter,
-      errorMessage: `FRAUD_ALERT: Lokasi presensi Anda tidak sah. Server mendeteksi posisi Anda berada ${serverDistanceMeters} meter dari ${targetKantor.namaKantor} (Batas radius resmi: ${targetKantor.radiusMeter} meter). Presensi ditolak.`,
+      errorMessage: `FRAUD_ALERT: Lokasi presensi Anda tidak sah. Server mendeteksi posisi Anda berada ${serverDistanceMeters} meter dari ${targetKantor.namaKantor} (Batas radius: ${targetKantor.radiusMeter} meter dan di luar batas poligon Kawasan STP). Presensi ditolak.`,
     };
   }
 

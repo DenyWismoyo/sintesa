@@ -1,0 +1,136 @@
+// =============================================================================
+// FIRESTORE SECURITY RULES — DATABASE: presensi-pegawai
+// Berlaku HANYA untuk named database 'presensi-pegawai', bukan default database
+//
+// PENTING: Rules ini harus di-paste di:
+// Firebase Console > Firestore > (pilih database: presensi-pegawai) > Rules
+//
+// Menggunakan 'presensiRole' JWT claim (bukan 'role') sejak update provisioning
+// 2026-10-03 untuk menghindari collision dengan catalog admin role.
+// =============================================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuth() { return request.auth != null; }
+
+    // Baca presensiRole dari JWT claim, fallback ke Firestore doc jika belum ada
+    function getPresRole() {
+      return isAuth() ? (
+        request.auth.token.presensiRole != null
+          ? request.auth.token.presensiRole
+          : (exists(/databases/$(database)/documents/users/$(request.auth.uid))
+              ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+              : 'pegawai')
+      ) : null;
+    }
+
+    function isPresAdmin() {
+      return isAuth() && getPresRole() == 'admin';
+    }
+
+    function isAtasanOrAdmin() {
+      return isAuth() && (getPresRole() in ['admin', 'atasan']);
+    }
+
+    // 1. Profil Pegawai
+    match /users/{userId} {
+      allow read: if isAuth() && (request.auth.uid == userId || isAtasanOrAdmin());
+      allow create: if isAuth() && request.auth.uid == userId;
+      allow update: if isPresAdmin() || (
+        isAuth() && request.auth.uid == userId &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'orgId', 'atasanId'])
+      );
+      allow delete: if isPresAdmin();
+    }
+
+    // 2. Data Kantor & Geofencing
+    match /kantor/{kantorId} {
+      allow read: if isAuth();
+      allow write: if isPresAdmin();
+    }
+
+    // 3. Rekam Presensi Harian
+    match /presensi/{presensiId} {
+      allow read: if isAuth() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.atasanId == request.auth.uid ||
+        isAtasanOrAdmin()
+      );
+      allow create: if isAuth() && (request.resource.data.userId == request.auth.uid || isPresAdmin());
+      allow update: if isAuth() && (resource.data.userId == request.auth.uid || isPresAdmin());
+      allow delete: if isPresAdmin();
+    }
+
+    // 4. Laporan Kinerja Harian (LKH)
+    match /lkh/{lkhId} {
+      allow read: if isAuth() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.atasanId == request.auth.uid ||
+        isAtasanOrAdmin()
+      );
+      allow create: if isAuth() && (request.resource.data.userId == request.auth.uid || isPresAdmin());
+      allow update: if isAuth() && (
+        (resource.data.userId == request.auth.uid && resource.data.status in ['draft', 'rejected']) ||
+        resource.data.atasanId == request.auth.uid ||
+        isPresAdmin()
+      );
+      allow delete: if isAuth() && (
+        (resource.data.userId == request.auth.uid && resource.data.status in ['draft', 'rejected']) ||
+        isPresAdmin()
+      );
+    }
+
+    // 5. Pengajuan Izin / Cuti
+    match /izin/{izinId} {
+      allow read: if isAuth() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.atasanId == request.auth.uid ||
+        isAtasanOrAdmin()
+      );
+      allow create: if isAuth() && (request.resource.data.userId == request.auth.uid || isPresAdmin());
+      allow update: if isAuth() && (
+        (resource.data.userId == request.auth.uid && resource.data.status == 'diajukan') ||
+        resource.data.atasanId == request.auth.uid ||
+        isPresAdmin()
+      );
+      allow delete: if isAuth() && (
+        (resource.data.userId == request.auth.uid && resource.data.status == 'diajukan') ||
+        isPresAdmin()
+      );
+    }
+
+    // 6. Rekam Lembur
+    match /lemburRecords/{lemburId} {
+      allow read: if isAuth() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.atasanId == request.auth.uid ||
+        isAtasanOrAdmin()
+      );
+      allow create: if isAuth() && (request.resource.data.userId == request.auth.uid || isPresAdmin());
+      allow update: if isAuth() && (
+        (resource.data.userId == request.auth.uid && resource.data.status in ['draft', 'diajukan']) ||
+        resource.data.atasanId == request.auth.uid ||
+        isPresAdmin()
+      );
+      allow delete: if isAuth() && (
+        (resource.data.userId == request.auth.uid && resource.data.status in ['draft', 'diajukan']) ||
+        isPresAdmin()
+      );
+    }
+
+    // 7. Organisasi & Unit Kerja
+    match /organizations/{orgId} {
+      allow read: if isAuth();
+      allow write: if isPresAdmin();
+    }
+
+    // 8. Audit Log (Immutable)
+    match /auditLogs/{logId} {
+      allow read: if isPresAdmin();
+      allow create: if isAuth();
+      allow update, delete: if false;
+    }
+  }
+}

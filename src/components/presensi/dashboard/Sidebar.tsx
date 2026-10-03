@@ -20,6 +20,7 @@ import {
   Sparkles,
   MapPin,
   ExternalLink,
+  Timer,
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -49,6 +50,12 @@ export default function Sidebar() {
       name: "Pengajuan Cuti / Izin",
       href: "/presensi/izin",
       icon: ShieldCheck,
+      roles: ["admin", "atasan", "pegawai"],
+    },
+    {
+      name: "Pengajuan Lembur",
+      href: "/presensi/lembur",
+      icon: Timer,
       roles: ["admin", "atasan", "pegawai"],
     },
     {
@@ -154,6 +161,19 @@ export default function Sidebar() {
         <p className="text-[10px] text-slate-500 leading-relaxed">
           UPTD KST Solo Technopark (Pukul 08:00 - 16:00 WIB)
         </p>
+
+        {user?.canAccessCatalogAdmin && (
+          <Link
+            href="/dashboard"
+            className="flex items-center justify-between p-2 rounded-xl bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-800 text-[11px] font-semibold transition-colors mt-2"
+          >
+            <span className="flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Admin Portal Sintesa</span>
+            </span>
+            <ExternalLink className="w-3 h-3 text-emerald-600" />
+          </Link>
+        )}
 
         <Link
           href="/"

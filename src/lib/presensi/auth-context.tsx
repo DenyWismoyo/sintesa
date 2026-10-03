@@ -15,9 +15,11 @@ import { PRESENSI_COOKIE_NAME, PRESENSI_MAX_AGE_SECONDS } from "./constants";
 
 interface AuthContextType {
   user: UserProfile | null;
+  firebaseUser: FirebaseUser | null;
   isLoading: boolean;
   loginWithCredentials: (nipOrEmail: string, password: string) => Promise<void>;
-  loginGoogle: () => Promise<void>;
+  loginGoogle: () => Promise<{ user: FirebaseUser; profile: UserProfile | null }>;
+  syncWithEmployeeProfile: (nipOrCode: string, password: string) => Promise<UserProfile>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   consumeStorage: (bytes: number) => boolean;
@@ -41,25 +43,42 @@ function clearTokenCookie(): void {
   document.cookie = `${PRESENSI_COOKIE_NAME}=; Path=/; Max-Age=0`;
 }
 
+async function enrichProfileWithCatalogAccess(fbUser: FirebaseUser, profile: UserProfile | null): Promise<UserProfile | null> {
+  if (!profile) return null;
+  try {
+    const idTokenResult = await fbUser.getIdTokenResult();
+    const catalogRole = idTokenResult.claims.role as string | undefined;
+    const canAccess = catalogRole === "admin" || catalogRole === "super_admin";
+    return { ...profile, canAccessCatalogAdmin: canAccess };
+  } catch {
+    return profile;
+  }
+}
+
 export function PresensiAuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const refreshProfile = useCallback(async () => {
     const fbUser = auth.currentUser;
+    setFirebaseUser(fbUser);
     if (fbUser) {
       const profile = await getUserProfileFromFirestore(fbUser.uid, fbUser.email);
-      setUser(profile);
+      const enriched = await enrichProfileWithCatalogAccess(fbUser, profile);
+      setUser(enriched);
       await persistTokenToCookie(fbUser);
     }
   }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (fbUser: FirebaseUser | null) => {
+      setFirebaseUser(fbUser);
       if (fbUser) {
         const profile = await getUserProfileFromFirestore(fbUser.uid, fbUser.email);
         if (profile) {
-          setUser(profile);
+          const enriched = await enrichProfileWithCatalogAccess(fbUser, profile);
+          setUser(enriched);
           await persistTokenToCookie(fbUser);
         } else {
           setUser(null);
@@ -78,7 +97,9 @@ export function PresensiAuthProvider({ children }: { children: React.ReactNode }
     setIsLoading(true);
     try {
       const { user: fbUser, profile } = await loginWithNipOrEmail(nipOrEmail, password);
-      setUser(profile);
+      setFirebaseUser(fbUser);
+      const enriched = await enrichProfileWithCatalogAccess(fbUser, profile);
+      setUser(enriched);
       await persistTokenToCookie(fbUser);
     } finally {
       setIsLoading(false);
@@ -89,11 +110,42 @@ export function PresensiAuthProvider({ children }: { children: React.ReactNode }
     setIsLoading(true);
     try {
       const { user: fbUser, profile } = await loginWithGoogle();
-      setUser(profile);
+      setFirebaseUser(fbUser);
+      const enriched = await enrichProfileWithCatalogAccess(fbUser, profile);
+      setUser(enriched);
       await persistTokenToCookie(fbUser);
+      return { user: fbUser, profile: enriched };
     } finally {
       setIsLoading(false);
     }
+  }, []);
+
+  const syncWithEmployeeProfile = useCallback(async (nipOrCode: string, password: string) => {
+    const fbUser = auth.currentUser;
+    if (!fbUser || !fbUser.email) {
+      throw new Error("Sesi Google tidak ditemukan. Silakan login dengan Google terlebih dahulu.");
+    }
+    const { validateAndSyncGooglePresensi } = await import("@/actions/presensi/auth");
+    const result = await validateAndSyncGooglePresensi({
+      googleUid: fbUser.uid,
+      googleEmail: fbUser.email,
+      googleDisplayName: fbUser.displayName || undefined,
+      googlePhotoURL: fbUser.photoURL || undefined,
+      nipOrCode,
+      password,
+    });
+
+    if (!result.success || !result.profile) {
+      throw new Error(result.message || "Gagal menyatukan akun pegawai.");
+    }
+
+    // Refresh token Google auth agar custom claim presensiRole termuat di client
+    await fbUser.getIdToken(true);
+    const enriched = await enrichProfileWithCatalogAccess(fbUser, result.profile);
+    setUser(enriched);
+    await persistTokenToCookie(fbUser);
+
+    return enriched!;
   }, []);
 
   const logout = useCallback(async () => {
@@ -101,6 +153,7 @@ export function PresensiAuthProvider({ children }: { children: React.ReactNode }
     try {
       await logoutUser();
       clearTokenCookie();
+      setFirebaseUser(null);
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -127,9 +180,11 @@ export function PresensiAuthProvider({ children }: { children: React.ReactNode }
     <AuthContext.Provider
       value={{
         user,
+        firebaseUser,
         isLoading,
         loginWithCredentials,
         loginGoogle,
+        syncWithEmployeeProfile,
         logout,
         refreshProfile,
         consumeStorage,

@@ -27,7 +27,15 @@ import {
   BarChart3,
   ChevronRight,
   ExternalLink,
+  Bell,
+  BellRing,
 } from "lucide-react";
+import {
+  requestNotificationPermission,
+  showPresensiNotification,
+  checkAndTriggerPresensiReminder,
+} from "@/lib/presensi/notifications";
+import { usePresensiHarian } from "@/hooks/presensi/usePresensi";
 
 function getRoleLabel(role?: UserRole): string {
   switch (role) {
@@ -47,6 +55,51 @@ export default function Header() {
   const { user, logout } = usePresensiAuth();
   const [currentDateTime, setCurrentDateTime] = useState<string>("");
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
+
+  const todayStr = React.useMemo(() => new Date().toISOString().split("T")[0], []);
+  const { data: presensiToday } = usePresensiHarian(user?.id, todayStr);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setNotifPermission(Notification.permission);
+    }
+  }, []);
+
+  // Pemicu otomatis pengingat jam masuk / pulang
+  useEffect(() => {
+    if (presensiToday !== undefined && notifPermission === "granted") {
+      checkAndTriggerPresensiReminder({
+        hasCheckedIn: Boolean(presensiToday?.checkIn),
+        hasCheckedOut: Boolean(presensiToday?.checkOut),
+      });
+    }
+  }, [presensiToday, notifPermission]);
+
+  const handleToggleNotification = async () => {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      alert("Peramban Anda tidak mendukung Web Notifications.");
+      return;
+    }
+
+    if (notifPermission === "granted") {
+      showPresensiNotification({
+        title: "🔔 Pengingat Presensi Aktif",
+        body: "Pengingat otomatis jam masuk (07.15 WIB) dan jam pulang (16.00 WIB) aktif untuk Solo Technopark.",
+      });
+      return;
+    }
+
+    const result = await requestNotificationPermission();
+    setNotifPermission(result);
+
+    if (result === "granted") {
+      showPresensiNotification({
+        title: "✅ Notifikasi Diaktifkan",
+        body: "Terima kasih! Anda akan menerima pengingat jam kerja & tugas Techno Sign.",
+      });
+    }
+  };
 
   useEffect(() => {
     const updateDateTime = () => {
@@ -183,13 +236,40 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Right: User Profile + Role Badge + Logout */}
+        {/* Right: User Profile + Role Badge + Notifikasi + Logout */}
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Role Badge */}
           <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200/70 text-emerald-800 text-[11px] font-semibold">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
             <span>{getRoleLabel(user?.role)}</span>
           </div>
+
+          {/* Pengingat Presensi Web Push Notification */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleToggleNotification}
+            className={cn(
+              "h-9 w-9 p-0 rounded-xl transition-all cursor-pointer relative",
+              notifPermission === "granted"
+                ? "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                : "text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+            )}
+            title={
+              notifPermission === "granted"
+                ? "Pengingat Presensi Aktif (Klik untuk uji notifikasi)"
+                : "Aktifkan Pengingat Presensi Otomatis"
+            }
+          >
+            {notifPermission === "granted" ? (
+              <>
+                <BellRing className="w-4 h-4" />
+                <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white animate-pulse" />
+              </>
+            ) : (
+              <Bell className="w-4 h-4" />
+            )}
+          </Button>
 
           {/* User Profile Card */}
           <Link
@@ -301,6 +381,16 @@ export default function Header() {
 
             {/* Bottom Action */}
             <div className="p-3 border-t border-slate-100 flex flex-col gap-2">
+              {user?.canAccessCatalogAdmin && (
+                <Link
+                  href="/dashboard"
+                  className="flex items-center justify-center gap-1.5 text-xs text-emerald-700 hover:text-emerald-800 p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100/70 font-semibold transition-colors"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Portal Admin Sintesa</span>
+                  <ExternalLink className="w-3 h-3 text-emerald-600 ml-auto" />
+                </Link>
+              )}
               <Link
                 href="/"
                 className="flex items-center justify-center gap-1.5 text-xs text-slate-600 hover:text-slate-900 p-2 rounded-xl bg-slate-50 font-medium"

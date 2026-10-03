@@ -13,8 +13,14 @@ service firebase.storage {
       return request.auth != null;
     }
 
+    // Role untuk catalog admin (JWT 'role' claim)
     function getRole() {
       return isAuth() && request.auth.token.role != null ? request.auth.token.role : 'public';
+    }
+
+    // Role untuk sistem presensi Techno Sign (JWT 'presensiRole' claim)
+    function getPresRole() {
+      return isAuth() && ('presensiRole' in request.auth.token) ? request.auth.token.presensiRole : 'public';
     }
 
     function isSuperAdmin() {
@@ -23,6 +29,11 @@ service firebase.storage {
 
     function isAdmin() {
       return isAuth() && (getRole() in ['super_admin', 'admin']);
+    }
+
+    // Admin untuk presensi: bisa admin catalog ATAU admin presensi
+    function isPresAdmin() {
+      return isAdmin() || (isAuth() && getPresRole() == 'admin');
     }
 
     function hasAnyRole(roles) {
@@ -145,7 +156,7 @@ service firebase.storage {
       allow read: if isAuth();
       // Pegawai hanya dapat mengunggah ke foldernya sendiri (anti-impersonation)
       allow write: if isAuth() &&
-                   (request.auth.uid == userId || isAdmin()) &&
+                   (request.auth.uid == userId || isPresAdmin()) &&
                    isImage() &&
                    isUnderSize(10);
     }

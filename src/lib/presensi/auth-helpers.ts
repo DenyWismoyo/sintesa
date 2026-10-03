@@ -33,18 +33,29 @@ export async function getUserProfileFromFirestore(
     console.warn("[Presensi] Gagal mengambil profil dari Firestore:", error);
   }
 
-  // Jika tidak ditemukan dan ada email, periksa kredensial STP
+  // Jika tidak ditemukan langsung via doc(uid), periksa apakah email Google ini sudah ditautkan
   if (userEmail) {
-    const profile = getStpUserProfileByEmail(userEmail);
-    if (profile) {
-      const fullProfile = { ...profile, id: uid };
-      // Simpan ke database presensi-pegawai
-      try {
-        await setDoc(doc(db, "users", uid), fullProfile, { merge: true });
-      } catch (err) {
-        console.warn("[Presensi] Auto-provision profil STP gagal:", err);
+    try {
+      const { collection, query, where, getDocs, limit } = await import("firebase/firestore");
+      const q = query(collection(db, "users"), where("googleEmail", "==", userEmail), limit(1));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        return snap.docs[0].data() as UserProfile;
       }
-      return fullProfile;
+    } catch {}
+
+    // Jika ini adalah login menggunakan email kedinasan mock @solotechnopark.id
+    if (userEmail.endsWith("@solotechnopark.id")) {
+      const profile = getStpUserProfileByEmail(userEmail);
+      if (profile) {
+        const fullProfile = { ...profile, id: uid };
+        try {
+          await setDoc(doc(db, "users", uid), fullProfile, { merge: true });
+        } catch (err) {
+          console.warn("[Presensi] Auto-provision profil STP gagal:", err);
+        }
+        return fullProfile;
+      }
     }
   }
 
@@ -73,12 +84,11 @@ export async function upsertUserProfileToFirestore(
 }
 
 /**
- * Login dengan Google SSO (Akun @solotechnopark.id)
+ * Login dengan Google SSO (Akun Google personal, kedinasan, atau akun Google katalog)
  */
-export async function loginWithGoogle(): Promise<{ user: FirebaseUser; profile: UserProfile }> {
+export async function loginWithGoogle(): Promise<{ user: FirebaseUser; profile: UserProfile | null }> {
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({
-    hd: "solotechnopark.id",
     prompt: "select_account",
   });
 
@@ -86,33 +96,8 @@ export async function loginWithGoogle(): Promise<{ user: FirebaseUser; profile: 
   const fbUser = credential.user;
   const email = fbUser.email || "";
 
-  let profile = await getUserProfileFromFirestore(fbUser.uid, email);
-
-  // Jika profil belum terdaftar di STP, buatkan profil awal
-  if (!profile) {
-    const isStpDomain = email.endsWith("@solotechnopark.id");
-    profile = {
-      id: fbUser.uid,
-      nip: email.split("@")[0].toUpperCase(),
-      accessCode: `STP-${Math.floor(10000 + Math.random() * 90000)}`,
-      nama: fbUser.displayName || email.split("@")[0],
-      email: email,
-      role: isStpDomain ? "pegawai" : "pegawai",
-      jabatan: "Pegawai Solo Technopark",
-      golongan: "Staf BLUD",
-      instansi: "UPTD KST Solo Technopark",
-      departmentId: "dept-umum",
-      departmentName: "Divisi Operasional & Layanan",
-      fotoUrl: fbUser.photoURL || undefined,
-      kantorId: "kantor-stp-pusat",
-      namaKantor: "UPTD KST Solo Technopark (Pusat)",
-      orgId: "solotechnopark",
-      storageUsedBytes: 0,
-      storageLimitBytes: 1073741824, // 1 GB
-    };
-
-    await upsertUserProfileToFirestore(profile);
-  }
+  // Periksa apakah akun Google ini sudah disinkronkan dengan data pegawai STP
+  const profile = await getUserProfileFromFirestore(fbUser.uid, email);
 
   return { user: fbUser, profile };
 }

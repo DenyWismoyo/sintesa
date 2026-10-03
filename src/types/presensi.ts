@@ -48,6 +48,12 @@ export interface UserProfile {
   storageUsedBytes: number;
   storageLimitBytes: number;
   createdAt?: string;
+  canAccessCatalogAdmin?: boolean;
+  googleEmail?: string;
+  isLinkedGoogle?: boolean;
+  linkedGoogleUid?: string;
+  linkedGoogleEmail?: string;
+  linkedAt?: string;
 }
 
 export type KategoriKantor =

@@ -7,7 +7,7 @@
     },
     {
       "database": "presensi-pegawai",
-      "rules": "firestore.rules",
+      "rules": "firestore-presensi.rules",
       "indexes": "firestore.indexes.presensi.json"
     }
   ],

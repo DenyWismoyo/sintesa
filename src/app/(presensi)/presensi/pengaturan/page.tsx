@@ -206,15 +206,17 @@ export default function PengaturanKantorPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={handleSeedDemoData}
-            disabled={isSeeding}
-            className="btn-outline btn-sm text-xs font-medium"
-          >
-            <RotateCcw className={`w-3.5 h-3.5 mr-1.5 ${isSeeding ? "animate-spin" : ""}`} />
-            {isSeeding ? "Menyuntikkan Seed..." : "Reset & Inisialisasi Seed Demo (Kantor Pusat)"}
-          </Button>
+          {process.env.NODE_ENV !== "production" && (
+            <Button
+              variant="outline"
+              onClick={handleSeedDemoData}
+              disabled={isSeeding}
+              className="btn-outline btn-sm text-xs font-medium border-amber-300 text-amber-800 bg-amber-50/50 hover:bg-amber-100/60"
+            >
+              <RotateCcw className={`w-3.5 h-3.5 mr-1.5 ${isSeeding ? "animate-spin" : ""}`} />
+              {isSeeding ? "Menyuntikkan Seed..." : "Reset Seed Demo (Dev Only)"}
+            </Button>
+          )}
 
           <Button
             onClick={() => {

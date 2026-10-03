@@ -10,7 +10,8 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Mengambil role: Cek Custom Claims JWT terlebih dahulu, jika belum ada cek dokumen /users/{uid}
+    // Mengambil role untuk catalog admin portal (dari JWT 'role' claim atau Firestore users)
+    // Pegawai STP kini tidak punya 'role' claim → default 'public' (aman, tidak dapat akses admin catalog)
     function getRole() {
       return isAuth() ? (
         request.auth.token.role != null 
@@ -21,12 +22,34 @@ service cloud.firestore {
       ) : 'public';
     }
 
+    // Mengambil role untuk sistem presensi Techno Sign (dari JWT 'presensiRole' claim)
+    // Digunakan khusus untuk koleksi presensi, lkh, izin, lembur, dll.
+    function getPresRole() {
+      return isAuth() ? (
+        request.auth.token.presensiRole != null
+          ? request.auth.token.presensiRole
+          : (exists(/databases/$(database)/documents/users/$(request.auth.uid))
+              ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+              : 'pegawai')
+      ) : null;
+    }
+
     function isSuperAdmin() {
       return isAuth() && getRole() == 'super_admin';
     }
 
     function isAdmin() {
       return isAuth() && (getRole() in ['super_admin', 'admin']);
+    }
+
+    // Admin untuk sistem presensi (bisa catalog admin ATAU presensi admin)
+    function isPresAdmin() {
+      return isAdmin() || (isAuth() && getPresRole() == 'admin');
+    }
+
+    // Atasan atau admin untuk sistem presensi
+    function isPresAtasanOrAdmin() {
+      return isPresAdmin() || (isAuth() && getPresRole() == 'atasan');
     }
 
     function hasAnyRole(roles) {
@@ -76,7 +99,10 @@ service cloud.firestore {
       // Sub-koleksi Produk Tenant
       match /products/{productId} {
         allow read: if true;
-        allow create: if true; // Mendukung batch write saat self-assessment kurasi tenant publik
+        // Create dibatasi: admin/operator, tenant pemilik, atau alur kurasi publik (status draft_kurasi)
+        allow create: if hasAnyRole(['admin', 'super_admin', 'admin_tenant', 'operator_tenant']) ||
+                       isOwnTenant(tenantId) ||
+                       (request.resource.data.status == 'draft_kurasi'); // Kurasi self-assessment publik
         allow update, delete: if hasAnyRole(['admin', 'super_admin', 'admin_tenant', 'operator_tenant']) || isOwnTenant(tenantId);
       }
 
@@ -321,29 +347,29 @@ service cloud.firestore {
 
     // 13. Data Titik Kantor & Radius Geofencing
     match /kantor/{kantorId} {
-      // Seluruh pegawai terautentikasi dapat membaca titik kantor aktif untuk validasi GPS
+      // Seluruh pegawai terautentikasi (presensi maupun catalog) dapat membaca titik kantor
       allow read: if isAuth();
-      // Konfigurasi koordinat dan radius hanya oleh admin sistem
-      allow write: if isAdmin();
+      // Konfigurasi hanya oleh admin presensi atau admin catalog
+      allow write: if isPresAdmin();
     }
 
     // 14. Rekam Presensi Harian (Check-In & Check-Out)
     match /presensi/{presensiId} {
-      // Pegawai membaca riwayat presensinya sendiri; atasan/admin membaca untuk pemantauan & rekap
+      // Pegawai membaca miliknya sendiri; atasan/admin presensi membaca untuk pemantauan
       allow read: if isAuth() && (
         resource.data.userId == request.auth.uid ||
         resource.data.atasanId == request.auth.uid ||
-        isAdmin()
+        isPresAtasanOrAdmin()
       );
-      // Pegawai mencatat presensi untuk dirinya sendiri (diverifikasi server-side)
+      // Pegawai mencatat presensi sendiri
       allow create: if isAuth() && (
-        request.resource.data.userId == request.auth.uid || isAdmin()
+        request.resource.data.userId == request.auth.uid || isPresAdmin()
       );
-      // Update data presensi (Check-Out) hanya oleh pemilik presensi atau admin
+      // Update (Check-Out) hanya oleh pemilik atau admin presensi
       allow update: if isAuth() && (
-        resource.data.userId == request.auth.uid || isAdmin()
+        resource.data.userId == request.auth.uid || isPresAdmin()
       );
-      allow delete: if isAdmin();
+      allow delete: if isPresAdmin();
     }
 
     // 15. Laporan Kinerja Harian (LKH) / Logbook Pegawai
@@ -351,19 +377,19 @@ service cloud.firestore {
       allow read: if isAuth() && (
         resource.data.userId == request.auth.uid ||
         resource.data.atasanId == request.auth.uid ||
-        isAdmin()
+        isPresAtasanOrAdmin()
       );
       allow create: if isAuth() && (
-        request.resource.data.userId == request.auth.uid || isAdmin()
+        request.resource.data.userId == request.auth.uid || isPresAdmin()
       );
       allow update: if isAuth() && (
         (resource.data.userId == request.auth.uid && resource.data.status in ['draft', 'rejected']) ||
         resource.data.atasanId == request.auth.uid ||
-        isAdmin()
+        isPresAdmin()
       );
       allow delete: if isAuth() && (
         (resource.data.userId == request.auth.uid && resource.data.status in ['draft', 'rejected']) ||
-        isAdmin()
+        isPresAdmin()
       );
     }
 
@@ -372,19 +398,19 @@ service cloud.firestore {
       allow read: if isAuth() && (
         resource.data.userId == request.auth.uid ||
         resource.data.atasanId == request.auth.uid ||
-        isAdmin()
+        isPresAtasanOrAdmin()
       );
       allow create: if isAuth() && (
-        request.resource.data.userId == request.auth.uid || isAdmin()
+        request.resource.data.userId == request.auth.uid || isPresAdmin()
       );
       allow update: if isAuth() && (
         (resource.data.userId == request.auth.uid && resource.data.status == 'diajukan') ||
         resource.data.atasanId == request.auth.uid ||
-        isAdmin()
+        isPresAdmin()
       );
       allow delete: if isAuth() && (
         (resource.data.userId == request.auth.uid && resource.data.status == 'diajukan') ||
-        isAdmin()
+        isPresAdmin()
       );
     }
 
@@ -393,26 +419,26 @@ service cloud.firestore {
       allow read: if isAuth() && (
         resource.data.userId == request.auth.uid ||
         resource.data.atasanId == request.auth.uid ||
-        isAdmin()
+        isPresAtasanOrAdmin()
       );
       allow create: if isAuth() && (
-        request.resource.data.userId == request.auth.uid || isAdmin()
+        request.resource.data.userId == request.auth.uid || isPresAdmin()
       );
       allow update: if isAuth() && (
         (resource.data.userId == request.auth.uid && resource.data.status in ['draft', 'diajukan']) ||
         resource.data.atasanId == request.auth.uid ||
-        isAdmin()
+        isPresAdmin()
       );
       allow delete: if isAuth() && (
         (resource.data.userId == request.auth.uid && resource.data.status in ['draft', 'diajukan']) ||
-        isAdmin()
+        isPresAdmin()
       );
     }
 
     // 18. Organisasi & Unit Kerja
     match /organizations/{orgId} {
       allow read: if isAuth();
-      allow write: if isAdmin();
+      allow write: if isPresAdmin(); // Admin presensi atau catalog admin
     }
 
     // 19. Audit Log Forensik Anti-Fraud (Immutable)

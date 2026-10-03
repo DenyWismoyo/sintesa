@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { usePresensiAuth } from "@/lib/presensi/auth-context";
 import { usePresensiHarian, useCheckInMutation, useCheckOutMutation, useKehadiranStatus } from "@/hooks/presensi/usePresensi";
 import { useKantorList } from "@/hooks/presensi/useKantor";
-import { calculateHaversineDistance, detectNearestOffice } from "@/data/presensi/masterKantor";
+import { calculateHaversineDistance, detectNearestOffice, isPointInPolygon } from "@/data/presensi/masterKantor";
 import { KantorUnit } from "@/types/presensi";
 import CameraCapture from "@/components/presensi/CameraCapture";
 import { checkGpsIntegrity } from "@/lib/presensi/anti-fraud/client";
@@ -122,6 +122,17 @@ export default function TabAbsensi() {
 
   const isWithinRadius = activeOffice ? (currentDistance !== null && currentDistance <= activeOffice.radiusMeter) : false;
 
+  const isWithinPolygon = useMemo(() => {
+    if (!coords) return false;
+    return isPointInPolygon(coords);
+  }, [coords]);
+
+  const isValidLocation = Boolean(
+    isWithinRadius ||
+      ((activeOffice?.id === "kantor-stp-pusat" || activeOffice?.orgId === "solotechnopark") &&
+        isWithinPolygon)
+  );
+
   const formatTimeString = (isoString?: string) => {
     if (!isoString) return null;
     const date = new Date(isoString);
@@ -149,9 +160,11 @@ export default function TabAbsensi() {
       setCheckInError("Harap ambil swafoto terlebih dahulu sebelum check-in.");
       return;
     }
-    if (!isWithinRadius) {
+    if (!isValidLocation) {
       playWarningBeep();
-      setCheckInError(`Anda berada di luar radius kantor (${currentDistance}m dari ${activeOffice.namaKantor}). Check-in tidak diizinkan.`);
+      setCheckInError(
+        `Anda berada di luar radius kantor (${currentDistance}m dari ${activeOffice.namaKantor}) dan di luar batas Kawasan STP. Check-in tidak diizinkan.`
+      );
       return;
     }
 
@@ -168,7 +181,7 @@ export default function TabAbsensi() {
         jarakMeter: currentDistance ?? undefined,
         koordinat: coords,
         fotoUrl: capturedFotoUrl,
-        isValidLocation: isWithinRadius,
+        isValidLocation: isValidLocation,
         alamat: activeOffice.alamat,
         catatan: `Presensi Masuk Techno Sign di ${activeOffice.namaKantor}`,
         gpsAccuracyMeter: gpsAccuracy,
@@ -200,6 +213,13 @@ export default function TabAbsensi() {
       setCheckOutError("Anda tidak dapat menggunakan foto Check-In untuk Check-Out. Harap ambil foto baru.");
       return;
     }
+    if (!isValidLocation) {
+      playWarningBeep();
+      setCheckOutError(
+        `Anda berada di luar radius kantor (${currentDistance}m dari ${activeOffice.namaKantor}) dan di luar batas Kawasan STP. Check-out tidak diizinkan.`
+      );
+      return;
+    }
     
     setCheckOutError(null);
     try {
@@ -211,7 +231,7 @@ export default function TabAbsensi() {
         jarakMeter: currentDistance ?? undefined,
         koordinat: coords,
         fotoUrl: capturedFotoUrl,
-        isValidLocation: isWithinRadius,
+        isValidLocation: isValidLocation,
         alamat: activeOffice.alamat,
         catatan: `Presensi Pulang Techno Sign di ${activeOffice.namaKantor}`,
         gpsAccuracyMeter: gpsAccuracy,
@@ -277,8 +297,12 @@ export default function TabAbsensi() {
         </div>
         <div className="flex items-center">
           {gpsStatus === "success" && activeOffice ? (
-            <Badge variant="outline" className={`rounded-full px-3 py-1.5 text-[10px] font-bold border shadow-sm ${isWithinRadius ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-rose-200 bg-rose-50 text-rose-700'}`}>
-              {isWithinRadius ? `✓ ${currentDistance}m` : `✗ Luar Radius`}
+            <Badge variant="outline" className={`rounded-full px-3 py-1.5 text-[10px] font-bold border shadow-sm ${isValidLocation ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-rose-200 bg-rose-50 text-rose-700'}`}>
+              {isValidLocation
+                ? isWithinRadius
+                  ? `✓ ${currentDistance}m (Radius)`
+                  : `✓ Kawasan STP (Poligon Valid)`
+                : `✗ ${currentDistance}m (Luar)`}
             </Badge>
           ) : (
             <Badge variant="outline" className="rounded-full px-3 py-1.5 text-[10px] font-bold border-amber-200 bg-amber-50 text-amber-700 shadow-sm animate-pulse">

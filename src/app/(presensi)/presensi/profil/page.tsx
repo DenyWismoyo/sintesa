@@ -20,6 +20,7 @@ import {
   Building2,
   Calendar,
   CheckCircle2,
+  Sparkles,
 } from "lucide-react";
 
 export default function ProfilPage() {
@@ -137,6 +138,40 @@ export default function ProfilPage() {
                 {user?.nomorHp || "081234567890"}
               </span>
             </div>
+          </div>
+
+          {/* Integrasi Akun Google Katalog */}
+          <div className="p-3.5 rounded-2xl border border-slate-200/90 bg-slate-50/70 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                Integrasi Akun Google (Katalog Sintesa)
+              </span>
+              {user?.isLinkedGoogle || user?.googleEmail ? (
+                <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px]">
+                  Terhubung
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-slate-500 text-[10px]">
+                  Belum Ditautkan
+                </Badge>
+              )}
+            </div>
+
+            {user?.isLinkedGoogle || user?.googleEmail ? (
+              <div className="text-[11px] text-slate-600 space-y-1">
+                <p>
+                  Akun Google tertaut: <span className="font-semibold text-slate-800">{user.googleEmail || user.email}</span>
+                </p>
+                <p className="text-[10px] text-slate-500">
+                  Akun ini disatukan dengan kredensial katalog. Anda dapat login langsung menggunakan tombol Google di Katalog maupun Presensi.
+                </p>
+              </div>
+            ) : (
+              <div className="text-[11px] text-slate-500">
+                Akun ini menggunakan login mandiri kode akses. Anda dapat masuk menggunakan Akun Google di halaman login untuk menyatukan akun ini.
+              </div>
+            )}
           </div>
 
           {/* Logout Action */}

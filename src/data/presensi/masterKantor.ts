@@ -155,3 +155,46 @@ export function detectNearestOffice(
     allOfficesWithDistance: calculated,
   };
 }
+
+/**
+ * Batas Poligon Fisik Kawasan UPTD KST Solo Technopark (Luas ~8 Hektar)
+ * Jl. Ki Hajar Dewantara No. 19, Jebres, Kota Surakarta
+ */
+export const KAWASAN_STP_POLYGON: GeolocationPoint[] = [
+  { lat: -7.55745, lng: 110.8548 }, // Gerbang Barat / Jl Ki Hajar Dewantara
+  { lat: -7.55735, lng: 110.8572 }, // Gerbang Timur / Jl Ki Hajar Dewantara
+  { lat: -7.5592, lng: 110.8576 },  // Sudut Tenggara (Solo Trade Center / STC)
+  { lat: -7.56015, lng: 110.8565 }, // Sudut Selatan (Hanggar Welding & Workshop)
+  { lat: -7.55985, lng: 110.8545 }, // Sudut Barat Daya (STP Arena & Area Lab)
+  { lat: -7.5582, lng: 110.8546 },  // Sisi Barat Kawasan STP
+];
+
+/**
+ * Memverifikasi apakah suatu koordinat berada di dalam kawasan poligon (Ray-Casting Algorithm).
+ * Memungkinkan validasi presensi di area hanggar/workshop luas tanpa terkendala drift radius tunggal.
+ */
+export function isPointInPolygon(
+  point?: GeolocationPoint | null,
+  polygon: GeolocationPoint[] = KAWASAN_STP_POLYGON
+): boolean {
+  const lat = getPointLat(point);
+  const lng = getPointLng(point);
+  if (lat === null || lng === null || !Array.isArray(polygon) || polygon.length < 3) {
+    return false;
+  }
+
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const xi = polygon[i].lng;
+    const yi = polygon[i].lat;
+    const xj = polygon[j].lng;
+    const yj = polygon[j].lat;
+
+    const intersect =
+      yi > lat !== yj > lat && lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi;
+    if (intersect) inside = !inside;
+  }
+
+  return inside;
+}
+

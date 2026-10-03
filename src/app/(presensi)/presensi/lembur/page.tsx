@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function LemburPage() {
-  redirect("/presensi?tab=lembur");
+  redirect("/presensi/scan?tab=lembur");
 }

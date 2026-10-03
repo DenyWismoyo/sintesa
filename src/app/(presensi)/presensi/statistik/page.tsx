@@ -110,6 +110,58 @@ export default function StatistikPage() {
     window.print();
   };
 
+  // Handler export data ke format CSV yang kompatibel dengan Microsoft Excel (UTF-8 BOM)
+  const handleExportCsv = () => {
+    if (!filteredPegawai || filteredPegawai.length === 0) return;
+
+    const headers = [
+      "No",
+      "NIP",
+      "Nama Pegawai",
+      "Jabatan",
+      "Golongan",
+      "Hari Kerja",
+      "Hadir",
+      "Terlambat",
+      "Izin/Cuti/Sakit",
+      "Kehadiran (%)",
+      "Avg Poin LKH",
+      "Predikat Disiplin",
+    ];
+
+    const rows = filteredPegawai.map((p, idx) => [
+      idx + 1,
+      `="${p.nip}"`,
+      `"${p.nama.replace(/"/g, '""')}"`,
+      `"${p.jabatan.replace(/"/g, '""')}"`,
+      `"${p.golongan.replace(/"/g, '""')}"`,
+      p.totalHariKerja,
+      p.hadirCount,
+      p.terlambatCount,
+      p.izinCount + p.cutiCount + p.sakitCount,
+      `"${p.kehadiranPersen}%"`,
+      p.avgPoinLkh,
+      `"${p.predikatDisiplin}"`,
+    ]);
+
+    const csvContent =
+      "\uFEFF" +
+      [headers.join(","), ...rows.map((row) => row.join(","))].join("\r\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `Rekap_Presensi_STP_${NAMA_BULAN[selectedBulan - 1]}_${selectedTahun}.csv`
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const selectedKantorName = useMemo(() => {
     if (selectedKantor === "all") return "Semua Kantor / OPD";
     const k = kantorList.find((item) => item.id === selectedKantor);
@@ -155,6 +207,15 @@ export default function StatistikPage() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            <Button
+              onClick={handleExportCsv}
+              variant="outline"
+              className="btn-glass h-10 px-4"
+              title="Unduh Data Rekapitulasi Format CSV/Excel"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export CSV
+            </Button>
             <Button
               onClick={handlePrint}
               variant="outline"
@@ -568,22 +629,22 @@ export default function StatistikPage() {
           <div className="text-center space-y-16">
             <div>
               <p>Mengetahui,</p>
-              <p className="font-bold">Kepala Badan Kepegawaian & PSDM</p>
+              <p className="font-bold">Pemimpin BLUD UPTD KST Solo Technopark</p>
             </div>
             <div>
-              <p className="font-bold underline">HENDRA WIJAYA, S.STP, M.AP</p>
-              <p className="text-[11px]">Pembina Utama Muda / NIP. 198501012010011005</p>
+              <p className="font-bold underline">YUDIT CAHYANTORO N. SAPUTRO, S.T., M.KOM.</p>
+              <p className="text-[11px]">Pembina / NIP. 19800523 200501 1 008</p>
             </div>
           </div>
 
           <div className="text-center space-y-16">
             <div>
               <p>Surakarta, {new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</p>
-              <p className="font-bold">Pejabat Penilai Kinerja / Atasan</p>
+              <p className="font-bold">Pejabat Penilai Kinerja / Kasubag TU</p>
             </div>
             <div>
-              <p className="font-bold underline">DRA. SITI RAHMAWATI, M.SI.</p>
-              <p className="text-[11px]">Pembina Tingkat I / NIP. 197804122005022001</p>
+              <p className="font-bold underline">ANI ANGGRAENI, S.SI., M.ENG.</p>
+              <p className="text-[11px]">Penata Tingkat I / NIP. 19821015 200801 2 012</p>
             </div>
           </div>
         </div>
