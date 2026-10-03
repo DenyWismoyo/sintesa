@@ -33,3 +33,6 @@ export * from './ai';
 
 // 10. Affiliate & Referral Marketing Program
 export * from './affiliate.types';
+
+// 11. Presensi & LKH (Techno Sign Solo Technopark)
+export * from './presensi';

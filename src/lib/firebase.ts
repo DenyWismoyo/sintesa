@@ -27,4 +27,15 @@ const storage = getStorage(app, bucketUrl);
 // Menggunakan region 'asia-southeast2' (Jakarta) sesuai konfigurasi backend Cloud Functions
 const functions = getFunctions(app, 'asia-southeast2');
 
-export { app, auth, db, storage, functions };
+// --- ISOLASI DATABASE & STORAGE PRESENSI PEGAWAI SOLO TECHNOPARK ---
+const presensiDatabaseId = process.env.NEXT_PUBLIC_PRESENSI_DATABASE_ID || 'presensi-pegawai';
+const presensiBucket = process.env.NEXT_PUBLIC_PRESENSI_STORAGE_BUCKET || 'presensi-solo-technopark';
+const presensiBucketUrl = presensiBucket.startsWith('gs://') ? presensiBucket : `gs://${presensiBucket}`;
+
+// Database Firestore terpisah: 'presensi-pegawai'
+const presensiDb = getFirestore(app, presensiDatabaseId);
+// Cloud Storage bucket terpisah: 'gs://presensi-solo-technopark'
+const presensiStorage = getStorage(app, presensiBucketUrl);
+
+export { app, auth, db, storage, functions, presensiDb, presensiStorage };
+
