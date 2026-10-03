@@ -34,6 +34,7 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import { CountdownTimer } from '@/components/common/CountdownTimer';
 import { SocialShareBar } from '@/components/common/SocialShareBar';
 import { StickyActionBar } from '@/components/common/StickyActionBar';
+import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import { toast } from 'sonner';
 
 interface EventDetailClientProps {
@@ -149,24 +150,32 @@ export default function EventDetailClient({ eventId, initialEvent }: EventDetail
   const isOngoing = event.status === 'Ongoing';
   const isCompleted = event.status === 'Completed';
 
-  return (
-    <SectionContainer accent="violet" width="default">
-      <div className="py-6 sm:py-10 space-y-10">
+    return (
+      <SectionContainer accent="violet" width="default" className="pb-24 sm:pb-12">
+        <div className="py-4 sm:py-8 space-y-6 sm:space-y-8">
 
-        {/* --- 1. BREADCRUMB & BACK BUTTON --- */}
-        <div className="flex items-center justify-between">
-          <Link
-            href="/event"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors"
-          >
-            <ArrowLeft size={14} /> Kembali ke Semua Event
-          </Link>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-white border-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wider">
-              {event.type}
-            </Badge>
+          {/* --- 1. BREADCRUMB & BACK BUTTON --- */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+            <Breadcrumbs 
+              items={[
+                { label: 'Agenda Event', href: '/event' },
+                { label: event.type || 'Event', href: `/event?tipe=${encodeURIComponent(event.type || '')}` },
+                { label: event.title, active: true }
+              ]} 
+            />
+
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <Link
+                href="/event"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors px-2.5 py-1 rounded-lg hover:bg-slate-100"
+              >
+                <ArrowLeft size={13} /> Semua Event
+              </Link>
+              <Badge variant="outline" className="bg-white border-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wider">
+                {event.type}
+              </Badge>
+            </div>
           </div>
-        </div>
 
         {/* --- 2. HERO COVER & EVENT HEADER --- */}
         <div className="bg-white -mx-4 sm:mx-0 rounded-none sm:rounded-3xl border-0 sm:border sm:border-slate-200/80 shadow-none sm:shadow-xs overflow-hidden">

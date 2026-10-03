@@ -24,6 +24,8 @@ import MobileImageGallery from '@/components/ui/MobileImageGallery';
 import ProviderCard from '@/components/ui/ProviderCard';
 import PillTabs from '@/components/ui/PillTabs';
 import SectionContainer from '@/components/ui/SectionContainer';
+import { Breadcrumbs } from '@/components/common/Breadcrumbs';
+import { MobileStickyBottomBar } from '@/components/common/MobileStickyBottomBar';
 import { getActiveRefCode } from '@/components/common/AffiliateTracker';
 import { AffiliateShareButton } from '@/components/common/AffiliateShareButton';
 import { affiliateService } from '@/services/affiliate.service';
@@ -319,29 +321,30 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
 
   return (
     <>
-      <SectionContainer accent="emerald" width="default">
-        <div className="py-6 sm:py-8 space-y-8 sm:space-y-10">
+      <SectionContainer accent="emerald" width="default" className="pb-24 sm:pb-12">
+        <div className="py-4 sm:py-8 space-y-6 sm:space-y-8">
           
           {/* HEADER INLINE & BREADCRUMB */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+            <Breadcrumbs 
+              items={[
+                { label: 'E-Katalog', href: '/e-katalog' },
+                { label: product.category, href: `/e-katalog?kategori=${encodeURIComponent(product.category)}` },
+                { label: product.name, active: true }
+              ]} 
+            />
+            
+            <div className="flex items-center gap-2 self-start sm:self-auto">
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={() => router.back()} 
-                className="rounded-full hover:bg-white h-9 px-3 gap-1.5 text-slate-600 font-bold -ml-1 shadow-xs bg-white/80"
+                className="rounded-full hover:bg-slate-100 h-8 px-2.5 gap-1 text-slate-600 font-bold text-xs"
               >
-                <ArrowLeft className="h-4 w-4" />
-                <span className="hidden sm:inline text-xs">Kembali</span>
+                <ArrowLeft className="h-3.5 w-3.5" />
+                <span>Kembali</span>
               </Button>
-              <div className="flex items-center text-xs font-semibold text-slate-400 gap-1.5 sm:gap-2">
-                <Link href="/e-katalog" className="hover:text-slate-900 transition-colors">Katalog</Link> 
-                <ChevronRight size={13}/> 
-                <span className="text-slate-800 font-bold truncate max-w-[120px] sm:max-w-none">{product.category}</span>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
+
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -353,10 +356,10 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
                     toast.success("Tautan Disalin", { description: "Link produk telah disalin ke clipboard." });
                   }
                 }}
-                className="rounded-full h-9 px-3.5 text-slate-600 font-bold border-0 bg-white hover:bg-slate-50 shadow-xs"
+                className="rounded-full h-8 px-3 text-slate-600 font-bold text-xs border-slate-200 bg-white hover:bg-slate-50 shadow-xs"
               >
-                <Share2 size={14} className="sm:mr-1.5" /> 
-                <span className="hidden sm:inline text-xs">Bagikan</span>
+                <Share2 size={13} className="mr-1" /> 
+                <span>Bagikan</span>
               </Button>
             </div>
           </div>

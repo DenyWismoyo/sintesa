@@ -22,6 +22,7 @@ import { motion } from 'framer-motion';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
 import { ReadingProgress } from '@/components/common/ReadingProgress';
 import { SocialShareBar } from '@/components/common/SocialShareBar';
+import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 
 interface ClientPageProps {
   initialArticle: Article | null;
@@ -321,22 +322,22 @@ export default function ArticleDetailClient({ initialArticle, idOrSlug }: Client
       <div className="max-w-4xl mx-auto pb-20 sm:pb-16">
         
         {/* Top Breadcrumbs & Back Navigation */}
-        <div className="flex items-center justify-between gap-2 mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 mb-6">
+          <Breadcrumbs 
+            items={[
+              { label: 'Warta & Artikel', href: '/artikel' },
+              { label: article.category || 'Berita', href: `/artikel?kategori=${encodeURIComponent(article.category || '')}` },
+              { label: article.title, active: true }
+            ]} 
+          />
+
           <Link 
             href="/artikel" 
-            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-600 hover:text-amber-600 transition-colors bg-white px-3 py-1.5 rounded-full border border-slate-200/80 shadow-2xs"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors bg-white px-3 py-1.5 rounded-full border border-slate-200 self-start sm:self-auto shadow-xs"
           >
-            <ArrowLeft size={14} />
-            <span>Kembali ke Warta</span>
+            <ArrowLeft size={13} />
+            <span>Semua Warta</span>
           </Link>
-
-          <div className="hidden sm:flex items-center gap-2 text-xs text-slate-600 font-medium">
-            <Link href="/" className="hover:text-slate-700">Beranda</Link>
-            <ChevronRight size={12} />
-            <Link href="/artikel" className="hover:text-slate-700">Artikel</Link>
-            <ChevronRight size={12} />
-            <span className="text-amber-800 font-semibold">{article.category}</span>
-          </div>
         </div>
 
         {/* Article Header */}

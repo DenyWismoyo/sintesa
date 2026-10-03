@@ -5,6 +5,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import PublicNavbar from '@/components/common/PublicNavbar';
+import PublicFooter from '@/components/common/PublicFooter';
+import WhatsAppFloatingConcierge from '@/components/common/WhatsAppFloatingConcierge';
 import {
   Building2,
   GraduationCap,
@@ -634,55 +636,11 @@ export default function SmartHubLanding() {
         </div>
       </section>
 
-      {/* --- FOOTER TERPADU --- */}
-      <footer className="relative z-10 w-full bg-slate-900 text-white py-12 border-t border-slate-800">
-        <div className="max-w-[1920px] mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
-          <div className="md:col-span-2 space-y-4">
-            <div className="flex items-center gap-3">
-              <Image src="/logo.png" alt="Solo Technopark" width={70} height={36} className="h-9 w-auto brightness-0 invert" />
-              <div className="h-5 w-px bg-slate-700" />
-              <span className="text-sm font-black tracking-wider text-slate-200">SOLO TECHNOPARK</span>
-            </div>
-            <p className="text-xs text-slate-400 max-w-sm leading-relaxed">
-              Kawasan Sains dan Teknologi (KST) terpadu di Kota Surakarta yang memadukan unsur iptek, vokasi industri, serta inkubasi bisnis rintisan.
-            </p>
-            <p className="text-xs text-slate-500">
-              Jl. Ki Hajar Dewantara No. 19, Jebres, Kec. Jebres, Kota Surakarta, Jawa Tengah 57126
-            </p>
-          </div>
+      {/* --- WHATSAPP FLOATING CONCIERGE --- */}
+      <WhatsAppFloatingConcierge />
 
-          <div className="space-y-3">
-            <h4 className="text-xs font-black uppercase tracking-wider text-slate-300">Navigasi Utama</h4>
-            <ul className="space-y-2 text-xs text-slate-400">
-              <li><Link href="/program-pelatihan" className="hover:text-white transition-colors">Program Pelatihan</Link></li>
-              <li><Link href="/e-katalog" className="hover:text-white transition-colors">E-Katalog Produk</Link></li>
-              <li><Link href="/fasilitas" className="hover:text-white transition-colors">Sewa Fasilitas</Link></li>
-              <li><Link href="/ekosistem" className="hover:text-white transition-colors">Direktori Tenant</Link></li>
-              <li><Link href="/event" className="hover:text-white transition-colors">Agenda Event</Link></li>
-            </ul>
-          </div>
-
-          <div className="space-y-3">
-            <h4 className="text-xs font-black uppercase tracking-wider text-slate-300">Program & Bantuan</h4>
-            <ul className="space-y-2 text-xs text-slate-400">
-              <li><Link href="/profil" className="hover:text-white transition-colors">Program Kemitraan Afiliasi</Link></li>
-              <li><Link href="/portal" className="hover:text-white transition-colors">Portal Pengguna</Link></li>
-              <li><Link href="/explore" className="hover:text-white transition-colors">Asisten AI Krenova</Link></li>
-              <li><Link href="/peta-kawasan" className="hover:text-white transition-colors">Peta Kawasan</Link></li>
-              <li><Link href="/faq" className="hover:text-white transition-colors">Pusat Bantuan / FAQ</Link></li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="max-w-[1920px] mx-auto px-6 lg:px-12 pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-          <p>© {new Date().getFullYear()} Kawasan Sains & Teknologi Solo Technopark. Hak cipta dilindungi.</p>
-          <div className="flex items-center gap-4">
-            <Link href="/faq" className="hover:underline">Bantuan</Link>
-            <Link href="/profil" className="hover:underline">Mitra Afiliasi</Link>
-            <Link href="/peta-kawasan" className="hover:underline">Lokasi Kawasan</Link>
-          </div>
-        </div>
-      </footer>
+      {/* --- FOOTER TERPADU KAWASAN --- */}
+      <PublicFooter />
 
     </div>
   );

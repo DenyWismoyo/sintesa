@@ -32,6 +32,7 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import { AffiliateShareButton } from '@/components/common/AffiliateShareButton';
 import { SocialShareBar } from '@/components/common/SocialShareBar';
 import { StickyActionBar } from '@/components/common/StickyActionBar';
+import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import BookingWizardModal from '../components/BookingWizardModal';
 import { useBooking } from '@/hooks/useBooking';
 import { getActiveRefCode } from '@/components/common/AffiliateTracker';
@@ -137,20 +138,29 @@ export default function RoomDetailClient({ roomId, initialRoom }: RoomDetailClie
   };
 
   return (
-    <SectionContainer accent="sky" width="default">
-      <div className="py-6 sm:py-10 space-y-10">
+    <SectionContainer accent="sky" width="default" className="pb-24 sm:pb-12">
+      <div className="py-4 sm:py-8 space-y-8">
 
-        {/* --- 1. BREADCRUMBS & BACK --- */}
-        <div className="flex items-center justify-between">
-          <Link
-            href="/fasilitas"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors"
-          >
-            <ArrowLeft size={14} /> Kembali ke Semua Fasilitas
-          </Link>
-          <Badge variant="outline" className="bg-white border-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wider">
-            {room.category}
-          </Badge>
+        {/* --- 1. BREADCRUMBS & NAVIGATION --- */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <Breadcrumbs 
+            items={[
+              { label: 'Sewa Fasilitas', href: '/fasilitas' },
+              { label: room.category || 'Ruangan', href: `/fasilitas?kategori=${encodeURIComponent(room.category || '')}` },
+              { label: room.name, active: true }
+            ]} 
+          />
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <Link
+              href="/fasilitas"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors px-2.5 py-1 rounded-lg hover:bg-slate-100"
+            >
+              <ArrowLeft size={13} /> Semua Fasilitas
+            </Link>
+            <Badge variant="outline" className="bg-white border-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wider">
+              {room.category}
+            </Badge>
+          </div>
         </div>
 
         {/* --- 2. HERO GALLERY & SPECS --- */}

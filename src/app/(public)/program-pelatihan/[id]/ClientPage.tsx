@@ -18,7 +18,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AffiliateShareButton } from '@/components/common/AffiliateShareButton';
 import { SocialShareBar } from '@/components/common/SocialShareBar';
+import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import SectionContainer from '@/components/ui/SectionContainer';
+import { toast } from 'sonner';
 
 // --- HELPER UNTUK MENGUBAH LINK VIDEO MENJADI EMBED ---
 const getEmbedUrl = (url?: string) => {
@@ -214,36 +216,40 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
   const cleanWhatsappNumber = training.contactWhatsapp ? training.contactWhatsapp.replace(/[^0-9]/g, '').replace(/^0/, '62') : '';
   const waText = encodeURIComponent(`Halo admin Solo Technopark, saya tertarik dengan pelatihan *${training.title}*. Bisa dibantu informasi pendaftarannya?`);
 
-  return (
-    <SectionContainer accent="amber" width="default">
-      <div className="py-6 sm:py-10 space-y-8">
-        
-        {/* Top Breadcrumb Nav */}
-          <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-bold text-slate-500 mb-5">
-            <div className="flex items-center gap-2">
-              <Link href="/program-pelatihan" className="hover:text-amber-600 transition-colors flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full border border-slate-200/80 shadow-xs">
-                <ArrowLeft size={13}/> Pelatihan
-              </Link>
-              <ChevronRight size={13} className="text-slate-400"/>
-              <span className="bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1.5 rounded-full">
-                {training.category || 'Teknologi'}
-              </span>
-            </div>
+    return (
+      <SectionContainer accent="amber" width="default" className="pb-24 sm:pb-12">
+        <div className="py-4 sm:py-8 space-y-6 sm:space-y-8">
+          
+          {/* Top Breadcrumb Nav */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+            <Breadcrumbs 
+              items={[
+                { label: 'Pelatihan', href: '/program-pelatihan' },
+                { label: training.category || 'Umum', href: `/program-pelatihan?kategori=${encodeURIComponent(training.category || '')}` },
+                { label: training.title, active: true }
+              ]} 
+            />
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <Link 
+                href="/program-pelatihan" 
+                className="hover:text-slate-900 transition-colors flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full border border-slate-200 text-xs font-bold text-slate-600 shadow-xs"
+              >
+                <ArrowLeft size={13}/> Semua Pelatihan
+              </Link>
               <button 
                 onClick={() => {
                   if (navigator.share) {
                     navigator.share({ title: training.title, url: window.location.href });
                   } else {
                     navigator.clipboard.writeText(window.location.href);
-                    alert('Tautan pelatihan berhasil disalin!');
+                    toast.success('Tautan pelatihan berhasil disalin!');
                   }
                 }}
                 className="w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-600 flex items-center justify-center hover:text-amber-600 transition-colors shadow-xs"
                 title="Bagikan Program"
               >
-                <Share2 size={14}/>
+                <Share2 size={13}/>
               </button>
             </div>
           </div>
