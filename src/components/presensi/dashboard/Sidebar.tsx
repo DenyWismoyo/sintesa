@@ -23,6 +23,7 @@ import {
   Timer,
   RotateCcw,
 } from "lucide-react";
+import TechnoSignLogo from "@/components/presensi/TechnoSignLogo";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -105,16 +106,8 @@ export default function Sidebar() {
     <aside className="hidden md:flex w-64 flex-col shrink-0 bg-white/95 border-r border-slate-200/90 min-h-screen sticky top-0 backdrop-blur-md shadow-xs">
       {/* Branding */}
       <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-        <Link href="/presensi" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-800 flex items-center justify-center shadow-md shadow-emerald-600/20 text-white group-hover:scale-105 transition-transform shrink-0">
-            <Building2 className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="font-extrabold text-base tracking-tight text-slate-900 block leading-tight">
-              Techno Sign
-            </span>
-            <p className="text-[11px] text-slate-500 font-medium">Solo Technopark</p>
-          </div>
+        <Link href="/presensi" className="group">
+          <TechnoSignLogo size="md" variant="full" />
         </Link>
       </div>
 

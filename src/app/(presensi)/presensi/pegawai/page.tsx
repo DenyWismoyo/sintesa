@@ -35,7 +35,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 
-export const DAFTAR_GOLONGAN_ASN = [
+const DAFTAR_GOLONGAN_ASN = [
   { kode: "I/a - Juru Muda", label: "I/a - Juru Muda" },
   { kode: "I/b - Juru Muda Tingkat I", label: "I/b - Juru Muda Tingkat I" },
   { kode: "I/c - Juru", label: "I/c - Juru" },

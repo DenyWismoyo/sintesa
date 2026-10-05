@@ -37,6 +37,7 @@ import {
   checkAndTriggerPresensiReminder,
 } from "@/lib/presensi/notifications";
 import { usePresensiHarian } from "@/hooks/presensi/usePresensi";
+import TechnoSignLogo from "@/components/presensi/TechnoSignLogo";
 
 function getRoleLabel(role?: UserRole): string {
   switch (role) {
@@ -219,18 +220,8 @@ export default function Header() {
           </button>
 
           {/* Mobile Brand Logo */}
-          <div className="flex md:hidden items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-800 flex items-center justify-center text-white shadow-xs">
-              <Building2 className="w-4 h-4" />
-            </div>
-            <div>
-              <span className="font-extrabold text-xs text-slate-900 leading-none block">
-                Techno Sign
-              </span>
-              <span className="text-[10px] text-slate-500 font-medium leading-none block mt-0.5">
-                Solo Technopark
-              </span>
-            </div>
+          <div className="flex md:hidden items-center">
+            <TechnoSignLogo size="sm" variant="full" />
           </div>
 
           {/* Desktop Clock */}
@@ -323,15 +314,7 @@ export default function Header() {
           <div className="relative w-72 max-w-[80vw] bg-white text-slate-900 h-full flex flex-col z-10 shadow-2xl border-r border-slate-200 animate-in slide-in-from-left duration-200">
             {/* Header Drawer */}
             <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-800 flex items-center justify-center text-white shadow-xs">
-                  <Building2 className="w-4 h-4" />
-                </div>
-                <div>
-                  <span className="font-extrabold text-sm text-slate-900 block leading-tight">Techno Sign</span>
-                  <span className="text-[10px] text-slate-500 font-medium block">Solo Technopark</span>
-                </div>
-              </div>
+              <TechnoSignLogo size="sm" variant="full" />
 
               <button
                 type="button"

@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="50%" stop-color="#064e3b" />
+      <stop offset="100%" stop-color="#022c22" />
+    </linearGradient>
+
+    <!-- Shield Border Glow Gradient -->
+    <linearGradient id="shieldGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399" />
+      <stop offset="40%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+
+    <!-- Shield Inner Fill Gradient -->
+    <linearGradient id="shieldInner" x1="20%" y1="10%" x2="80%" y2="90%">
+      <stop offset="0%" stop-color="#065f46" stop-opacity="0.85" />
+      <stop offset="50%" stop-color="#047857" stop-opacity="0.75" />
+      <stop offset="100%" stop-color="#0f766e" stop-opacity="0.9" />
+    </linearGradient>
+
+    <!-- Neon Emerald Checkmark Gradient -->
+    <linearGradient id="checkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="50%" stop-color="#a7f3d0" />
+      <stop offset="100%" stop-color="#34d399" />
+    </linearGradient>
+
+    <!-- Glass Highlight -->
+    <linearGradient id="glassLight" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.4" />
+      <stop offset="40%" stop-color="#ffffff" stop-opacity="0.05" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- Drop Shadows & Glow Filter -->
+    <filter id="glowFilter" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Squircle Base App Icon -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+  <rect width="510" height="510" x="1" y="1" rx="111" stroke="#34d399" stroke-opacity="0.25" stroke-width="2" />
+
+  <!-- Background Ambient Cyber Pattern -->
+  <circle cx="256" cy="240" r="160" stroke="#10b981" stroke-width="1.5" stroke-opacity="0.15" stroke-dasharray="8 6" />
+  <circle cx="256" cy="240" r="195" stroke="#06b6d4" stroke-width="1" stroke-opacity="0.1" />
+
+  <!-- Shield Outer Glow -->
+  <path d="M 256 90 L 375 142 C 375 255 330 350 256 405 C 182 350 137 255 137 142 Z" 
+        fill="none" stroke="url(#shieldGlow)" stroke-width="8" filter="url(#glowFilter)" opacity="0.6" />
+
+  <!-- Shield Main Body -->
+  <path d="M 256 96 L 370 146 C 370 252 328 342 256 395 C 184 342 142 252 142 146 Z" 
+        fill="url(#shieldInner)" stroke="url(#shieldGlow)" stroke-width="6" stroke-linejoin="round" />
+
+  <!-- Shield Glass Diagonal Reflection -->
+  <path d="M 256 98 L 368 147 C 368 190 355 240 335 285 L 256 195 Z" 
+        fill="url(#glassLight)" />
+
+  <!-- Biometric Ring Pulse (Outer) -->
+  <circle cx="256" cy="225" r="54" stroke="#a7f3d0" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="45 15" stroke-opacity="0.75" />
+  <circle cx="256" cy="225" r="42" stroke="#34d399" stroke-width="3" stroke-linecap="round" stroke-dasharray="30 18" stroke-opacity="0.9" />
+
+  <!-- Fingerprint Biometric Arcs -->
+  <path d="M 256 195 A 30 30 0 0 1 282 225 C 282 242 270 254 256 254 C 242 254 230 242 230 225" 
+        fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" />
+  <path d="M 240 216 A 18 18 0 0 1 270 225 C 270 234 263 241 256 241" 
+        fill="none" stroke="#6ee7b7" stroke-width="3" stroke-linecap="round" />
+  <path d="M 256 211 A 14 14 0 0 0 246 225" 
+        fill="none" stroke="#a7f3d0" stroke-width="2.5" stroke-linecap="round" />
+
+  <!-- Central Verified Bold Checkmark -->
+  <path d="M 226 312 L 246 332 L 290 286" 
+        fill="none" stroke="url(#checkGrad)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" 
+        filter="url(#glowFilter)" />
+  <path d="M 226 312 L 246 332 L 290 286" 
+        fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- STP Badge Dot Accent -->
+  <circle cx="256" cy="375" r="4" fill="#34d399" />
+  <circle cx="242" cy="375" r="2.5" fill="#10b981" opacity="0.6" />
+  <circle cx="270" cy="375" r="2.5" fill="#06b6d4" opacity="0.6" />
+</svg>

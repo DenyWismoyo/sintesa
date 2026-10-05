@@ -21,6 +21,7 @@ import {
   RefreshCw,
   UserCheck,
 } from "lucide-react";
+import TechnoSignLogo from "@/components/presensi/TechnoSignLogo";
 
 export default function PresensiLoginPage() {
   const router = useRouter();
@@ -162,19 +163,9 @@ export default function PresensiLoginPage() {
 
       {/* Top Header / Branding */}
       <header className="relative z-10 w-full max-w-6xl mx-auto px-4 py-6 sm:px-6 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-800 flex items-center justify-center shadow-md shadow-emerald-600/20 text-white shrink-0">
-            <Building2 className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="font-extrabold text-lg sm:text-xl tracking-tight text-slate-900 block leading-tight">
-              Techno Sign
-            </span>
-            <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
-              Solo Technopark
-            </p>
-          </div>
-        </div>
+        <Link href="/presensi" className="hover:opacity-90 transition-opacity">
+          <TechnoSignLogo size="md" variant="full" />
+        </Link>
 
         <Link
           href="/"
@@ -188,16 +179,19 @@ export default function PresensiLoginPage() {
       {/* Main Login / Sync Card */}
       <div className="relative z-10 w-full max-w-md mx-auto px-0 sm:px-4 py-3 sm:py-6">
         <div className="card-base overflow-hidden bg-white/95 backdrop-blur-xl p-4 sm:p-6 text-slate-900">
-          <div className="space-y-1.5 pb-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-                {isSyncMode ? "Validasi Pegawai STP" : "Masuk Pegawai"}
-              </h2>
-              <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-full">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span>SSO Terintegrasi</span>
-              </div>
+          {/* Official App Logo Icon Badge */}
+          <div className="mb-4 flex items-center justify-between">
+            <TechnoSignLogo size="md" variant="icon-only" withGlow />
+            <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-full">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Aplikasi Resmi BLUD</span>
             </div>
+          </div>
+
+          <div className="space-y-1.5 pb-4">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+              {isSyncMode ? "Validasi Pegawai STP" : "Masuk Pegawai"}
+            </h2>
             <p className="text-xs text-slate-500 font-normal">
               {isSyncMode
                 ? "Tautkan akun Google Anda dengan identitas pegawai resmi Solo Technopark"

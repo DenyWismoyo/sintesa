@@ -9,6 +9,7 @@ import Sidebar from "@/components/presensi/dashboard/Sidebar";
 import Header from "@/components/presensi/dashboard/Header";
 import BottomNav from "@/components/presensi/dashboard/BottomNav";
 import NetworkSentinel from "@/components/presensi/dashboard/NetworkSentinel";
+import TechnoSignLogo from "@/components/presensi/TechnoSignLogo";
 
 function PresensiShell({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = usePresensiAuth();
@@ -31,11 +32,16 @@ function PresensiShell({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] text-slate-800 relative overflow-hidden">
         <div className="public-glow-emerald" />
         <div className="public-bg-dots" />
-        <div className="relative z-10 text-center space-y-4">
-          <div className="w-12 h-12 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto shadow-md shadow-emerald-600/10" />
+        <div className="relative z-10 flex flex-col items-center justify-center text-center space-y-4">
+          <div className="relative">
+            <TechnoSignLogo size="xl" variant="icon-only" withGlow className="animate-pulse" />
+            <div className="absolute -inset-2 border-2 border-emerald-600/30 border-t-emerald-600 rounded-2xl animate-spin pointer-events-none" />
+          </div>
           <div className="space-y-1">
-            <p className="text-sm font-semibold text-slate-800 tracking-tight">Techno Sign</p>
-            <p className="text-xs text-slate-500 font-medium">Memverifikasi sesi pegawai...</p>
+            <p className="text-base font-extrabold text-slate-900 tracking-tight">
+              Techno <span className="text-emerald-600">Sign</span>
+            </p>
+            <p className="text-xs text-slate-500 font-medium">Memverifikasi identitas & sesi pegawai...</p>
           </div>
         </div>
       </div>
@@ -92,9 +98,13 @@ export default function PresensiRootLayout({
       <PresensiAuthProvider>
         <head>
           <link rel="manifest" href="/presensi/manifest.webmanifest" />
+          <link rel="apple-touch-icon" sizes="180x180" href="/icons/presensi/apple-touch-icon.png" />
+          <link rel="icon" type="image/png" sizes="192x192" href="/icons/presensi/icon-192x192.png" />
+          <link rel="icon" type="image/png" sizes="512x512" href="/icons/presensi/icon-512x512.png" />
+          <link rel="icon" type="image/svg+xml" href="/icons/presensi/icon.svg" />
           <meta name="theme-color" content="#059669" />
           <meta name="apple-mobile-web-app-capable" content="yes" />
-          <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+          <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
           <meta name="apple-mobile-web-app-title" content="Techno Sign" />
         </head>
         <PresensiShell>{children}</PresensiShell>
