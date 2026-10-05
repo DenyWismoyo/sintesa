@@ -20,7 +20,10 @@ import {
 } from "@/lib/presensi/anti-fraud/server";
 import { CheckInSchema, CheckOutSchema } from "@/lib/presensi/validations";
 import { recordAuditLog } from "@/actions/presensi/audit";
-import { getWIBHourMinute } from "@/lib/presensi/utils";
+import { getWIBHourMinute, getWIBDateString } from "@/lib/presensi/utils";
+import { isHariLiburAtauWeekend } from "@/data/presensi/masterHariLibur";
+import { STP_CREDENTIALS_LIST } from "@/data/presensi/stpUsers";
+import { verifyLivenessWithAI } from "@/lib/presensi/anti-fraud/ai-liveness";
 
 // Default fallback jika tidak ada di env atau konfigurasi kantor
 const DEFAULT_JAM_MASUK = process.env.NEXT_PUBLIC_JAM_MASUK_MAKSIMAL || "07:30";
@@ -197,6 +200,23 @@ export async function recordCheckIn(
   const { ipAddress, userAgent } = await getAuditMetadataFromHeaders();
   const now = new Date();
 
+  // 4. Verifikasi AI Liveness & Anti-Spoofing (Clario Multimodal Vision - BUG-08)
+  let aiVerificationNote = "";
+  if (fotoUrl && !fotoUrl.startsWith("mock://") && process.env.CLARIO_API_KEY) {
+    try {
+      const livenessResult = await verifyLivenessWithAI(fotoUrl);
+      if (livenessResult.spoofDetected) {
+        return {
+          success: false,
+          message: `FRAUD_ALERT (AI Anti-Spoofing): Swafoto ditolak. Terindikasi foto layar monitor/kertas cetak (${livenessResult.spoofReason || "Liveness check failed"}). Gunakan kamera langsung.`,
+        };
+      }
+      aiVerificationNote = `[AI Verified: Live Human, Score: ${livenessResult.confidenceScore}%]`;
+    } catch (aiErr) {
+      console.warn("[Presensi] AI Liveness verification skipped:", aiErr);
+    }
+  }
+
   // Evaluasi jam kedatangan vs jam maksimal (WIB - BUG-04)
   const maxTime = geofence.office?.jamMasukMaksimal || DEFAULT_JAM_MASUK;
   const [maxHour, maxMinute] = maxTime.split(":").map(Number);
@@ -227,7 +247,7 @@ export async function recordCheckIn(
       jarakMeter: jarakMeter ?? geofence.serverDistanceMeters,
       serverVerifiedDistanceMeter: geofence.serverDistanceMeters,
       alamat: alamat || geofence.office.alamat || `Kawasan ${resolvedKantorNama}`,
-      catatan,
+      catatan: aiVerificationNote ? `${catatan || ""} ${aiVerificationNote}`.trim() : catatan,
       ipAddress,
       userAgent,
       gpsAccuracyMeter: payload.gpsAccuracyMeter,
@@ -501,3 +521,175 @@ export async function getPresensiHistory(
 
   return [];
 }
+
+/**
+ * Server Action: Evaluasi Otomatisasi Alpa Harian (Midnight Job / On-Demand)
+ * Memeriksa seluruh pegawai pada tanggal kerja: jika belum hadir dan tidak ada izin yang disetujui,
+ * maka dibuatkan record presensi resmi berstatus 'alpa' (TD-06).
+ */
+export async function evaluateDailyAbsenceAction(targetTanggal?: string): Promise<{
+  success: boolean;
+  tanggalEvaluasi: string;
+  isHariKerja: boolean;
+  totalPegawaiDievaluasi: number;
+  totalAlpaDihasilkan: number;
+  message: string;
+}> {
+  const sessionUser = await requireAuth(["admin", "atasan"]);
+  const tanggal = targetTanggal || getWIBDateString();
+
+  // 1. Cek apakah tanggal evaluasi adalah hari kerja
+  if (isHariLiburAtauWeekend(tanggal)) {
+    return {
+      success: true,
+      tanggalEvaluasi: tanggal,
+      isHariKerja: false,
+      totalPegawaiDievaluasi: 0,
+      totalAlpaDihasilkan: 0,
+      message: `Tanggal ${tanggal} merupakan Hari Libur Nasional atau Akhir Pekan. Tidak ada evaluasi alpa harian.`,
+    };
+  }
+
+  // 2. Ambil daftar pegawai
+  let pegawaiList: { id: string; nip: string; nama: string; orgId: string; kantorId?: string; namaKantor?: string }[] = [];
+
+  if (isFirebaseAdminConfigured()) {
+    try {
+      const snap = await adminPresensiDb
+        .collection("users")
+        .where("orgId", "==", sessionUser.orgId)
+        .get();
+
+      if (!snap.empty) {
+        pegawaiList = snap.docs.map((d) => {
+          const data = d.data();
+          return {
+            id: d.id,
+            nip: data.nip || data.accessCode || d.id,
+            nama: data.nama || "Pegawai STP",
+            orgId: data.orgId || sessionUser.orgId,
+            kantorId: data.kantorId,
+            namaKantor: data.namaKantor,
+          };
+        });
+      }
+    } catch (err) {
+      console.warn("[Evaluate Absence] Gagal query users Firestore:", err);
+    }
+  }
+
+  if (pegawaiList.length === 0) {
+    // Fallback seed pegawai STP
+    pegawaiList = STP_CREDENTIALS_LIST.map((u) => ({
+      id: `stp-user-${u.accessCode.toLowerCase()}`,
+      nip: u.accessCode,
+      nama: u.nama,
+      orgId: sessionUser.orgId,
+      kantorId: "kantor-stp-pusat",
+      namaKantor: "Solo Technopark Pusat",
+    }));
+  }
+
+  // 3. Ambil presensi yang sudah ada pada tanggal ini
+  const existingPresensiSet = new Set<string>();
+  if (isFirebaseAdminConfigured()) {
+    try {
+      const pSnap = await adminPresensiDb
+        .collection("presensi")
+        .where("tanggal", "==", tanggal)
+        .where("orgId", "==", sessionUser.orgId)
+        .get();
+
+      pSnap.docs.forEach((doc) => {
+        const data = doc.data();
+        if (data.userId) existingPresensiSet.add(data.userId);
+      });
+    } catch (err) {
+      console.warn("[Evaluate Absence] Gagal query presensi Firestore:", err);
+    }
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    for (const record of getDevPresensiStore().values()) {
+      if (record.tanggal === tanggal && record.orgId === sessionUser.orgId) {
+        existingPresensiSet.add(record.userId);
+      }
+    }
+  }
+
+  // 4. Ambil izin yang disetujui pada tanggal ini
+  const approvedIzinSet = new Set<string>();
+  if (isFirebaseAdminConfigured()) {
+    try {
+      const iSnap = await adminPresensiDb
+        .collection("izin")
+        .where("status", "==", "disetujui")
+        .where("orgId", "==", sessionUser.orgId)
+        .get();
+
+      iSnap.docs.forEach((doc) => {
+        const data = doc.data();
+        if (data.tanggalMulai <= tanggal && tanggal <= data.tanggalSelesai) {
+          approvedIzinSet.add(data.userId);
+        }
+      });
+    } catch (err) {
+      console.warn("[Evaluate Absence] Gagal query izin Firestore:", err);
+    }
+  }
+
+  let totalAlpaDihasilkan = 0;
+
+  for (const pegawai of pegawaiList) {
+    // Jika sudah ada record presensi atau ada izin yang disetujui, lewati
+    if (existingPresensiSet.has(pegawai.id) || approvedIzinSet.has(pegawai.id)) {
+      continue;
+    }
+
+    const docId = `${pegawai.id}_${tanggal}`;
+    const alpaRecord: PresensiRecord = {
+      id: docId,
+      userId: pegawai.id,
+      nip: pegawai.nip,
+      nama: pegawai.nama,
+      orgId: pegawai.orgId,
+      tanggal,
+      kantorId: pegawai.kantorId,
+      namaKantor: pegawai.namaKantor || "Solo Technopark",
+      status: "alpa",
+      durasiKerjaMenit: 0,
+      keterangan: "Alpa: Tidak melakukan presensi kehadiran tanpa pengajuan izin resmi.",
+    };
+
+    if (isFirebaseAdminConfigured()) {
+      try {
+        await adminPresensiDb.collection("presensi").doc(docId).set(alpaRecord, { merge: true });
+      } catch (err) {
+        console.warn("[Evaluate Absence] Gagal menyimpan doc alpa:", err);
+      }
+    }
+
+    if (process.env.NODE_ENV === "development") {
+      getDevPresensiStore().set(docId, alpaRecord);
+    }
+
+    totalAlpaDihasilkan++;
+  }
+
+  await recordAuditLog({
+    action: "UPDATE",
+    entityType: "PRESENSI",
+    entityId: `evaluasi-alpa-${tanggal}`,
+    details: `Evaluasi Alpa Harian ${tanggal}: ${totalAlpaDihasilkan} pegawai dibukukan alpa dari total ${pegawaiList.length} pegawai.`,
+  });
+
+  return {
+    success: true,
+    tanggalEvaluasi: tanggal,
+    isHariKerja: true,
+    totalPegawaiDievaluasi: pegawaiList.length,
+    totalAlpaDihasilkan,
+    message: `Evaluasi presensi ${tanggal} berhasil. ${totalAlpaDihasilkan} pegawai tanpa keterangan dibukukan sebagai Alpa resmi.`,
+  };
+}
+

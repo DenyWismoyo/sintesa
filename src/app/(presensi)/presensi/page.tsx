@@ -21,6 +21,7 @@ import {
 import { motion, Variants } from "framer-motion";
 
 import QuickPresensiWidget from "@/components/presensi/dashboard/QuickPresensiWidget";
+import MonthlyAttendanceCalendar from "@/components/presensi/dashboard/MonthlyAttendanceCalendar";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -249,6 +250,11 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+      </motion.div>
+
+      {/* ─── Kalender Kehadiran Interaktif Bulanan Pegawai ─── */}
+      <motion.div variants={itemVariants}>
+        <MonthlyAttendanceCalendar />
       </motion.div>
     </motion.div>
   );

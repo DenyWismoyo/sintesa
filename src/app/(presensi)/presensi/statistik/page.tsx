@@ -34,8 +34,14 @@ import {
   ExternalLink,
   RotateCcw,
   Edit3,
+  Sparkles,
+  Copy,
+  Check,
 } from "lucide-react";
 import { exportBeritaAcaraToPdf } from "@/lib/presensi/beritaAcaraPdf";
+import { exportRekapToExcel } from "@/lib/presensi/excelExport";
+import { generatePresensiAIAnalysisAction } from "@/actions/presensi/ai-analisis";
+import { evaluateDailyAbsenceAction } from "@/actions/presensi/presensi";
 import {
   useDaftarRevisiPresensi,
   useKoreksiPresensiLangsungMutation,
@@ -113,6 +119,16 @@ export default function StatistikPage() {
   const [koreksiAlasan, setKoreksiAlasan] = useState<string>("");
   const [isSubmittingKoreksi, setIsSubmittingKoreksi] = useState<boolean>(false);
 
+  // State Fitur AI Executive Summary (Clario AI)
+  const [showAiModal, setShowAiModal] = useState<boolean>(false);
+  const [isAnalyzingAi, setIsAnalyzingAi] = useState<boolean>(false);
+  const [aiAnalysisResult, setAiAnalysisResult] = useState<string>("");
+  const [aiModelUsed, setAiModelUsed] = useState<string>("");
+  const [isCopiedAi, setIsCopiedAi] = useState<boolean>(false);
+
+  // State Evaluasi Alpa Otomatis
+  const [isEvaluatingAbsence, setIsEvaluatingAbsence] = useState<boolean>(false);
+
   const handleOpenKoreksiForPegawai = (pegawai: typeof daftarPegawai[0]) => {
     setSelectedKoreksiPegawai(pegawai.userId);
     setKoreksiTanggal(`${selectedTahun}-${String(selectedBulan).padStart(2, "0")}-01`);
@@ -160,7 +176,7 @@ export default function StatistikPage() {
   };
 
   const { data: kantorList = [] } = useKantorList(user?.orgId);
-  const { data: rekapData, isLoading } = useRekapStatistik(
+  const { data: rekapData, isLoading, refetch } = useRekapStatistik(
     selectedBulan,
     selectedTahun,
     selectedKantor === "all" ? undefined : selectedKantor
@@ -261,6 +277,73 @@ export default function StatistikPage() {
     URL.revokeObjectURL(url);
   };
 
+  // Handler Generator File Excel Murni (.xlsx Multi-Sheet Resmi BLUD)
+  const handleExportExcel = () => {
+    if (!summary || !filteredPegawai || filteredPegawai.length === 0) {
+      alert("Data statistik belum siap atau tidak ada pegawai.");
+      return;
+    }
+    exportRekapToExcel({
+      bulan: selectedBulan,
+      tahun: selectedTahun,
+      namaUnit: selectedKantorName,
+      summary,
+      daftarPegawai: filteredPegawai,
+    });
+  };
+
+  // Handler Analisis AI Kinerja ASN Menggunakan Clario AI
+  const handleTriggerAiAnalysis = async () => {
+    if (!summary || !filteredPegawai || filteredPegawai.length === 0) {
+      alert("Data rekap statistik belum selesai dimuat atau tidak ada data pegawai.");
+      return;
+    }
+    setShowAiModal(true);
+    setIsAnalyzingAi(true);
+    setAiAnalysisResult("");
+    setIsCopiedAi(false);
+
+    try {
+      const res = await generatePresensiAIAnalysisAction({
+        bulan: selectedBulan,
+        tahun: selectedTahun,
+        namaUnit: selectedKantorName,
+        summary,
+        daftarPegawai: filteredPegawai,
+      });
+
+      if (res.success && res.analysisMarkdown) {
+        setAiAnalysisResult(res.analysisMarkdown);
+        setAiModelUsed(res.modelUsed || "Clario DeepSeek V4 Pro");
+      } else {
+        setAiAnalysisResult(res.message || "Gagal mendapatkan respons analisis dari Clario AI.");
+      }
+    } catch (err: any) {
+      setAiAnalysisResult("Terjadi kesalahan saat memproses analisis AI: " + err.message);
+    } finally {
+      setIsAnalyzingAi(false);
+    }
+  };
+
+  // Handler Evaluasi Alpa Harian Otomatis
+  const handleEvaluateAbsence = async () => {
+    const isConfirm = confirm(
+      "Jalankan evaluasi alpa untuk seluruh pegawai aktif? Pegawai yang belum presensi dan tidak memiliki izin/cuti yang disetujui pada hari kerja akan otomatis dibukukan sebagai 'Alpa' resmi di database."
+    );
+    if (!isConfirm) return;
+
+    setIsEvaluatingAbsence(true);
+    try {
+      const res = await evaluateDailyAbsenceAction();
+      alert(res.message);
+      refetch();
+    } catch (err: any) {
+      alert("Gagal menjalankan evaluasi alpa: " + err.message);
+    } finally {
+      setIsEvaluatingAbsence(false);
+    }
+  };
+
   const selectedKantorName = useMemo(() => {
     if (selectedKantor === "all") return "Semua Kantor / OPD";
     const k = kantorList.find((item) => item.id === selectedKantor);
@@ -352,13 +435,43 @@ export default function StatistikPage() {
               )}
             </Button>
             <Button
+              onClick={handleTriggerAiAnalysis}
+              className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold h-10 px-3.5 shadow-md shadow-violet-950/50 border border-violet-400/30 cursor-pointer gap-1.5 text-xs"
+              title="Analisis Eksekutif Kinerja & Disiplin ASN Berbasis Clario DeepSeek V4 Pro"
+            >
+              <Sparkles className="w-4 h-4 text-violet-200 animate-pulse" />
+              <span>Analisis AI Clario</span>
+            </Button>
+            <Button
+              onClick={handleExportExcel}
+              className="bg-emerald-700 hover:bg-emerald-600 text-white font-semibold h-10 px-3.5 shadow-sm border border-emerald-500/40 cursor-pointer gap-1.5 text-xs"
+              title="Unduh Berkas Microsoft Excel (.xlsx) Multi-Sheet Resmi BLUD"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-200" />
+              <span>Export Excel (.xlsx)</span>
+            </Button>
+            <Button
+              onClick={handleEvaluateAbsence}
+              disabled={isEvaluatingAbsence}
+              variant="outline"
+              className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border-rose-500/30 h-10 px-3 text-xs gap-1.5 font-semibold cursor-pointer"
+              title="Jalankan Evaluasi Alpa Otomatis untuk Pegawai Tanpa Keterangan"
+            >
+              {isEvaluatingAbsence ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-400" />
+              ) : (
+                <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+              )}
+              <span>Evaluasi Alpa</span>
+            </Button>
+            <Button
               onClick={handleExportCsv}
               variant="outline"
               className="btn-glass h-10 px-3 text-xs"
-              title="Unduh Data Rekapitulasi Format CSV/Excel"
+              title="Unduh Data Rekapitulasi Format CSV"
             >
               <Download className="w-3.5 h-3.5 mr-1.5" />
-              Export CSV
+              CSV
             </Button>
             <Button
               onClick={handlePrint}
@@ -1252,6 +1365,135 @@ export default function StatistikPage() {
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Dialog Clario AI Executive Summary & Analisis Kinerja */}
+      {showAiModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-indigo-50/70 via-purple-50/50 to-white">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-md shadow-indigo-200">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-slate-800 text-sm sm:text-base">
+                      Clario AI Executive Summary
+                    </h3>
+                    <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 text-[10px] font-semibold">
+                      {aiModelUsed || "Clario DeepSeek V4 Pro"}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    Analisis Tren Kehadiran & Rekomendasi Disiplin Kerja ASN ({NAMA_BULAN[selectedBulan - 1]} {selectedTahun} • {selectedKantorName})
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAiModal(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-4 sm:p-6 overflow-y-auto flex-1 font-sans text-xs sm:text-sm text-slate-700 leading-relaxed space-y-4">
+              {isAnalyzingAi ? (
+                <div className="py-16 flex flex-col items-center justify-center text-center space-y-4">
+                  <div className="relative">
+                    <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 animate-pulse">
+                      <Sparkles className="w-7 h-7" />
+                    </div>
+                    <Loader2 className="w-6 h-6 text-indigo-600 animate-spin absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow" />
+                  </div>
+                  <div className="space-y-1 max-w-sm">
+                    <p className="font-bold text-slate-800 text-sm">Sedang Melakukan Analisis Mendalam...</p>
+                    <p className="text-xs text-slate-500">
+                      Clario AI sedang mengevaluasi data absensi, tingkat kedisiplinan, rasio keterlambatan, dan merumuskan tindak lanjut perbaikan BLUD.
+                    </p>
+                  </div>
+                </div>
+              ) : aiAnalysisResult ? (
+                <div className="space-y-4">
+                  <div className="p-3.5 bg-indigo-50/50 border border-indigo-100 rounded-xl text-xs text-indigo-800 flex items-start gap-2.5">
+                    <Sparkles className="w-4 h-4 text-indigo-600 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="font-semibold">Hasil Analisis Otomatis Siap Disampaikan</p>
+                      <p className="text-indigo-600/80 text-[11px] mt-0.5">
+                        Laporan ini diformulasikan oleh model kecerdasan buatan Clario AI berdasarkan data absensi riil {summary?.totalPegawai ?? 0} pegawai periode {NAMA_BULAN[selectedBulan - 1]} {selectedTahun}.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 sm:p-5 whitespace-pre-wrap font-sans text-slate-800 text-xs sm:text-sm leading-relaxed">
+                    {aiAnalysisResult}
+                  </div>
+                </div>
+              ) : (
+                <div className="py-12 text-center text-slate-500 text-xs">
+                  Belum ada hasil analisis. Klik tombol di bawah untuk memulai.
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex flex-wrap items-center justify-between gap-2">
+              <div className="text-[11px] text-slate-400 flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Tekno Sign • Solo Technopark Intelligent HR Analytics</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {aiAnalysisResult && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(aiAnalysisResult);
+                      setIsCopiedAi(true);
+                      setTimeout(() => setIsCopiedAi(false), 2000);
+                    }}
+                    className="text-xs h-9 px-3 gap-1.5"
+                  >
+                    {isCopiedAi ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        <span className="text-emerald-600 font-semibold">Tersalin!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Salin Analisis</span>
+                      </>
+                    )}
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={handleTriggerAiAnalysis}
+                  disabled={isAnalyzingAi}
+                  className="text-xs h-9 px-3 gap-1.5"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Analisis Ulang</span>
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => setShowAiModal(false)}
+                  className="bg-slate-900 hover:bg-slate-800 text-white text-xs h-9 px-4"
+                >
+                  Tutup
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       )}
