@@ -3,7 +3,6 @@
 import React, { useState, useMemo } from "react";
 import { usePresensiAuth } from "@/lib/presensi/auth-context";
 import { useRiwayatPresensi } from "@/hooks/presensi/usePresensi";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import MobilePageHeader from "@/components/presensi/dashboard/MobilePageHeader";
@@ -180,93 +179,114 @@ export default function KalenderPage() {
         </div>
       </div>
 
-      {/* Baris Ringkasan Metrik Bulanan */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
+      {/* Kontrol Navigasi Bulan di Mobile */}
+      <div className="flex sm:hidden items-center justify-between px-4 py-2 bg-white border-y border-slate-100">
+        <span className="text-xs font-bold text-slate-800">
+          {monthNames[currentMonth]} {currentYear}
+        </span>
+        <div className="flex items-center gap-1.5">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handlePrevMonth}
+            className="h-7 w-7 p-0 rounded-lg"
+          >
+            <ChevronLeft className="w-3.5 h-3.5" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleNextMonth}
+            className="h-7 w-7 p-0 rounded-lg"
+          >
+            <ChevronRight className="w-3.5 h-3.5" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Baris Ringkasan Metrik Bulanan (Satu Panel Borderless di Mobile) */}
+      <div className="card-base overflow-hidden">
+        <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-slate-100 bg-white">
+          <div className="p-4 sm:p-5 flex flex-col justify-between">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-500 font-medium">Tingkat Disiplin</span>
+              <span className="text-[11px] sm:text-xs text-slate-500 font-medium">Tingkat Disiplin</span>
               <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
                 <CheckCircle2 className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-xl font-bold text-slate-900 mt-2">{metrics.disiplinRate}%</div>
-            <p className="text-[10px] text-emerald-600 font-medium mt-0.5">Memenuhi standar kepegawaian</p>
-          </CardContent>
-        </Card>
+            <div className="text-xl sm:text-2xl font-black text-slate-900 mt-2">{metrics.disiplinRate}%</div>
+            <p className="text-[10px] text-emerald-600 font-semibold mt-0.5">Memenuhi standar</p>
+          </div>
 
-        <Card>
-          <CardContent className="p-4">
+          <div className="p-4 sm:p-5 flex flex-col justify-between">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-500 font-medium">Hadir Tepat Waktu</span>
+              <span className="text-[11px] sm:text-xs text-slate-500 font-medium">Tepat Waktu</span>
               <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
                 <UserCheck className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-xl font-bold text-slate-900 mt-2">{metrics.totalHadir} Hari</div>
-            <p className="text-[10px] text-slate-500 mt-0.5">Dari total {metrics.totalHariKerja} hari kerja berjalan</p>
-          </CardContent>
-        </Card>
+            <div className="text-xl sm:text-2xl font-black text-slate-900 mt-2">{metrics.totalHadir} Hari</div>
+            <p className="text-[10px] text-slate-500 mt-0.5">Dari {metrics.totalHariKerja} hari kerja</p>
+          </div>
 
-        <Card>
-          <CardContent className="p-4">
+          <div className="p-4 sm:p-5 flex flex-col justify-between">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-500 font-medium">Terlambat Masuk</span>
+              <span className="text-[11px] sm:text-xs text-slate-500 font-medium">Terlambat</span>
               <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
                 <AlertTriangle className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-xl font-bold text-slate-900 mt-2">{metrics.totalTerlambat} Kali</div>
-            <p className="text-[10px] text-amber-700 mt-0.5">Evaluasi jam kedatangan</p>
-          </CardContent>
-        </Card>
+            <div className="text-xl sm:text-2xl font-black text-slate-900 mt-2">{metrics.totalTerlambat} Kali</div>
+            <p className="text-[10px] text-amber-700 mt-0.5">Evaluasi kedatangan</p>
+          </div>
 
-        <Card>
-          <CardContent className="p-4">
+          <div className="p-4 sm:p-5 flex flex-col justify-between">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-500 font-medium">Lokasi Kantor</span>
+              <span className="text-[11px] sm:text-xs text-slate-500 font-medium">Lokasi Kantor</span>
               <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
                 <Building className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-sm font-bold text-slate-900 mt-2 truncate">Kantor Pusat</div>
-            <p className="text-[10px] text-purple-700 mt-0.5">Kawasan Surakarta</p>
-          </CardContent>
-        </Card>
+            <div className="text-base sm:text-lg font-bold text-slate-900 mt-2 truncate">Kantor Pusat</div>
+            <p className="text-[10px] text-purple-700 mt-0.5 truncate">Kawasan Surakarta</p>
+          </div>
+        </div>
       </div>
 
       {/* Grid Kalender Bulanan */}
-      <Card>
-        <CardHeader className="pb-3 border-b border-slate-100 flex flex-row items-center justify-between">
+      <div className="card-base overflow-hidden">
+        <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-row items-center justify-between bg-white">
           <div>
-            <CardTitle className="text-base font-bold">
+            <h2 className="text-sm sm:text-base font-bold text-slate-900">
               Lembar Kehadiran: {monthNames[currentMonth]} {currentYear}
-            </CardTitle>
-            <CardDescription className="text-xs text-slate-500">
-              Jadwal resmi hari kerja: Senin s/d Jumat (07:30 - 16:00 WIB)
-            </CardDescription>
+            </h2>
+            <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+              Jadwal resmi: Senin s/d Jumat (07:30 - 16:00 WIB)
+            </p>
           </div>
 
           {/* Legenda Warna */}
-          <div className="hidden sm:flex items-center gap-3 text-[11px]">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+          <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-[11px]">
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
               Hadir
             </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-amber-500" />
               Terlambat
             </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-slate-300" />
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-slate-300" />
               Libur
             </span>
           </div>
-        </CardHeader>
+        </div>
 
-        <CardContent className="p-4 sm:p-6">
+        <div className="p-3 sm:p-6 bg-white">
           {/* Header Nama Hari */}
-          <div className="grid grid-cols-7 gap-2 mb-2 text-center text-xs font-semibold text-slate-500">
+          <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2 text-center text-[11px] sm:text-xs font-semibold text-slate-500">
             <div>Sen</div>
             <div>Sel</div>
             <div>Rab</div>
@@ -277,10 +297,10 @@ export default function KalenderPage() {
           </div>
 
           {/* Grid Tanggal */}
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-7 gap-1 sm:gap-2">
             {/* Slot Kosong Sebelum Hari Pertama */}
             {Array.from({ length: firstDayIndex }).map((_, idx) => (
-              <div key={`empty-${idx}`} className="h-20 sm:h-24 rounded-xl bg-slate-50/50 border border-transparent" />
+              <div key={`empty-${idx}`} className="h-16 sm:h-24 rounded-lg sm:rounded-xl bg-slate-50/50 border border-transparent" />
             ))}
 
             {/* Kotak Tanggal */}
@@ -291,7 +311,7 @@ export default function KalenderPage() {
               return (
                 <div
                   key={`day-${day}`}
-                  className={`h-20 sm:h-24 p-1.5 sm:p-2 rounded-xl border flex flex-col justify-between transition-all ${
+                  className={`h-16 sm:h-24 p-1 sm:p-2 rounded-lg sm:rounded-xl border flex flex-col justify-between transition-all ${
                     att.status === "libur"
                       ? "bg-slate-50/60 border-slate-200/50 text-slate-400"
                       : att.status === "hadir"
@@ -302,26 +322,26 @@ export default function KalenderPage() {
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold">{day}</span>
+                    <span className="text-[11px] sm:text-xs font-bold">{day}</span>
                     {att.status === "hadir" && (
-                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500" />
                     )}
                     {att.status === "terlambat" && (
-                      <span className="w-2 h-2 rounded-full bg-amber-500" />
+                      <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-500" />
                     )}
                   </div>
 
-                  <div className="text-[9px] sm:text-[10px] space-y-0.5">
+                  <div className="text-[8px] sm:text-[10px] space-y-0.5 leading-tight">
                     {att.status === "libur" ? (
                       <div className="text-slate-400 italic">Libur</div>
                     ) : att.status === "mendatang" ? (
                       <div className="text-slate-400 italic">-</div>
                     ) : att.status === "belum" ? (
-                      <div className="text-slate-400 italic">Belum tercatat</div>
+                      <div className="text-slate-400 italic hidden sm:block">Belum</div>
                     ) : (
                       <>
-                        <div className="text-emerald-700 font-medium">In: {att.in}</div>
-                        <div className="text-slate-500">Out: {att.out}</div>
+                        <div className="text-emerald-700 font-semibold">{att.in}</div>
+                        <div className="text-slate-500 hidden sm:block">{att.out}</div>
                       </>
                     )}
                   </div>
@@ -329,8 +349,8 @@ export default function KalenderPage() {
               );
             })}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

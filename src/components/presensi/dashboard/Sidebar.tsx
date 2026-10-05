@@ -21,6 +21,7 @@ import {
   MapPin,
   ExternalLink,
   Timer,
+  RotateCcw,
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -56,6 +57,12 @@ export default function Sidebar() {
       name: "Pengajuan Lembur",
       href: "/presensi/lembur",
       icon: Timer,
+      roles: ["admin", "atasan", "pegawai"],
+    },
+    {
+      name: "Permohonan Revisi",
+      href: "/presensi/revisi",
+      icon: RotateCcw,
       roles: ["admin", "atasan", "pegawai"],
     },
     {

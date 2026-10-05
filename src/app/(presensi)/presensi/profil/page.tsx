@@ -3,11 +3,11 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { usePresensiAuth } from "@/lib/presensi/auth-context";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import StorageMeter from "@/components/presensi/dashboard/StorageMeter";
+import MobilePageHeader from "@/components/presensi/dashboard/MobilePageHeader";
 import {
   User,
   ShieldCheck,
@@ -27,15 +27,29 @@ export default function ProfilPage() {
   const router = useRouter();
   const { user, logout } = usePresensiAuth();
 
-  const handleLogout = () => {
-    logout();
-    router.push("/presensi/login");
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.replace("/presensi/login");
+    } catch (err) {
+      console.error("Gagal logout:", err);
+    }
   };
 
+  if (!user) {
+    return null;
+  }
+
   return (
-    <div className="space-y-6 max-w-2xl mx-auto">
-      {/* Header */}
-      <div className="px-4 sm:px-0">
+    <div className="space-y-4 sm:space-y-6 max-w-2xl mx-auto">
+      {/* Contextual Mobile Back Header */}
+      <MobilePageHeader
+        title="Kartu Identitas Digital"
+        subtitle="Profil dan informasi resmi ASN Solo Technopark"
+      />
+
+      {/* Header Desktop */}
+      <div className="hidden md:block px-4 sm:px-0">
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
           <IdCard className="w-6 h-6 text-emerald-600" />
           Kartu Identitas Digital Techno Sign
@@ -46,7 +60,7 @@ export default function ProfilPage() {
       </div>
 
       {/* Techno Sign Digital ID Card */}
-      <Card className="overflow-hidden bg-white border border-slate-200/90 shadow-sm rounded-3xl">
+      <div className="card-base overflow-hidden bg-white">
         {/* Card Header Pattern */}
         <div className="bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 p-6 text-white relative">
           <div className="flex items-center justify-between">
@@ -81,7 +95,7 @@ export default function ProfilPage() {
         </div>
 
         {/* Card Body Data */}
-        <CardContent className="p-5 space-y-4 text-xs">
+        <div className="p-4 sm:p-5 space-y-4 text-xs">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             <div className="p-3 rounded-xl bg-slate-100/80 border border-slate-200/70 space-y-1">
               <span className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
@@ -161,7 +175,7 @@ export default function ProfilPage() {
             {user?.isLinkedGoogle || user?.googleEmail ? (
               <div className="text-[11px] text-slate-600 space-y-1">
                 <p>
-                  Akun Google tertaut: <span className="font-semibold text-slate-800">{user.googleEmail || user.email}</span>
+                  Akun Google tertaut: <span className="font-semibold text-slate-800">{user?.googleEmail || user?.email || "-"}</span>
                 </p>
                 <p className="text-[10px] text-slate-500">
                   Akun ini disatukan dengan kredensial katalog. Anda dapat login langsung menggunakan tombol Google di Katalog maupun Presensi.
@@ -185,8 +199,8 @@ export default function ProfilPage() {
               Keluar dari Akun Techno Sign
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Alokasi Kuota Penyimpanan 1 GB per ASN */}
       <StorageMeter />

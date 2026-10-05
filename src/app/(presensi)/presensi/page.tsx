@@ -5,23 +5,18 @@ import Link from "next/link";
 import { usePresensiAuth } from "@/lib/presensi/auth-context";
 import { useRiwayatPresensi } from "@/hooks/presensi/usePresensi";
 import { useLKHHarian } from "@/hooks/presensi/useLKH";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   ClockCheck,
   FileSpreadsheet,
-  MapPin,
   CalendarDays,
   CheckCircle2,
   AlertCircle,
-  ArrowUpRight,
   TrendingUp,
   FileText,
-  Building,
   UserCheck2,
   Inbox,
-  Clock,
 } from "lucide-react";
 import { motion, Variants } from "framer-motion";
 
@@ -31,34 +26,26 @@ const containerVariants: Variants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
+    transition: { staggerChildren: 0.08 },
+  },
 };
 
 const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  show: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { 
-      type: "spring", 
-      stiffness: 300, 
-      damping: 24 
-    } 
-  }
+  hidden: { opacity: 0, y: 16 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring", stiffness: 320, damping: 26 },
+  },
 };
 
 export default function DashboardPage() {
   const { user } = usePresensiAuth();
   const todayDateStr = useMemo(() => new Date().toISOString().split("T")[0], []);
 
-  // Ambil data presensi hari ini
   const { data: riwayatPresensi = [] } = useRiwayatPresensi(user?.id, 30);
   const { data: lkhToday } = useLKHHarian(user?.id, todayDateStr);
 
-  // Hitung statistik presensi dari riwayat nyata
   const stats = useMemo(() => {
     let hadir = 0;
     let terlambat = 0;
@@ -84,93 +71,110 @@ export default function DashboardPage() {
   const kegiatanList = lkhToday?.kegiatan || [];
 
   return (
-    <motion.div 
-      variants={containerVariants} 
-      initial="hidden" 
-      animate="show" 
-      className="space-y-6"
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+      className="space-y-4 sm:space-y-6"
     >
-      {/* Hero Welcome Banner Techno Sign */}
-      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-emerald-800/40 bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 p-5 sm:p-6 md:p-8 text-white shadow-md shadow-emerald-950/20">
-        <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 text-xs font-medium">
-              <Building className="w-3.5 h-3.5 text-emerald-300" />
-              {user?.instansi || "UPTD KST Solo Technopark"}
-            </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-              Selamat Bertugas, {user?.nama || "Pegawai Solo Technopark"}
-            </h1>
-            <p className="text-emerald-100/80 text-xs md:text-sm leading-relaxed">
-              {user?.jabatan || "Pegawai"} • NIP: {user?.nip || "-"} • {user?.departmentName || "Solo Technopark"}
-            </p>
+      {/* ─── Hero Welcome Banner (Borderless di Mobile) ─── */}
+      <motion.div
+        variants={itemVariants}
+        className="relative overflow-hidden rounded-none sm:rounded-3xl border-b sm:border border-emerald-800/40 bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 text-white shadow-none sm:shadow-md"
+      >
+        {/* Ambient glow */}
+        <div className="absolute -right-8 -bottom-8 w-48 h-48 sm:w-64 sm:h-64 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 p-4 sm:p-6 md:p-8">
+          {/* Baris atas: label instansi */}
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 text-[11px] font-semibold mb-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            {user?.instansi || "UPTD KST Solo Technopark"}
           </div>
 
-          <div className="flex w-full md:w-auto gap-2.5 pt-1 md:pt-0">
-            <Link href="/presensi/scan" className="flex-1 md:flex-initial">
-              <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs h-10 px-5 shadow-sm rounded-xl">
+          {/* Nama pegawai */}
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight leading-tight mb-1">
+            Selamat Bertugas, <span className="text-emerald-300">{(user?.nama || "Pegawai").split(" ")[0]}</span>
+          </h1>
+
+          {/* Info jabatan */}
+          <p className="hidden xs:block text-emerald-100/70 text-[11px] sm:text-xs leading-relaxed mb-4">
+            {user?.jabatan || "Pegawai"} · NIP {user?.nip || "-"}
+          </p>
+
+          {/* CTA Buttons */}
+          <div className="flex gap-2 mt-3 sm:mt-0">
+            <Link href="/presensi/scan" className="flex-1 sm:flex-initial">
+              <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-10 px-4 sm:px-5 shadow-sm rounded-xl">
                 <ClockCheck className="w-4 h-4 mr-1.5" />
                 Presensi Sekarang
               </Button>
             </Link>
-            <Link href="/presensi/laporan" className="flex-1 md:flex-initial">
+            <Link href="/presensi/laporan" className="flex-1 sm:flex-initial">
               <Button
                 variant="outline"
-                className="w-full bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs h-10 px-5 rounded-xl"
+                className="w-full bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs h-10 px-4 sm:px-5 rounded-xl"
               >
                 <FileSpreadsheet className="w-4 h-4 mr-1.5" />
-                Logbook Harian
+                <span className="hidden sm:inline">Logbook Harian</span>
+                <span className="sm:hidden">Logbook</span>
               </Button>
             </Link>
           </div>
         </div>
       </motion.div>
 
-      {/* Grid: Status Hari Ini (Live Radar Presensi & LKH) */}
-      <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 items-start">
-        {/* Radar Presensi Real-Time & 1-Tap Action */}
+      {/* ─── Grid: Radar Presensi + Logbook ─── */}
+      <motion.div
+        variants={itemVariants}
+        className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6 items-start"
+      >
+        {/* Radar Presensi Real-Time */}
         <QuickPresensiWidget />
 
-        {/* Card Laporan Kegiatan Harian (LKH) Hari Ini */}
-        <Card className="bg-white border border-slate-200/80 shadow-xs rounded-2xl overflow-hidden">
-          <CardHeader className="pb-3 flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
-                Logbook Kegiatan Harian
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Laporan pelaksanaan tugas kinerja pegawai hari ini
-              </CardDescription>
+        {/* Card Logbook Hari Ini — borderless style */}
+        <div className="card-base overflow-hidden">
+          {/* Section header */}
+          <div className="px-4 py-3 sm:px-5 sm:py-4 border-b border-slate-100 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span className="text-sm font-bold text-slate-900 truncate">Logbook Kegiatan Hari Ini</span>
             </div>
             <Badge
-              variant={lkhToday?.status === "approved" ? "default" : lkhToday?.status === "submitted" ? "outline" : "secondary"}
-              className="text-xs px-2.5 py-0.5 capitalize"
+              variant={
+                lkhToday?.status === "approved"
+                  ? "default"
+                  : lkhToday?.status === "submitted"
+                  ? "outline"
+                  : "secondary"
+              }
+              className="text-[10px] px-2 py-0.5 shrink-0 capitalize"
             >
-              {lkhToday?.status ? `Status: ${lkhToday.status}` : "Belum Ada Logbook"}
+              {lkhToday?.status ?? "Kosong"}
             </Badge>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-1">
+          </div>
+
+          {/* Konten LKH */}
+          <div className="p-4 sm:p-5 space-y-3">
             {kegiatanList.length === 0 ? (
-              <div className="p-6 rounded-2xl bg-slate-50 border-0 text-center text-slate-400 space-y-1.5">
-                <Inbox className="w-8 h-8 mx-auto opacity-40" />
-                <p className="text-xs">Belum ada kegiatan kinerja yang dicatat hari ini.</p>
+              <div className="py-5 text-center text-slate-400 space-y-1.5">
+                <Inbox className="w-7 h-7 mx-auto opacity-40" />
+                <p className="text-[11px]">Belum ada kegiatan yang dicatat hari ini.</p>
               </div>
             ) : (
               <div className="space-y-2">
                 {kegiatanList.slice(0, 2).map((item) => (
                   <div
                     key={item.id}
-                    className="p-3 rounded-2xl bg-slate-50 border-0 text-xs flex items-center justify-between"
+                    className="p-3 rounded-xl bg-slate-50 text-xs flex items-center justify-between gap-2"
                   >
-                    <div className="space-y-0.5">
-                      <div className="font-semibold text-slate-800">{item.deskripsi}</div>
+                    <div className="space-y-0.5 min-w-0">
+                      <div className="font-semibold text-slate-800 truncate">{item.deskripsi}</div>
                       <div className="text-[11px] text-slate-500">
-                        {item.jamMulai} - {item.jamSelesai} • Output: {item.outputKegiatan}
+                        {item.jamMulai} - {item.jamSelesai}
                       </div>
                     </div>
-                    <Badge variant="secondary" className="text-[10px]">
+                    <Badge variant="secondary" className="text-[10px] shrink-0">
                       +{item.totalPoin} Poin
                     </Badge>
                   </div>
@@ -178,60 +182,73 @@ export default function DashboardPage() {
               </div>
             )}
 
-            <div className="flex items-center justify-between gap-3 pt-1">
-              <Link href="/presensi/laporan" className="w-full">
-                <Button className="w-full text-xs h-9 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl">
-                  {kegiatanList.length > 0 ? "Buka / Lanjutkan Logbook Hari Ini" : "+ Tambah Kegiatan Logbook Hari Ini"}
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+            <Link href="/presensi/laporan" className="block w-full">
+              <Button className="w-full text-xs h-9 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl">
+                {kegiatanList.length > 0 ? "Buka / Lanjutkan Logbook" : "+ Tambah Kegiatan Logbook"}
+              </Button>
+            </Link>
+          </div>
+        </div>
       </motion.div>
 
-      {/* Statistik Kehadiran Bulanan Berdasarkan Riwayat Nyata */}
-      <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 px-3 sm:px-0">
-        <Card className="bg-white border border-slate-200/80 rounded-2xl shadow-xs p-4 space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-500 font-medium">Hadir Tepat Waktu</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+      {/* ─── Statistik Kehadiran Bulanan (Panel Terpadu Borderless) ─── */}
+      <motion.div variants={itemVariants}>
+        <div className="card-base overflow-hidden">
+          <div className="px-4 py-2.5 sm:px-5 border-b border-slate-100 flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-800">Statistik Kehadiran Bulan Ini</span>
+            <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full">
+              Rekap Resmi
+            </span>
           </div>
-          <div className="text-2xl font-bold text-slate-900">{stats.hadirHari} Hari</div>
-          <div className="text-[11px] text-emerald-600 flex items-center gap-1 font-medium">
-            <TrendingUp className="w-3 h-3" /> Rekap Bulan Ini
-          </div>
-        </Card>
 
-        <Card className="bg-white border border-slate-200/80 rounded-2xl shadow-xs p-4 space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-500 font-medium">Terlambat</span>
-            <AlertCircle className="w-4 h-4 text-amber-500" />
-          </div>
-          <div className="text-2xl font-bold text-slate-900">{stats.terlambatKali} Kali</div>
-          <div className="text-[11px] text-amber-600">Evaluasi Disiplin Pegawai</div>
-        </Card>
+          <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-slate-100">
+            {/* Hadir Tepat Waktu */}
+            <div className="p-4 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] text-slate-500 font-medium leading-tight">Hadir Tepat Waktu</span>
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              </div>
+              <div className="text-xl sm:text-2xl font-bold text-slate-900">{stats.hadirHari} <span className="text-xs font-normal text-slate-500">Hari</span></div>
+              <div className="text-[10px] text-emerald-600 flex items-center gap-1 font-medium">
+                <TrendingUp className="w-3 h-3" /> Bulan Ini
+              </div>
+            </div>
 
-        <Card className="bg-white border border-slate-200/80 rounded-2xl shadow-xs p-4 space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-500 font-medium">Izin / Cuti Resmi</span>
-            <CalendarDays className="w-4 h-4 text-blue-500" />
-          </div>
-          <div className="text-2xl font-bold text-slate-900">{stats.izinHari} Hari</div>
-          <div className="text-[11px] text-blue-600">Terlampir Surat Resmi</div>
-        </Card>
+            {/* Terlambat */}
+            <div className="p-4 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] text-slate-500 font-medium leading-tight">Terlambat</span>
+                <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+              </div>
+              <div className="text-xl sm:text-2xl font-bold text-slate-900">{stats.terlambatKali} <span className="text-xs font-normal text-slate-500">Kali</span></div>
+              <div className="text-[10px] text-amber-600 font-medium">Evaluasi Disiplin</div>
+            </div>
 
-        <Card className="bg-white border border-slate-200/80 rounded-2xl shadow-xs p-4 space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-500 font-medium">Penilai Kinerja</span>
-            <FileText className="w-4 h-4 text-teal-600" />
+            {/* Izin / Cuti */}
+            <div className="p-4 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] text-slate-500 font-medium leading-tight">Izin / Cuti</span>
+                <CalendarDays className="w-4 h-4 text-blue-500 shrink-0" />
+              </div>
+              <div className="text-xl sm:text-2xl font-bold text-slate-900">{stats.izinHari} <span className="text-xs font-normal text-slate-500">Hari</span></div>
+              <div className="text-[10px] text-blue-600 font-medium">Surat Resmi</div>
+            </div>
+
+            {/* Penilai Kinerja */}
+            <div className="p-4 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] text-slate-500 font-medium leading-tight">Penilai Kinerja</span>
+                <FileText className="w-4 h-4 text-teal-600 shrink-0" />
+              </div>
+              <div className="text-sm font-bold text-slate-900 truncate leading-tight pt-1">
+                {user?.atasanNama || "Kepala Unit Kerja"}
+              </div>
+              <div className="text-[10px] text-teal-600 flex items-center gap-1 font-medium">
+                <UserCheck2 className="w-3 h-3" /> Atasan Langsung
+              </div>
+            </div>
           </div>
-          <div className="text-sm font-bold text-slate-900 truncate">
-            {user?.atasanNama || "Kepala Unit Kerja"}
-          </div>
-          <div className="text-[11px] text-teal-600 flex items-center gap-1">
-            <UserCheck2 className="w-3 h-3" /> Atasan Langsung
-          </div>
-        </Card>
+        </div>
       </motion.div>
     </motion.div>
   );

@@ -3,7 +3,6 @@
 import React from "react";
 import { usePresensiAuth } from "@/lib/presensi/auth-context";
 import { calculateStorageQuota, formatBytes } from "@/lib/presensi/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { HardDrive, Image as ImageIcon, FileText, AlertTriangle, CheckCircle2 } from "lucide-react";
 
@@ -53,13 +52,13 @@ export default function StorageMeter({ compact = false, className = "" }: Storag
   }
 
   return (
-    <Card className={`border-slate-200/90 shadow-sm overflow-hidden ${className}`}>
-      <CardHeader className="pb-3 bg-gradient-to-r from-slate-900 to-slate-800 text-white p-4 sm:p-5">
+    <div className={`card-base overflow-hidden ${className}`}>
+      <div className="pb-3 bg-gradient-to-r from-slate-900 to-slate-800 text-white p-4 sm:p-5">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm sm:text-base font-bold flex items-center gap-2 text-white">
+          <h3 className="text-sm sm:text-base font-bold flex items-center gap-2 text-white">
             <HardDrive className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
             Alokasi Cloud Storage Pegawai (1 GB)
-          </CardTitle>
+          </h3>
           <Badge
             variant={status.statusBadgeVariant}
             className="text-[10px] sm:text-xs"
@@ -67,9 +66,9 @@ export default function StorageMeter({ compact = false, className = "" }: Storag
             {status.statusText}
           </Badge>
         </div>
-      </CardHeader>
+      </div>
 
-      <CardContent className="p-4 sm:p-5 space-y-4">
+      <div className="p-4 sm:p-5 space-y-4 bg-white">
         {/* Main Progress Bar & Numbers */}
         <div className="space-y-2">
           <div className="flex items-baseline justify-between text-xs">
@@ -136,7 +135,7 @@ export default function StorageMeter({ compact = false, className = "" }: Storag
             </span>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

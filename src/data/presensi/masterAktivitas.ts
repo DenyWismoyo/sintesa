@@ -296,4 +296,126 @@ export const KATEGORI_AKTIVITAS = [
 ] as const;
 export const TARGET_POIN_HARIAN = 300;
 
+// ──────────────────────────────────────────────────────────────────
+// TEMPLAT CEPAT AKTIVITAS RUTIN SOLO TECHNOPARK (1-KLIK)
+// ──────────────────────────────────────────────────────────────────
+export interface TemplatAktivitasSTP {
+  id: string;
+  nama: string;
+  kategori: 'Teknis' | 'Manajerial' | 'Pelayanan' | 'Persuratan' | 'Umum';
+  durasiMenit: number;
+  output: string;
+  poin: number;
+  deskripsi: string;
+}
+
+export const TEMPLAT_AKTIVITAS_STP: TemplatAktivitasSTP[] = [
+  {
+    id: "tpl_front_office",
+    nama: "Pelayanan Front Office & Tamu Kawasan",
+    kategori: "Pelayanan",
+    durasiMenit: 60,
+    output: "Buku Tamu & Catatan Layanan Informasi",
+    poin: 60,
+    deskripsi: "Menerima kunjungan tamu kedinasan/mitra industri dan memberikan informasi fasilitas Solo Technopark.",
+  },
+  {
+    id: "tpl_lab_network",
+    nama: "Pemeliharaan Jaringan & Server Lab Komputer",
+    kategori: "Teknis",
+    durasiMenit: 120,
+    output: "Log Pemeliharaan & Status Uptime Server",
+    poin: 100,
+    deskripsi: "Melakukan monitoring konektivitas internet, pemeriksaan perangkat switch/router, dan pemeliharaan workstation lab.",
+  },
+  {
+    id: "tpl_tenant_mentoring",
+    nama: "Pendampingan & Inkubasi Tenant Startup",
+    kategori: "Manajerial",
+    durasiMenit: 90,
+    output: "Lembar Progres Tenant & Rencana Aksi",
+    poin: 80,
+    deskripsi: "Melakukan koordinasi perkembangan produk teknologi, evaluasi milestone bisnis, dan fasilitasi kebutuhan tenant inkubasi.",
+  },
+  {
+    id: "tpl_facility_patrol",
+    nama: "Patroli Keamanan & Inspeksi Fisik Gedung",
+    kategori: "Umum",
+    durasiMenit: 60,
+    output: "Ceklis Keamanan Gedung & CCTV",
+    poin: 60,
+    deskripsi: "Pemeriksaan berkala titik akses gedung, kelistrikan, sistem pendingin ruangan, dan kesiapan operasional area publik STP.",
+  },
+  {
+    id: "tpl_room_workshop",
+    nama: "Fasilitasi Ruangan Diklat & Sarana Pelatihan",
+    kategori: "Pelayanan",
+    durasiMenit: 90,
+    output: "Berita Acara Kesiapan Fasilitas Diklat",
+    poin: 75,
+    deskripsi: "Menyiapkan tata ruang, proyektor, audio system, dan kelengkapan materi untuk pelatihan/workshop teknologi di STP.",
+  },
+  {
+    id: "tpl_team_meeting",
+    nama: "Rapat Koordinasi & Evaluasi Program Kerja",
+    kategori: "Manajerial",
+    durasiMenit: 60,
+    output: "Notulen Rapat & Pembagian Tugas",
+    poin: 60,
+    deskripsi: "Mengikuti agenda rapat internal pembahasan operasional harian, kendala teknis lapangan, dan target capaian program kawasan.",
+  },
+];
+
+// ──────────────────────────────────────────────────────────────────
+// KONFIGURASI MULTI-SHIFT OPERASIONAL KAWASAN SOLO TECHNOPARK
+// ──────────────────────────────────────────────────────────────────
+export interface WorkShiftConfig {
+  id: 'reguler' | 'pagi' | 'siang' | 'malam';
+  label: string;
+  jamMasuk: string;
+  jamPulang: string;
+  jamBukaPulangHour: number;
+  jamBukaPulangMinute: number;
+  keterangan: string;
+}
+
+export const WORK_SHIFTS: Record<string, WorkShiftConfig> = {
+  reguler: {
+    id: 'reguler',
+    label: 'Reguler (07:30 - 16:00)',
+    jamMasuk: '07:30',
+    jamPulang: '16:00',
+    jamBukaPulangHour: 15,
+    jamBukaPulangMinute: 0,
+    keterangan: 'Jam kerja kantor reguler (Menu pulang dibuka 15:00 WIB)',
+  },
+  pagi: {
+    id: 'pagi',
+    label: 'Shift Pagi (07:00 - 15:00)',
+    jamMasuk: '07:00',
+    jamPulang: '15:00',
+    jamBukaPulangHour: 14,
+    jamBukaPulangMinute: 30,
+    keterangan: 'Shift operasional pagi (Menu pulang dibuka 14:30 WIB)',
+  },
+  siang: {
+    id: 'siang',
+    label: 'Shift Siang (14:00 - 22:00)',
+    jamMasuk: '14:00',
+    jamPulang: '22:00',
+    jamBukaPulangHour: 21,
+    jamBukaPulangMinute: 30,
+    keterangan: 'Shift layanan sore/malam (Menu pulang dibuka 21:30 WIB)',
+  },
+  malam: {
+    id: 'malam',
+    label: 'Shift Malam (22:00 - 06:00)',
+    jamMasuk: '22:00',
+    jamPulang: '06:00',
+    jamBukaPulangHour: 5,
+    jamBukaPulangMinute: 30,
+    keterangan: 'Shift keamanan/teknisi malam (Menu pulang dibuka 05:30 WIB)',
+  },
+};
+
 

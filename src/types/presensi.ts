@@ -82,6 +82,8 @@ export interface KantorUnit {
   jamPulangMinimal?: string;
   orgId: string;
   isActive: boolean;
+  geofenceType?: "radius" | "polygon";
+  polygonCoordinates?: GeolocationPoint[];
 }
 
 export interface UploadedFileMetadata {
@@ -133,6 +135,11 @@ export interface PresensiRecord {
   suratIzinUrl?: string;
   izinId?: string;
   lemburRecordId?: string;
+  isRevisi?: boolean;
+  revisiId?: string;
+  revisiNote?: string;
+  revisiBy?: string;
+  revisiAt?: string;
 }
 
 export interface LKHItem {
@@ -311,5 +318,42 @@ export interface OrganizationConfig {
   createdAt: string;
   updatedAt: string;
 }
+
+export type JenisRevisiPresensi =
+  | "koreksi_jam_masuk"
+  | "koreksi_jam_pulang"
+  | "koreksi_status"
+  | "presensi_susulan";
+
+export type StatusRevisiPresensi = "menunggu" | "disetujui" | "ditolak";
+
+export interface PermohonanRevisiPresensi {
+  id: string;
+  presensiId?: string;
+  userId: string;
+  nip: string;
+  nama: string;
+  orgId: string;
+  kantorId?: string;
+  namaKantor?: string;
+  tanggal: string; // YYYY-MM-DD
+  jenisRevisi: JenisRevisiPresensi;
+  statusSemula: PresensiStatus | "belum_absen";
+  statusDiajukan: PresensiStatus;
+  jamMasukSemula?: string;
+  jamMasukDiajukan?: string;
+  jamPulangSemula?: string;
+  jamPulangDiajukan?: string;
+  alasan: string;
+  lampiranUrl?: string;
+  status: StatusRevisiPresensi;
+  catatanReview?: string;
+  reviewedBy?: string;
+  reviewedByName?: string;
+  reviewedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 
 

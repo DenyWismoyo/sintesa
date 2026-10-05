@@ -5,12 +5,18 @@ import { usePresensiAuth } from "@/lib/presensi/auth-context";
 import { usePendingLKHList, useApproveLKHMutation, useRejectLKHMutation } from "@/hooks/presensi/useLKH";
 import { usePendingLemburList, useApproveLemburMutation, useRejectLemburMutation } from "@/hooks/presensi/useLembur";
 import { usePendingIzinList, useApproveIzinMutation, useRejectIzinMutation } from "@/hooks/presensi/useIzin";
-import { LKHRecord, LemburRecord, PengajuanIzinItem } from "@/types/presensi";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  useDaftarRevisiPresensi,
+  useApproveRevisiPresensiMutation,
+  useRejectRevisiPresensiMutation,
+} from "@/hooks/presensi/useRevisiPresensi";
+import { LKHRecord, LemburRecord, PengajuanIzinItem, PermohonanRevisiPresensi } from "@/types/presensi";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import MobilePageHeader from "@/components/presensi/dashboard/MobilePageHeader";
 import {
   ShieldAlert,
@@ -33,6 +39,8 @@ import {
   Paperclip,
   ExternalLink,
   Calendar,
+  RotateCcw,
+  ArrowRight,
 } from "lucide-react";
 
 export default function ApprovalPage() {
@@ -42,6 +50,7 @@ export default function ApprovalPage() {
   const { data: pendingList = [], isLoading } = usePendingLKHList(user?.orgId);
   const { data: pendingLemburList = [], isLoading: isLoadingLembur } = usePendingLemburList(user?.orgId);
   const { data: pendingIzinList = [], isLoading: isLoadingIzin } = usePendingIzinList(isAtasanOrAdmin);
+  const { data: pendingRevisiList = [], isLoading: isLoadingRevisi } = useDaftarRevisiPresensi("menunggu");
 
   const approveMutation = useApproveLKHMutation();
   const rejectMutation = useRejectLKHMutation();
@@ -49,8 +58,10 @@ export default function ApprovalPage() {
   const rejectLemburMutation = useRejectLemburMutation();
   const approveIzinMutation = useApproveIzinMutation();
   const rejectIzinMutation = useRejectIzinMutation();
+  const approveRevisiMutation = useApproveRevisiPresensiMutation();
+  const rejectRevisiMutation = useRejectRevisiPresensiMutation();
 
-  const [activeTab, setActiveTab] = useState<"lkh" | "lembur" | "izin">("lkh");
+  const [activeTab, setActiveTab] = useState<"lkh" | "lembur" | "izin" | "revisi">("lkh");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [catatanApproval, setCatatanApproval] = useState<Record<string, string>>({});
@@ -61,6 +72,9 @@ export default function ApprovalPage() {
   const [rejectIzinId, setRejectIzinId] = useState<string | null>(null);
   const [rejectIzinReason, setRejectIzinReason] = useState<Record<string, string>>({});
   const [catatanIzinApproval, setCatatanIzinApproval] = useState<Record<string, string>>({});
+  const [catatanRevisiApproval, setCatatanRevisiApproval] = useState<Record<string, string>>({});
+  const [rejectRevisiId, setRejectRevisiId] = useState<string | null>(null);
+  const [rejectRevisiReason, setRejectRevisiReason] = useState<Record<string, string>>({});
 
   const filteredList = pendingList.filter((item) => {
     if (!searchQuery) return true;
@@ -192,6 +206,51 @@ export default function ApprovalPage() {
     setRejectIzinId(null);
   };
 
+  const handleApproveRevisi = async (record: PermohonanRevisiPresensi) => {
+    if (!user) return;
+    const note =
+      catatanRevisiApproval[record.id] ||
+      "Disetujui. Data kehadiran resmi diperbarui untuk laporan dan Berita Acara Presensi.";
+
+    try {
+      await approveRevisiMutation.mutateAsync({
+        revisiId: record.id,
+        catatanReview: note,
+      });
+
+      if (typeof window !== "undefined" && "vibrate" in navigator) {
+        try {
+          navigator.vibrate([40, 50, 40]);
+        } catch {}
+      }
+      alert(`Permohonan revisi presensi untuk ${record.nama} berhasil disetujui! Data presensi dan Berita Acara telah terkoreksi otomatis.`);
+    } catch (err) {
+      console.error("Gagal menyetujui revisi:", err);
+      alert("Terjadi kendala saat menyetujui permohonan revisi: " + (err as Error).message);
+    }
+  };
+
+  const handleRejectRevisi = async (record: PermohonanRevisiPresensi) => {
+    if (!user) return;
+    const reason = rejectRevisiReason[record.id];
+    if (!reason?.trim()) {
+      alert("Harap masukkan alasan penolakan permohonan revisi presensi.");
+      return;
+    }
+
+    try {
+      await rejectRevisiMutation.mutateAsync({
+        revisiId: record.id,
+        alasanPenolakan: reason.trim(),
+      });
+      setRejectRevisiId(null);
+      alert(`Permohonan revisi presensi untuk ${record.nama} telah ditolak.`);
+    } catch (err) {
+      console.error("Gagal menolak revisi:", err);
+      alert("Terjadi kendala saat memproses penolakan: " + (err as Error).message);
+    }
+  };
+
   if (!isAtasanOrAdmin) {
     return (
       <div className="p-8 max-w-2xl mx-auto text-center space-y-4">
@@ -226,88 +285,168 @@ export default function ApprovalPage() {
           </p>
         </div>
 
-      {/* Tab Switcher: LKH vs Lembur vs Izin */}
-      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl w-full sm:w-auto">
-        <button
-          onClick={() => setActiveTab("lkh")}
-          className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
-            activeTab === "lkh"
-              ? "bg-white text-emerald-700 shadow-sm border border-slate-200"
-              : "text-slate-500 hover:text-slate-700"
-          }`}
-        >
-          <FileCheck2 className="w-3.5 h-3.5" />
-          LKH Harian
-          {pendingList.length > 0 && (
-            <span className="ml-1 bg-emerald-600 text-white text-[9px] font-bold rounded-full px-1.5 py-0.5">
-              {pendingList.length}
-            </span>
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab("lembur")}
-          className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
-            activeTab === "lembur"
-              ? "bg-white text-violet-700 shadow-sm border border-slate-200"
-              : "text-slate-500 hover:text-slate-700"
-          }`}
-        >
-          <Timer className="w-3.5 h-3.5" />
-          Lembur
-          {pendingLemburList.length > 0 && (
-            <span className="ml-1 bg-violet-600 text-white text-[9px] font-bold rounded-full px-1.5 py-0.5">
-              {pendingLemburList.length}
-            </span>
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab("izin")}
-          className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
-            activeTab === "izin"
-              ? "bg-white text-teal-700 shadow-sm border border-slate-200"
-              : "text-slate-500 hover:text-slate-700"
-          }`}
-        >
-          <ShieldCheck className="w-3.5 h-3.5" />
-          Cuti / Izin
-          {pendingIzinList.length > 0 && (
-            <span className="ml-1 bg-teal-600 text-white text-[9px] font-bold rounded-full px-1.5 py-0.5">
-              {pendingIzinList.length}
-            </span>
-          )}
-        </button>
+        {activeTab === "lkh" && validForBatchApprove.length > 0 && (
+          <Button
+            onClick={handleBatchApprove}
+            disabled={isBatchApproving || approveMutation.isPending}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-9 px-4 font-semibold shadow-xs flex items-center gap-1.5 transition-all active:scale-95 rounded-xl"
+          >
+            {isBatchApproving ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <CheckCircle2 className="w-3.5 h-3.5" />
+            )}
+            <span>Setujui Semua Lolos Syarat ({validForBatchApprove.length})</span>
+          </Button>
+        )}
       </div>
 
-      {/* Sisa header lama (hanya tampil saat tab LKH) */}
-      {activeTab === "lkh" && (
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Badge variant="default" className="bg-slate-800 text-white text-xs px-3 py-1.5">
-            {pendingList.length} Berkas Menunggu Review
-          </Badge>
-
-          {validForBatchApprove.length > 0 && (
-            <Button
-              onClick={handleBatchApprove}
-              disabled={isBatchApproving || approveMutation.isPending}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-8.5 px-3.5 font-semibold shadow-xs flex items-center gap-1.5 transition-all active:scale-95"
-            >
-              {isBatchApproving ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <CheckCircle2 className="w-3.5 h-3.5" />
+      {/* Tab Switcher Responsif (Mobile & Desktop) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-0">
+        <div className="public-pill-container w-full sm:w-auto">
+          <button
+            onClick={() => setActiveTab("lkh")}
+            className={cn(
+              "public-pill-btn flex-1 sm:flex-initial justify-center",
+              activeTab === "lkh" && "active"
+            )}
+          >
+            {activeTab === "lkh" && (
+              <motion.div
+                layoutId="approval-tab-pill"
+                className="public-pill-active-bg"
+                transition={{ type: "spring", stiffness: 380, damping: 32 }}
+              />
+            )}
+            <span className="relative z-10 flex items-center gap-1.5">
+              <FileCheck2 className="w-3.5 h-3.5" />
+              <span>LKH Harian</span>
+              {pendingList.length > 0 && (
+                <span className={cn(
+                  "ml-1 text-[10px] font-bold rounded-full px-1.5 py-0.5",
+                  activeTab === "lkh" ? "bg-emerald-600 text-white" : "bg-slate-200 text-slate-700"
+                )}>
+                  {pendingList.length}
+                </span>
               )}
-              <span>Setujui Semua Lolos Syarat ({validForBatchApprove.length})</span>
-            </Button>
-          )}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("lembur")}
+            className={cn(
+              "public-pill-btn flex-1 sm:flex-initial justify-center",
+              activeTab === "lembur" && "active"
+            )}
+          >
+            {activeTab === "lembur" && (
+              <motion.div
+                layoutId="approval-tab-pill"
+                className="public-pill-active-bg"
+                transition={{ type: "spring", stiffness: 380, damping: 32 }}
+              />
+            )}
+            <span className="relative z-10 flex items-center gap-1.5">
+              <Timer className="w-3.5 h-3.5" />
+              <span>Lembur</span>
+              {pendingLemburList.length > 0 && (
+                <span className={cn(
+                  "ml-1 text-[10px] font-bold rounded-full px-1.5 py-0.5",
+                  activeTab === "lembur" ? "bg-violet-600 text-white" : "bg-slate-200 text-slate-700"
+                )}>
+                  {pendingLemburList.length}
+                </span>
+              )}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("izin")}
+            className={cn(
+              "public-pill-btn flex-1 sm:flex-initial justify-center",
+              activeTab === "izin" && "active"
+            )}
+          >
+            {activeTab === "izin" && (
+              <motion.div
+                layoutId="approval-tab-pill"
+                className="public-pill-active-bg"
+                transition={{ type: "spring", stiffness: 380, damping: 32 }}
+              />
+            )}
+            <span className="relative z-10 flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Cuti / Izin</span>
+              {pendingIzinList.length > 0 && (
+                <span className={cn(
+                  "ml-1 text-[10px] font-bold rounded-full px-1.5 py-0.5",
+                  activeTab === "izin" ? "bg-teal-600 text-white" : "bg-slate-200 text-slate-700"
+                )}>
+                  {pendingIzinList.length}
+                </span>
+              )}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("revisi")}
+            className={cn(
+              "public-pill-btn flex-1 sm:flex-initial justify-center",
+              activeTab === "revisi" && "active"
+            )}
+          >
+            {activeTab === "revisi" && (
+              <motion.div
+                layoutId="approval-tab-pill"
+                className="public-pill-active-bg"
+                transition={{ type: "spring", stiffness: 380, damping: 32 }}
+              />
+            )}
+            <span className="relative z-10 flex items-center gap-1.5">
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Revisi Presensi</span>
+              {pendingRevisiList.length > 0 && (
+                <span className={cn(
+                  "ml-1 text-[10px] font-bold rounded-full px-1.5 py-0.5",
+                  activeTab === "revisi" ? "bg-amber-600 text-white" : "bg-slate-200 text-slate-700"
+                )}>
+                  {pendingRevisiList.length}
+                </span>
+              )}
+            </span>
+          </button>
         </div>
-      )}
+
+        {/* Mobile Batch Approve & Count info */}
+        {activeTab === "lkh" && (
+          <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+            <span className="text-xs text-slate-500 font-medium">
+              {pendingList.length} berkas menunggu
+            </span>
+            {validForBatchApprove.length > 0 && (
+              <Button
+                size="sm"
+                onClick={handleBatchApprove}
+                disabled={isBatchApproving || approveMutation.isPending}
+                className="sm:hidden bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-8 px-3 font-semibold rounded-xl"
+              >
+                {isBatchApproving ? (
+                  <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                ) : (
+                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                )}
+                Setujui ({validForBatchApprove.length})
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── Konten berdasarkan tab aktif ─────────────────────────────────── */}
       {activeTab === "lkh" && (
         <>
           {/* Bar Pencarian & Filter LKH */}
-          <div className="flex items-center gap-3 bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs">
+          <div className="mx-4 sm:mx-0 flex items-center gap-3 bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs">
             <div className="relative flex-1">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
               <Input
@@ -331,7 +470,7 @@ export default function ApprovalPage() {
               <p className="text-xs">Memuat antrean LKH pegawai...</p>
             </div>
           ) : filteredList.length === 0 ? (
-            <Card className="p-8 text-center space-y-3">
+            <div className="card-base p-8 text-center space-y-3">
               <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 mx-auto flex items-center justify-center">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
@@ -341,7 +480,7 @@ export default function ApprovalPage() {
               <p className="text-xs text-slate-500 max-w-md mx-auto">
                 Tidak ada dokumen LKH bawahan yang sedang menunggu persetujuan Anda saat ini.
               </p>
-            </Card>
+            </div>
           ) : (
             <div className="space-y-4">
               {filteredList.map((record) => {
@@ -351,9 +490,9 @@ export default function ApprovalPage() {
                 const isRejecting = rejectMutation.isPending;
 
                 return (
-                  <Card
+                  <div
                     key={record.id}
-                    className="border-slate-200/80 shadow-xs hover:shadow-md transition-shadow overflow-hidden"
+                    className="card-base overflow-hidden"
                   >
                     {/* Header Kartu */}
                     <div className="p-4 sm:p-5 bg-white border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -402,7 +541,7 @@ export default function ApprovalPage() {
                     </div>
 
                     {isExpanded && (
-                      <CardContent className="p-4 sm:p-5 bg-slate-50/50 space-y-4">
+                      <div className="p-4 sm:p-5 bg-slate-50/50 space-y-4">
                         {record.catatanPegawai && (
                           <div className="p-3 rounded-lg bg-blue-50 border border-blue-200/60 text-xs text-blue-900 space-y-1">
                             <div className="font-semibold flex items-center gap-1.5">
@@ -490,9 +629,9 @@ export default function ApprovalPage() {
                             </div>
                           )}
                         </div>
-                      </CardContent>
+                      </div>
                     )}
-                  </Card>
+                  </div>
                 );
               })}
             </div>
@@ -509,7 +648,7 @@ export default function ApprovalPage() {
               <p className="text-xs">Memuat pengajuan lembur...</p>
             </div>
           ) : pendingLemburList.length === 0 ? (
-            <Card className="p-8 text-center space-y-3">
+            <div className="card-base p-8 text-center space-y-3">
               <div className="w-12 h-12 rounded-full bg-violet-50 border border-violet-200 text-violet-600 mx-auto flex items-center justify-center">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
@@ -517,10 +656,10 @@ export default function ApprovalPage() {
               <p className="text-xs text-slate-500 max-w-md mx-auto">
                 Tidak ada pengajuan lembur bawahan yang menunggu persetujuan Anda saat ini.
               </p>
-            </Card>
+            </div>
           ) : (
             pendingLemburList.map((record) => (
-              <Card key={record.id} className="border-violet-200/60 shadow-xs hover:shadow-md transition-shadow">
+              <div key={record.id} className="card-base overflow-hidden">
                 <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-xl bg-violet-100 border border-violet-200 text-violet-700 flex items-center justify-center font-bold text-sm shrink-0">
@@ -579,7 +718,7 @@ export default function ApprovalPage() {
                     )}
                   </div>
                 </div>
-              </Card>
+              </div>
             ))
           )}
         </div>
@@ -594,7 +733,7 @@ export default function ApprovalPage() {
               <p className="text-xs">Memuat pengajuan cuti & izin...</p>
             </div>
           ) : pendingIzinList.length === 0 ? (
-            <Card className="p-8 text-center space-y-3">
+            <div className="card-base p-8 text-center space-y-3">
               <div className="w-12 h-12 rounded-full bg-teal-50 border border-teal-200 text-teal-600 mx-auto flex items-center justify-center">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
@@ -602,7 +741,7 @@ export default function ApprovalPage() {
               <p className="text-xs text-slate-500 max-w-md mx-auto">
                 Semua pengajuan cuti, sakit, dan izin pegawai telah diproses atau belum ada permohonan baru.
               </p>
-            </Card>
+            </div>
           ) : (
             pendingIzinList.map((record) => {
               const isRejecting = rejectIzinId === record.id;
@@ -618,9 +757,9 @@ export default function ApprovalPage() {
                   : "bg-amber-50 text-amber-700 border-amber-200";
 
               return (
-                <Card
+                <div
                   key={record.id}
-                  className="border-teal-200/60 shadow-xs hover:shadow-md transition-shadow"
+                  className="card-base overflow-hidden"
                 >
                   <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                     <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -746,9 +885,234 @@ export default function ApprovalPage() {
                       )}
                     </div>
                   </div>
-                </Card>
+                </div>
               );
             })
+          )}
+        </div>
+      )}
+
+      {/* ── Tab: Permohonan Revisi Presensi (Koreksi Pra-Berita Acara) ────── */}
+      {activeTab === "revisi" && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Input
+                type="text"
+                placeholder="Cari nama pegawai, NIP, atau tanggal..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 text-xs h-9 bg-slate-50/50 border-slate-200"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-[11px] font-semibold text-amber-700 bg-amber-50 border-amber-200">
+                {pendingRevisiList.length} Permohonan Menunggu
+              </Badge>
+            </div>
+          </div>
+
+          {isLoadingRevisi ? (
+            <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-2 bg-white rounded-2xl border border-slate-200/80">
+              <Loader2 className="w-6 h-6 animate-spin text-amber-600" />
+              <p className="text-xs">Memuat daftar permohonan revisi...</p>
+            </div>
+          ) : pendingRevisiList.length === 0 ? (
+            <div className="p-12 text-center bg-white rounded-2xl border border-slate-200/80 space-y-2">
+              <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-100">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-slate-900 text-sm">Tidak Ada Permohonan Revisi</h3>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                Semua presensi pegawai telah diverifikasi dan siap disahkan ke dalam Berita Acara Presensi Resmi.
+              </p>
+            </div>
+          ) : (
+            pendingRevisiList
+              .filter((r) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                return (
+                  r.nama.toLowerCase().includes(q) ||
+                  r.nip.includes(q) ||
+                  r.tanggal.includes(q) ||
+                  r.alasan.toLowerCase().includes(q)
+                );
+              })
+              .map((record) => {
+                const isApproving = approveRevisiMutation.isPending;
+                const isRejecting = rejectRevisiId === record.id;
+
+                const getJenisLabel = (jenis: string) => {
+                  switch (jenis) {
+                    case "koreksi_jam_masuk":
+                      return "Koreksi Jam Masuk";
+                    case "koreksi_jam_pulang":
+                      return "Koreksi Jam Pulang";
+                    case "koreksi_status":
+                      return "Koreksi Status Kehadiran";
+                    case "presensi_susulan":
+                      return "Presensi Susulan";
+                    default:
+                      return "Revisi Presensi";
+                  }
+                };
+
+                return (
+                  <div
+                    key={record.id}
+                    className="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/80 hover:border-amber-400/50 shadow-xs transition-all space-y-3"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0 border border-amber-500/20 font-bold text-sm">
+                          {record.nama.charAt(0)}
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-bold text-sm text-slate-900">{record.nama}</span>
+                            <Badge variant="outline" className="text-[10px] font-mono text-slate-600">
+                              NIP. {record.nip}
+                            </Badge>
+                            <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 border border-amber-300 text-[10px] font-semibold">
+                              {getJenisLabel(record.jenisRevisi)}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-slate-500 flex items-center gap-1.5">
+                            <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                            <span>Presensi Tanggal: <strong>{record.tanggal}</strong></span>
+                            <span>•</span>
+                            <Building className="w-3.5 h-3.5 text-slate-400" />
+                            <span>{record.namaKantor || "Solo Technopark"}</span>
+                          </p>
+                        </div>
+                      </div>
+
+                      <Badge variant="secondary" className="text-[10px] font-medium text-slate-500 self-start">
+                        Diajukan: {new Date(record.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      </Badge>
+                    </div>
+
+                    {/* Panel Komparasi Status & Jam */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-xs">
+                      <div>
+                        <span className="text-[11px] text-slate-500 block mb-1">Perubahan Status Kehadiran:</span>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-[11px] uppercase font-bold text-slate-700 bg-white">
+                            {record.statusSemula}
+                          </Badge>
+                          <ArrowRight className="w-3.5 h-3.5 text-amber-600" />
+                          <Badge className="text-[11px] uppercase font-bold bg-emerald-600 text-white">
+                            {record.statusDiajukan}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-[11px] text-slate-500 block mb-1">Koreksi Jam Presensi:</span>
+                        <div className="text-slate-800 font-medium">
+                          Masuk: <span className="line-through text-slate-400">{record.jamMasukSemula || "-"}</span> ➔ <strong className="text-emerald-700">{record.jamMasukDiajukan || "-"}</strong> | Pulang: <span className="line-through text-slate-400">{record.jamPulangSemula || "-"}</span> ➔ <strong className="text-emerald-700">{record.jamPulangDiajukan || "-"}</strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Alasan Permohonan */}
+                    <div className="p-3 bg-amber-50/50 rounded-xl border border-amber-200/60 text-xs text-slate-800">
+                      <span className="font-bold text-amber-900 block mb-0.5">Alasan Permohonan Pegawai:</span>
+                      <p className="italic text-slate-700">&quot;{record.alasan}&quot;</p>
+                    </div>
+
+                    {/* Notice Integritas Berita Acara */}
+                    <div className="text-[11px] text-emerald-700 flex items-center gap-1.5 font-medium">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>Persetujuan revisi ini akan langsung mengoreksi data presensi pegawai untuk dokumen Berita Acara resmi.</span>
+                    </div>
+
+                    {/* Tombol Approval / Rejection */}
+                    <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      {isRejecting ? (
+                        <div className="flex-1 flex flex-col sm:flex-row items-center gap-2">
+                          <Input
+                            type="text"
+                            placeholder="Tulis alasan penolakan revisi..."
+                            value={rejectRevisiReason[record.id] || ""}
+                            onChange={(e) =>
+                              setRejectRevisiReason({
+                                ...rejectRevisiReason,
+                                [record.id]: e.target.value,
+                              })
+                            }
+                            className="text-xs h-8 flex-1"
+                          />
+                          <div className="flex gap-1.5 w-full sm:w-auto">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setRejectRevisiId(null)}
+                              className="text-xs h-8 flex-1 sm:flex-initial"
+                            >
+                              Batal
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => handleRejectRevisi(record)}
+                              disabled={rejectRevisiMutation.isPending}
+                              className="bg-red-600 hover:bg-red-700 text-white text-xs h-8 flex-1 sm:flex-initial"
+                            >
+                              {rejectRevisiMutation.isPending ? (
+                                <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                              ) : (
+                                "Tolak Permohonan"
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex-1">
+                            <Input
+                              type="text"
+                              placeholder="Catatan verifikasi persetujuan (opsional)..."
+                              value={catatanRevisiApproval[record.id] || ""}
+                              onChange={(e) =>
+                                setCatatanRevisiApproval({
+                                  ...catatanRevisiApproval,
+                                  [record.id]: e.target.value,
+                                })
+                              }
+                              className="text-xs h-8 max-w-md"
+                            />
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setRejectRevisiId(record.id)}
+                              className="border-red-200 text-red-700 hover:bg-red-50 text-xs h-8 px-3"
+                            >
+                              <XCircle className="w-3.5 h-3.5 mr-1" /> Tolak
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => handleApproveRevisi(record)}
+                              disabled={isApproving}
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-8 px-4 font-semibold shadow-xs"
+                            >
+                              {isApproving ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+                              ) : (
+                                <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                              )}
+                              Setujui & Koreksi Presensi
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
           )}
         </div>
       )}

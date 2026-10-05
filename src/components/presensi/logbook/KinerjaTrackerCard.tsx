@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TARGET_POIN_HARIAN } from "@/data/presensi/masterAktivitas";
 import { Award, TrendingUp, CheckCircle2, AlertCircle, Clock, Zap } from "lucide-react";
@@ -24,11 +23,11 @@ export default function KinerjaTrackerCard({
   const sisaPoin = Math.max(0, targetPoin - totalPoin);
 
   return (
-    <Card className={`border-emerald-200/80 bg-gradient-to-br from-emerald-900 via-teal-950 to-slate-900 text-white shadow-md overflow-hidden relative ${className}`}>
+    <div className={`rounded-none sm:rounded-3xl border-y sm:border border-emerald-800/40 bg-gradient-to-br from-emerald-900 via-teal-950 to-slate-900 text-white shadow-none sm:shadow-md overflow-hidden relative ${className}`}>
       {/* Decorative background glow */}
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-emerald-500/20 rounded-full blur-2xl pointer-events-none" />
 
-      <CardContent className="p-4 sm:p-5 space-y-3.5 relative z-10">
+      <div className="p-4 sm:p-5 space-y-3.5 relative z-10">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-300 shrink-0">
@@ -100,7 +99,7 @@ export default function KinerjaTrackerCard({
             {isTercapai ? "Status: Siap Diajukan ke Atasan" : "Status: Tambah Kegiatan untuk Capai Target"}
           </span>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

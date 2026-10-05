@@ -59,7 +59,7 @@ function PresensiShell({ children }: { children: React.ReactNode }) {
       <div className="flex-1 flex flex-col min-w-0 relative z-10">
         <NetworkSentinel />
         <Header />
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-24 md:pb-12 max-w-7xl w-full mx-auto space-y-6">
+        <main className="flex-1 px-0 py-0 sm:px-6 sm:py-6 lg:p-8 pb-24 md:pb-12 max-w-7xl w-full mx-auto space-y-3 sm:space-y-6">
           {children}
         </main>
         {/* Mobile Bottom Navigation */}

@@ -7,7 +7,6 @@ import { usePresensiAuth } from "@/lib/presensi/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import {
   Building2,
@@ -187,26 +186,26 @@ export default function PresensiLoginPage() {
       </header>
 
       {/* Main Login / Sync Card */}
-      <div className="relative z-10 w-full max-w-md mx-auto px-4 py-6">
-        <Card className="bg-white/95 border border-slate-200/90 backdrop-blur-xl shadow-xl shadow-slate-200/50 rounded-3xl p-2 sm:p-4 text-slate-900">
-          <CardHeader className="space-y-1.5 pb-4">
+      <div className="relative z-10 w-full max-w-md mx-auto px-0 sm:px-4 py-3 sm:py-6">
+        <div className="card-base overflow-hidden bg-white/95 backdrop-blur-xl p-4 sm:p-6 text-slate-900">
+          <div className="space-y-1.5 pb-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
                 {isSyncMode ? "Validasi Pegawai STP" : "Masuk Pegawai"}
-              </CardTitle>
+              </h2>
               <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-full">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                 <span>SSO Terintegrasi</span>
               </div>
             </div>
-            <CardDescription className="text-xs text-slate-500 font-normal">
+            <p className="text-xs text-slate-500 font-normal">
               {isSyncMode
                 ? "Tautkan akun Google Anda dengan identitas pegawai resmi Solo Technopark"
                 : "Gunakan Akun Google (Katalog) atau Kode Akses Solo Technopark"}
-            </CardDescription>
-          </CardHeader>
+            </p>
+          </div>
 
-          <CardContent className="space-y-4">
+          <div className="space-y-4">
             {errorMsg && (
               <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2.5 text-rose-700 text-xs">
                 <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
@@ -420,10 +419,10 @@ export default function PresensiLoginPage() {
                 </form>
               </>
             )}
-          </CardContent>
+          </div>
 
           {process.env.NODE_ENV !== "production" ? (
-            <CardFooter className="flex flex-col gap-3 pt-0 border-t border-slate-100 mt-2 p-4">
+            <div className="flex flex-col gap-3 pt-3 border-t border-slate-100 mt-2 p-3 sm:p-4">
               <div className="w-full">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-[11px] text-slate-500 font-semibold flex items-center gap-1">
@@ -493,15 +492,15 @@ export default function PresensiLoginPage() {
                   </button>
                 </div>
               </div>
-            </CardFooter>
+            </div>
           ) : (
-            <CardFooter className="pt-0 border-t border-slate-100 mt-2 p-4 text-center">
+            <div className="pt-3 border-t border-slate-100 mt-2 p-3 sm:p-4 text-center">
               <p className="text-[11px] text-slate-400 w-full">
                 Kendala akses akun? Hubungi Sub Bagian Tata Usaha / IT Solo Technopark.
               </p>
-            </CardFooter>
+            </div>
           )}
-        </Card>
+        </div>
       </div>
 
       {/* Footer Info */}

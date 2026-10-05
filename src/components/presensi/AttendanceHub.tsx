@@ -4,6 +4,8 @@ import React from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import TabAbsensi from "./TabAbsensi";
 import TabLembur from "./TabLembur";
 import TabIzin from "./TabIzin";
@@ -23,6 +25,9 @@ export default function AttendanceHub() {
   ];
 
   const setTab = (id: string) => {
+    if (typeof window !== "undefined" && "vibrate" in navigator) {
+      try { navigator.vibrate(8); } catch {}
+    }
     router.push(`/presensi/scan?tab=${id}`);
   };
 
@@ -59,41 +64,56 @@ export default function AttendanceHub() {
   };
 
   return (
-    <div 
+    <div
       className="flex flex-col relative w-full h-full"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
       {/* Pull to refresh indicator */}
-      <div 
-        className="absolute w-full flex justify-center overflow-hidden transition-all duration-200"
-        style={{ height: pullDistance > 0 ? `${pullDistance}px` : '0px' }}
+      <div
+        className="absolute w-full flex justify-center overflow-hidden transition-all duration-200 z-50"
+        style={{ height: pullDistance > 0 ? `${pullDistance}px` : "0px" }}
       >
         <div className="mt-4 bg-white rounded-full p-2 shadow-md flex items-center justify-center">
-          <Loader2 className={`w-5 h-5 text-emerald-500 ${isRefreshing ? 'animate-spin' : ''}`} style={{ transform: `rotate(${pullDistance * 2}deg)` }} />
+          <Loader2
+            className={`w-5 h-5 text-emerald-500 ${isRefreshing ? "animate-spin" : ""}`}
+            style={{ transform: `rotate(${pullDistance * 2}deg)` }}
+          />
         </div>
       </div>
 
-      {/* Sticky Tab Bar */}
-      <div className="sticky top-16 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50 p-2 flex justify-between gap-1 shadow-sm mx-0 sm:rounded-2xl sm:border sm:mt-2">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`flex-1 flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl text-[11px] font-bold tracking-wide transition-all ${
-              currentTab === t.id
-                ? "bg-primary/10 text-primary shadow-sm border border-primary/20"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            }`}
-          >
-            <t.icon className={`w-5 h-5 ${currentTab === t.id ? 'mb-0.5' : ''}`} />
-            <span>{t.label}</span>
-          </button>
-        ))}
+      {/* Sticky Tab Bar — menggunakan public-pill-container dari globals.css */}
+      <div className="sticky top-16 z-40 bg-white/95 backdrop-blur-xl border-b border-slate-100/80 px-3 py-2 sm:px-4 sm:py-2.5">
+        <div className="public-pill-container w-full">
+          {tabs.map((t) => {
+            const isActive = currentTab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={cn("public-pill-btn flex-1 justify-center", isActive && "active")}
+                aria-current={isActive ? "page" : undefined}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="presensi-tab-pill"
+                    className="public-pill-active-bg"
+                    transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                  />
+                )}
+                <span className="relative z-10 flex items-center gap-1.5">
+                  <t.icon className="w-4 h-4 shrink-0" />
+                  <span className="truncate">{t.label}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="flex-1 w-full max-w-2xl mx-auto pt-4 sm:pt-6">
+      {/* Tab Content */}
+      <div className="flex-1 w-full max-w-2xl mx-auto pt-3 sm:pt-5">
         {currentTab === "absensi" && <TabAbsensi />}
         {currentTab === "lembur" && <TabLembur />}
         {currentTab === "izin" && <TabIzin />}

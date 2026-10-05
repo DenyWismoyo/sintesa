@@ -71,56 +71,49 @@ export default function TabRiwayat() {
           <p className="text-slate-500 text-sm font-medium">Memuat riwayat...</p>
         </div>
       ) : riwayat.length === 0 ? (
-        <MotionFadeUp className="text-center py-12 bg-white rounded-3xl border border-slate-100 shadow-sm">
+        <MotionFadeUp className="text-center py-12 bg-white rounded-none sm:rounded-3xl border-y sm:border border-slate-100 shadow-sm">
           <Calendar className="w-12 h-12 mx-auto text-slate-200 mb-3" />
           <p className="text-sm font-bold text-slate-400">Belum ada riwayat kehadiran.</p>
         </MotionFadeUp>
       ) : (
-        <div className="space-y-4">
-          {riwayat.map((record, index) => {
+        <div className="card-base overflow-hidden divide-y divide-slate-100 bg-white">
+          {riwayat.map((record) => {
             const { icon, colorClass, label } = getStatusDisplay(record);
             return (
-              <MotionFadeUp key={record.id} className="relative">
-                {/* Timeline connector line */}
-                {index !== riwayat.length - 1 && (
-                  <div className="absolute left-6 top-12 bottom-[-16px] w-[2px] bg-slate-100 z-0" />
-                )}
+              <div key={record.id} className="p-4 sm:p-5 flex items-center gap-4 hover:bg-slate-50/50 transition-colors">
+                <div className={`w-11 h-11 rounded-2xl flex flex-col items-center justify-center shrink-0 border ${colorClass}`}>
+                  <span className="text-[11px] font-extrabold leading-none mb-0.5">
+                    {new Date(record.tanggal).getDate()}
+                  </span>
+                  <span className="text-[8px] font-bold uppercase opacity-80 leading-none">
+                    {new Date(record.tanggal).toLocaleDateString("id-ID", { month: "short" })}
+                  </span>
+                </div>
                 
-                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm relative z-10 flex gap-4">
-                  <div className={`w-12 h-12 rounded-full flex flex-col items-center justify-center shrink-0 border ${colorClass}`}>
-                    <span className="text-[10px] font-extrabold leading-none mb-0.5">
-                      {new Date(record.tanggal).getDate()}
-                    </span>
-                    <span className="text-[8px] font-bold uppercase opacity-80 leading-none">
-                      {new Date(record.tanggal).toLocaleDateString("id-ID", { month: "short" })}
-                    </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="text-sm font-extrabold text-slate-800">{label}</h3>
+                    {icon}
                   </div>
                   
-                  <div className="flex-1 min-w-0 flex flex-col justify-center">
-                    <div className="flex items-center justify-between mb-1">
-                      <h3 className="text-sm font-extrabold text-slate-800">{label}</h3>
-                      {icon}
-                    </div>
-                    
-                    {["izin", "cuti", "sakit", "dinas_luar", "lembur"].includes(record.status || "") ? (
-                      <p className="text-[11px] text-slate-500 font-medium">
-                        Disetujui otomatis tersinkronisasi.
-                      </p>
-                    ) : (
-                      <div className="flex items-center gap-4 text-[11px] font-bold text-slate-500">
-                        <div className="flex items-center gap-1.5">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                          <span>{formatWaktu(record.checkIn?.waktu)}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-teal-400" />
-                          <span>{formatWaktu(record.checkOut?.waktu)}</span>
-                        </div>
+                  {["izin", "cuti", "sakit", "dinas_luar", "lembur"].includes(record.status || "") ? (
+                    <p className="text-[11px] text-slate-500 font-medium">
+                      Disetujui otomatis tersinkronisasi.
+                    </p>
+                  ) : (
+                    <div className="flex items-center gap-4 text-[11px] font-bold text-slate-500">
+                      <div className="flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                        <span>Masuk: {formatWaktu(record.checkIn?.waktu)}</span>
                       </div>
-                    )}
-                  </div>
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-teal-500" />
+                        <span>Pulang: {formatWaktu(record.checkOut?.waktu)}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </MotionFadeUp>
+              </div>
             );
           })}
         </div>

@@ -5,7 +5,6 @@ import { usePresensiAuth } from "@/lib/presensi/auth-context";
 import { usePegawaiList, useCreatePegawaiMutation, useDeletePegawaiMutation, useUpdatePegawaiMutation } from "@/hooks/presensi/usePegawai";
 import { useKantorList } from "@/hooks/presensi/useKantor";
 import { UserProfile, UserRole } from "@/types/presensi";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -311,7 +310,7 @@ export default function PegawaiManagementPage() {
       <MobilePageHeader title="Direktori Pegawai" backHref="/presensi" />
 
       {/* Hero Stats Card */}
-      <div className="relative overflow-hidden rounded-2xl border border-emerald-800/30 bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 p-5 md:p-6 text-white shadow-md">
+      <div className="relative overflow-hidden rounded-none sm:rounded-3xl border-y sm:border border-emerald-800/30 bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 p-5 md:p-6 text-white shadow-md">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[11px] font-medium border border-emerald-400/30">
@@ -359,8 +358,8 @@ export default function PegawaiManagementPage() {
       </div>
 
       {/* Filter & Search Bar */}
-      <Card>
-        <CardContent className="p-4 space-y-3">
+      <div className="card-base overflow-hidden bg-white">
+        <div className="p-4 space-y-3">
           <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
             {/* Search Box */}
             <div className="relative flex-1">
@@ -430,8 +429,8 @@ export default function PegawaiManagementPage() {
               <RefreshCw className="w-4 h-4" />
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Content: Desktop Table & Mobile Cards */}
       {isLoading ? (
@@ -447,7 +446,7 @@ export default function PegawaiManagementPage() {
       ) : (
         <>
           {/* Desktop Table View */}
-          <div className="hidden md:block bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+          <div className="hidden md:block card-base overflow-hidden bg-white">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
@@ -555,73 +554,71 @@ export default function PegawaiManagementPage() {
             </table>
           </div>
 
-          {/* Mobile Cards View */}
-          <div className="md:hidden space-y-3">
+          {/* Mobile Cards View (Single Divided Borderless Container di Mobile) */}
+          <div className="md:hidden card-base overflow-hidden divide-y divide-slate-100 bg-white">
             {pegawaiList.map((p) => {
               const initial = p.nama.charAt(0).toUpperCase();
               const avatarGradient = getAvatarColor(p.nama, p.role);
 
               return (
-                <Card key={p.id} className="border-slate-200 shadow-xs">
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-10 h-10 rounded-full bg-gradient-to-tr ${avatarGradient} text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0`}
-                        >
-                          {initial}
-                        </div>
-                        <div>
-                          <div className="font-semibold text-slate-900 text-sm leading-tight">{p.nama}</div>
-                          <div className="text-[11px] text-slate-500 font-mono mt-0.5">NIP: {p.nip}</div>
-                        </div>
-                      </div>
-                      {getRoleBadge(p.role)}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 text-[11px] pt-2 border-t border-slate-100">
-                      <div>
-                        <div className="text-slate-400">Jabatan:</div>
-                        <div className="font-medium text-slate-800">{p.jabatan}</div>
+                <div key={p.id} className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-10 h-10 rounded-full bg-gradient-to-tr ${avatarGradient} text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0`}
+                      >
+                        {initial}
                       </div>
                       <div>
-                        <div className="text-slate-400">Golongan:</div>
-                        <div className="font-medium text-slate-800">{p.golongan || "—"}</div>
+                        <div className="font-semibold text-slate-900 text-sm leading-tight">{p.nama}</div>
+                        <div className="text-[11px] text-slate-500 font-mono mt-0.5">NIP: {p.nip}</div>
                       </div>
                     </div>
+                    {getRoleBadge(p.role)}
+                  </div>
 
-                    <div className="text-[11px] space-y-1 bg-slate-50 p-2.5 rounded-lg text-slate-600">
+                  <div className="grid grid-cols-2 gap-2 text-[11px] pt-2 border-t border-slate-100">
+                    <div>
+                      <div className="text-slate-400">Jabatan:</div>
+                      <div className="font-medium text-slate-800">{p.jabatan}</div>
+                    </div>
+                    <div>
+                      <div className="text-slate-400">Golongan:</div>
+                      <div className="font-medium text-slate-800">{p.golongan || "—"}</div>
+                    </div>
+                  </div>
+
+                  <div className="text-[11px] space-y-1 bg-slate-50 p-2.5 rounded-lg text-slate-600">
+                    <div className="flex items-center gap-1.5">
+                      <Building2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>Kantor: {p.namaKantor || "Kantor Pusat"}</span>
+                    </div>
+                    {p.atasanNama && (
                       <div className="flex items-center gap-1.5">
-                        <Building2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>Kantor: {p.namaKantor || "Kantor Pusat"}</span>
-                      </div>
-                      {p.atasanNama && (
-                        <div className="flex items-center gap-1.5">
-                          <UserCheck className="w-3.5 h-3.5 text-teal-600 shrink-0" />
-                          <span>Atasan: {p.atasanNama}</span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-1.5 text-slate-400">
-                        <Mail className="w-3.5 h-3.5 shrink-0" />
-                        <span className="truncate">{p.email}</span>
-                      </div>
-                    </div>
-
-                    {isAdmin && p.id !== user?.id && (
-                      <div className="flex justify-end pt-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeleteUser(p)}
-                          className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 text-[11px] h-8 border-rose-200"
-                        >
-                          <Trash2 className="w-3.5 h-3.5 mr-1" />
-                          Nonaktifkan
-                        </Button>
+                        <UserCheck className="w-3.5 h-3.5 text-teal-600 shrink-0" />
+                        <span>Atasan: {p.atasanNama}</span>
                       </div>
                     )}
-                  </CardContent>
-                </Card>
+                    <div className="flex items-center gap-1.5 text-slate-400">
+                      <Mail className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">{p.email}</span>
+                    </div>
+                  </div>
+
+                  {isAdmin && p.id !== user?.id && (
+                    <div className="flex justify-end pt-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteUser(p)}
+                        className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 text-[11px] h-8 border-rose-200"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 mr-1" />
+                        Nonaktifkan
+                      </Button>
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>

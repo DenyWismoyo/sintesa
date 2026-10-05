@@ -183,6 +183,156 @@
 }
 
 /* ==========================================================================
+   PRESENSI / TECHNO SIGN UI SYSTEM
+   Mobile-First, Borderless, Touch-Optimized (Techno Sign App)
+   ========================================================================== */
+
+/* P1. card-base — True Borderless Mobile Card */
+.card-base {
+  background-color: #ffffff;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(226, 232, 240, 0.7);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+  overflow: hidden;
+}
+
+@media (max-width: 639px) {
+  .card-base {
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-top: 1px solid #f1f5f9 !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    box-shadow: none !important;
+  }
+}
+
+/* P2. card-interactive — True Borderless Mobile Interactive Card */
+.card-interactive {
+  background-color: #ffffff;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(226, 232, 240, 0.7);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02);
+  overflow: hidden;
+  transition: box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 640px) {
+  .card-interactive:hover {
+    box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.08), 0 4px 8px -2px rgba(15, 23, 42, 0.03);
+    transform: translateY(-1px);
+  }
+}
+
+@media (max-width: 639px) {
+  .card-interactive {
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-top: 1px solid #f1f5f9 !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    box-shadow: none !important;
+  }
+}
+
+/* P3. widget-box — Info box 2-col di QuickPresensiWidget */
+.widget-box {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.875rem;
+  border-radius: 0.875rem;
+  background-color: rgba(248, 250, 252, 0.9);
+  border: 1px solid rgba(226, 232, 240, 0.5);
+  min-width: 0;
+}
+
+@media (max-width: 639px) {
+  .widget-box {
+    border: none;
+    background-color: #f8fafc;
+    border-radius: 0.75rem;
+  }
+}
+
+/* P4. widget-icon-box — Icon container di dalam widget-box */
+.widget-icon-box {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.625rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* P5. btn-base — Full-width primary action button */
+.btn-base {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  padding: 0 1.25rem;
+  height: 3rem;
+  border-radius: 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  border: none;
+  outline: none;
+  text-decoration: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-base:active {
+  transform: scale(0.97);
+}
+
+/* P6. Semantic color tokens untuk status presensi */
+.status-hadir {
+  color: #059669;
+  background-color: #ecfdf5;
+}
+.status-terlambat {
+  color: #d97706;
+  background-color: #fffbeb;
+}
+.status-izin {
+  color: #7c3aed;
+  background-color: #f5f3ff;
+}
+.status-cuti {
+  color: #0284c7;
+  background-color: #f0f9ff;
+}
+.status-absen {
+  color: #dc2626;
+  background-color: #fef2f2;
+}
+.status-dinas {
+  color: #0284c7;
+  background-color: #eff6ff;
+}
+
+/* P7. presensi-section — Divider section tanpa card wrapper */
+.presensi-section {
+  background-color: #ffffff;
+  border-top: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+@media (min-width: 640px) {
+  .presensi-section {
+    border-radius: 1.25rem;
+    border: 1px solid rgba(226, 232, 240, 0.7);
+  }
+}
+
+/* ==========================================================================
    SINTESA PUBLIC UI DESIGN SYSTEM (Minimalist Borderless & Mobile Optimized)
    ========================================================================== */
 

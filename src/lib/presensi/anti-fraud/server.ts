@@ -1,7 +1,13 @@
 import { headers } from "next/headers";
 import { adminPresensiDb as adminDb } from "@/lib/presensi/firebase-admin";
 import { KantorUnit, GeolocationPoint, PresensiCheckPoint } from "@/types/presensi";
-import { DEFAULT_KANTOR_LIST, calculateHaversineDistance, isPointInPolygon } from "@/data/presensi/masterKantor";
+import {
+  DEFAULT_KANTOR_LIST,
+  calculateHaversineDistance,
+  isPointInPolygon,
+  isSoloTechnoparkOffice,
+  getDistanceToStpCampus,
+} from "@/data/presensi/masterKantor";
 
 export interface ServerGeofenceResult {
   isValid: boolean;
@@ -57,14 +63,14 @@ export async function verifyGeofenceServerSide(
           d.koordinat?._latitude ??
           d.lat ??
           d.latitude ??
-          -7.558392;
+          -7.55865;
         const lng =
           d.koordinat?.lng ??
           d.koordinat?.longitude ??
           d.koordinat?._longitude ??
           d.lng ??
           d.longitude ??
-          110.857528;
+          110.85625;
         targetKantor = {
           ...d,
           koordinat: { lat, lng },
@@ -81,18 +87,28 @@ export async function verifyGeofenceServerSide(
       DEFAULT_KANTOR_LIST.find((k) => k.id === kantorId) || DEFAULT_KANTOR_LIST[0];
   }
 
+  const isStp = isSoloTechnoparkOffice(targetKantor);
+  // Kawasan Solo Technopark seluas ~8 hektar membutuhkan radius minimal 600 meter untuk meng-cover seluruh kawasan terpadu
+  const effectiveRadius = isStp
+    ? Math.max(targetKantor.radiusMeter || 150, 600)
+    : targetKantor.radiusMeter || 150;
+
   // 3. Hitung ulang jarak Haversine di server
-  const serverDistanceMeters = calculateHaversineDistance(
+  let serverDistanceMeters = calculateHaversineDistance(
     userCoords,
     targetKantor.koordinat
   );
 
-  const isWithinRadius = serverDistanceMeters <= targetKantor.radiusMeter;
+  let verifiedOfficeName = targetKantor.namaKantor;
+  if (isStp) {
+    const campus = getDistanceToStpCampus(userCoords);
+    serverDistanceMeters = campus.minDistanceMeters;
+    verifiedOfficeName = `${targetKantor.namaKantor} (${campus.closestAnchorName})`;
+  }
+
+  const isWithinRadius = serverDistanceMeters <= effectiveRadius;
   // Validasi Dual-Layer: Periksa juga poligon fisik Kawasan Solo Technopark (8 Hektar)
-  const isWithinComplexPolygon =
-    targetKantor.id === "kantor-stp-pusat" || targetKantor.orgId === "solotechnopark"
-      ? isPointInPolygon(userCoords)
-      : false;
+  const isWithinComplexPolygon = isStp ? isPointInPolygon(userCoords) : false;
 
   const isValid = isWithinRadius || isWithinComplexPolygon;
 
@@ -101,16 +117,20 @@ export async function verifyGeofenceServerSide(
       isValid: false,
       office: targetKantor,
       serverDistanceMeters,
-      maxRadiusMeters: targetKantor.radiusMeter,
-      errorMessage: `FRAUD_ALERT: Lokasi presensi Anda tidak sah. Server mendeteksi posisi Anda berada ${serverDistanceMeters} meter dari ${targetKantor.namaKantor} (Batas radius: ${targetKantor.radiusMeter} meter dan di luar batas poligon Kawasan STP). Presensi ditolak.`,
+      maxRadiusMeters: effectiveRadius,
+      errorMessage: `FRAUD_ALERT: Lokasi presensi Anda tidak sah. Server mendeteksi posisi Anda berada ${serverDistanceMeters} meter dari ${verifiedOfficeName} (Batas radius: ${effectiveRadius} meter dan di luar batas poligon Kawasan STP). Presensi ditolak.`,
     };
   }
 
   return {
     isValid: true,
-    office: targetKantor,
+    office: {
+      ...targetKantor,
+      namaKantor: verifiedOfficeName,
+      radiusMeter: effectiveRadius,
+    },
     serverDistanceMeters,
-    maxRadiusMeters: targetKantor.radiusMeter,
+    maxRadiusMeters: effectiveRadius,
   };
 }
 

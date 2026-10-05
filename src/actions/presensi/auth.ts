@@ -106,8 +106,9 @@ export async function validateAndSyncGooglePresensi(
     // 2. Validasi Kata Sandi Presensi
     let isPasswordCorrect = false;
 
-    // A. Cek kecocokan password default (StpUser2026!)
-    if (found.passwordDefault === password || password === "StpUser2026!") {
+    // A. Cek kecocokan password default dari environment variable
+    const defaultPassword = process.env.PRESENSI_DEFAULT_PASSWORD || "StpUser2026!";
+    if (found.passwordDefault === password || password === defaultPassword) {
       isPasswordCorrect = true;
     }
 

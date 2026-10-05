@@ -8,7 +8,7 @@ import {
   usePengajuanLemburMutation,
 } from "@/hooks/presensi/useLembur";
 import { LemburJenis, LemburRecord } from "@/types/presensi";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -218,26 +218,23 @@ Terima kasih.`;
 
       {/* ── Status Lembur Hari Ini ──────────────────────────────────────────── */}
       {isLoadingHariIni ? (
-        <Card>
-          <CardContent className="p-6 flex items-center justify-center gap-2 text-xs text-slate-500">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            Memuat status lembur...
-          </CardContent>
-        </Card>
+        <div className="card-base p-6 flex items-center justify-center gap-2 text-xs text-slate-500">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          Memuat status lembur...
+        </div>
       ) : lemburHariIni && !["ditolak"].includes(lemburHariIni.status) ? (
         <MotionFadeUp>
-          <Card className="border-violet-200 card-base overflow-hidden">
+          <div className="card-base overflow-hidden">
             <div className="h-1.5 w-full bg-gradient-to-r from-violet-500 to-fuchsia-500" />
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold text-slate-800 flex items-center gap-2">
-                  <Timer className="w-4 h-4 text-violet-600" />
-                  Status Lembur
-                </CardTitle>
-                {getStatusBadge(lemburHariIni.status)}
+            {/* Header */}
+            <div className="px-4 py-3 sm:px-5 border-b border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Timer className="w-4 h-4 text-violet-600" />
+                <span className="text-sm font-semibold text-slate-800">Status Lembur</span>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
+              {getStatusBadge(lemburHariIni.status)}
+            </div>
+            <div className="p-4 sm:p-5 space-y-3">
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
                   <div className="text-slate-400 mb-0.5 font-medium">Jenis</div>
@@ -320,55 +317,42 @@ Terima kasih.`;
                 </div>
               )}
 
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </MotionFadeUp>
       ) : null}
 
       {/* ── Form Pengajuan Lembur ──────────────────────────────────────────── */}
       {!sudahAda && (
         <MotionFadeUp>
-          <Card className="border-slate-200/60 card-base shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                <Send className="w-4 h-4 text-violet-600" />
-                Ajukan Lembur
-              </CardTitle>
-              <CardDescription className="text-[11px]">
-                Pengajuan akan dikirim ke atasan langsung Anda.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+          <div className="card-base overflow-hidden">
+            {/* Form header */}
+            <div className="px-4 py-3 sm:px-5 border-b border-slate-100 flex items-center gap-2">
+              <Send className="w-4 h-4 text-violet-600" />
+              <div>
+                <div className="text-sm font-bold text-slate-800">Ajukan Lembur</div>
+                <div className="text-[11px] text-slate-500 mt-0.5">Pengajuan ke atasan langsung</div>
+              </div>
+            </div>
+            {/* Form body */}
+            <div className="p-4 sm:p-5">
               {!hasAtasan ? (
                 <div className="flex items-start gap-2.5 p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 font-medium">
                   <Info className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
-                  <span>
-                    Atasan langsung Anda belum ditetapkan. Hubungi Admin BKPSDM.
-                  </span>
+                  <span>Atasan langsung Anda belum ditetapkan. Hubungi Admin BKPSDM.</span>
                 </div>
               ) : (
                 <form onSubmit={handlePengajuan} className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    {/* Tanggal */}
                     <div className="space-y-1">
                       <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5" />
                         Tanggal <span className="text-rose-500">*</span>
                       </Label>
-                      <Input
-                        type="date"
-                        required
-                        value={formTanggal}
-                        onChange={(e) => setFormTanggal(e.target.value)}
-                        className="text-xs h-10 rounded-xl"
-                      />
+                      <Input type="date" required value={formTanggal} onChange={(e) => setFormTanggal(e.target.value)} className="text-xs h-10 rounded-xl" />
                     </div>
-
-                    {/* Jenis */}
                     <div className="space-y-1">
-                      <Label className="text-xs font-semibold text-slate-700">
-                        Jenis <span className="text-rose-500">*</span>
-                      </Label>
+                      <Label className="text-xs font-semibold text-slate-700">Jenis <span className="text-rose-500">*</span></Label>
                       <select
                         value={formJenis}
                         onChange={(e) => setFormJenis(e.target.value as LemburJenis)}
@@ -381,37 +365,23 @@ Terima kasih.`;
                     </div>
                   </div>
 
-                  {/* Jam Rencana */}
                   <div className="grid grid-cols-2 gap-3.5">
                     <div className="space-y-1">
                       <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5" />
                         Mulai <span className="text-rose-500">*</span>
                       </Label>
-                      <Input
-                        type="time"
-                        required
-                        value={formJamMulai}
-                        onChange={(e) => setFormJamMulai(e.target.value)}
-                        className="text-xs h-10 rounded-xl"
-                      />
+                      <Input type="time" required value={formJamMulai} onChange={(e) => setFormJamMulai(e.target.value)} className="text-xs h-10 rounded-xl" />
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5" />
                         Selesai <span className="text-rose-500">*</span>
                       </Label>
-                      <Input
-                        type="time"
-                        required
-                        value={formJamSelesai}
-                        onChange={(e) => setFormJamSelesai(e.target.value)}
-                        className="text-xs h-10 rounded-xl"
-                      />
+                      <Input type="time" required value={formJamSelesai} onChange={(e) => setFormJamSelesai(e.target.value)} className="text-xs h-10 rounded-xl" />
                     </div>
                   </div>
 
-                  {/* Alasan */}
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
                       <FileText className="w-3.5 h-3.5" />
@@ -432,7 +402,7 @@ Terima kasih.`;
                   <Button
                     type="submit"
                     disabled={pengajuanMutation.isPending}
-                    className="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold text-[13px] h-12 shadow-sm rounded-xl"
+                    className="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold text-[13px] h-12 rounded-xl"
                   >
                     {pengajuanMutation.isPending ? (
                       <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Mengirim...</>
@@ -442,8 +412,8 @@ Terima kasih.`;
                   </Button>
                 </form>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </MotionFadeUp>
       )}
 

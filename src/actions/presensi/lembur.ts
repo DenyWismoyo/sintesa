@@ -16,12 +16,7 @@ import {
   getAuditMetadataFromHeaders,
 } from "@/lib/presensi/anti-fraud/server";
 
-// In-memory dev store untuk lembur
-const globalAny = global as any;
-const devLemburStore: Map<string, LemburRecord> = globalAny.devLemburStore || new Map<string, LemburRecord>();
-if (process.env.NODE_ENV !== "production") {
-  globalAny.devLemburStore = devLemburStore;
-}
+import { getDevLemburStore } from "@/data/presensi/seedData";
 
 function generateLemburDocId(userId: string, tanggal: string): string {
   return `${userId}_${tanggal}`;
@@ -47,10 +42,10 @@ export async function getLemburByDate(
   }
 
   if (process.env.NODE_ENV === "development") {
-    const existing = devLemburStore.get(docId);
+    const existing = getDevLemburStore().get(docId);
     if (existing) return existing;
     // Cek juga dengan userId berbeda (seed data)
-    for (const item of devLemburStore.values()) {
+    for (const item of getDevLemburStore().values()) {
       if (item.tanggal === tanggal && item.userId === userId) return item;
     }
   }
@@ -120,7 +115,7 @@ export async function pengajuanLembur(
   }
 
   if (process.env.NODE_ENV === "development") {
-    devLemburStore.set(docId, record);
+    getDevLemburStore().set(docId, record);
   }
 
   return {
@@ -155,7 +150,7 @@ export async function approveLembur(
       console.warn("[Lembur Approve] Gagal membaca Firestore:", err);
     }
   } else if (process.env.NODE_ENV === "development") {
-    target = devLemburStore.get(lemburId) || null;
+    target = getDevLemburStore().get(lemburId) || null;
   }
 
   if (!target) return { success: false, message: "Dokumen lembur tidak ditemukan." };
@@ -183,7 +178,7 @@ export async function approveLembur(
   }
 
   if (process.env.NODE_ENV === "development") {
-    devLemburStore.set(lemburId, updated);
+    getDevLemburStore().set(lemburId, updated);
   }
 
   return { success: true, data: updated, message: "Pengajuan lembur berhasil disetujui." };
@@ -214,7 +209,7 @@ export async function rejectLembur(
       console.warn("[Lembur Reject] Gagal membaca Firestore:", err);
     }
   } else if (process.env.NODE_ENV === "development") {
-    target = devLemburStore.get(lemburId) || null;
+    target = getDevLemburStore().get(lemburId) || null;
   }
 
   if (!target) return { success: false, message: "Dokumen lembur tidak ditemukan." };
@@ -239,7 +234,7 @@ export async function rejectLembur(
   }
 
   if (process.env.NODE_ENV === "development") {
-    devLemburStore.set(lemburId, updated);
+    getDevLemburStore().set(lemburId, updated);
   }
 
   return { success: true, data: updated, message: `Pengajuan lembur ditolak: ${alasanPenolakan}` };
@@ -342,7 +337,7 @@ export async function checkInLembur(
   }
 
   if (process.env.NODE_ENV === "development") {
-    devLemburStore.set(docId, updated);
+    getDevLemburStore().set(docId, updated);
   }
 
   return { success: true, data: updated };
@@ -444,7 +439,7 @@ export async function checkOutLembur(
   }
 
   if (process.env.NODE_ENV === "development") {
-    devLemburStore.set(docId, updated);
+    getDevLemburStore().set(docId, updated);
   }
 
   return { success: true, data: updated };
@@ -482,7 +477,7 @@ export async function getPendingLemburList(
   }
 
   if (process.env.NODE_ENV === "development") {
-    let list = Array.from(devLemburStore.values()).filter(
+    let list = Array.from(getDevLemburStore().values()).filter(
       (item) =>
         item.status === "diajukan" && item.orgId === sessionUser.orgId
     );
@@ -523,7 +518,7 @@ export async function getLemburHistory(
   }
 
   if (process.env.NODE_ENV === "development") {
-    const list = Array.from(devLemburStore.values())
+    const list = Array.from(getDevLemburStore().values())
       .filter((d) => d.userId === userId && d.orgId === sessionUser.orgId)
       .sort((a, b) => b.tanggal.localeCompare(a.tanggal));
     return list.slice(0, limitDays);

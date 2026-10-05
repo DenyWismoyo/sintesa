@@ -74,6 +74,7 @@ export function showPresensiNotification({
 export function checkAndTriggerPresensiReminder(params: {
   hasCheckedIn: boolean;
   hasCheckedOut: boolean;
+  hasLkh?: boolean;
   jamMasukMaksimal?: string;
   jamPulangMinimal?: string;
 }) {
@@ -90,11 +91,20 @@ export function checkAndTriggerPresensiReminder(params: {
     });
   }
 
-  // 2. Pengingat Sore: Pukul 16.00 - 17.00 WIB jika sudah check-in tapi belum check-out
-  if (params.hasCheckedIn && !params.hasCheckedOut && currentHour >= 16 && currentHour < 18) {
+  // 2. Pengingat LKH: Pukul 14.00 - 15.00 WIB jika sudah check-in tapi LKH masih 0
+  if (params.hasCheckedIn && params.hasLkh === false && currentHour === 14 && currentMinute >= 30) {
+    showPresensiNotification({
+      title: "📝 Pengingat Wajib LKH (Techno Sign)",
+      body: "Menu presensi pulang dibuka pukul 15:00 WIB. Anda belum mengisi minimal 1 aktivitas kerja hari ini. Catat 1 kegiatan sekarang!",
+      tag: "reminder-lkh",
+    });
+  }
+
+  // 3. Pengingat Sore: Pukul 15.00 - 17.00 WIB jika sudah check-in tapi belum check-out
+  if (params.hasCheckedIn && !params.hasCheckedOut && currentHour >= 15 && currentHour < 18) {
     showPresensiNotification({
       title: "🏁 Waktunya Presensi Pulang (Techno Sign)",
-      body: "Jam kerja hari ini telah selesai. Harap lakukan presensi pulang dan pastikan logbook LKH harian sudah terkirim.",
+      body: "Jam kepulangan telah tiba. Harap lakukan presensi pulang dan pastikan logbook LKH harian sudah tercatat.",
       tag: "reminder-checkout",
     });
   }

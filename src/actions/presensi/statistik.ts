@@ -5,6 +5,8 @@ import { requireAuth } from "@/lib/presensi/session";
 import { UserProfile, PresensiRecord, LKHRecord } from "@/types/presensi";
 import { getDevUsersStore, getDevPresensiStore, getDevLKHStore } from "@/data/presensi/seedData";
 import { TARGET_POIN_HARIAN } from "@/data/presensi/masterAktivitas";
+import { getWIBHourMinute } from "@/lib/presensi/utils";
+import { isHariLiburAtauWeekend } from "@/data/presensi/masterHariLibur";
 
 export interface StatistikSummary {
   totalPegawai: number;
@@ -159,17 +161,13 @@ export async function calculateRekapStatistik(
     if (params.orgId) lkhRecords = lkhRecords.filter(l => l.orgId === params.orgId);
   }
 
-  // Hitung jumlah hari kerja resmi pada bulan tersebut (Senin-Jumat)
+  // Hitung jumlah hari kerja resmi pada bulan tersebut (Senin-Jumat & Bukan Hari Libur Nasional - TD-07)
   const totalHariDalamBulan = new Date(tahun, bulan, 0).getDate();
   const datesOfWorkdays: string[] = [];
   for (let d = 1; d <= totalHariDalamBulan; d++) {
-    const dateObj = new Date(tahun, bulan - 1, d);
-    const day = dateObj.getDay();
-    if (day !== 0 && day !== 6) {
-      // Hari kerja
-      datesOfWorkdays.push(
-        `${tahun}-${monthStr}-${d.toString().padStart(2, "0")}`
-      );
+    const dStr = `${tahun}-${monthStr}-${d.toString().padStart(2, "0")}`;
+    if (!isHariLiburAtauWeekend(dStr)) {
+      datesOfWorkdays.push(dStr);
     }
   }
   const totalHariKerja = Math.max(1, datesOfWorkdays.length);
@@ -204,11 +202,9 @@ export async function calculateRekapStatistik(
     userPresensi.forEach((pr) => {
       if (pr.status === "hadir") {
         hadir++;
-        // Cek apakah check-in <= 07:30
+        // Cek apakah check-in <= 07:30 WIB
         if (pr.checkIn?.waktu) {
-          const time = new Date(pr.checkIn.waktu);
-          const hour = time.getUTCHours() + 7; // WIB
-          const minute = time.getUTCMinutes();
+          const { hour, minute } = getWIBHourMinute(pr.checkIn.waktu);
           if (hour < 7 || (hour === 7 && minute <= 30)) {
             onTime++;
           }

@@ -32,6 +32,11 @@ export async function getLKHByDate(
   userId: string,
   tanggal: string
 ): Promise<LKHRecord | null> {
+  const sessionUser = await requireAuth();
+  if (sessionUser.role === "pegawai" && sessionUser.id !== userId) {
+    throw new Error("FORBIDDEN: Anda hanya dapat mengakses LKH milik Anda sendiri.");
+  }
+
   const docId = generateLkhDocId(userId, tanggal);
 
   if (isFirebaseAdminConfigured()) {

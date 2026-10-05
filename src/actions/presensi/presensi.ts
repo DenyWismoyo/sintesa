@@ -20,6 +20,7 @@ import {
 } from "@/lib/presensi/anti-fraud/server";
 import { CheckInSchema, CheckOutSchema } from "@/lib/presensi/validations";
 import { recordAuditLog } from "@/actions/presensi/audit";
+import { getWIBHourMinute } from "@/lib/presensi/utils";
 
 // Default fallback jika tidak ada di env atau konfigurasi kantor
 const DEFAULT_JAM_MASUK = process.env.NEXT_PUBLIC_JAM_MASUK_MAKSIMAL || "07:30";
@@ -196,11 +197,10 @@ export async function recordCheckIn(
   const { ipAddress, userAgent } = await getAuditMetadataFromHeaders();
   const now = new Date();
 
-  // Evaluasi jam kedatangan vs jam maksimal
+  // Evaluasi jam kedatangan vs jam maksimal (WIB - BUG-04)
   const maxTime = geofence.office?.jamMasukMaksimal || DEFAULT_JAM_MASUK;
   const [maxHour, maxMinute] = maxTime.split(":").map(Number);
-  const nowHour = now.getHours();
-  const nowMinute = now.getMinutes();
+  const { hour: nowHour, minute: nowMinute } = getWIBHourMinute(now);
   const isLate = nowHour > maxHour || (nowHour === maxHour && nowMinute > maxMinute);
   const status: PresensiStatus = isLate ? "terlambat" : "hadir";
 
@@ -235,17 +235,38 @@ export async function recordCheckIn(
     },
   };
 
+  // BUG-01 FIX: Gunakan runTransaction untuk mencegah race condition double check-in
   if (isFirebaseAdminConfigured()) {
     try {
       const docRef = adminPresensiDb.collection("presensi").doc(docId);
-      await docRef.set(newRecord, { merge: true });
-    } catch (err) {
+      await adminPresensiDb.runTransaction(async (transaction) => {
+        const snap = await transaction.get(docRef);
+        if (snap.exists && snap.data()?.checkIn) {
+          throw new Error("ALREADY_CHECKED_IN");
+        }
+        transaction.set(docRef, newRecord, { merge: true });
+      });
+    } catch (err: any) {
+      if (err?.message === "ALREADY_CHECKED_IN") {
+        return {
+          success: false,
+          message: "Anda sudah melakukan Check-In untuk shift ini.",
+        };
+      }
       console.warn("[Presensi] Gagal menyimpan ke Firestore:", err);
     }
   }
 
   if (process.env.NODE_ENV === "development") {
-    getDevPresensiStore().set(docId, newRecord);
+    const store = getDevPresensiStore();
+    const existingDev = store.get(docId);
+    if (existingDev?.checkIn) {
+      return {
+        success: false,
+        message: "Anda sudah melakukan Check-In untuk shift ini.",
+      };
+    }
+    store.set(docId, newRecord);
   }
 
   // Rekam Audit Log
@@ -335,11 +356,10 @@ export async function recordCheckOut(
     };
   }
 
-  // 3. Validasi Jam Pulang Minimal
+  // 3. Validasi Jam Pulang Minimal (WIB - BUG-04)
   const minTime = geofence.office?.jamPulangMinimal || "16:00";
   const [minHour, minMinute] = minTime.split(":").map(Number);
-  const nowHour = now.getHours();
-  const nowMinute = now.getMinutes();
+  const { hour: nowHour, minute: nowMinute } = getWIBHourMinute(now);
   if (nowHour < minHour || (nowHour === minHour && nowMinute < minMinute)) {
     return {
       success: false,
@@ -389,17 +409,45 @@ export async function recordCheckOut(
     },
   };
 
+  // BUG-02 FIX: Gunakan runTransaction untuk check-and-update atomik pada Check-Out
   if (isFirebaseAdminConfigured()) {
     try {
       const docRef = adminPresensiDb.collection("presensi").doc(docId);
-      await docRef.set(updatedRecord, { merge: true });
-    } catch (err) {
+      await adminPresensiDb.runTransaction(async (transaction) => {
+        const snap = await transaction.get(docRef);
+        if (!snap.exists) {
+          throw new Error("NOT_CHECKED_IN");
+        }
+        const currentData = snap.data() as PresensiRecord;
+        if (!currentData.checkIn) {
+          throw new Error("NOT_CHECKED_IN");
+        }
+        if (currentData.checkOut) {
+          throw new Error("ALREADY_CHECKED_OUT");
+        }
+        transaction.set(docRef, updatedRecord, { merge: true });
+      });
+    } catch (err: any) {
+      if (err?.message === "NOT_CHECKED_IN") {
+        return { success: false, message: "Anda belum melakukan Check-In untuk hari ini." };
+      }
+      if (err?.message === "ALREADY_CHECKED_OUT") {
+        return { success: false, message: "Anda sudah melakukan Check-Out untuk hari ini." };
+      }
       console.warn("[Presensi] Gagal memperbarui Check-Out di Firestore:", err);
     }
   }
 
   if (process.env.NODE_ENV === "development") {
-    getDevPresensiStore().set(docId, updatedRecord);
+    const store = getDevPresensiStore();
+    const existingDev = store.get(docId);
+    if (!existingDev || !existingDev.checkIn) {
+      return { success: false, message: "Anda belum melakukan Check-In untuk hari ini." };
+    }
+    if (existingDev.checkOut) {
+      return { success: false, message: "Anda sudah melakukan Check-Out untuk hari ini." };
+    }
+    store.set(docId, updatedRecord);
   }
 
   // Rekam Audit Log

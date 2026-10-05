@@ -65,3 +65,38 @@ export const CreatePegawaiSchema = z.object({
   atasanNama: z.string().optional(),
   nomorHp: z.string().optional(),
 });
+
+export const JenisRevisiPresensiSchema = z.enum([
+  "koreksi_jam_masuk",
+  "koreksi_jam_pulang",
+  "koreksi_status",
+  "presensi_susulan",
+]);
+
+export const AjukanRevisiPresensiSchema = z.object({
+  tanggal: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal harus YYYY-MM-DD"),
+  jenisRevisi: JenisRevisiPresensiSchema,
+  statusSemula: z.string().min(1, "Status semula wajib dipilih"),
+  statusDiajukan: z.string().min(1, "Status yang diajukan wajib dipilih"),
+  jamMasukSemula: z.string().optional(),
+  jamMasukDiajukan: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Format jam masuk harus HH:MM (contoh: 07:30)")
+    .optional()
+    .or(z.literal("")),
+  jamPulangSemula: z.string().optional(),
+  jamPulangDiajukan: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Format jam pulang harus HH:MM (contoh: 16:30)")
+    .optional()
+    .or(z.literal("")),
+  alasan: z
+    .string()
+    .min(10, "Alasan permohonan revisi minimal 10 karakter")
+    .max(500, "Alasan permohonan revisi maksimal 500 karakter"),
+  lampiranUrl: z
+    .string()
+    .url("Format URL lampiran tidak valid")
+    .optional()
+    .or(z.literal("")),
+});

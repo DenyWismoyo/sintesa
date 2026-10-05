@@ -3,9 +3,7 @@
 import { adminPresensiDb, isFirebaseAdminConfigured } from "@/lib/presensi/firebase-admin";
 import { requireAuth } from "@/lib/presensi/session";
 import { PengajuanIzinItem } from "@/types/presensi";
-
-// In-memory dev store untuk izin
-const devIzinStore = new Map<string, PengajuanIzinItem>();
+import { getDevIzinStore, getDevPresensiStore } from "@/data/presensi/seedData";
 
 /**
  * Mengambil daftar pengajuan izin.
@@ -40,7 +38,7 @@ export async function getIzinList(userId?: string): Promise<PengajuanIzinItem[]>
 
   // FIX: Dev store fallback
   if (process.env.NODE_ENV === "development") {
-    let list = Array.from(devIzinStore.values()).sort(
+    let list = Array.from(getDevIzinStore().values()).sort(
       (a, b) => b.createdAt.localeCompare(a.createdAt)
     );
     if (userId) {
@@ -95,7 +93,7 @@ export async function submitIzin(
   }
 
   if (process.env.NODE_ENV === "development") {
-    devIzinStore.set(id, record);
+    getDevIzinStore().set(id, record);
   }
 
   return { success: true, data: record, message: "Pengajuan izin berhasil diajukan." };
@@ -125,7 +123,7 @@ export async function approveIzin(
       console.warn("[Izin Approve] Gagal membaca Firestore:", err);
     }
   } else if (process.env.NODE_ENV === "development") {
-    target = devIzinStore.get(izinId) || null;
+    target = getDevIzinStore().get(izinId) || null;
   }
 
   if (!target) return { success: false, message: "Dokumen izin tidak ditemukan." };
@@ -138,42 +136,62 @@ export async function approveIzin(
   if (isFirebaseAdminConfigured()) {
     try {
       await adminPresensiDb.collection("izin").doc(izinId).update({ status: "disetujui" });
-      
-      // Auto-generate presensi records for the approved izin
-      const startDate = new Date(target.tanggalMulai);
-      const endDate = new Date(target.tanggalSelesai);
-      
-      let statusPresensi: any = "izin";
-      if (target.jenis === "Sakit") statusPresensi = "sakit";
-      else if (target.jenis === "Dinas Luar") statusPresensi = "dinas";
-      else if (target.jenis === "Cuti Tahunan") statusPresensi = "cuti";
-
-      let current = new Date(startDate);
-      while (current <= endDate) {
-        const dStr = current.toISOString().split("T")[0];
-        const docId = `${target.userId}_${dStr}`;
-        const pRecord = {
-          id: docId,
-          userId: target.userId,
-          nip: target.nip,
-          nama: target.nama,
-          orgId: target.orgId,
-          tanggal: dStr,
-          status: statusPresensi,
-          keterangan: `${target.jenis}: ${target.alasan}`,
-          izinId: target.id,
-          suratIzinUrl: target.dokumenUrl || null
-        };
-        await adminPresensiDb.collection("presensi").doc(docId).set(pRecord, { merge: true });
-        current.setDate(current.getDate() + 1);
-      }
     } catch (err) {
       console.warn("[Izin Approve] Gagal update Firestore:", err);
     }
   }
 
+  // Auto-generate presensi records for the approved izin (hanya hari kerja, lewati weekend - BUG-05)
+  const startDate = new Date(target.tanggalMulai);
+  const endDate = new Date(target.tanggalSelesai);
+  
+  let statusPresensi: any = "izin";
+  if (target.jenis === "Sakit") statusPresensi = "sakit";
+  else if (target.jenis === "Dinas Luar") statusPresensi = "dinas";
+  else if (target.jenis === "Cuti Tahunan") statusPresensi = "cuti";
+
+  let current = new Date(startDate);
+  while (current <= endDate) {
+    const dayOfWeek = current.getDay();
+    // BUG-05: Lewati hari Minggu (0) dan Sabtu (6)
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      current.setDate(current.getDate() + 1);
+      continue;
+    }
+
+    const dStr = current.toISOString().split("T")[0];
+    const docId = `${target.userId}_${dStr}`;
+    const pRecord = {
+      id: docId,
+      userId: target.userId,
+      nip: target.nip,
+      nama: target.nama,
+      orgId: target.orgId,
+      tanggal: dStr,
+      status: statusPresensi,
+      keterangan: `${target.jenis}: ${target.alasan}`,
+      izinId: target.id,
+      suratIzinUrl: target.dokumenUrl || null
+    };
+
+    if (isFirebaseAdminConfigured()) {
+      try {
+        await adminPresensiDb.collection("presensi").doc(docId).set(pRecord, { merge: true });
+      } catch (err) {
+        console.warn("[Izin Approve] Gagal simpan record presensi:", err);
+      }
+    }
+
+    // BUG-06: Sinkronisasi dev presensi store saat dev mode
+    if (process.env.NODE_ENV === "development") {
+      getDevPresensiStore().set(docId, pRecord as any);
+    }
+
+    current.setDate(current.getDate() + 1);
+  }
+
   if (process.env.NODE_ENV === "development") {
-    devIzinStore.set(izinId, updated);
+    getDevIzinStore().set(izinId, updated);
   }
 
   return { success: true, data: updated, message: "Pengajuan izin berhasil disetujui." };
@@ -203,7 +221,7 @@ export async function rejectIzin(
       console.warn("[Izin Reject] Gagal membaca Firestore:", err);
     }
   } else if (process.env.NODE_ENV === "development") {
-    target = devIzinStore.get(izinId) || null;
+    target = getDevIzinStore().get(izinId) || null;
   }
 
   if (!target) return { success: false, message: "Dokumen izin tidak ditemukan." };
@@ -222,7 +240,7 @@ export async function rejectIzin(
   }
 
   if (process.env.NODE_ENV === "development") {
-    devIzinStore.set(izinId, updated);
+    getDevIzinStore().set(izinId, updated);
   }
 
   return { success: true, data: updated, message: `Pengajuan izin ditolak: ${alasanPenolakan}` };

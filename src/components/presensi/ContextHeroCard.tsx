@@ -22,7 +22,7 @@ export default function ContextHeroCard({ status, presensiData, user }: ContextH
     case "hadir":
       bgGradient = "from-emerald-500 to-teal-600";
       title = "Hadir";
-      subtitle = "Anda sudah check-in hari ini. Jangan lupa check-out nanti.";
+      subtitle = "Presensi masuk berhasil dicatat. Silakan laporkan aktivitas kerja harian (LKH) Anda.";
       Icon = CheckCircle2;
       iconColor = "text-emerald-100";
       if (presensiData?.checkOut) {

@@ -5,9 +5,9 @@ import Link from "next/link";
 import { usePresensiAuth } from "@/lib/presensi/auth-context";
 import { usePresensiHarian } from "@/hooks/presensi/usePresensi";
 import { useKantorList } from "@/hooks/presensi/useKantor";
+import { useLKHHarian } from "@/hooks/presensi/useLKH";
 import { detectNearestOffice, DEFAULT_KANTOR_LIST, isPointInPolygon } from "@/data/presensi/masterKantor";
 import { GeolocationPoint, KantorUnit } from "@/types/presensi";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -31,9 +31,13 @@ export default function QuickPresensiWidget() {
   const { user } = usePresensiAuth();
   const todayDateStr = useMemo(() => new Date().toISOString().split("T")[0], []);
 
-  // Data presensi & kantor
+  // Data presensi & kantor & LKH
   const { data: presensiToday } = usePresensiHarian(user?.id, todayDateStr);
   const { data: officeListFromDb } = useKantorList(user?.orgId);
+  const { data: lkhToday } = useLKHHarian(user?.id, todayDateStr);
+
+  const totalLkhItems = lkhToday?.kegiatan?.length || 0;
+  const hasLkhReport = totalLkhItems >= 1;
 
   const activeOffices: KantorUnit[] = useMemo(() => {
     if (officeListFromDb && officeListFromDb.length > 0) {
@@ -95,8 +99,8 @@ export default function QuickPresensiWidget() {
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 5000,
+        timeout: 15000,
+        maximumAge: 0,
       }
     );
   }, []);
@@ -105,11 +109,11 @@ export default function QuickPresensiWidget() {
     refreshLocation();
   }, [refreshLocation]);
 
-  // Hitung kantor terdekat dan radius
+  // Hitung kantor terdekat dan radius (memperhitungkan akurasi satelit)
   const nearestResult = useMemo(() => {
     if (!userCoords) return null;
-    return detectNearestOffice(userCoords, activeOffices);
-  }, [userCoords, activeOffices]);
+    return detectNearestOffice(userCoords, activeOffices, gpsAccuracy ?? undefined);
+  }, [userCoords, activeOffices, gpsAccuracy]);
 
   // Status presensi
   const isCheckedIn = Boolean(presensiToday?.checkIn?.waktu);
@@ -173,7 +177,7 @@ export default function QuickPresensiWidget() {
   };
 
   return (
-    <Card className="card-interactive p-0 overflow-hidden">
+    <div className="card-interactive overflow-hidden">
       {/* Header bar dengan status GPS & live radar */}
       <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 p-4 text-white">
         <div className="flex items-center justify-between gap-2">
@@ -209,8 +213,8 @@ export default function QuickPresensiWidget() {
           </motion.div>
         </div>
       </div>
-
-      <CardContent className="p-4 sm:p-5 space-y-4">
+      
+      <div className="p-4 sm:p-5 space-y-4">
         {/* Status Radar & Jarak ke Kantor */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* Box Jarak & Geofence */}
@@ -219,7 +223,7 @@ export default function QuickPresensiWidget() {
               "widget-box",
               isLocating
                 ? "bg-muted text-muted-foreground"
-                : isWithinRadius
+                : isValidLocation
                 ? "bg-success/10 text-success"
                 : "bg-warning/10 text-warning"
             )}
@@ -229,7 +233,7 @@ export default function QuickPresensiWidget() {
                 "widget-icon-box",
                 isLocating
                   ? "bg-muted-foreground/20 text-muted-foreground"
-                  : isWithinRadius
+                  : isValidLocation
                   ? "bg-success text-success-foreground"
                   : "bg-warning text-warning-foreground"
               )}
@@ -248,7 +252,7 @@ export default function QuickPresensiWidget() {
                   <>
                     <span>{distance} m</span>
                     <span className="text-[11px] font-medium text-slate-500">
-                      (Batas {nearestOffice?.radiusMeter || 150}m)
+                      (Batas {nearestOffice?.radiusMeter || 200}m)
                     </span>
                   </>
                 ) : (
@@ -258,15 +262,19 @@ export default function QuickPresensiWidget() {
               <div className="text-[10px] font-semibold mt-0.5">
                 {isLocating ? (
                   <span className="text-muted-foreground">Menghubungkan satelit...</span>
-                ) : isWithinRadius ? (
+                ) : isValidLocation ? (
                   <span className="text-success flex items-center gap-1">
                     <CheckCircle2 className="w-3 h-3 text-success" />
-                    Dalam Radius Kantor Resmi
+                    {isWithinRadius
+                      ? nearestResult?.closestFacilityName
+                        ? `Dalam Radius ${nearestResult.closestFacilityName}`
+                        : "Dalam Radius Kantor Resmi"
+                      : "Dalam Kawasan STP (8 Hektar)"}
                   </span>
                 ) : (
                   <span className="text-warning flex items-center gap-1">
                     <AlertTriangle className="w-3 h-3 text-warning" />
-                    Di Luar Radius Kantor
+                    Di Luar Radius Kantor ({distance}m)
                   </span>
                 )}
               </div>
@@ -347,34 +355,57 @@ export default function QuickPresensiWidget() {
               </Badge>
             </div>
           ) : isCheckedIn && !isCheckedOut ? (
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               <div className="flex items-center justify-between text-xs px-1">
-                <span className="text-slate-500 font-medium">Status Masuk:</span>
+                <span className="text-slate-500 font-medium">Status Jam Kerja:</span>
                 <span className="font-semibold text-emerald-700 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> {checkInTimeStr}
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Masuk: {checkInTimeStr}
                 </span>
               </div>
 
-              <Link href="/presensi/scan" onClick={handleWidgetActionClick} className="block w-full">
-                <motion.div whileTap={{ scale: 0.96 }} whileHover={{ scale: 1.02 }}>
+              {/* Tombol Prioritas Jam Kerja: Input LKH & Presensi Pulang */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Link href="/presensi/laporan" className="block w-full">
                   <Button
+                    variant="outline"
                     className={cn(
-                      "btn-base w-full shadow-md",
-                      isAfternoon
-                        ? "bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white ring-2 ring-orange-400/30"
-                        : "bg-foreground hover:bg-foreground/90 text-background"
+                      "w-full h-11 border font-semibold text-xs gap-1.5 shadow-xs",
+                      hasLkhReport
+                        ? "border-emerald-300 text-emerald-800 bg-emerald-50/60 hover:bg-emerald-100"
+                        : "border-amber-300 text-amber-800 bg-amber-50/80 hover:bg-amber-100 animate-pulse"
                     )}
                   >
-                    <ClockCheck className="w-5 h-5" />
+                    <FileText className="w-4 h-4 text-emerald-600" />
                     <span>
-                      {isAfternoon
-                        ? "Ambil Presensi Pulang Sekarang"
-                        : "Presensi Pulang (Dibuka 16:00 WIB)"}
+                      {hasLkhReport
+                        ? `LKH Terisi (${totalLkhItems})`
+                        : "Catat LKH Hari Ini *"}
                     </span>
-                    <ArrowRight className="w-4 h-4 ml-1 opacity-70" />
                   </Button>
-                </motion.div>
-              </Link>
+                </Link>
+
+                <Link href="/presensi/scan" onClick={handleWidgetActionClick} className="block w-full">
+                  <Button
+                    className={cn(
+                      "w-full h-11 font-semibold text-xs shadow-xs gap-1.5",
+                      !hasLkhReport
+                        ? "bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300"
+                        : currentHour >= 15
+                        ? "bg-slate-900 hover:bg-black text-white"
+                        : "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200"
+                    )}
+                  >
+                    <ClockCheck className={cn("w-4 h-4", hasLkhReport && currentHour >= 15 ? "text-teal-400" : "text-slate-500")} />
+                    <span>
+                      {!hasLkhReport
+                        ? "Wajib Isi 1 LKH"
+                        : currentHour >= 15
+                        ? "Presensi Pulang"
+                        : "Pulang (Dibuka 15:00)"}
+                    </span>
+                  </Button>
+                </Link>
+              </div>
             </div>
           ) : (
             <Link href="/presensi/scan" onClick={handleWidgetActionClick} className="block w-full">
@@ -424,7 +455,7 @@ export default function QuickPresensiWidget() {
             </strong>
           </span>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

@@ -29,6 +29,7 @@ import {
   ExternalLink,
   Bell,
   BellRing,
+  RotateCcw,
 } from "lucide-react";
 import {
   requestNotificationPermission,
@@ -123,7 +124,7 @@ export default function Header() {
   const handleLogout = async () => {
     try {
       await logout();
-      router.push("/presensi/login");
+      router.replace("/presensi/login");
     } catch (err) {
       console.error("Gagal logout:", err);
     }
@@ -152,6 +153,12 @@ export default function Header() {
       name: "Pengajuan Cuti / Izin",
       href: "/presensi/izin",
       icon: ShieldCheck,
+      roles: ["admin", "atasan", "pegawai"],
+    },
+    {
+      name: "Permohonan Revisi",
+      href: "/presensi/revisi",
+      icon: RotateCcw,
       roles: ["admin", "atasan", "pegawai"],
     },
     {

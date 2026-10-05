@@ -21,7 +21,7 @@ export default function LogbookDateStrip({
   const today = new Date();
 
   return (
-    <div className={`p-2 sm:p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center justify-between gap-2 ${className}`}>
+    <div className={`p-2 sm:p-3 rounded-none sm:rounded-2xl bg-white border-y sm:border border-slate-200/80 shadow-none sm:shadow-xs flex items-center justify-between gap-2 ${className}`}>
       {/* Previous Button */}
       <button
         type="button"

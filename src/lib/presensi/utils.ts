@@ -58,3 +58,46 @@ export function calculateStorageQuota(
     statusText,
   };
 }
+
+/**
+ * Mengonversi Date / ISO string ke komponen jam dan menit WIB (Asia/Jakarta)
+ * Mencegah bug timezone UTC pada environment serverless/cloud/edge (BUG-04).
+ */
+export function getWIBHourMinute(dateOrIso?: Date | string): { hour: number; minute: number } {
+  const date = typeof dateOrIso === "string" ? new Date(dateOrIso) : (dateOrIso || new Date());
+  
+  const formatter = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Jakarta",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  const parts = formatter.formatToParts(date);
+  const hour = parseInt(parts.find((p) => p.type === "hour")?.value || "0", 10);
+  const minute = parseInt(parts.find((p) => p.type === "minute")?.value || "0", 10);
+
+  return { hour, minute };
+}
+
+/**
+ * Format string jam:menit WIB (contoh: "07:15")
+ */
+export function formatWIBTime(dateOrIso?: Date | string): string {
+  const { hour, minute } = getWIBHourMinute(dateOrIso);
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+}
+
+/**
+ * Mendapatkan string tanggal YYYY-MM-DD dalam zona waktu WIB
+ */
+export function getWIBDateString(dateOrIso?: Date | string): string {
+  const date = typeof dateOrIso === "string" ? new Date(dateOrIso) : (dateOrIso || new Date());
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Jakarta",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  return formatter.format(date);
+}
