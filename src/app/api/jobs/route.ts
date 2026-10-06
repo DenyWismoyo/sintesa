@@ -2,7 +2,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { filterAndSortJobs } from '@/services/job.service';
 import { jobDbService } from '@/services/jobDb.service';
-import { MASTER_JOBS } from '@/data/jobs/masterJobs';
 import { JobListing } from '@/types/job.types';
 
 export const dynamic = 'force-dynamic';
@@ -36,10 +35,10 @@ export async function GET(request: NextRequest) {
     const sourceParam = (searchParams.get('source') as any) || 'all';
     const sort = (searchParams.get('sort') as any) || 'newest';
 
-    // 1. Ambil data langsung dari Database Firestore
+    // 1. Ambil data langsung dari Database (murni dari internet)
     let jobsFromDb = await jobDbService.getJobsFromFirestore();
 
-    // 2. Jika Database Firestore masih kosong, lakukan inisialisasi / sinkronisasi awal
+    // 2. Jika Database masih kosong, lakukan inisialisasi / sinkronisasi dari RapidAPI
     if (jobsFromDb.length === 0) {
       try {
         const syncRes = await jobDbService.syncWeeklyJobs({ force: true });
@@ -51,11 +50,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Fallback jika Firestore belum terkoneksi / offline: gunakan MASTER_JOBS lokal
-    const activePool: JobListing[] =
-      jobsFromDb.length > 0
-        ? jobsFromDb
-        : MASTER_JOBS.map((j) => ({ ...j, source: 'stp_partner' }));
+    // Murni seluruh data yang ditarik dari internet (RapidAPI JSearch)
+    const activePool: JobListing[] = jobsFromDb;
 
     // 3. Filter dan sort seluruh pool lowongan
     const result = filterAndSortJobs(activePool, {

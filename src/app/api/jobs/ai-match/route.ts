@@ -1,7 +1,7 @@
 // src/app/api/jobs/ai-match/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { callClarioChat, CLARIO_MODELS } from '@/lib/clario';
-import { MASTER_JOBS } from '@/data/jobs/masterJobs';
+import { jobDbService } from '@/services/jobDb.service';
 import { JobAiMatchRequestSchema, JobAiMatchResponse } from '@/types/job.types';
 
 export const dynamic = 'force-dynamic';
@@ -25,8 +25,8 @@ export async function POST(request: NextRequest) {
     const { jobId, alumniName, alumniProgram, alumniSkills, alumniExperience, resumeSnippet } =
       parseResult.data;
 
-    // Cari data lowongan
-    const job = MASTER_JOBS.find((j) => j.id === jobId || j.slug === jobId);
+    // Cari data lowongan dari database snapshot
+    const job = await jobDbService.getJobById(jobId);
     if (!job) {
       return NextResponse.json(
         { success: false, message: 'Lowongan pekerjaan tidak ditemukan.' },

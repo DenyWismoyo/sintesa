@@ -165,19 +165,20 @@ export default function JobFilterToolbar({
           </select>
         </div>
 
-        {/* Sumber Lowongan (Mitra STP vs Realtime API) */}
+        {/* Sumber Lowongan (Portal Asal Internet) */}
         <div>
           <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-            Sumber Data
+            Sumber Portal
           </label>
           <select
             value={sourceFilter || 'all'}
             onChange={(e) => setSourceFilter?.(e.target.value)}
             className="w-full h-8.5 px-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50/60 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
           >
-            <option value="all">Semua Sumber</option>
-            <option value="stp_partner">Mitra Kawasan STP</option>
-            <option value="jsearch_realtime">Live Realtime API</option>
+            <option value="all">Semua Portal Realtime</option>
+            <option value="Indeed">Indeed</option>
+            <option value="LinkedIn">LinkedIn</option>
+            <option value="ZipRecruiter">ZipRecruiter</option>
           </select>
         </div>
 
@@ -193,38 +194,27 @@ export default function JobFilterToolbar({
           >
             <option value="newest">Terbaru</option>
             <option value="salary_high">Gaji Tertinggi</option>
-            <option value="featured">Unggulan STP</option>
           </select>
         </div>
 
-        {/* Toggle Mitra STP & Reset */}
+        {/* Reset Filter Button */}
         <div className="col-span-2 sm:col-span-4 lg:col-span-1 flex items-end gap-2">
-          <Button
-            type="button"
-            variant={isStpPartnerOnly ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setIsStpPartnerOnly(!isStpPartnerOnly)}
-            className={`flex-1 h-8.5 text-xs font-semibold rounded-xl gap-1.5 ${
-              isStpPartnerOnly
-                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                : 'border-slate-200 text-slate-700 hover:bg-slate-50'
-            }`}
-          >
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Mitra STP</span>
-          </Button>
-
-          {hasActiveFilter && (
+          {hasActiveFilter ? (
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={onReset}
-              className="h-8.5 px-2.5 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-xl"
-              title="Reset Filter"
+              className="w-full h-8.5 px-2.5 text-xs font-semibold text-rose-600 border-rose-200 hover:bg-rose-50 rounded-xl gap-1.5"
+              title="Reset Semua Filter"
             >
               <RotateCcw className="w-3.5 h-3.5" />
+              <span>Reset Filter</span>
             </Button>
+          ) : (
+            <div className="w-full h-8.5 flex items-center justify-center text-[11px] text-slate-400 italic">
+              Live Realtime
+            </div>
           )}
         </div>
       </div>

@@ -1,6 +1,4 @@
 // src/services/jobDb.service.ts
-import fs from 'fs';
-import path from 'path';
 import {
   collection,
   doc,
@@ -15,15 +13,12 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { JobListing, JobListingSchema } from '@/types/job.types';
-import { MASTER_JOBS } from '@/data/jobs/masterJobs';
 import { fetchJSearchJobs } from '@/services/jsearch.service';
+import SYNCED_SNAPSHOT from '@/data/jobs/syncedJobs.json';
 
 const JOBS_COLLECTION = 'jobs';
 const SYNC_METADATA_DOC = 'app_settings/jobs_sync';
 const SYNC_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000; // 7 hari (seminggu sekali)
-
-// File snapshot cadangan lokal untuk memastikan data instan (sub-5ms) & offline-resilient
-const LOCAL_CACHE_PATH = path.join(process.cwd(), 'src', 'data', 'jobs', 'syncedJobs.json');
 
 export interface JobSyncMetadata {
   lastSyncedAt: number | null;
@@ -38,26 +33,22 @@ export interface JobSyncMetadata {
 }
 
 function readLocalSnapshot(): { jobs: JobListing[]; metadata?: JobSyncMetadata } | null {
-  try {
-    if (fs.existsSync(LOCAL_CACHE_PATH)) {
-      const raw = fs.readFileSync(LOCAL_CACHE_PATH, 'utf-8');
-      return JSON.parse(raw);
-    }
-  } catch (err) {
-    // Abaikan jika fs tidak tersedia (misal di edge runtime)
+  if (SYNCED_SNAPSHOT && Array.isArray((SYNCED_SNAPSHOT as any).jobs)) {
+    return SYNCED_SNAPSHOT as any;
   }
   return null;
 }
 
-function writeLocalSnapshot(jobs: JobListing[], metadata: JobSyncMetadata) {
-  try {
-    const dir = path.dirname(LOCAL_CACHE_PATH);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
+async function writeLocalSnapshot(jobs: JobListing[], metadata: JobSyncMetadata) {
+  if (typeof window === 'undefined') {
+    try {
+      const fs = await import('fs');
+      const path = await import('path');
+      const localPath = path.join(process.cwd(), 'src', 'data', 'jobs', 'syncedJobs.json');
+      fs.writeFileSync(localPath, JSON.stringify({ jobs, metadata }, null, 2), 'utf-8');
+    } catch (err) {
+      // Abaikan jika read-only
     }
-    fs.writeFileSync(LOCAL_CACHE_PATH, JSON.stringify({ jobs, metadata }, null, 2), 'utf-8');
-  } catch (err) {
-    // Abaikan jika environment read-only
   }
 }
 
@@ -88,9 +79,9 @@ export const jobDbService = {
       lastSyncedAt: null,
       nextSyncAt: null,
       syncIntervalDays: 7,
-      totalJobsInDb: MASTER_JOBS.length,
+      totalJobsInDb: 0,
       realtimeJobsCount: 0,
-      stpJobsCount: MASTER_JOBS.length,
+      stpJobsCount: 0,
       status: 'IDLE',
       provider: 'JSearch RapidAPI',
     };
@@ -129,11 +120,10 @@ export const jobDbService = {
         return jobs;
       }
     } catch (err) {
-      // Fallback ke master data lokal
+      // Fallback
     }
 
-    // 3. Fallback ke data master mitra Solo Technopark
-    return MASTER_JOBS.map((j) => ({ ...j, source: 'stp_partner', isStpPartner: true }));
+    return [];
   },
 
   /**
@@ -144,8 +134,7 @@ export const jobDbService = {
     const found = allJobs.find((j) => j.id === idOrSlug || j.slug === idOrSlug);
     if (found) return found;
 
-    const fallback = MASTER_JOBS.find((j) => j.id === idOrSlug || j.slug === idOrSlug);
-    return fallback || null;
+    return null;
   },
 
   /**
@@ -213,14 +202,7 @@ export const jobDbService = {
     console.log('[jobDbService] Memulai sinkronisasi lowongan dari RapidAPI JSearch...');
 
     try {
-      // 1. Siapkan data master mitra kawasan Solo Technopark
-      const stpMasterJobs: JobListing[] = MASTER_JOBS.map((j) => ({
-        ...j,
-        source: 'stp_partner',
-        isStpPartner: true,
-      }));
-
-      // 2. Tarik lowongan realtime dari RapidAPI JSearch
+      // 1. Tarik lowongan realtime murni dari RapidAPI JSearch internet
       const hasApiKey = Boolean(process.env.RAPIDAPI_KEY || process.env.JSEARCH_API_KEY);
       let realtimeJobs: JobListing[] = [];
 
@@ -258,10 +240,10 @@ export const jobDbService = {
         });
       }
 
-      // 3. Gabungkan seluruh lowongan: Mitra STP + Live RapidAPI Realtime
-      const allJobsToSave: JobListing[] = [...stpMasterJobs, ...realtimeJobs];
+      // 2. Seluruh lowongan murni 100% dari internet
+      const allJobsToSave: JobListing[] = realtimeJobs;
 
-      // 4. Perbarui metadata jadwal seminggu sekali
+      // 3. Perbarui metadata jadwal seminggu sekali
       const nextSyncAt = now + SYNC_INTERVAL_MS;
       const updatedMetadata: JobSyncMetadata = {
         lastSyncedAt: now,
@@ -269,10 +251,10 @@ export const jobDbService = {
         syncIntervalDays: 7,
         totalJobsInDb: allJobsToSave.length,
         realtimeJobsCount: realtimeJobs.length,
-        stpJobsCount: stpMasterJobs.length,
+        stpJobsCount: 0,
         status: 'SUCCESS',
-        message: `Berhasil menyinkronkan ${allJobsToSave.length} lowongan (${realtimeJobs.length} live RapidAPI + ${stpMasterJobs.length} mitra STP). Update berikutnya dalam 7 hari.`,
-        provider: hasApiKey ? 'JSearch RapidAPI v2' : 'Internal Master STP',
+        message: `Berhasil menyinkronkan ${allJobsToSave.length} lowongan murni dari internet (RapidAPI JSearch). Update berikutnya dalam 7 hari.`,
+        provider: hasApiKey ? 'JSearch RapidAPI v2' : 'Internet Realtime',
       };
 
       // 5. Simpan snapshot lokal & simpan ke Firestore

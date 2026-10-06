@@ -5,8 +5,6 @@ import {
   JobAiMatchRequest,
   JobAiMatchResponse,
 } from '@/types/job.types';
-import { MASTER_JOBS } from '@/data/jobs/masterJobs';
-
 export const jobService = {
   /**
    * Mengambil daftar lowongan dengan filter dan pencarian
@@ -36,12 +34,18 @@ export const jobService = {
           return json;
         }
       } catch (err) {
-        console.warn('[jobService] API fetch gagal, beralih ke local master jobs:', err);
+        console.warn('[jobService] API fetch gagal, beralih ke database snapshot:', err);
       }
     }
 
-    // Fallback in-memory processing
-    return filterAndSortJobs(MASTER_JOBS, filters);
+    // Fallback database snapshot murni internet
+    try {
+      const { jobDbService } = await import('@/services/jobDb.service');
+      const allJobs = await jobDbService.getJobsFromFirestore();
+      return filterAndSortJobs(allJobs, filters);
+    } catch {
+      return filterAndSortJobs([], filters);
+    }
   },
 
   /**
@@ -56,12 +60,16 @@ export const jobService = {
           if (json.job) return json.job;
         }
       } catch (err) {
-        console.warn('[jobService] Detail API fetch gagal, fallback local:', err);
+        console.warn('[jobService] Detail API fetch gagal, fallback database:', err);
       }
     }
 
-    const found = MASTER_JOBS.find((j) => j.id === idOrSlug || j.slug === idOrSlug);
-    return found || null;
+    try {
+      const { jobDbService } = await import('@/services/jobDb.service');
+      return await jobDbService.getJobById(idOrSlug);
+    } catch {
+      return null;
+    }
   },
 
   /**

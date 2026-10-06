@@ -1,18 +1,81 @@
 // src/__tests__/jobs.test.ts
 import { describe, it, expect } from 'vitest';
 import {
+  JobListing,
   JobListingSchema,
   JobAiMatchRequestSchema,
   JobAiMatchResponseSchema,
 } from '@/types/job.types';
-import { MASTER_JOBS } from '@/data/jobs/masterJobs';
 import { filterAndSortJobs } from '@/services/job.service';
+
+const MOCK_TEST_JOBS: JobListing[] = [
+  {
+    id: 'test-job-01',
+    slug: 'junior-software-qa-engineer',
+    title: 'Junior Software QA & Automation Engineer',
+    company: 'Shopee Solo Technopark Hub',
+    companyType: 'Startup / Industri',
+    category: 'IT & Rekayasa Perangkat Lunak',
+    location: 'Surakarta, Jawa Tengah',
+    city: 'Surakarta',
+    workType: 'Full-time',
+    workSetup: 'On-site (Solo Technopark)',
+    experienceLevel: 'Fresh Graduate / Alumni Pelatihan',
+    salary: { min: 5500000, max: 8000000, currency: 'IDR', period: 'Bulan', isNegotiable: true, isDisclosed: true },
+    description: 'Pengujian perangkat lunak manual dan otomatis.',
+    responsibilities: ['Menulis test case', 'Automation testing'],
+    requirements: ['Memahami QA', 'Pengalaman Postman'],
+    benefits: ['Asuransi kesehatan'],
+    skills: ['QA', 'Cypress', 'Postman'],
+    relevantTrainingPrograms: ['Bootcamp Software Quality Assurance', 'Bootcamp Fullstack Web'],
+    applicationUrl: 'https://shopee.co.id/careers',
+    applySource: 'LinkedIn',
+    source: 'jsearch_realtime',
+    isStpPartner: true,
+    isFeatured: true,
+    postedAt: Date.now() - 100000,
+    deadlineAt: Date.now() + 1000000,
+    viewsCount: 100,
+    applicantCount: 5,
+    isActive: true,
+  },
+  {
+    id: 'test-job-02',
+    slug: 'cnc-machinist-operator',
+    title: 'Operator Mesin CNC Milling 5-Axis',
+    company: 'PT ATMI Solo Presisi',
+    companyType: 'Startup / Industri',
+    category: 'Manufaktur Presisi & Mekatronika',
+    location: 'Solo, Jawa Tengah',
+    city: 'Surakarta',
+    workType: 'Full-time',
+    workSetup: 'On-site (Solo Technopark)',
+    experienceLevel: 'Fresh Graduate / Alumni Pelatihan',
+    salary: { min: 4500000, max: 6500000, currency: 'IDR', period: 'Bulan', isNegotiable: true, isDisclosed: true },
+    description: 'Operator mesin CNC presisi tinggi.',
+    responsibilities: ['Operasi mesin CNC', 'Quality check'],
+    requirements: ['Memahami G-Code'],
+    benefits: ['Tunjangan shift'],
+    skills: ['CNC', 'Mastercam', 'G-Code'],
+    relevantTrainingPrograms: ['Pelatihan Pemrograman & Pengoperasian Mesin CNC Milling'],
+    applicationUrl: 'https://atmi.co.id/karir',
+    applySource: 'Indeed',
+    source: 'jsearch_realtime',
+    isStpPartner: true,
+    isFeatured: false,
+    postedAt: Date.now() - 50000,
+    deadlineAt: Date.now() + 1000000,
+    viewsCount: 80,
+    applicantCount: 2,
+    isActive: true,
+  },
+];
 
 describe('Bursa Karir & Talenta Alumni Solo Technopark', () => {
   describe('1. Zod Schema Integrity', () => {
-    it('seluruh data MASTER_JOBS harus valid sesuai JobListingSchema', () => {
-      expect(MASTER_JOBS.length).toBeGreaterThan(0);
-      MASTER_JOBS.forEach((job) => {
+    it('seluruh data MOCK_TEST_JOBS harus valid sesuai JobListingSchema', () => {
+      expect(MOCK_TEST_JOBS.length).toBeGreaterThan(0);
+      MOCK_TEST_JOBS.forEach((job) => {
         const result = JobListingSchema.safeParse(job);
         expect(result.success, `Job ${job.id} harus valid: ${JSON.stringify(result.error)}`).toBe(
           true
@@ -22,7 +85,7 @@ describe('Bursa Karir & Talenta Alumni Solo Technopark', () => {
 
     it('harus memvalidasi payload request AI Matcher dengan benar', () => {
       const validPayload = {
-        jobId: 'job-shopee-qa-01',
+        jobId: 'test-job-01',
         alumniName: 'Budi Santoso',
         alumniProgram: 'Bootcamp Software Quality Assurance',
         alumniSkills: ['Postman', 'Manual Testing', 'Cypress'],
@@ -42,20 +105,20 @@ describe('Bursa Karir & Talenta Alumni Solo Technopark', () => {
 
   describe('2. Job Filtering & Search Logic', () => {
     it('harus mampu memfilter lowongan berdasarkan kategori spesifik', () => {
-      const res = filterAndSortJobs(MASTER_JOBS, {
+      const res = filterAndSortJobs(MOCK_TEST_JOBS, {
         category: 'Manufaktur Presisi & Mekatronika',
       });
-      expect(res.jobs.length).toBeGreaterThan(0);
+      expect(res.jobs.length).toBe(1);
       res.jobs.forEach((j) => {
         expect(j.category).toBe('Manufaktur Presisi & Mekatronika');
       });
     });
 
     it('harus mampu memfilter lowongan yang selaras dengan program pelatihan alumni STP', () => {
-      const res = filterAndSortJobs(MASTER_JOBS, {
+      const res = filterAndSortJobs(MOCK_TEST_JOBS, {
         trainingProgram: 'Fullstack Web',
       });
-      expect(res.jobs.length).toBeGreaterThan(0);
+      expect(res.jobs.length).toBe(1);
       res.jobs.forEach((j) => {
         const hasProgram = j.relevantTrainingPrograms.some((p) =>
           p.toLowerCase().includes('fullstack web')
@@ -65,7 +128,7 @@ describe('Bursa Karir & Talenta Alumni Solo Technopark', () => {
     });
 
     it('harus mampu mencari lowongan berdasarkan keyword query', () => {
-      const res = filterAndSortJobs(MASTER_JOBS, {
+      const res = filterAndSortJobs(MOCK_TEST_JOBS, {
         query: 'Shopee',
       });
       expect(res.jobs.length).toBeGreaterThan(0);
@@ -73,17 +136,17 @@ describe('Bursa Karir & Talenta Alumni Solo Technopark', () => {
     });
 
     it('harus mampu mengurutkan lowongan berdasarkan gaji tertinggi', () => {
-      const res = filterAndSortJobs(MASTER_JOBS, {
+      const res = filterAndSortJobs(MOCK_TEST_JOBS, {
         sort: 'salary_high',
       });
-      expect(res.jobs.length).toBeGreaterThan(1);
+      expect(res.jobs.length).toBe(2);
       const firstSalary = res.jobs[0].salary.max || 0;
       const secondSalary = res.jobs[1].salary.max || 0;
       expect(firstSalary).toBeGreaterThanOrEqual(secondSalary);
     });
 
     it('harus menyaring lowongan khusus mitra resmi STP', () => {
-      const res = filterAndSortJobs(MASTER_JOBS, {
+      const res = filterAndSortJobs(MOCK_TEST_JOBS, {
         isStpPartner: true,
       });
       expect(res.jobs.length).toBeGreaterThan(0);
