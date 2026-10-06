@@ -24,3 +24,4 @@ export * from './triggers/customClaims';
 export * from './triggers/storageAutomation';
 export * from './triggers/tenantAggregation';
 export * from './triggers/cacheInvalidation';
+export * from './triggers/weeklyJobSync';

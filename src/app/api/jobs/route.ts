@@ -1,8 +1,8 @@
 // src/app/api/jobs/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { MASTER_JOBS } from '@/data/jobs/masterJobs';
 import { filterAndSortJobs } from '@/services/job.service';
-import { fetchJSearchJobs } from '@/services/jsearch.service';
+import { jobDbService } from '@/services/jobDb.service';
+import { MASTER_JOBS } from '@/data/jobs/masterJobs';
 import { JobListing } from '@/types/job.types';
 
 export const dynamic = 'force-dynamic';
@@ -10,6 +10,19 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
+
+    // Ambil detail jika parameter id diberikan
+    const jobId = searchParams.get('id');
+    if (jobId) {
+      const job = await jobDbService.getJobById(jobId);
+      if (!job) {
+        return NextResponse.json(
+          { success: false, message: 'Lowongan pekerjaan tidak ditemukan.' },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json({ success: true, job });
+    }
 
     // Ambil parameter filter
     const query = searchParams.get('q') || undefined;
@@ -23,49 +36,29 @@ export async function GET(request: NextRequest) {
     const sourceParam = (searchParams.get('source') as any) || 'all';
     const sort = (searchParams.get('sort') as any) || 'newest';
 
-    // 1. Ambil data lowongan realtime dari JSearch jika API Key tersedia
-    const hasApiKey = Boolean(process.env.RAPIDAPI_KEY || process.env.JSEARCH_API_KEY);
-    let realtimeJobs: JobListing[] = [];
-    let isRealtimeActive = false;
+    // 1. Ambil data langsung dari Database Firestore
+    let jobsFromDb = await jobDbService.getJobsFromFirestore();
 
-    if (hasApiKey && sourceParam !== 'stp_partner') {
+    // 2. Jika Database Firestore masih kosong, lakukan inisialisasi / sinkronisasi awal
+    if (jobsFromDb.length === 0) {
       try {
-        const jsearchResult = await fetchJSearchJobs({
-          query,
-          category,
-          location: 'Surakarta, Solo, Jawa Tengah, Indonesia',
-        });
-        realtimeJobs = jsearchResult.jobs;
-        isRealtimeActive = jsearchResult.isRealtime;
-      } catch (jsearchErr) {
-        console.warn('[API /api/jobs] Gagal menarik data realtime JSearch:', jsearchErr);
+        const syncRes = await jobDbService.syncWeeklyJobs({ force: true });
+        if (syncRes.success) {
+          jobsFromDb = await jobDbService.getJobsFromFirestore();
+        }
+      } catch (initErr) {
+        console.warn('[API /api/jobs] Gagal initial sync ke Firestore:', initErr);
       }
     }
 
-    // 2. Gabungkan data: Mitra Kawasan Solo Technopark + Lowongan Realtime Industri
-    // Berikan tag source eksplisit pada master jobs jika belum ada
-    const localMasterJobs: JobListing[] = MASTER_JOBS.map((j) => ({
-      ...j,
-      source: j.source || 'stp_partner',
-    }));
-
-    const combinedPool: JobListing[] = [...localMasterJobs, ...realtimeJobs];
-
-    // Ambil detail jika parameter id diberikan
-    const jobId = searchParams.get('id');
-    if (jobId) {
-      const job = combinedPool.find((j) => j.id === jobId || j.slug === jobId);
-      if (!job) {
-        return NextResponse.json(
-          { success: false, message: 'Lowongan pekerjaan tidak ditemukan.' },
-          { status: 404 }
-        );
-      }
-      return NextResponse.json({ success: true, job });
-    }
+    // Fallback jika Firestore belum terkoneksi / offline: gunakan MASTER_JOBS lokal
+    const activePool: JobListing[] =
+      jobsFromDb.length > 0
+        ? jobsFromDb
+        : MASTER_JOBS.map((j) => ({ ...j, source: 'stp_partner' }));
 
     // 3. Filter dan sort seluruh pool lowongan
-    const result = filterAndSortJobs(combinedPool, {
+    const result = filterAndSortJobs(activePool, {
       query,
       category,
       workType,
@@ -77,16 +70,20 @@ export async function GET(request: NextRequest) {
       sort,
     });
 
+    const syncMeta = await jobDbService.getSyncMetadata();
+
     return NextResponse.json(
       {
         success: true,
         ...result,
         meta: {
-          isRealtimeEnabled: hasApiKey,
-          isRealtimeActive,
-          realtimeJobsCount: realtimeJobs.length,
-          stpMasterJobsCount: localMasterJobs.length,
-          provider: hasApiKey ? 'JSearch RapidAPI' : 'Internal Master STP',
+          databaseStorage: 'Cloud Firestore (koleksi: jobs)',
+          totalInDatabase: activePool.length,
+          lastSyncedAt: syncMeta.lastSyncedAt,
+          nextSyncAt: syncMeta.nextSyncAt,
+          syncIntervalDays: syncMeta.syncIntervalDays || 7,
+          isRealtimeEnabled: Boolean(process.env.RAPIDAPI_KEY || process.env.JSEARCH_API_KEY),
+          provider: syncMeta.provider || 'JSearch RapidAPI',
         },
       },
       {
