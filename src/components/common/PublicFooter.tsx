@@ -94,6 +94,11 @@ export default function PublicFooter() {
                 </Link>
               </li>
               <li>
+                <Link href="/karir" className="hover:text-white hover:translate-x-0.5 inline-flex items-center gap-1 transition-all">
+                  Bursa Karir & Talenta Alumni
+                </Link>
+              </li>
+              <li>
                 <Link href="/event" className="hover:text-white hover:translate-x-0.5 inline-flex items-center gap-1 transition-all">
                   Agenda Event & Workshop
                 </Link>

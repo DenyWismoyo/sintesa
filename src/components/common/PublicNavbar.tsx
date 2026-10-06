@@ -23,7 +23,8 @@ import {
   Info,
   HelpCircle,
   ChevronRight,
-  Search
+  Search,
+  Briefcase,
 } from 'lucide-react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { useAuth } from '@/lib/AuthContext';
@@ -44,6 +45,7 @@ export const PUBLIC_NAV_MENUS: NavMenu[] = [
   { name: 'Katalog', path: '/e-katalog', icon: ShoppingBag },
   { name: 'Fasilitas', path: '/fasilitas', icon: Building2 },
   { name: 'Pelatihan', path: '/program-pelatihan', icon: GraduationCap },
+  { name: 'Karir', path: '/karir', icon: Briefcase, badge: 'Baru' },
   { name: 'Ekosistem', path: '/ekosistem', icon: Users },
   { name: 'Artikel', path: '/artikel', icon: Newspaper },
   { name: 'Event', path: '/event', icon: CalendarDays },
