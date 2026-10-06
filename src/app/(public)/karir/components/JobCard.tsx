@@ -1,8 +1,6 @@
-// src/app/(public)/karir/components/JobCard.tsx
-'use client';
-
 import React from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import {
   Building2,
   MapPin,
@@ -23,7 +21,7 @@ import { toast } from 'sonner';
 
 interface JobCardProps {
   job: JobListing;
-  onSelect: (job: JobListing) => void;
+  onSelect?: (job: JobListing) => void;
   onOpenAiMatch?: (job: JobListing) => void;
   selectedProgramFilter?: string;
 }
@@ -34,6 +32,7 @@ export default function JobCard({
   onOpenAiMatch,
   selectedProgramFilter,
 }: JobCardProps) {
+  const router = useRouter();
   const [imgError, setImgError] = React.useState(false);
 
   // Cek apakah lowongan ini selaras dengan filter program pelatihan yang dipilih user
@@ -43,10 +42,28 @@ export default function JobCard({
       )
     : false;
 
+  const handleNavigateDetail = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (onSelect) {
+      onSelect(job);
+    } else {
+      router.push(`/karir/${job.id}`);
+    }
+  };
+
+  const handleNavigateAiMatch = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onOpenAiMatch) {
+      onOpenAiMatch(job);
+    } else {
+      router.push(`/karir/${job.id}#ai-match`);
+    }
+  };
+
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      const url = `${window.location.origin}/karir?id=${job.id}`;
+      const url = `${window.location.origin}/karir/${job.id}`;
       navigator.clipboard.writeText(url);
       toast.success('Tautan lowongan berhasil disalin!');
     }
@@ -106,7 +123,7 @@ export default function JobCard({
 
   return (
     <div
-      onClick={() => onSelect(job)}
+      onClick={handleNavigateDetail}
       className={`public-card public-card-hover group flex flex-col justify-between overflow-hidden relative cursor-pointer border transition-all duration-300 ${
         isMatchingProgram
           ? 'border-emerald-500/80 ring-2 ring-emerald-500/20 bg-gradient-to-b from-emerald-50/20 via-white to-white'
@@ -223,31 +240,22 @@ export default function JobCard({
 
         {/* Action Button Row */}
         <div className="grid grid-cols-2 gap-2 pt-1">
-          {onOpenAiMatch && (
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={(e) => {
-                e.stopPropagation();
-                onOpenAiMatch(job);
-              }}
-              className="h-8 text-xs font-semibold border-indigo-200 text-indigo-700 hover:bg-indigo-50 hover:text-indigo-800 hover:border-indigo-300 gap-1.5 rounded-xl shadow-xs"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-              <span>AI Matcher</span>
-            </Button>
-          )}
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={handleNavigateAiMatch}
+            className="h-8 text-xs font-semibold border-indigo-200 text-indigo-700 hover:bg-indigo-50 hover:text-indigo-800 hover:border-indigo-300 gap-1.5 rounded-xl shadow-xs"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+            <span>AI Matcher</span>
+          </Button>
 
           <Button
             type="button"
             size="sm"
-            onClick={() => onSelect(job)}
-            className={`h-8 text-xs font-bold gap-1 rounded-xl shadow-xs ${
-              onOpenAiMatch
-                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                : 'col-span-2 bg-emerald-600 hover:bg-emerald-700 text-white'
-            }`}
+            onClick={handleNavigateDetail}
+            className="h-8 text-xs font-bold gap-1 rounded-xl shadow-xs bg-emerald-600 hover:bg-emerald-700 text-white"
           >
             <span>Detail & Lamar</span>
             <ArrowUpRight className="w-3.5 h-3.5" />

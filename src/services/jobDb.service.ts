@@ -149,6 +149,16 @@ export const jobDbService = {
     const found = allJobs.find((j) => j.id === idOrSlug || j.slug === idOrSlug);
     if (found) return found;
 
+    try {
+      const snap = await getDoc(doc(db, JOBS_COLLECTION, idOrSlug));
+      if (snap.exists()) {
+        const parsed = JobListingSchema.safeParse({ id: snap.id, ...snap.data() });
+        if (parsed.success) return parsed.data;
+      }
+    } catch {
+      // Abaikan jika offline
+    }
+
     return null;
   },
 

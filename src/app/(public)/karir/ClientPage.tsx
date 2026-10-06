@@ -12,7 +12,6 @@ import { useJobs } from '@/hooks/useJobs';
 import { JobListing, JobCategory } from '@/types/job.types';
 
 import JobCard from './components/JobCard';
-import JobDetailModal from './components/JobDetailModal';
 import JobFilterToolbar from './components/JobFilterToolbar';
 import AlumniQuickMatchBanner from './components/AlumniQuickMatchBanner';
 
@@ -40,11 +39,6 @@ export default function KarirClientPage() {
   const [isStpPartnerOnly, setIsStpPartnerOnly] = useState(false);
   const [sourceFilter, setSourceFilter] = useState('all');
   const [sort, setSort] = useState('newest');
-
-  // Modal State
-  const [selectedJob, setSelectedJob] = useState<JobListing | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalInitialTab, setModalInitialTab] = useState<'detail' | 'ai-match'>('detail');
 
   // Query Filter Object
   const filterParams = useMemo(() => {
@@ -75,29 +69,22 @@ export default function KarirClientPage() {
   const jobs = data?.jobs || [];
   const total = data?.total || 0;
 
-  // Auto-open modal jika URL memiliki query parameter `id`
-  const initialJobId = searchParams.get('id');
-  useEffect(() => {
-    if (initialJobId && jobs.length > 0 && !selectedJob) {
-      const match = jobs.find((j) => j.id === initialJobId || j.slug === initialJobId);
-      if (match) {
-        setSelectedJob(match);
-        setIsModalOpen(true);
-      }
-    }
-  }, [initialJobId, jobs, selectedJob]);
-
+  // Direct Routing ke Client Page Detail
   const handleOpenDetail = (job: JobListing) => {
-    setSelectedJob(job);
-    setModalInitialTab('detail');
-    setIsModalOpen(true);
+    router.push(`/karir/${job.id}`);
   };
 
   const handleOpenAiMatch = (job: JobListing) => {
-    setSelectedJob(job);
-    setModalInitialTab('ai-match');
-    setIsModalOpen(true);
+    router.push(`/karir/${job.id}#ai-match`);
   };
+
+  // Redirect otomatis jika URL memiliki query parameter `id` (legacy link)
+  const initialJobId = searchParams.get('id');
+  useEffect(() => {
+    if (initialJobId) {
+      router.replace(`/karir/${encodeURIComponent(initialJobId)}`);
+    }
+  }, [initialJobId, router]);
 
   const handleResetFilters = () => {
     setSearchQuery('');
@@ -212,14 +199,6 @@ export default function KarirClientPage() {
           <AlumniQuickMatchBanner />
         </div>
       </div>
-
-      {/* ─── Modal Detail & Clario AI Matcher ─── */}
-      <JobDetailModal
-        job={selectedJob}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        initialTab={modalInitialTab}
-      />
     </SectionContainer>
   );
 }
