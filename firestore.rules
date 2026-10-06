@@ -524,5 +524,17 @@ service cloud.firestore {
       allow create: if isAuth();
       allow update, delete: if false;
     }
+
+    // 20. Bursa Karir & Lowongan Pekerjaan Realtime (Publik)
+    match /jobs/{jobId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 21. Metadata Pengaturan & Sinkronisasi
+    match /app_settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
   }
 }
