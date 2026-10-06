@@ -18,6 +18,7 @@ import { formatSalary } from '@/utils/format';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import JobShareMenu from './JobShareMenu';
 
 interface JobCardProps {
   job: JobListing;
@@ -145,13 +146,7 @@ export default function JobCard({
           </div>
 
           <div className="flex items-center gap-1 shrink-0">
-            <button
-              onClick={handleShare}
-              title="Bagikan lowongan"
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-            >
-              <Share2 className="w-3.5 h-3.5" />
-            </button>
+            <JobShareMenu job={job} variant="compact-icon" />
           </div>
         </div>
 

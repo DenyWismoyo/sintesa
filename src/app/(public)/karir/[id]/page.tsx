@@ -5,9 +5,13 @@ import { notFound } from 'next/navigation';
 import { jobDbService } from '@/services/jobDb.service';
 import JobDetailClient from './JobDetailClient';
 
+import { getSocialShareImageUrl } from '@/lib/imageUtils';
+
 interface PageProps {
   params: Promise<{ id: string }> | { id: string };
 }
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://katalog.solotechnopark.id';
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const resolvedParams = await params;
@@ -21,12 +25,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const title = `${job.title} di ${job.company} | Bursa Karir Solo Technopark`;
+  const title = `${job.title} — ${job.company} | Bursa Karir Solo Technopark`;
   const description = `${job.title} di ${job.company} (${job.location}). ${
     job.relevantTrainingPrograms.length > 0
-      ? `Selaras dengan program diklat: ${job.relevantTrainingPrograms.join(', ')}.`
+      ? `Selaras dengan program diklat: ${job.relevantTrainingPrograms.join(', ')}. `
       : ''
-  } Buka kesempatan karir resmi alumni Solo Technopark.`;
+  }Peluang karir resmi terverifikasi kawasan Solo Technopark.`;
+
+  // Gambar thumbnail preview WhatsApp & Medsos (<50KB)
+  const coverImageUrl = getSocialShareImageUrl(
+    job.companyLogo,
+    'https://katalog.solotechnopark.id/icon-katalog-stp.svg'
+  );
 
   return {
     title,
@@ -43,11 +53,27 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title,
       description,
-      url: `https://solotechnopark.id/karir/${job.id}`,
+      url: `${APP_URL}/karir/${job.id}`,
       siteName: 'Solo Technopark',
       locale: 'id_ID',
       type: 'article',
-      images: job.companyLogo ? [{ url: job.companyLogo }] : undefined,
+      images: [
+        {
+          url: coverImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${job.title} di ${job.company}`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [coverImageUrl],
+    },
+    alternates: {
+      canonical: `${APP_URL}/karir/${job.id}`,
     },
   };
 }

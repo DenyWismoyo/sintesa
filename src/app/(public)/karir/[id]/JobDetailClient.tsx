@@ -38,6 +38,7 @@ import { toast } from 'sonner';
 import { useJobDetail, useJobs, useJobAiMatchMutation } from '@/hooks/useJobs';
 import { JobListing, JobAiMatchResponse } from '@/types/job.types';
 import { formatSalary } from '@/utils/format';
+import JobShareMenu from '../components/JobShareMenu';
 
 interface JobDetailClientProps {
   idOrSlug: string;
@@ -319,15 +320,7 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
               <span>{isBookmarked ? 'Tersimpan' : 'Simpan'}</span>
             </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleShare}
-              className="h-10 px-3.5 text-xs font-semibold rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 gap-1.5"
-            >
-              <Share2 className="w-4 h-4" />
-              <span>Bagikan</span>
-            </Button>
+            <JobShareMenu job={job} variant="button" />
 
             {/* Quick jump to application */}
             {job.applicationUrl ? (
@@ -699,6 +692,19 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Bar Sosial & WhatsApp Broadcast Share */}
+          <div className="p-5 sm:p-6 rounded-3xl bg-slate-50 border border-slate-200/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-2xs">
+            <div>
+              <h3 className="font-black text-sm text-slate-900">
+                Bantu Rekan / Komunitas Anda Menemukan Karir Ini
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Kirim informasi lowongan resmi ini dengan format pesan rapi ke grup WhatsApp atau LinkedIn Anda.
+              </p>
+            </div>
+            <JobShareMenu job={job} variant="inline-bar" />
           </div>
 
           {/* 7. Lowongan Terkait */}
