@@ -68,14 +68,22 @@ export function inferJobCategory(title: string, description: string = ''): JobCa
   }
 
   if (
+    text.includes('underwater') ||
+    text.includes('diver') ||
+    text.includes('subsea') ||
+    text.includes('penyelam') ||
     text.includes('cnc') ||
     text.includes('mesin') ||
     text.includes('mekatronik') ||
     text.includes('welder') ||
     text.includes('pengelasan') ||
+    text.includes('juru las') ||
     text.includes('operator produksi') ||
     text.includes('machinist') ||
-    text.includes('cad/cam')
+    text.includes('cad/cam') ||
+    text.includes('manufaktur') ||
+    text.includes('manufacturing') ||
+    text.includes('fabricat')
   ) {
     return 'Manufaktur Presisi & Mekatronika';
   }
@@ -138,8 +146,39 @@ export function inferRelevantTrainingPrograms(category: JobCategory, skills: str
       ];
 
     case 'Manufaktur Presisi & Mekatronika':
-      if (skillsText.includes('weld')) {
-        return ['Pelatihan Juru Las (Welder) 3G/4G/6G'];
+      if (
+        skillsText.includes('underwater') ||
+        skillsText.includes('diver') ||
+        skillsText.includes('bawah air') ||
+        skillsText.includes('subsea')
+      ) {
+        return [
+          'Diklat Underwater Wet Welding (Pengelasan Bawah Air) Solo Technopark',
+          'Sertifikasi Juru Las (Welder) 6G Standar Migas & Marine',
+        ];
+      }
+      if (
+        skillsText.includes('weld') ||
+        skillsText.includes('las') ||
+        skillsText.includes('smaw') ||
+        skillsText.includes('gmaw') ||
+        skillsText.includes('gtaw')
+      ) {
+        return [
+          'Pelatihan Juru Las (Welder) 3G/4G/6G',
+          'Sertifikasi Pengelasan Pelat & Pipa Standar BNSP / IIW',
+        ];
+      }
+      if (
+        skillsText.includes('cnc') ||
+        skillsText.includes('bubut') ||
+        skillsText.includes('milling') ||
+        skillsText.includes('machin')
+      ) {
+        return [
+          'Pelatihan Operator Mesin CNC Milling & Bubut 5-Axis',
+          'Pelatihan Desain Manufaktur CAD/CAM Mastercam',
+        ];
       }
       return [
         'Pelatihan Operator Mesin CNC Milling & Bubut 5-Axis',
@@ -172,9 +211,12 @@ export function extractSkillsFromDescription(description: string, rawSkills?: st
   }
 
   const commonKeywords = [
+    'Underwater Welding', 'Commercial Diving', 'Subsea Inspection', 'Welding 3G/6G',
+    'SMAW', 'GMAW', 'GTAW', 'FCAW', 'TIG Welding', 'MIG Welding', 'NDT Inspection',
+    'CNC Milling', 'CNC Lathe', 'Machining 5-Axis', 'Mastercam', 'AutoCAD', 'SolidWorks',
+    'Mekatronika', 'PLC', 'Otomasi Industri', 'Mesin Bubut',
     'React', 'Next.js', 'TypeScript', 'JavaScript', 'Node.js', 'Python', 'Java', 'PHP',
     'HTML/CSS', 'Tailwind', 'SQL', 'PostgreSQL', 'Docker', 'Git', 'API', 'Figma',
-    'CNC', 'AutoCAD', 'SolidWorks', 'Mekatronika', 'Welding', 'PLC', 'Mesin Bubut',
     'Linux', 'Cyber Security', 'Network', 'Firewall', 'Wireshark', 'SIEM',
     'Blender', 'Unity', '3D Modeling', 'Photoshop', 'Illustrator',
     'SEO', 'Google Ads', 'Meta Ads', 'Copywriting', 'E-Commerce', 'Content Creator'
