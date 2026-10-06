@@ -26,6 +26,7 @@ export const jobService = {
       if (filters.experienceLevel && filters.experienceLevel !== 'all') params.set('experienceLevel', filters.experienceLevel);
       if (filters.trainingProgram) params.set('trainingProgram', filters.trainingProgram);
       if (filters.isStpPartner !== undefined) params.set('isStpPartner', String(filters.isStpPartner));
+      if (filters.source && filters.source !== 'all') params.set('source', filters.source);
       if (filters.sort) params.set('sort', filters.sort);
 
       try {
@@ -140,6 +141,15 @@ export function filterAndSortJobs(
   // Filter Mitra Resmi STP
   if (filters.isStpPartner !== undefined) {
     result = result.filter((job) => job.isStpPartner === filters.isStpPartner);
+  }
+
+  // Filter Sumber Lowongan (Mitra STP vs Realtime JSearch)
+  if (filters.source && filters.source !== 'all') {
+    if (filters.source === 'stp_partner') {
+      result = result.filter((job) => job.source === 'stp_partner' || job.isStpPartner);
+    } else if (filters.source === 'jsearch_realtime') {
+      result = result.filter((job) => job.source === 'jsearch_realtime');
+    }
   }
 
   // Hitung jumlah per kategori dari seluruh data aktif

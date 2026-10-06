@@ -92,4 +92,71 @@ describe('Bursa Karir & Talenta Alumni Solo Technopark', () => {
       });
     });
   });
+
+  describe('3. Realtime JSearch RapidAPI Normalizer & STP Mapping', () => {
+    it('harus mampu menormalisasi raw job JSearch ke JobListing yang valid', async () => {
+      const { normalizeJSearchJob, inferJobCategory, inferRelevantTrainingPrograms } = await import(
+        '@/services/jsearch.service'
+      );
+
+      const rawMockJob = {
+        job_id: 'jsearch-abc-123',
+        employer_name: 'PT Mitra Teknologi Mandiri',
+        employer_logo: 'https://images.unsplash.com/photo-1572021335469-31706a17aaef',
+        employer_website: 'https://mitratek.com',
+        job_employment_type: 'FULLTIME',
+        job_title: 'Full Stack React & Node.js Developer',
+        job_apply_link: 'https://id.linkedin.com/jobs/view/12345678',
+        job_description:
+          'Kami mencari Fullstack Web Developer yang menguasai React, Next.js, TypeScript, dan Git untuk penempatan area Surakarta / Solo.',
+        job_is_remote: false,
+        job_city: 'Surakarta',
+        job_state: 'Jawa Tengah',
+        job_country: 'ID',
+        job_posted_at_timestamp: Math.floor(Date.now() / 1000),
+        job_min_salary: 6000000,
+        job_max_salary: 8500000,
+        job_salary_currency: 'IDR',
+        job_salary_period: 'MONTH',
+        job_required_skills: ['React', 'TypeScript', 'Node.js', 'Git'],
+        job_publisher: 'LinkedIn',
+      };
+
+      const normalized = normalizeJSearchJob(rawMockJob);
+
+      expect(normalized.id).toBe('jsearch-jsearch-abc-123');
+      expect(normalized.title).toBe('Full Stack React & Node.js Developer');
+      expect(normalized.category).toBe('IT & Rekayasa Perangkat Lunak');
+      expect(normalized.applicationUrl).toBe('https://id.linkedin.com/jobs/view/12345678');
+      expect(normalized.applySource).toBe('LinkedIn');
+      expect(normalized.source).toBe('jsearch_realtime');
+      expect(normalized.workSetup).toBe('On-site (Solo Technopark)');
+      expect(normalized.relevantTrainingPrograms).toContain(
+        'Bootcamp Fullstack Web Developer (Next.js & TypeScript)'
+      );
+
+      // Harus valid sesuai Zod Schema
+      const validation = JobListingSchema.safeParse(normalized);
+      expect(validation.success, `Normalized job harus valid: ${JSON.stringify(validation.error)}`).toBe(
+        true
+      );
+    });
+
+    it('harus menginferensikan kategori Cyber Security dan Manufaktur CNC dengan tepat', async () => {
+      const { inferJobCategory } = await import('@/services/jsearch.service');
+
+      expect(inferJobCategory('SOC Analyst & Cyber Security Engineer')).toBe(
+        'Keamanan Siber (Cyber Security)'
+      );
+      expect(inferJobCategory('Operator Mesin Milling CNC 5-Axis')).toBe(
+        'Manufaktur Presisi & Mekatronika'
+      );
+      expect(inferJobCategory('AI & Computer Vision Research Intern')).toBe(
+        'Kecerdasan Buatan & Sains Data'
+      );
+      expect(inferJobCategory('3D Blender Artist & Unity Developer')).toBe(
+        'Multimedia, Game & Animasi 3D'
+      );
+    });
+  });
 });

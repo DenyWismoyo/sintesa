@@ -25,6 +25,8 @@ interface JobFilterToolbarProps {
   setTrainingProgram: (val: string) => void;
   isStpPartnerOnly: boolean;
   setIsStpPartnerOnly: (val: boolean) => void;
+  sourceFilter?: string;
+  setSourceFilter?: (val: string) => void;
   sort: string;
   setSort: (val: string) => void;
   totalFound: number;
@@ -55,6 +57,8 @@ export default function JobFilterToolbar({
   setTrainingProgram,
   isStpPartnerOnly,
   setIsStpPartnerOnly,
+  sourceFilter,
+  setSourceFilter,
   sort,
   setSort,
   totalFound,
@@ -66,6 +70,7 @@ export default function JobFilterToolbar({
     experienceLevel !== 'all' ||
     Boolean(trainingProgram) ||
     isStpPartnerOnly ||
+    (Boolean(sourceFilter) && sourceFilter !== 'all') ||
     sort !== 'newest';
 
   return (
@@ -155,6 +160,22 @@ export default function JobFilterToolbar({
             <option value="Junior (0-2 Tahun)">Junior (0-2 Thn)</option>
             <option value="Mid-Level (2-4 Tahun)">Mid-Level</option>
             <option value="Senior (4+ Tahun)">Senior</option>
+          </select>
+        </div>
+
+        {/* Sumber Lowongan (Mitra STP vs Realtime API) */}
+        <div>
+          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+            Sumber Data
+          </label>
+          <select
+            value={sourceFilter || 'all'}
+            onChange={(e) => setSourceFilter?.(e.target.value)}
+            className="w-full h-8.5 px-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50/60 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+          >
+            <option value="all">Semua Sumber</option>
+            <option value="stp_partner">Mitra Kawasan STP</option>
+            <option value="jsearch_realtime">Live Realtime API</option>
           </select>
         </div>
 

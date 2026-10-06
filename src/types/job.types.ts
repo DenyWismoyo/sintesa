@@ -42,6 +42,7 @@ export const JobCompanyTypeEnum = z.enum([
   'BUMN & Pemerintah',
   'Perusahaan Teknologi',
   'Industri Manufaktur',
+  'Startup / Industri',
 ]);
 export type JobCompanyType = z.infer<typeof JobCompanyTypeEnum>;
 
@@ -83,6 +84,8 @@ export const JobListingSchema = z.object({
   relevantTrainingPrograms: z.array(z.string()).default([]),
   applicationUrl: z.string().optional(),
   applicationEmail: z.string().optional(),
+  applySource: z.string().optional(), // contoh: 'LinkedIn', 'JobStreet', 'Indeed', 'Official Web'
+  source: z.enum(['stp_partner', 'jsearch_realtime']).default('stp_partner').optional(),
   isStpPartner: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
   postedAt: z.number(),
@@ -101,6 +104,7 @@ export interface JobFilterParams {
   experienceLevel?: string;
   trainingProgram?: string;
   isStpPartner?: boolean;
+  source?: 'all' | 'stp_partner' | 'jsearch_realtime';
   sort?: 'newest' | 'salary_high' | 'featured';
   page?: number;
   limit?: number;

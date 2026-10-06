@@ -141,12 +141,17 @@ export default function JobDetailModal({
 
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                {job.isStpPartner && (
+                {job.source === 'jsearch_realtime' ? (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-300">
+                    <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
+                    Live Realtime ({job.applySource || 'JSearch'})
+                  </span>
+                ) : job.isStpPartner ? (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                     Mitra Terverifikasi Solo Technopark
                   </span>
-                )}
+                ) : null}
                 <Badge variant="outline" className="text-[10px] font-semibold text-slate-600">
                   {job.workType}
                 </Badge>
@@ -550,7 +555,7 @@ export default function JobDetailModal({
                 className="flex-1 sm:flex-initial"
               >
                 <Button className="w-full h-10 px-5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl gap-2 shadow-sm">
-                  <span>Lamar Sekarang</span>
+                  <span>{job.applySource ? `Lamar via ${job.applySource}` : 'Lamar Sekarang'}</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </Button>
               </a>

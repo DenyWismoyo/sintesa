@@ -38,6 +38,7 @@ export default function KarirClientPage() {
   const [experienceLevel, setExperienceLevel] = useState('all');
   const [trainingProgram, setTrainingProgram] = useState(searchParams.get('program') || '');
   const [isStpPartnerOnly, setIsStpPartnerOnly] = useState(false);
+  const [sourceFilter, setSourceFilter] = useState('all');
   const [sort, setSort] = useState('newest');
 
   // Modal State
@@ -55,6 +56,7 @@ export default function KarirClientPage() {
       experienceLevel: experienceLevel !== 'all' ? experienceLevel : undefined,
       trainingProgram: trainingProgram.trim() || undefined,
       isStpPartner: isStpPartnerOnly ? true : undefined,
+      source: sourceFilter !== 'all' ? (sourceFilter as any) : undefined,
       sort: sort as any,
     };
   }, [
@@ -65,6 +67,7 @@ export default function KarirClientPage() {
     experienceLevel,
     trainingProgram,
     isStpPartnerOnly,
+    sourceFilter,
     sort,
   ]);
 
@@ -104,6 +107,7 @@ export default function KarirClientPage() {
     setExperienceLevel('all');
     setTrainingProgram('');
     setIsStpPartnerOnly(false);
+    setSourceFilter('all');
     setSort('newest');
   };
 
@@ -149,6 +153,8 @@ export default function KarirClientPage() {
           setTrainingProgram={setTrainingProgram}
           isStpPartnerOnly={isStpPartnerOnly}
           setIsStpPartnerOnly={setIsStpPartnerOnly}
+          sourceFilter={sourceFilter}
+          setSourceFilter={setSourceFilter}
           sort={sort}
           setSort={setSort}
           totalFound={total}
