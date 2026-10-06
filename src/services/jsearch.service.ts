@@ -252,9 +252,9 @@ export function normalizeJSearchJob(raw: JSearchRawJob): JobListing {
   // Format Gaji & Periode
   const hasSalary = typeof raw.job_min_salary === 'number' && raw.job_min_salary > 0;
   const currency = raw.job_salary_currency || inferredCurrency;
-  let period: 'Bulan' | 'Tahun' | 'Jam' = 'Bulan';
+  let period: 'Bulan' | 'Tahun' | 'Proyek' = 'Bulan';
   if (raw.job_salary_period === 'YEAR') period = 'Tahun';
-  else if (raw.job_salary_period === 'HOUR') period = 'Jam';
+  else period = 'Bulan';
 
   const salary = {
     min: raw.job_min_salary || undefined,
