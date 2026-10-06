@@ -254,6 +254,72 @@ service cloud.firestore {
       );
     }
 
+    // 13. Bursa Lowongan Pekerjaan & Karir Alumni Solo Technopark
+    match /jobs/{jobId} {
+      // Publik & alumni dapat melihat seluruh informasi lowongan kerja
+      allow read: if true;
+      // Pengelolaan lowongan hanya oleh admin sistem, pengelola pelatihan atau divisi tenant/industri
+      allow create, update, delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'admin_tenant']);
+
+      // Sub-koleksi Lamaran Pekerjaan (Job Applications)
+      match /applications/{appId} {
+        // Pelamar membaca lamarannya sendiri; Tim pengelola karir dapat meninjau semua berkas
+        allow read: if isAuth() && (
+          resource.data.applicantId == request.auth.uid ||
+          resource.data.applicantEmail == request.auth.token.email ||
+          hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'admin_tenant'])
+        );
+        // Pelamar terautentikasi dapat mengirimkan berkas lamaran
+        allow create: if isAuth();
+        // Pembaruan status seleksi (Ditinjau, Wawancara, Diterima) oleh tim pengelola
+        allow update, delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'admin_tenant']);
+      }
+    }
+
+    // 14. Program Kemitraan Afiliasi & Referral Marketing
+    match /affiliates/{userId} {
+      // Terbuka untuk membaca verifikasi kode referral aktif & direktori mitra
+      allow read: if true;
+      // Pendaftaran mitra baru oleh user terautentikasi untuk ID-nya sendiri
+      allow create: if isAuth() && request.auth.uid == userId;
+      // Update oleh mitra pemilik, admin, atau pembaca publik yang hanya menginkremen totalClicks
+      allow update: if (isAuth() && request.auth.uid == userId) || 
+                       hasAnyRole(['admin', 'super_admin', 'admin_keuangan']) ||
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['totalClicks']);
+      allow delete: if hasAnyRole(['admin', 'super_admin']);
+    }
+
+    // Catatan Klik Referral Pengunjung Publik
+    match /affiliate_clicks/{clickId} {
+      allow create: if true; // Pengunjung publik mencatat klik rujukan
+      allow read, write: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan']);
+    }
+
+    // Rekam Komisi Afiliasi (Transaksi Keuangan)
+    match /commissions/{commissionId} {
+      allow read: if isAuth() && (
+        resource.data.affiliateId == request.auth.uid || 
+        hasAnyRole(['admin', 'super_admin', 'admin_keuangan'])
+      );
+      allow write: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan', 'kasir']);
+    }
+
+    // Pengajuan Pencairan Saldo Komisi (Payout)
+    match /affiliate_payouts/{payoutId} {
+      allow read: if isAuth() && (
+        resource.data.affiliateId == request.auth.uid || 
+        hasAnyRole(['admin', 'super_admin', 'admin_keuangan'])
+      );
+      allow create: if isAuth() && request.resource.data.affiliateId == request.auth.uid;
+      allow update, delete: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan']);
+    }
+
+    // Konfigurasi Sistem Afiliasi & Pengaturan Umum
+    match /app_settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // =========================================================================
     // MULTI-TENANT TRANSAKSI & ARTIFACTS
     // Path: /artifacts/{appId}/public/data/{collection}/{docId}
@@ -279,6 +345,17 @@ service cloud.firestore {
       match /cache_alumnis/{docId} {
         allow read: if true;
         allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan']);
+      }
+
+      match /cache_jobs/{docId} {
+        allow read: if true;
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'admin_tenant']);
+      }
+
+      // Lowongan Pekerjaan & Karir Alumni Multi-tenant
+      match /jobs/{jobId} {
+        allow read: if true;
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'admin_tenant']);
       }
 
       // Peta Kawasan & Hotspots
