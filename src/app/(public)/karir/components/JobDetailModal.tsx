@@ -60,6 +60,7 @@ export default function JobDetailModal({
   initialTab = 'detail',
 }: JobDetailModalProps) {
   const [activeTab, setActiveTab] = useState<'detail' | 'ai-match'>(initialTab);
+  const [modalImgError, setModalImgError] = useState(false);
 
   // State untuk form AI Matcher
   const [alumniName, setAlumniName] = useState('');
@@ -123,13 +124,15 @@ export default function JobDetailModal({
         <div className="p-4 sm:p-6 border-b border-slate-100 bg-gradient-to-r from-emerald-50/60 via-slate-50 to-white flex items-start justify-between gap-3">
           <div className="flex items-start gap-3.5 min-w-0">
             <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white border border-slate-200 shadow-sm p-1.5 shrink-0 flex items-center justify-center overflow-hidden">
-              {job.companyLogo ? (
+              {job.companyLogo && !modalImgError ? (
                 <Image
                   src={job.companyLogo}
                   alt={job.company}
                   width={64}
                   height={64}
                   className="w-full h-full object-cover rounded-xl"
+                  onError={() => setModalImgError(true)}
+                  unoptimized
                 />
               ) : (
                 <Building2 className="w-8 h-8 text-slate-400" />

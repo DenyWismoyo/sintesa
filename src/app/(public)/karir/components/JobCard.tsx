@@ -34,6 +34,8 @@ export default function JobCard({
   onOpenAiMatch,
   selectedProgramFilter,
 }: JobCardProps) {
+  const [imgError, setImgError] = React.useState(false);
+
   // Cek apakah lowongan ini selaras dengan filter program pelatihan yang dipilih user
   const isMatchingProgram = selectedProgramFilter
     ? job.relevantTrainingPrograms.some((p) =>
@@ -129,13 +131,15 @@ export default function JobCard({
         {/* Company Logo & Job Title */}
         <div className="flex items-start gap-3 mb-3">
           <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200/80 p-1 shrink-0 flex items-center justify-center overflow-hidden group-hover:border-emerald-400 transition-colors">
-            {job.companyLogo ? (
+            {job.companyLogo && !imgError ? (
               <Image
                 src={job.companyLogo}
                 alt={job.company}
                 width={48}
                 height={48}
                 className="w-full h-full object-cover rounded-lg"
+                onError={() => setImgError(true)}
+                unoptimized
               />
             ) : (
               <Building2 className="w-6 h-6 text-slate-400" />
