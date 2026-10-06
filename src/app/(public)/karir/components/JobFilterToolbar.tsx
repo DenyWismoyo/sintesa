@@ -30,6 +30,7 @@ interface JobFilterToolbarProps {
   sort: string;
   setSort: (val: string) => void;
   totalFound: number;
+  isLoading?: boolean;
   onReset: () => void;
 }
 
@@ -62,6 +63,7 @@ export default function JobFilterToolbar({
   sort,
   setSort,
   totalFound,
+  isLoading,
   onReset,
 }: JobFilterToolbarProps) {
   const hasActiveFilter =
@@ -230,7 +232,16 @@ export default function JobFilterToolbar({
       {/* ─── Status Info Baris ─── */}
       <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
         <div>
-          Menampilkan <span className="font-bold text-slate-900">{totalFound}</span> lowongan pekerjaan aktif
+          {isLoading ? (
+            <div className="flex items-center gap-2 text-emerald-700 font-medium">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+              <span>Memuat lowongan pekerjaan aktif...</span>
+            </div>
+          ) : (
+            <div>
+              Menampilkan <span className="font-bold text-slate-900">{totalFound}</span> lowongan pekerjaan aktif
+            </div>
+          )}
         </div>
 
         {trainingProgram && (

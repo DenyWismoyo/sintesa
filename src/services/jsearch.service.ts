@@ -317,7 +317,7 @@ export async function fetchJSearchJobs(options: {
   }
 
   try {
-    const url = new URL('https://jsearch.p.rapidapi.com/search');
+    const url = new URL('https://jsearch.p.rapidapi.com/search-v2');
     url.searchParams.set('query', fullQuery);
     url.searchParams.set('page', String(page));
     url.searchParams.set('num_pages', '1');
@@ -337,12 +337,49 @@ export async function fetchJSearchJobs(options: {
       return { jobs: [], total: 0, isRealtime: false };
     }
 
-    const json: JSearchApiResponse = await res.json();
-    if (!json.data || !Array.isArray(json.data)) {
+    const json: any = await res.json();
+    let rawJobsList: JSearchRawJob[] = [];
+
+    if (Array.isArray(json.data)) {
+      rawJobsList = json.data;
+    } else if (json.data && Array.isArray(json.data.jobs)) {
+      rawJobsList = json.data.jobs;
+    }
+
+    // Jika pencarian dengan lokasi spesifik menghasilkan 0, coba fallback query tanpa batasan lokasi ketat
+    if (rawJobsList.length === 0 && searchQuery) {
+      try {
+        const fallbackUrl = new URL('https://jsearch.p.rapidapi.com/search-v2');
+        fallbackUrl.searchParams.set('query', searchQuery);
+        fallbackUrl.searchParams.set('page', '1');
+        fallbackUrl.searchParams.set('num_pages', '1');
+
+        const fallbackRes = await fetch(fallbackUrl.toString(), {
+          method: 'GET',
+          headers: {
+            'x-rapidapi-key': apiKey,
+            'x-rapidapi-host': 'jsearch.p.rapidapi.com',
+          },
+        });
+
+        if (fallbackRes.ok) {
+          const fallbackJson: any = await fallbackRes.json();
+          if (Array.isArray(fallbackJson.data)) {
+            rawJobsList = fallbackJson.data;
+          } else if (fallbackJson.data && Array.isArray(fallbackJson.data.jobs)) {
+            rawJobsList = fallbackJson.data.jobs;
+          }
+        }
+      } catch (fbErr) {
+        // Abaikan error fallback
+      }
+    }
+
+    if (!rawJobsList.length) {
       return { jobs: [], total: 0, isRealtime: false };
     }
 
-    const normalizedJobs = json.data.map(normalizeJSearchJob);
+    const normalizedJobs = rawJobsList.map(normalizeJSearchJob);
 
     // Simpan ke Cache
     cacheMap.set(cacheKey, {

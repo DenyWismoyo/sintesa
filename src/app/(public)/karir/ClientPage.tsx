@@ -158,6 +158,7 @@ export default function KarirClientPage() {
           sort={sort}
           setSort={setSort}
           totalFound={total}
+          isLoading={isLoading}
           onReset={handleResetFilters}
         />
 
