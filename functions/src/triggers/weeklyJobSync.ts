@@ -28,21 +28,38 @@ export const weeklyJobSyncScheduler = onSchedule(
 
     console.log("[Weekly Job Sync] Memulai sinkronisasi lowongan pekerjaan mingguan dari RapidAPI JSearch...");
 
-    const categories = [
-      "IT Software Web Developer in Solo OR Jawa Tengah",
-      "Teknisi Mesin CNC Mekatronika in Solo OR Jawa Tengah",
-      "Cyber Security in Indonesia",
-      "Digital Marketing in Solo Indonesia",
-      "3D Game Animator in Indonesia",
+    const targetClusters: Array<{ query: string; country?: string }> = [
+      // Indonesia
+      { query: "lowongan IT di Jakarta" },
+      { query: "lowongan programmer Jakarta" },
+      { query: "lowongan web developer di Indonesia" },
+      { query: "lowongan kerja di Solo" },
+      { query: "teknisi di Indonesia" },
+      { query: "teknik", country: "id" },
+      // ASEAN
+      { query: "software engineer in Singapore" },
+      { query: "developer in Kuala Lumpur" },
+      { query: "software engineer", country: "my" },
+      { query: "web developer", country: "ph" },
+      { query: "software engineer", country: "th" },
+      { query: "software developer", country: "vn" },
+      // Asia Timur (Jepang)
+      { query: "IT", country: "jp" },
+      { query: "engineer", country: "jp" },
+      { query: "software", country: "jp" },
+      { query: "developer", country: "jp" },
     ];
 
     let totalSaved = 0;
     const now = Date.now();
 
-    for (const queryStr of categories) {
+    for (const target of targetClusters) {
       try {
-        const url = new URL("https://jsearch.p.rapidapi.com/search");
-        url.searchParams.set("query", queryStr);
+        const url = new URL("https://jsearch.p.rapidapi.com/search-v2");
+        url.searchParams.set("query", target.query);
+        if (target.country) {
+          url.searchParams.set("country", target.country);
+        }
         url.searchParams.set("page", "1");
         url.searchParams.set("num_pages", "1");
 
@@ -55,12 +72,12 @@ export const weeklyJobSyncScheduler = onSchedule(
         });
 
         if (!res.ok) {
-          console.warn(`[Weekly Job Sync] Gagal query '${queryStr}': ${res.statusText}`);
+          console.warn(`[Weekly Job Sync] Gagal query '${target.query}': ${res.statusText}`);
           continue;
         }
 
         const json = await res.json();
-        const rawJobs: any[] = json.data || [];
+        const rawJobs: any[] = json.data?.jobs || (Array.isArray(json.data) ? json.data : []);
 
         if (rawJobs.length > 0) {
           const batch = db.batch();
@@ -69,9 +86,21 @@ export const weeklyJobSyncScheduler = onSchedule(
             const jobId = `jsearch-${job.job_id}`;
             const jobRef = db.collection("jobs").doc(jobId);
 
-            const city = job.job_city || "Surakarta";
-            const state = job.job_state || "Jawa Tengah";
-            const location = `${city}, ${state}`;
+            const countryCode = (job.job_country || "").toUpperCase();
+            const countryNameMap: Record<string, string> = {
+              ID: "Indonesia",
+              SG: "Singapura",
+              MY: "Malaysia",
+              PH: "Filipina",
+              TH: "Thailand",
+              VN: "Vietnam",
+              JP: "Jepang",
+              KR: "Korea Selatan",
+            };
+
+            const city = job.job_city || job.job_state || (countryCode === "SG" ? "Singapura" : "Jakarta");
+            const countryName = countryNameMap[countryCode] || job.job_country || "Indonesia";
+            const location = `${city}, ${countryName}`;
 
             batch.set(
               jobRef,

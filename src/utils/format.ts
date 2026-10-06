@@ -78,3 +78,49 @@ export const formatTanggal = (
     return '-';
   }
 };
+
+/**
+ * Format nominal gaji dengan dukungan multi-mata uang (Asia, ASEAN, dan Global).
+ * Contoh:
+ *   (15000000, 'IDR') -> "Rp 15.000.000"
+ *   (4500, 'SGD') -> "S$ 4.500"
+ *   (3500, 'MYR') -> "RM 3.500"
+ *   (350000, 'JPY') -> "¥350.000"
+ *   (3000000, 'KRW') -> "₩3.000.000"
+ *   (50000, 'PHP') -> "₱50.000"
+ *   (45000, 'THB') -> "฿45.000"
+ */
+export const formatSalary = (
+  angka: number | string | undefined | null,
+  currency: string = 'IDR'
+): string => {
+  if (angka === undefined || angka === null || isNaN(Number(angka))) {
+    return '0';
+  }
+  const num = typeof angka === 'string' ? parseFloat(angka) : angka;
+  const curr = (currency || 'IDR').toUpperCase();
+
+  switch (curr) {
+    case 'IDR':
+      return formatRupiah(num);
+    case 'SGD':
+      return `S$ ${new Intl.NumberFormat('id-ID').format(num)}`;
+    case 'MYR':
+      return `RM ${new Intl.NumberFormat('id-ID').format(num)}`;
+    case 'JPY':
+      return `¥${new Intl.NumberFormat('id-ID').format(num)}`;
+    case 'KRW':
+      return `₩${new Intl.NumberFormat('id-ID').format(num)}`;
+    case 'PHP':
+      return `₱${new Intl.NumberFormat('id-ID').format(num)}`;
+    case 'THB':
+      return `฿${new Intl.NumberFormat('id-ID').format(num)}`;
+    case 'VND':
+      return `₫${new Intl.NumberFormat('id-ID').format(num)}`;
+    case 'USD':
+      return `$${new Intl.NumberFormat('en-US').format(num)}`;
+    default:
+      return `${curr} ${new Intl.NumberFormat('id-ID').format(num)}`;
+  }
+};
+

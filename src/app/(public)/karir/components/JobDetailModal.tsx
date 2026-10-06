@@ -25,7 +25,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { JobListing, JobAiMatchResponse } from '@/types/job.types';
-import { formatRupiah } from '@/utils/format';
+import { formatSalary } from '@/utils/format';
 import { useJobAiMatchMutation } from '@/hooks/useJobs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -87,11 +87,12 @@ export default function JobDetailModal({
 
   const formattedSalary = () => {
     if (!job.salary.isDisclosed) return 'Gaji Kompetitif (Dirahasiakan)';
+    const curr = job.salary.currency || 'IDR';
     if (job.salary.min && job.salary.max) {
-      return `${formatRupiah(job.salary.min)} - ${formatRupiah(job.salary.max)} per ${job.salary.period}`;
+      return `${formatSalary(job.salary.min, curr)} - ${formatSalary(job.salary.max, curr)} per ${job.salary.period}`;
     }
-    if (job.salary.min) return `Mulai ${formatRupiah(job.salary.min)} per ${job.salary.period}`;
-    if (job.salary.max) return `Hingga ${formatRupiah(job.salary.max)} per ${job.salary.period}`;
+    if (job.salary.min) return `Mulai ${formatSalary(job.salary.min, curr)} per ${job.salary.period}`;
+    if (job.salary.max) return `Hingga ${formatSalary(job.salary.max, curr)} per ${job.salary.period}`;
     return 'Gaji Negosiabel';
   };
 

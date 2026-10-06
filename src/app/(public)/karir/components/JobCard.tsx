@@ -16,7 +16,7 @@ import {
   Share2,
 } from 'lucide-react';
 import { JobListing } from '@/types/job.types';
-import { formatRupiah } from '@/utils/format';
+import { formatSalary } from '@/utils/format';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
@@ -95,11 +95,12 @@ export default function JobCard({
 
   const formattedSalary = React.useMemo(() => {
     if (!job.salary.isDisclosed) return 'Gaji Kompetitif';
+    const curr = job.salary.currency || 'IDR';
     if (job.salary.min && job.salary.max) {
-      return `${formatRupiah(job.salary.min)} - ${formatRupiah(job.salary.max)}`;
+      return `${formatSalary(job.salary.min, curr)} - ${formatSalary(job.salary.max, curr)}`;
     }
-    if (job.salary.min) return `Mulai ${formatRupiah(job.salary.min)}`;
-    if (job.salary.max) return `Hingga ${formatRupiah(job.salary.max)}`;
+    if (job.salary.min) return `Mulai ${formatSalary(job.salary.min, curr)}`;
+    if (job.salary.max) return `Hingga ${formatSalary(job.salary.max, curr)}`;
     return 'Gaji Dirahasiakan';
   }, [job.salary]);
 

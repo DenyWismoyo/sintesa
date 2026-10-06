@@ -219,20 +219,51 @@ export function normalizeJSearchJob(raw: JSearchRawJob): JobListing {
     workSetup = 'Hybrid';
   }
 
-  // Format Gaji
+  // Normalisasi Negara & Kota
+  const rawCountry = (raw.job_country || '').toUpperCase();
+  const countryNameMap: Record<string, string> = {
+    ID: 'Indonesia',
+    SG: 'Singapura',
+    MY: 'Malaysia',
+    PH: 'Filipina',
+    TH: 'Thailand',
+    VN: 'Vietnam',
+    JP: 'Jepang',
+    KR: 'Korea Selatan',
+  };
+
+  const currencyMap: Record<string, string> = {
+    ID: 'IDR',
+    SG: 'SGD',
+    MY: 'MYR',
+    PH: 'PHP',
+    TH: 'THB',
+    VN: 'VND',
+    JP: 'JPY',
+    KR: 'KRW',
+  };
+
+  const countryName = countryNameMap[rawCountry] || raw.job_country || 'Indonesia';
+  const inferredCurrency = currencyMap[rawCountry] || 'IDR';
+
+  const city = raw.job_city || raw.job_state || (rawCountry === 'SG' ? 'Singapura' : 'Jakarta');
+  const location = `${city}, ${countryName}`;
+
+  // Format Gaji & Periode
   const hasSalary = typeof raw.job_min_salary === 'number' && raw.job_min_salary > 0;
+  const currency = raw.job_salary_currency || inferredCurrency;
+  let period: 'Bulan' | 'Tahun' | 'Jam' = 'Bulan';
+  if (raw.job_salary_period === 'YEAR') period = 'Tahun';
+  else if (raw.job_salary_period === 'HOUR') period = 'Jam';
+
   const salary = {
     min: raw.job_min_salary || undefined,
     max: raw.job_max_salary || undefined,
-    currency: raw.job_salary_currency || 'IDR',
-    period: (raw.job_salary_period === 'HOUR' ? 'Bulan' : 'Bulan') as any,
+    currency,
+    period,
     isNegotiable: true,
     isDisclosed: hasSalary,
   };
-
-  const city = raw.job_city || 'Surakarta';
-  const state = raw.job_state || 'Jawa Tengah';
-  const location = `${city}, ${state}`;
 
   // Bersihkan slug
   const cleanSlug = `${raw.job_title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${raw.job_id.slice(-6)}`;
@@ -286,6 +317,7 @@ export function normalizeJSearchJob(raw: JSearchRawJob): JobListing {
 export async function fetchJSearchJobs(options: {
   query?: string;
   category?: string;
+  country?: string;
   page?: number;
   location?: string;
 }): Promise<{ jobs: JobListing[]; total: number; isRealtime: boolean }> {
@@ -301,12 +333,27 @@ export async function fetchJSearchJobs(options: {
     searchQuery = options.category;
   }
 
-  const locationQuery = options.location || 'Solo, Surakarta, Jawa Tengah, Indonesia';
-  const fullQuery = searchQuery ? `${searchQuery} in ${locationQuery}` : `teknologi OR manufaktur in ${locationQuery}`;
+  // Cek apakah query sudah mengandung penanda lokasi atau negara
+  const hasExplicitLocation =
+    Boolean(options.country) ||
+    Boolean(options.location) ||
+    /\b(in|di|jakarta|solo|surakarta|bandung|surabaya|semarang|singapore|kuala lumpur|malaysia|tokyo|japan|philippines|manila|thailand|bangkok|vietnam)\b/i.test(
+      searchQuery
+    );
+
+  let fullQuery = searchQuery;
+  if (!fullQuery) {
+    fullQuery = 'teknologi OR manufaktur di Indonesia';
+  } else if (!hasExplicitLocation) {
+    const locationQuery = options.location || 'Indonesia';
+    fullQuery = `${searchQuery} di ${locationQuery}`;
+  }
+
   const page = options.page || 1;
+  const countryParam = options.country?.toLowerCase();
 
   // Cek In-Memory Cache
-  const cacheKey = `jsearch_${fullQuery}_p${page}`;
+  const cacheKey = `jsearch_${fullQuery}_c${countryParam || 'none'}_p${page}`;
   const cached = cacheMap.get(cacheKey);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
     return {
@@ -319,6 +366,9 @@ export async function fetchJSearchJobs(options: {
   try {
     const url = new URL('https://jsearch.p.rapidapi.com/search-v2');
     url.searchParams.set('query', fullQuery);
+    if (countryParam) {
+      url.searchParams.set('country', countryParam);
+    }
     url.searchParams.set('page', String(page));
     url.searchParams.set('num_pages', '1');
     url.searchParams.set('date_posted', 'all');
@@ -346,11 +396,14 @@ export async function fetchJSearchJobs(options: {
       rawJobsList = json.data.jobs;
     }
 
-    // Jika pencarian dengan lokasi spesifik menghasilkan 0, coba fallback query tanpa batasan lokasi ketat
-    if (rawJobsList.length === 0 && searchQuery) {
+    // Jika pencarian dengan lokasi spesifik menghasilkan 0, coba fallback query
+    if (rawJobsList.length === 0 && searchQuery && searchQuery !== fullQuery) {
       try {
         const fallbackUrl = new URL('https://jsearch.p.rapidapi.com/search-v2');
         fallbackUrl.searchParams.set('query', searchQuery);
+        if (countryParam) {
+          fallbackUrl.searchParams.set('country', countryParam);
+        }
         fallbackUrl.searchParams.set('page', '1');
         fallbackUrl.searchParams.set('num_pages', '1');
 

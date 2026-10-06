@@ -52,6 +52,21 @@ async function writeLocalSnapshot(jobs: JobListing[], metadata: JobSyncMetadata)
   }
 }
 
+function sanitizeForFirestore(obj: any): any {
+  if (obj === null || obj === undefined) return null;
+  if (Array.isArray(obj)) return obj.map(sanitizeForFirestore);
+  if (typeof obj === 'object') {
+    const clean: any = {};
+    for (const [key, val] of Object.entries(obj)) {
+      if (val !== undefined) {
+        clean[key] = sanitizeForFirestore(val);
+      }
+    }
+    return clean;
+  }
+  return obj;
+}
+
 export const jobDbService = {
   /**
    * Mengambil metadata status sinkronisasi mingguan
@@ -152,7 +167,7 @@ export const jobDbService = {
 
         chunk.forEach((job) => {
           const jobRef = doc(db, JOBS_COLLECTION, job.id);
-          batch.set(jobRef, job, { merge: true });
+          batch.set(jobRef, sanitizeForFirestore(job), { merge: true });
           savedCount++;
         });
 
@@ -207,19 +222,32 @@ export const jobDbService = {
       let realtimeJobs: JobListing[] = [];
 
       if (hasApiKey) {
-        // Klaster industri relevan dengan kurikulum diklat Solo Technopark
-        const categoriesToFetch = [
-          'React Frontend Developer',
-          'Software Engineer',
-          'Cyber Security Analyst',
-          'UI UX Designer',
-          'Data Analyst',
-          'Teknisi Mekatronika Manufaktur',
+        // Klaster target lowongan berfokus pada Indonesia, ASEAN, dan Asia (Jepang & Korea)
+        const targetClusters: Array<{ query: string; country?: string }> = [
+          // ── Indonesia (Prioritas Utama Kawasan & Alumni Solo Technopark) ──
+          { query: 'lowongan IT di Jakarta' },
+          { query: 'lowongan programmer Jakarta' },
+          { query: 'lowongan web developer di Indonesia' },
+          { query: 'lowongan kerja di Solo' },
+          { query: 'teknisi di Indonesia' },
+          { query: 'teknik', country: 'id' },
+          // ── ASEAN (Singapura, Malaysia, Filipina, Thailand, Vietnam) ──
+          { query: 'software engineer in Singapore' },
+          { query: 'developer in Kuala Lumpur' },
+          { query: 'software engineer', country: 'my' },
+          { query: 'web developer', country: 'ph' },
+          { query: 'software engineer', country: 'th' },
+          { query: 'software developer', country: 'vn' },
+          // ── Asia Timur (Jepang) ──
+          { query: 'IT', country: 'jp' },
+          { query: 'engineer', country: 'jp' },
+          { query: 'software', country: 'jp' },
+          { query: 'developer', country: 'jp' },
         ];
 
-        const fetchPromises = categoriesToFetch.map((cat) =>
-          fetchJSearchJobs({ query: cat }).catch((err) => {
-            console.warn(`[jobDbService] Gagal fetch kategori ${cat}:`, err);
+        const fetchPromises = targetClusters.map((target) =>
+          fetchJSearchJobs({ query: target.query, country: target.country }).catch((err) => {
+            console.warn(`[jobDbService] Gagal fetch target '${target.query}':`, err);
             return { jobs: [], total: 0, isRealtime: false };
           })
         );
