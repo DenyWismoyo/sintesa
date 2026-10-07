@@ -1,7 +1,7 @@
 // Lokasi file: src/components/common/PublicNavbar.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
@@ -25,6 +25,7 @@ import {
   ChevronRight,
   Search,
   Briefcase,
+  ChevronDown,
 } from 'lucide-react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { useAuth } from '@/lib/AuthContext';
@@ -39,20 +40,107 @@ export interface NavMenu {
   path: string;
   icon: React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }>;
   badge?: string;
+  description?: string;
+  isExclusive?: boolean;
 }
 
-export const PUBLIC_NAV_MENUS: NavMenu[] = [
-  { name: 'Katalog', path: '/e-katalog', icon: ShoppingBag },
-  { name: 'Fasilitas', path: '/fasilitas', icon: Building2 },
-  { name: 'Pelatihan', path: '/program-pelatihan', icon: GraduationCap },
-  { name: 'Karir', path: '/karir', icon: Briefcase, badge: 'Baru' },
-  { name: 'Ekosistem', path: '/ekosistem', icon: Users },
-  { name: 'Artikel', path: '/artikel', icon: Newspaper },
-  { name: 'Event', path: '/event', icon: CalendarDays },
-  { name: 'Ruang Belajar', path: '/ruang-belajar', icon: BookOpen },
-  { name: 'Tentang', path: '/tentang', icon: Info },
-  { name: 'FAQ', path: '/faq', icon: HelpCircle },
+export interface NavGroup {
+  id: string;
+  label: string;
+  items: NavMenu[];
+}
+
+export const PUBLIC_NAV_GROUPS: NavGroup[] = [
+  {
+    id: 'layanan',
+    label: 'Layanan',
+    items: [
+      {
+        name: 'Katalog Produk',
+        path: '/e-katalog',
+        description: 'Produk inovasi & hasil riset tenant kawasan',
+        icon: ShoppingBag,
+      },
+      {
+        name: 'Fasilitas Kawasan',
+        path: '/fasilitas',
+        description: 'Sewa coworking space, lab riset & ruang acara',
+        icon: Building2,
+      },
+    ],
+  },
+  {
+    id: 'pelatihan',
+    label: 'Pelatihan & Karir',
+    items: [
+      {
+        name: 'Program Pelatihan',
+        path: '/program-pelatihan',
+        description: 'Akademi vokasi industri manufaktur & teknologi digital',
+        icon: GraduationCap,
+      },
+      {
+        name: 'Ruang Belajar',
+        path: '/ruang-belajar',
+        description: 'Akses modul materi & pembelajaran digital',
+        icon: BookOpen,
+      },
+      {
+        name: 'Bursa Karir',
+        path: '/karir',
+        description: 'Penyaluran kerja mitra industri pilihan',
+        icon: Briefcase,
+        badge: 'Eksklusif',
+        isExclusive: true,
+      },
+    ],
+  },
+  {
+    id: 'ekosistem',
+    label: 'Ekosistem',
+    items: [
+      {
+        name: 'Jejaring Ekosistem',
+        path: '/ekosistem',
+        description: 'Sinergi startup, kampus mitra & investor',
+        icon: Users,
+      },
+      {
+        name: 'Agenda Event',
+        path: '/event',
+        description: 'Workshop, pameran inovasi & kompetisi teknologi',
+        icon: CalendarDays,
+      },
+      {
+        name: 'Artikel & Warta',
+        path: '/artikel',
+        description: 'Publikasi sains terapan & kabar terkini kawasan',
+        icon: Newspaper,
+      },
+    ],
+  },
+  {
+    id: 'tentang',
+    label: 'Tentang',
+    items: [
+      {
+        name: 'Profil Kawasan',
+        path: '/tentang',
+        description: 'Visi, misi, sejarah, & fasilitas Solo Technopark',
+        icon: Info,
+      },
+      {
+        name: 'Pusat Bantuan / FAQ',
+        path: '/faq',
+        description: 'Informasi operasional & panduan layanan',
+        icon: HelpCircle,
+      },
+    ],
+  },
 ];
+
+// Flat menus untuk kompatibilitas pencarian atau komponen lain
+export const PUBLIC_NAV_MENUS: NavMenu[] = PUBLIC_NAV_GROUPS.flatMap((g) => g.items);
 
 const menuOverlayVariants: Variants = {
   hidden: { opacity: 0, scale: 0.98, y: -8 },
@@ -114,15 +202,58 @@ export default function PublicNavbar() {
     };
   }, [isMobileMenuOpen]);
 
-  // Filter menu navigasi: menu Karir hanya untuk Alumni dan seluruh Admin
-  const navMenus = React.useMemo(() => {
-    return PUBLIC_NAV_MENUS.filter((menu) => {
-      if (menu.path === '/karir') {
-        return canAccessCareer(role);
-      }
-      return true;
-    });
+  // State untuk dropdown menu desktop
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Filter grup navigasi: item Karir hanya untuk Alumni dan seluruh Admin
+  const filteredNavGroups = useMemo(() => {
+    return PUBLIC_NAV_GROUPS.map((group) => ({
+      ...group,
+      items: group.items.filter((item) => {
+        if (item.path === '/karir') {
+          return canAccessCareer(role);
+        }
+        return true;
+      }),
+    }));
   }, [role]);
+
+  // Flat menu untuk mobile nav
+  const flatNavMenus = useMemo(() => {
+    return filteredNavGroups.flatMap((group) => group.items);
+  }, [filteredNavGroups]);
+
+  // Handler dropdown desktop dengan micro-delay agar kursor tidak mudah lepas
+  const handleMouseEnter = (groupId: string) => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    setOpenDropdown(groupId);
+  };
+
+  const handleMouseLeave = () => {
+    closeTimeoutRef.current = setTimeout(() => {
+      setOpenDropdown(null);
+    }, 150);
+  };
+
+  // Tutup dropdown saat route berpindah
+  useEffect(() => {
+    setOpenDropdown(null);
+  }, [pathname]);
+
+  // Tutup dropdown saat tombol ESC ditekan
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpenDropdown(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -330,23 +461,108 @@ export default function PublicNavbar() {
             </div>
           </Link>
 
-          {/* SISI TENGAH: NAVIGASI DESKTOP */}
-          <nav className="hidden lg:flex flex-1 items-center justify-center gap-1 xl:gap-1.5 max-w-3xl">
-            {navMenus.map((menu) => {
-              const isActive =
-                pathname === menu.path || (menu.path !== '/' && pathname?.startsWith(menu.path));
+          {/* SISI TENGAH: NAVIGASI DESKTOP MINIMALIS (4 KATEGORI DENGAN DROPDOWN ELEGAN) */}
+          <nav 
+            className="hidden lg:flex flex-1 items-center justify-center gap-1 xl:gap-2 max-w-2xl"
+            onMouseLeave={handleMouseLeave}
+          >
+            {filteredNavGroups.map((group) => {
+              const isGroupActive = group.items.some(
+                (item) => pathname === item.path || (item.path !== '/' && pathname?.startsWith(item.path))
+              );
+              const isOpen = openDropdown === group.id;
+
               return (
-                <Link
-                  key={menu.path}
-                  href={menu.path}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-all duration-200 ${
-                    isActive
-                      ? 'text-blue-700 bg-blue-50/90 font-bold shadow-2xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
-                  }`}
+                <div
+                  key={group.id}
+                  className="relative"
+                  onMouseEnter={() => handleMouseEnter(group.id)}
                 >
-                  {menu.name}
-                </Link>
+                  <button
+                    type="button"
+                    onClick={() => setOpenDropdown(isOpen ? null : group.id)}
+                    className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-full transition-all duration-200 cursor-pointer ${
+                      isGroupActive || isOpen
+                        ? 'text-blue-700 bg-blue-50/90 font-bold shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
+                    }`}
+                    aria-expanded={isOpen}
+                  >
+                    <span>{group.label}</span>
+                    <ChevronDown
+                      size={13}
+                      className={`transition-transform duration-200 ${
+                        isOpen ? 'rotate-180 text-blue-600' : 'text-slate-400'
+                      }`}
+                    />
+                  </button>
+
+                  <AnimatePresence>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                        transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                        className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-50 w-80 rounded-2xl bg-white/95 backdrop-blur-xl border border-slate-200/90 shadow-[0_20px_50px_-10px_rgba(15,23,42,0.15)] p-2"
+                      >
+                        <div className="flex flex-col gap-1">
+                          {group.items.map((item) => {
+                            const isItemActive =
+                              pathname === item.path || (item.path !== '/' && pathname?.startsWith(item.path));
+                            const Icon = item.icon;
+
+                            return (
+                              <Link
+                                key={item.path}
+                                href={item.path}
+                                onClick={() => setOpenDropdown(null)}
+                                className={`group flex items-start gap-3 p-2.5 rounded-xl transition-all duration-150 ${
+                                  isItemActive
+                                    ? 'bg-blue-50/90 text-blue-700'
+                                    : 'hover:bg-slate-100/80 text-slate-700'
+                                }`}
+                              >
+                                <div
+                                  className={`p-2 rounded-xl shrink-0 transition-colors ${
+                                    isItemActive
+                                      ? 'bg-blue-600 text-white shadow-2xs'
+                                      : 'bg-slate-100 text-slate-600 group-hover:bg-blue-50 group-hover:text-blue-600'
+                                  }`}
+                                >
+                                  <Icon size={16} strokeWidth={2} />
+                                </div>
+                                <div className="flex-1 min-w-0 text-left">
+                                  <div className="flex items-center gap-1.5">
+                                    <span
+                                      className={`text-xs font-bold leading-tight ${
+                                        isItemActive
+                                          ? 'text-blue-700 font-extrabold'
+                                          : 'text-slate-800 group-hover:text-blue-600'
+                                      }`}
+                                    >
+                                      {item.name}
+                                    </span>
+                                    {item.badge && (
+                                      <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        {item.badge}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {item.description && (
+                                    <p className="text-[11px] text-slate-500 leading-snug line-clamp-1 mt-0.5">
+                                      {item.description}
+                                    </p>
+                                  )}
+                                </div>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               );
             })}
           </nav>
@@ -458,55 +674,64 @@ export default function PublicNavbar() {
                   initial="hidden"
                   animate="visible"
                   exit="hidden"
-                  className="flex flex-col gap-1"
+                  className="flex flex-col gap-3.5"
                 >
-                  {navMenus.map((menu, idx) => {
-                    const isActive =
-                      pathname === menu.path ||
-                      (menu.path !== '/' && pathname?.startsWith(menu.path));
-                    const IconComponent = menu.icon;
+                  {filteredNavGroups.map((group) => (
+                    <div key={group.id} className="flex flex-col gap-1">
+                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 px-3 pb-0.5">
+                        {group.label}
+                      </p>
+                      {group.items.map((menu) => {
+                        const isActive =
+                          pathname === menu.path ||
+                          (menu.path !== '/' && pathname?.startsWith(menu.path));
+                        const IconComponent = menu.icon;
 
-                    return (
-                      <motion.div key={menu.path} variants={navItemVariants}>
-                        <Link
-                          href={menu.path}
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className={`flex items-center justify-between w-full py-2.5 px-3.5 rounded-xl transition-all duration-200 ${
-                            isActive
-                              ? 'bg-blue-50/90 text-blue-700 font-extrabold border border-blue-200/60 shadow-2xs'
-                              : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100/70'
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                        return (
+                          <motion.div key={menu.path} variants={navItemVariants}>
+                            <Link
+                              href={menu.path}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                              className={`flex items-center justify-between w-full py-2 px-3 rounded-xl transition-all duration-200 ${
                                 isActive
-                                  ? 'bg-blue-600 text-white shadow-2xs'
-                                  : 'bg-slate-100 text-slate-500 group-hover:text-slate-800'
+                                  ? 'bg-blue-50/90 text-blue-700 font-extrabold border border-blue-200/60 shadow-2xs'
+                                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100/70'
                               }`}
                             >
-                              <IconComponent size={16} strokeWidth={2} />
-                            </div>
-                            <span className="text-sm font-semibold tracking-tight">
-                              {menu.name}
-                            </span>
-                          </div>
+                              <div className="flex items-center gap-3">
+                                <div
+                                  className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                                    isActive
+                                      ? 'bg-blue-600 text-white shadow-2xs'
+                                      : 'bg-slate-100 text-slate-500 group-hover:text-slate-800'
+                                  }`}
+                                >
+                                  <IconComponent size={15} strokeWidth={2} />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs sm:text-sm font-semibold tracking-tight">
+                                    {menu.name}
+                                  </span>
+                                  {menu.badge && (
+                                    <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                      {menu.badge}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
 
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-mono font-medium text-slate-300">
-                              0{idx + 1}
-                            </span>
-                            <ChevronRight
-                              size={15}
-                              className={`transition-transform ${
-                                isActive ? 'text-blue-600 translate-x-0.5' : 'text-slate-300'
-                              }`}
-                            />
-                          </div>
-                        </Link>
-                      </motion.div>
-                    );
-                  })}
+                              <ChevronRight
+                                size={15}
+                                className={`transition-transform ${
+                                  isActive ? 'text-blue-600 translate-x-0.5' : 'text-slate-300'
+                                }`}
+                              />
+                            </Link>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  ))}
                 </motion.nav>
               </div>
 
