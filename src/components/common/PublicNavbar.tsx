@@ -31,7 +31,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { auth } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
 import { toast } from 'sonner';
-import { isInternalStaff, APP_ROLES } from '@/config/roles';
+import { isInternalStaff, APP_ROLES, canAccessCareer } from '@/config/roles';
 import GlobalSearchModal from './GlobalSearchModal';
 
 export interface NavMenu {
@@ -113,6 +113,16 @@ export default function PublicNavbar() {
       document.body.style.overflow = 'unset';
     };
   }, [isMobileMenuOpen]);
+
+  // Filter menu navigasi: menu Karir hanya untuk Alumni dan seluruh Admin
+  const navMenus = React.useMemo(() => {
+    return PUBLIC_NAV_MENUS.filter((menu) => {
+      if (menu.path === '/karir') {
+        return canAccessCareer(role);
+      }
+      return true;
+    });
+  }, [role]);
 
   const handleLogout = async () => {
     try {
@@ -322,7 +332,7 @@ export default function PublicNavbar() {
 
           {/* SISI TENGAH: NAVIGASI DESKTOP */}
           <nav className="hidden lg:flex flex-1 items-center justify-center gap-1 xl:gap-1.5 max-w-3xl">
-            {PUBLIC_NAV_MENUS.map((menu) => {
+            {navMenus.map((menu) => {
               const isActive =
                 pathname === menu.path || (menu.path !== '/' && pathname?.startsWith(menu.path));
               return (
@@ -450,7 +460,7 @@ export default function PublicNavbar() {
                   exit="hidden"
                   className="flex flex-col gap-1"
                 >
-                  {PUBLIC_NAV_MENUS.map((menu, idx) => {
+                  {navMenus.map((menu, idx) => {
                     const isActive =
                       pathname === menu.path ||
                       (menu.path !== '/' && pathname?.startsWith(menu.path));

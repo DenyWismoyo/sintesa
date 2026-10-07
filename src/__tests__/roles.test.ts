@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { hasAccess, isInternalStaff, canPerformAction, PERMISSIONS, APP_ROLES } from '@/config/roles';
+import { hasAccess, isInternalStaff, canPerformAction, canAccessCareer, PERMISSIONS, APP_ROLES } from '@/config/roles';
 
 describe('Role-Based Access Control (RBAC) System', () => {
   describe('Super Admin Access', () => {
@@ -66,6 +66,58 @@ describe('Role-Based Access Control (RBAC) System', () => {
       expect(hasAccess(APP_ROLES.INVESTOR, '/ekosistem/threads')).toBe(true);
       expect(hasAccess(APP_ROLES.KAMPUS, '/ekosistem/threads')).toBe(true);
       expect(hasAccess(APP_ROLES.INDUSTRI, '/ekosistem/threads')).toBe(true);
+    });
+  });
+
+  describe('Exclusive Career / Job Portal Access (Alumni & Admin Only)', () => {
+    it('should grant career access to alumni', () => {
+      expect(canAccessCareer(APP_ROLES.ALUMNI)).toBe(true);
+      expect(hasAccess(APP_ROLES.ALUMNI, '/karir')).toBe(true);
+      expect(hasAccess(APP_ROLES.ALUMNI, '/karir/job-123')).toBe(true);
+      expect(canPerformAction(APP_ROLES.ALUMNI, PERMISSIONS.ACCESS_CAREER)).toBe(true);
+    });
+
+    it('should grant career access to all internal staff and admin roles', () => {
+      const adminRoles = [
+        APP_ROLES.SUPER_ADMIN,
+        APP_ROLES.ADMIN,
+        APP_ROLES.ADMIN_PELATIHAN,
+        APP_ROLES.OPERATOR_PELATIHAN,
+        APP_ROLES.ADMIN_ASET,
+        APP_ROLES.OPERATOR_ASET,
+        APP_ROLES.ADMIN_KEUANGAN,
+        APP_ROLES.KASIR,
+        APP_ROLES.KASIR_PENGELUARAN,
+        APP_ROLES.ADMIN_TENANT,
+        APP_ROLES.OPERATOR_TENANT,
+      ];
+
+      adminRoles.forEach((role) => {
+        expect(canAccessCareer(role)).toBe(true);
+        expect(hasAccess(role, '/karir')).toBe(true);
+        expect(hasAccess(role, '/karir/detail-job')).toBe(true);
+        expect(canPerformAction(role, PERMISSIONS.ACCESS_CAREER)).toBe(true);
+      });
+    });
+
+    it('should deny career access to public/guest and non-alumni roles', () => {
+      const nonEligibleRoles = [
+        APP_ROLES.PUBLIC,
+        APP_ROLES.TENANT,
+        APP_ROLES.INVESTOR,
+        APP_ROLES.KAMPUS,
+        APP_ROLES.INDUSTRI,
+        null,
+      ];
+
+      nonEligibleRoles.forEach((role) => {
+        expect(canAccessCareer(role)).toBe(false);
+        expect(hasAccess(role, '/karir')).toBe(false);
+        expect(hasAccess(role, '/karir/detail-job')).toBe(false);
+        if (role) {
+          expect(canPerformAction(role, PERMISSIONS.ACCESS_CAREER)).toBe(false);
+        }
+      });
     });
   });
 });

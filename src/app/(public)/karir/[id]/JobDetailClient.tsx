@@ -39,6 +39,9 @@ import { useJobDetail, useJobs, useJobAiMatchMutation } from '@/hooks/useJobs';
 import { JobListing, JobAiMatchResponse } from '@/types/job.types';
 import { formatSalary } from '@/utils/format';
 import JobShareMenu from '../components/JobShareMenu';
+import CareerExclusiveGate from '@/components/career/CareerExclusiveGate';
+import { useAuth } from '@/lib/AuthContext';
+import { canAccessCareer } from '@/config/roles';
 
 interface JobDetailClientProps {
   idOrSlug: string;
@@ -62,7 +65,9 @@ const COMMON_STP_PROGRAMS = [
 
 export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
   const router = useRouter();
-  const { data: job, isLoading, isError } = useJobDetail(idOrSlug);
+  const { role, loading: authLoading } = useAuth();
+  const hasCareerAccess = canAccessCareer(role);
+  const { data: job, isLoading, isError } = useJobDetail(idOrSlug, { enabled: hasCareerAccess });
 
   const [imgError, setImgError] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -149,6 +154,25 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
     if (job.salary.max) return `Hingga ${formatSalary(job.salary.max, curr)} / ${job.salary.period}`;
     return 'Gaji Negosiabel';
   };
+
+  if (authLoading) {
+    return (
+      <SectionContainer accent="emerald" width="default">
+        <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3">
+          <div className="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm font-semibold text-slate-500">Memverifikasi hak akses pengguna...</p>
+        </div>
+      </SectionContainer>
+    );
+  }
+
+  if (!hasCareerAccess) {
+    return (
+      <SectionContainer accent="emerald" width="default">
+        <CareerExclusiveGate jobTitle={job?.title} companyName={job?.company} />
+      </SectionContainer>
+    );
+  }
 
   if (isLoading) {
     return (

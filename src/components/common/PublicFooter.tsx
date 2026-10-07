@@ -94,8 +94,11 @@ export default function PublicFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="/karir" className="hover:text-white hover:translate-x-0.5 inline-flex items-center gap-1 transition-all">
-                  Bursa Karir & Talenta Alumni
+                <Link href="/karir" className="hover:text-white hover:translate-x-0.5 inline-flex items-center gap-1.5 transition-all">
+                  <span>Bursa Karir & Talenta</span>
+                  <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    Eksklusif Alumni
+                  </span>
                 </Link>
               </li>
               <li>

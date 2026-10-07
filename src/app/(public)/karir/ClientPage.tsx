@@ -14,6 +14,9 @@ import { JobListing, JobCategory } from '@/types/job.types';
 import JobCard from './components/JobCard';
 import JobFilterToolbar from './components/JobFilterToolbar';
 import AlumniQuickMatchBanner from './components/AlumniQuickMatchBanner';
+import CareerExclusiveGate from '@/components/career/CareerExclusiveGate';
+import { useAuth } from '@/lib/AuthContext';
+import { canAccessCareer } from '@/config/roles';
 
 const CATEGORY_TABS: PillTabItem[] = [
   { key: 'all', label: 'Semua Bidang' },
@@ -28,6 +31,8 @@ const CATEGORY_TABS: PillTabItem[] = [
 export default function KarirClientPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { role, loading: authLoading } = useAuth();
+  const hasCareerAccess = canAccessCareer(role);
 
   // Search & Filter States
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
@@ -65,7 +70,7 @@ export default function KarirClientPage() {
     sort,
   ]);
 
-  const { data, isLoading } = useJobs(filterParams);
+  const { data, isLoading } = useJobs(filterParams, { enabled: hasCareerAccess });
   const jobs = data?.jobs || [];
   const total = data?.total || 0;
 
@@ -97,6 +102,26 @@ export default function KarirClientPage() {
     setSourceFilter('all');
     setSort('newest');
   };
+
+  // Gerbang Eksklusif: Hanya Alumni & Seluruh Admin yang bisa mengakses
+  if (authLoading) {
+    return (
+      <SectionContainer accent="emerald" width="default">
+        <div className="min-h-[55vh] flex flex-col items-center justify-center gap-3">
+          <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs text-slate-500 font-medium">Memverifikasi hak akses pengguna...</p>
+        </div>
+      </SectionContainer>
+    );
+  }
+
+  if (!hasCareerAccess) {
+    return (
+      <SectionContainer accent="emerald" width="default">
+        <CareerExclusiveGate />
+      </SectionContainer>
+    );
+  }
 
   return (
     <SectionContainer accent="emerald" width="default">
