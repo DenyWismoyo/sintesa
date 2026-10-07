@@ -149,6 +149,21 @@ export const jobDbService = {
     const found = allJobs.find((j) => j.id === idOrSlug || j.slug === idOrSlug);
     if (found) return found;
 
+    // Di server Node.js Next.js, gunakan REST API agar terbebas dari issue gRPC stream
+    if (typeof window === 'undefined') {
+      try {
+        const { getServerDocRest } = await import('@/lib/serverFirestore');
+        const restDoc = await getServerDocRest<JobListing>(JOBS_COLLECTION, idOrSlug, 60);
+        if (restDoc) {
+          const parsed = JobListingSchema.safeParse(restDoc);
+          if (parsed.success) return parsed.data;
+        }
+      } catch {
+        // Fallback diam
+      }
+      return null;
+    }
+
     try {
       const snap = await getDoc(doc(db, JOBS_COLLECTION, idOrSlug));
       if (snap.exists()) {

@@ -28,7 +28,7 @@ export interface JSearchRawJob {
   };
 }
 
-interface JSearchApiResponse {
+export interface JSearchApiResponse {
   status: string;
   data?: JSearchRawJob[];
   message?: string;
@@ -429,12 +429,12 @@ export async function fetchJSearchJobs(options: {
       return { jobs: [], total: 0, isRealtime: false };
     }
 
-    const json: any = await res.json();
+    const json = (await res.json()) as { data?: JSearchRawJob[] | { jobs?: JSearchRawJob[] } };
     let rawJobsList: JSearchRawJob[] = [];
 
     if (Array.isArray(json.data)) {
       rawJobsList = json.data;
-    } else if (json.data && Array.isArray(json.data.jobs)) {
+    } else if (json.data && 'jobs' in json.data && Array.isArray(json.data.jobs)) {
       rawJobsList = json.data.jobs;
     }
 
@@ -458,14 +458,14 @@ export async function fetchJSearchJobs(options: {
         });
 
         if (fallbackRes.ok) {
-          const fallbackJson: any = await fallbackRes.json();
+          const fallbackJson = (await fallbackRes.json()) as { data?: JSearchRawJob[] | { jobs?: JSearchRawJob[] } };
           if (Array.isArray(fallbackJson.data)) {
             rawJobsList = fallbackJson.data;
-          } else if (fallbackJson.data && Array.isArray(fallbackJson.data.jobs)) {
+          } else if (fallbackJson.data && 'jobs' in fallbackJson.data && Array.isArray(fallbackJson.data.jobs)) {
             rawJobsList = fallbackJson.data.jobs;
           }
         }
-      } catch (fbErr) {
+      } catch {
         // Abaikan error fallback
       }
     }
