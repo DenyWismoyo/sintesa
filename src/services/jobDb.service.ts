@@ -14,6 +14,7 @@ import {
 import { db } from '@/lib/firebase';
 import { JobListing, JobListingSchema } from '@/types/job.types';
 import { fetchJSearchJobs } from '@/services/jsearch.service';
+import { aggregateMultiProviderJobs } from '@/services/jobAggregator.service';
 import SYNCED_SNAPSHOT from '@/data/jobs/syncedJobs.json';
 
 const JOBS_COLLECTION = 'jobs';
@@ -293,21 +294,59 @@ export const jobDbService = {
         });
       }
 
-      // 2. Seluruh lowongan murni 100% dari internet
-      const allJobsToSave: JobListing[] = realtimeJobs;
+      // 2. Jika RapidAPI mengembalikan 0 (atau kuota habis/tidak ada key), gunakan Multi-Provider Aggregator
+      if (realtimeJobs.length === 0) {
+        console.log('[jobDbService] Memanggil Multi-Provider Aggregator (Remotive, Arbeitnow, Jobicy, Himalayas)...');
+        try {
+          const openApiJobs = await aggregateMultiProviderJobs();
+          realtimeJobs.push(...openApiJobs);
+        } catch (aggErr) {
+          console.warn('[jobDbService] Gagal agregasi open API:', aggErr);
+        }
+      }
 
-      // 3. Perbarui metadata jadwal seminggu sekali
+      // 3. Pertahankan lowongan industri & mitra vokasi STP dari database lokal/Firestore
+      const existingJobs = await this.getJobsFromFirestore();
+      const existingIndustrialJobs = existingJobs.filter(
+        (j) => j.isStpPartner || j.id.startsWith('ind-') || j.source === 'stp_partner'
+      );
+
+      // Gabungkan & deduplikasi
+      const combinedMap = new Map<string, JobListing>();
+      existingIndustrialJobs.forEach((j) => combinedMap.set(j.id, j));
+      realtimeJobs.forEach((j) => combinedMap.set(j.id, j));
+
+      const allJobsToSave: JobListing[] = Array.from(combinedMap.values());
+
+      // 4. Perbarui metadata jadwal seminggu sekali
       const nextSyncAt = now + SYNC_INTERVAL_MS;
+      const stpCount = allJobsToSave.filter((j) => j.isStpPartner).length;
+      const isMultiProvider = allJobsToSave.some(
+        (j) =>
+          j.id.startsWith('remotive-') ||
+          j.id.startsWith('arbeitnow-') ||
+          j.id.startsWith('jobicy-') ||
+          j.id.startsWith('himalayas-')
+      );
+
+      const providerName = isMultiProvider
+        ? hasApiKey
+          ? 'JSearch RapidAPI & Multi-Provider Aggregator'
+          : 'Multi-Provider Aggregator (Remotive, Arbeitnow, Jobicy, Himalayas)'
+        : hasApiKey
+        ? 'JSearch RapidAPI v2'
+        : 'Internet Realtime';
+
       const updatedMetadata: JobSyncMetadata = {
         lastSyncedAt: now,
         nextSyncAt,
         syncIntervalDays: 7,
         totalJobsInDb: allJobsToSave.length,
-        realtimeJobsCount: realtimeJobs.length,
-        stpJobsCount: 0,
+        realtimeJobsCount: allJobsToSave.length - stpCount,
+        stpJobsCount: stpCount,
         status: 'SUCCESS',
-        message: `Berhasil menyinkronkan ${allJobsToSave.length} lowongan murni dari internet (RapidAPI JSearch). Update berikutnya dalam 7 hari.`,
-        provider: hasApiKey ? 'JSearch RapidAPI v2' : 'Internet Realtime',
+        message: `Berhasil menyinkronkan ${allJobsToSave.length} lowongan (mencakup lowongan industri STP & agregasi open API). Update berikutnya dalam 7 hari.`,
+        provider: providerName,
       };
 
       // 5. Simpan snapshot lokal & simpan ke Firestore
