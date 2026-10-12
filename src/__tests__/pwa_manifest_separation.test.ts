@@ -53,5 +53,10 @@ describe('PWA Manifest & Icon Separation Suite', () => {
     expect(fs.existsSync(path.join(presensiIconsDir, 'icon-192x192.png'))).toBe(true);
     expect(fs.existsSync(path.join(presensiIconsDir, 'icon-512x512.png'))).toBe(true);
     expect(fs.existsSync(path.join(presensiIconsDir, 'icon-maskable.png'))).toBe(true);
+    expect(fs.existsSync(path.join(presensiIconsDir, 'icon.svg'))).toBe(true);
+
+    const svgContent = fs.readFileSync(path.join(presensiIconsDir, 'icon.svg'), 'utf-8');
+    expect(svgContent).toContain('<svg');
+    expect(svgContent).toContain('neonShieldGlow');
   });
 });

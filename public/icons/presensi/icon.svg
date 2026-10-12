@@ -1,88 +1,229 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none">
   <defs>
-    <!-- Background Gradient -->
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0f172a" />
-      <stop offset="50%" stop-color="#064e3b" />
-      <stop offset="100%" stop-color="#022c22" />
+    <!-- Background Luxury Dark Slate Gradients -->
+    <radialGradient id="bgRadial" cx="50%" cy="45%" r="65%">
+      <stop offset="0%" stop-color="#1e293b" />
+      <stop offset="55%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#050811" />
+    </radialGradient>
+
+    <!-- Hairline Border Gradient -->
+    <linearGradient id="squircleBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399" stop-opacity="0.45" />
+      <stop offset="50%" stop-color="#06b6d4" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.3" />
     </linearGradient>
 
-    <!-- Shield Border Glow Gradient -->
-    <linearGradient id="shieldGlow" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#34d399" />
-      <stop offset="40%" stop-color="#10b981" />
-      <stop offset="100%" stop-color="#06b6d4" />
+    <!-- Deep Ambient Behind Shield -->
+    <radialGradient id="ambientShieldGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.45" />
+      <stop offset="50%" stop-color="#06b6d4" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#064e3b" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Neon Outer Shield Glow -->
+    <linearGradient id="neonShieldGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6ee7b7" />
+      <stop offset="35%" stop-color="#10b981" />
+      <stop offset="70%" stop-color="#06b6d4" />
+      <stop offset="100%" stop-color="#3b82f6" />
     </linearGradient>
 
-    <!-- Shield Inner Fill Gradient -->
-    <linearGradient id="shieldInner" x1="20%" y1="10%" x2="80%" y2="90%">
-      <stop offset="0%" stop-color="#065f46" stop-opacity="0.85" />
-      <stop offset="50%" stop-color="#047857" stop-opacity="0.75" />
-      <stop offset="100%" stop-color="#0f766e" stop-opacity="0.9" />
+    <!-- Shield Rim 3D Bevel Facet - Left (Luminous) -->
+    <linearGradient id="rimLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a7f3d0" />
+      <stop offset="40%" stop-color="#34d399" />
+      <stop offset="85%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#047857" />
     </linearGradient>
 
-    <!-- Neon Emerald Checkmark Gradient -->
-    <linearGradient id="checkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff" />
-      <stop offset="50%" stop-color="#a7f3d0" />
-      <stop offset="100%" stop-color="#34d399" />
+    <!-- Shield Rim 3D Bevel Facet - Right (Shaded) -->
+    <linearGradient id="rimRight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="35%" stop-color="#047857" />
+      <stop offset="70%" stop-color="#0f766e" />
+      <stop offset="100%" stop-color="#0e7490" />
     </linearGradient>
 
-    <!-- Glass Highlight -->
-    <linearGradient id="glassLight" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.4" />
-      <stop offset="40%" stop-color="#ffffff" stop-opacity="0.05" />
+    <!-- Inner Shield Face - Left Facet (Crystal Light) -->
+    <linearGradient id="innerFaceLeft" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#047857" stop-opacity="0.9" />
+      <stop offset="45%" stop-color="#065f46" stop-opacity="0.85" />
+      <stop offset="100%" stop-color="#022c22" stop-opacity="0.95" />
+    </linearGradient>
+
+    <!-- Inner Shield Face - Right Facet (Crystal Shadow) -->
+    <linearGradient id="innerFaceRight" x1="80%" y1="0%" x2="20%" y2="100%">
+      <stop offset="0%" stop-color="#034e3a" stop-opacity="0.95" />
+      <stop offset="45%" stop-color="#023b2c" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#011e17" stop-opacity="0.98" />
+    </linearGradient>
+
+    <!-- Specular Glass Sweep Highlight -->
+    <linearGradient id="glassSweep" x1="0%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.45" />
+      <stop offset="30%" stop-color="#a7f3d0" stop-opacity="0.2" />
+      <stop offset="65%" stop-color="#ffffff" stop-opacity="0.03" />
       <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
     </linearGradient>
 
-    <!-- Drop Shadows & Glow Filter -->
-    <filter id="glowFilter" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="12" result="blur" />
-      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    <!-- Reticle HUD Arc Gradient -->
+    <linearGradient id="hudGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a7f3d0" />
+      <stop offset="50%" stop-color="#34d399" />
+      <stop offset="100%" stop-color="#22d3ee" />
+    </linearGradient>
+
+    <!-- Fingerprint Glowing Ridge Gradient -->
+    <linearGradient id="fpRidgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="40%" stop-color="#e0f2fe" />
+      <stop offset="80%" stop-color="#a7f3d0" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+
+    <!-- Checkmark Pure Gradient -->
+    <linearGradient id="checkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="50%" stop-color="#ecfdf5" />
+      <stop offset="100%" stop-color="#6ee7b7" />
+    </linearGradient>
+
+    <!-- Filter Neon Glow (Intense) -->
+    <filter id="neonBloom" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="14" result="blur1" />
+      <feGaussianBlur stdDeviation="6" result="blur2" />
+      <feMerge>
+        <feMergeNode in="blur1" />
+        <feMergeNode in="blur2" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
     </filter>
+
+    <!-- Filter Fingerprint Soft Glow -->
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Big Ambient Diffuse Blur -->
+    <filter id="diffuseGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="35" />
+    </filter>
+
+    <!-- Clip Path for Glass Reflection inside Inner Shield -->
+    <clipPath id="innerShieldClip">
+      <path d="M 256 136 L 358 177 C 358 270 320 350 256 397 C 192 350 154 270 154 177 Z" />
+    </clipPath>
   </defs>
 
-  <!-- Squircle Base App Icon -->
-  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
-  <rect width="510" height="510" x="1" y="1" rx="111" stroke="#34d399" stroke-opacity="0.25" stroke-width="2" />
+  <!-- 1. SQUIRCLE CANVAS BASE (512x512) -->
+  <rect width="512" height="512" rx="116" fill="url(#bgRadial)" />
+  <rect x="2" y="2" width="508" height="508" rx="114" fill="none" stroke="url(#squircleBorder)" stroke-width="1.5" />
 
-  <!-- Background Ambient Cyber Pattern -->
-  <circle cx="256" cy="240" r="160" stroke="#10b981" stroke-width="1.5" stroke-opacity="0.15" stroke-dasharray="8 6" />
-  <circle cx="256" cy="240" r="195" stroke="#06b6d4" stroke-width="1" stroke-opacity="0.1" />
+  <!-- 2. AMBIENT BACKDROP GLOW -->
+  <circle cx="256" cy="250" r="165" fill="url(#ambientShieldGlow)" filter="url(#diffuseGlow)" />
 
-  <!-- Shield Outer Glow -->
-  <path d="M 256 90 L 375 142 C 375 255 330 350 256 405 C 182 350 137 255 137 142 Z" 
-        fill="none" stroke="url(#shieldGlow)" stroke-width="8" filter="url(#glowFilter)" opacity="0.6" />
+  <!-- 3. SHIELD OUTER NEON HALO / BLOOM -->
+  <path d="M 256 106 L 380 154 C 380 274 332 376 256 430 C 180 376 132 274 132 154 Z"
+        fill="none" stroke="url(#neonShieldGlow)" stroke-width="18" filter="url(#neonBloom)" opacity="0.85" />
 
-  <!-- Shield Main Body -->
-  <path d="M 256 96 L 370 146 C 370 252 328 342 256 395 C 184 342 142 252 142 146 Z" 
-        fill="url(#shieldInner)" stroke="url(#shieldGlow)" stroke-width="6" stroke-linejoin="round" />
+  <!-- 4. SHIELD 3D BEVELED RIM (OUTER SHELL) -->
+  <!-- Left Rim Facet -->
+  <path d="M 256 106 L 132 154 C 132 274 180 376 256 430 L 256 397 C 192 350 154 270 154 177 L 256 136 Z"
+        fill="url(#rimLeft)" stroke="#34d399" stroke-width="1.5" stroke-linejoin="round" />
 
-  <!-- Shield Glass Diagonal Reflection -->
-  <path d="M 256 98 L 368 147 C 368 190 355 240 335 285 L 256 195 Z" 
-        fill="url(#glassLight)" />
+  <!-- Right Rim Facet -->
+  <path d="M 256 106 L 380 154 C 380 274 332 376 256 430 L 256 397 C 320 350 358 270 358 177 L 256 136 Z"
+        fill="url(#rimRight)" stroke="#059669" stroke-width="1.5" stroke-linejoin="round" />
 
-  <!-- Biometric Ring Pulse (Outer) -->
-  <circle cx="256" cy="225" r="54" stroke="#a7f3d0" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="45 15" stroke-opacity="0.75" />
-  <circle cx="256" cy="225" r="42" stroke="#34d399" stroke-width="3" stroke-linecap="round" stroke-dasharray="30 18" stroke-opacity="0.9" />
+  <!-- Rim Highlight Ridge Line (Top Crest) -->
+  <path d="M 132 154 L 256 106 L 380 154" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.75" />
 
-  <!-- Fingerprint Biometric Arcs -->
-  <path d="M 256 195 A 30 30 0 0 1 282 225 C 282 242 270 254 256 254 C 242 254 230 242 230 225" 
-        fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" />
-  <path d="M 240 216 A 18 18 0 0 1 270 225 C 270 234 263 241 256 241" 
-        fill="none" stroke="#6ee7b7" stroke-width="3" stroke-linecap="round" />
-  <path d="M 256 211 A 14 14 0 0 0 246 225" 
-        fill="none" stroke="#a7f3d0" stroke-width="2.5" stroke-linecap="round" />
+  <!-- 5. INNER SHIELD CRYSTAL FACE -->
+  <!-- Left Inner Face -->
+  <path d="M 256 136 L 154 177 C 154 270 192 350 256 397 Z"
+        fill="url(#innerFaceLeft)" />
 
-  <!-- Central Verified Bold Checkmark -->
-  <path d="M 226 312 L 246 332 L 290 286" 
-        fill="none" stroke="url(#checkGrad)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" 
-        filter="url(#glowFilter)" />
-  <path d="M 226 312 L 246 332 L 290 286" 
-        fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Right Inner Face -->
+  <path d="M 256 136 L 358 177 C 358 270 320 350 256 397 Z"
+        fill="url(#innerFaceRight)" />
 
-  <!-- STP Badge Dot Accent -->
-  <circle cx="256" cy="375" r="4" fill="#34d399" />
-  <circle cx="242" cy="375" r="2.5" fill="#10b981" opacity="0.6" />
-  <circle cx="270" cy="375" r="2.5" fill="#06b6d4" opacity="0.6" />
+  <!-- Vertical 3D Center Spine -->
+  <line x1="256" y1="136" x2="256" y2="397" stroke="#34d399" stroke-width="2.5" stroke-opacity="0.65" />
+  <line x1="256" y1="136" x2="256" y2="397" stroke="#ffffff" stroke-width="1" stroke-opacity="0.8" />
+
+  <!-- 6. SPECULAR GLASS HIGHLIGHT SHEEN (CLIPPED TO SHIELD) -->
+  <g clip-path="url(#innerShieldClip)">
+    <path d="M 256 136 L 140 180 C 140 235 165 295 210 335 L 256 220 Z" fill="url(#glassSweep)" />
+    <!-- Fine Specular Edge -->
+    <path d="M 256 138 L 156 179" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.85" />
+  </g>
+
+  <!-- 7. CENTRAL BIOMETRIC HUD RETICLE RING -->
+  <!-- Segmented Circular HUD (4 Quadrant Arcs, Radius 56 at cx=256, cy=235) -->
+  <circle cx="256" cy="235" r="56" fill="none"
+          stroke="url(#hudGrad)" stroke-width="4.5" stroke-linecap="round"
+          stroke-dasharray="68 20" stroke-dashoffset="10"
+          filter="url(#neonBloom)" opacity="0.9" />
+  <circle cx="256" cy="235" r="56" fill="none"
+          stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"
+          stroke-dasharray="68 20" stroke-dashoffset="10" opacity="0.95" />
+
+  <!-- Concentric Inner Thin Radar Circle -->
+  <circle cx="256" cy="235" r="48" fill="none"
+          stroke="#34d399" stroke-width="1.2" stroke-opacity="0.4" stroke-dasharray="6 6" />
+
+  <!-- 8. HIGH-PRECISION BIOMETRIC FINGERPRINT (Authentic Whorl Pattern) -->
+  <g filter="url(#softGlow)">
+    <!-- Core Inner Loop -->
+    <path d="M 256 224 C 253 224 250 227 250 232 L 250 252"
+          fill="none" stroke="url(#fpRidgeGrad)" stroke-width="3.2" stroke-linecap="round" />
+    <path d="M 256 224 C 259 224 262 227 262 232 L 262 250"
+          fill="none" stroke="url(#fpRidgeGrad)" stroke-width="3.2" stroke-linecap="round" />
+
+    <!-- Loop 2 -->
+    <path d="M 244 254 L 244 231 C 244 220 250 214 256 214 C 262 214 268 220 268 231 L 268 252"
+          fill="none" stroke="url(#fpRidgeGrad)" stroke-width="3.2" stroke-linecap="round" />
+
+    <!-- Loop 3 -->
+    <path d="M 238 253 L 238 230 C 238 214 246 205 256 205 C 266 205 274 214 274 230 L 274 251"
+          fill="none" stroke="url(#fpRidgeGrad)" stroke-width="3.2" stroke-linecap="round" />
+
+    <!-- Loop 4 -->
+    <path d="M 232 249 L 232 230 C 232 208 243 197 256 197 C 269 197 280 208 280 230 L 280 248"
+          fill="none" stroke="url(#fpRidgeGrad)" stroke-width="3.2" stroke-linecap="round" />
+
+    <!-- Loop 5 (Outer Arch) -->
+    <path d="M 226 244 L 226 230 C 226 201 240 189 256 189 C 272 189 286 201 286 230 L 286 244"
+          fill="none" stroke="url(#fpRidgeGrad)" stroke-width="3.2" stroke-linecap="round" />
+
+    <!-- Side Delta Ridges (Left & Right) -->
+    <path d="M 221 248 C 221 254 224 259 229 261"
+          fill="none" stroke="url(#fpRidgeGrad)" stroke-width="3.2" stroke-linecap="round" />
+    <path d="M 291 248 C 291 254 288 259 283 261"
+          fill="none" stroke="url(#fpRidgeGrad)" stroke-width="3.2" stroke-linecap="round" />
+  </g>
+
+  <!-- 9. VERIFIED BOLD CHECKMARK BADGE -->
+  <!-- Checkmark Outer Neon Glow -->
+  <path d="M 228 322 L 250 344 L 294 298"
+        fill="none" stroke="url(#neonShieldGlow)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"
+        filter="url(#neonBloom)" opacity="0.9" />
+
+  <!-- Checkmark Solid Body -->
+  <path d="M 228 322 L 250 344 L 294 298"
+        fill="none" stroke="url(#checkGrad)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- Checkmark Inner Pure White Core -->
+  <path d="M 228 322 L 250 344 L 294 298"
+        fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- 10. SUBTLE POLISHED BASE ACCENTS -->
+  <circle cx="256" cy="378" r="3.5" fill="#34d399" filter="url(#softGlow)" />
+  <circle cx="240" cy="378" r="2.2" fill="#10b981" opacity="0.6" />
+  <circle cx="272" cy="378" r="2.2" fill="#06b6d4" opacity="0.6" />
 </svg>

@@ -38,8 +38,9 @@ export async function GET() {
       },
       {
         src: "/icons/presensi/icon.svg",
-        sizes: "any",
+        sizes: "512x512 192x192 any",
         type: "image/svg+xml",
+        purpose: "any",
       },
       {
         src: "/favicon.ico",
