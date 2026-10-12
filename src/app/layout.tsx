@@ -30,6 +30,17 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "Katalog STP",
   },
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/icons/katalog/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/katalog/icon-512x512.png", sizes: "512x512", type: "image/png" },
+      { url: "/favicon.ico" },
+    ],
+    apple: [
+      { url: "/icons/katalog/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
   formatDetection: {
     telephone: false,
   },
@@ -43,8 +54,11 @@ export default function RootLayout({
   return (
     <html lang="id">
       <head>
-         {/* Apple Touch Icon - Diperlukan khusus untuk perangkat iOS */}
-         <link rel="apple-touch-icon" href="/icon-192x192.png" />
+        {/* PWA Manifest & Icons Resmi Katalog Solo Technopark */}
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/katalog/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icons/katalog/icon-192x192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/icons/katalog/icon-512x512.png" />
       </head>
       {/* Menerapkan font Inter ke tag body */}
       <body className={inter.className}>

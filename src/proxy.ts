@@ -88,6 +88,6 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Hanya jalankan proxy pada rute halaman web (abaikan API internal, static assets, images)
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|manifest.webmanifest).*)'],
+  // Hanya jalankan proxy pada rute halaman web (abaikan API internal, static assets, images, icons PWA)
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|manifest.webmanifest|icons|icon-).*)'],
 };
