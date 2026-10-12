@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { BookingSchema } from '@/types/booking.types';
 import { PartnershipInquirySchema } from '@/types/partnership.types';
+import { buildB2BQuotationPdf } from '@/lib/pdf/b2bQuotationPdf';
 
 describe('Integritas Data B2B Package & Kemitraan Strategis', () => {
   it('harus memvalidasi BookingSchema dengan data paket event B2B multi-ruangan dan add-ons', () => {
@@ -107,5 +108,40 @@ describe('Integritas Data B2B Package & Kemitraan Strategis', () => {
 
     const parsed = PartnershipInquirySchema.safeParse(invalidInquiry);
     expect(parsed.success).toBe(false);
+  });
+
+  it('harus membangun dokumen PDF murni (vektor A4) resmi untuk estimasi penawaran B2B tanpa error', () => {
+    const pdfDoc = buildB2BQuotationPdf({
+      quotationNumber: 'STP/B2B-EST/998877',
+      agencyName: 'PT Telkom Indonesia (Persero) Tbk',
+      picName: 'Rian Pratama',
+      picPosition: 'General Manager Enterprise',
+      picPhone: '081299887766',
+      picEmail: 'rian@telkom.co.id',
+      eventType: 'Telkom Digitech Summit 2026',
+      startDate: '2026-12-01',
+      endDate: '2026-12-03',
+      durationDays: 3,
+      estimatedAttendance: 500,
+      rooms: [
+        { id: 'auditorium', name: 'Auditorium Utama Semeru', pricePerDay: 15000000 },
+        { id: 'exhibition', name: 'Exhibition Hall & Selasar', pricePerDay: 8000000 },
+      ],
+      addons: [
+        { id: 'led', name: 'Videotron LED P2.5 Indoor Stage', price: 3500000, unit: 'hari' },
+      ],
+      discountAmount: 7950000,
+      totalBudget: 71550000,
+      isSurveyRequested: true,
+      preferredSurveyDate: '2026-11-20',
+    });
+
+    expect(pdfDoc).toBeDefined();
+    // Validasi dimensi halaman A4
+    expect(pdfDoc.internal.pageSize.getWidth()).toBeCloseTo(210, 0);
+    expect(pdfDoc.internal.pageSize.getHeight()).toBeCloseTo(297, 0);
+    // Validasi output dokumen bukan string kosong
+    const pdfOutput = pdfDoc.output('datauristring');
+    expect(pdfOutput).toContain('data:application/pdf');
   });
 });

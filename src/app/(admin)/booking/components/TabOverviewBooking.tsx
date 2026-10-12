@@ -7,13 +7,14 @@ import { useCatalog } from '@/hooks/useCatalog';
 import { useAssets } from '@/hooks/useAssets'; 
 import { affiliateService } from '@/services/affiliate.service'; 
 
-import { CheckCircle2, XCircle, Clock, MapPin, Loader2, FileText, AlertTriangle, Receipt, ListTodo, History, Calculator, RefreshCw, FilePlus2, Calendar as CalendarIcon, Users, LayoutTemplate, Sparkles, Image as ImageIcon } from 'lucide-react';
+import { CheckCircle2, XCircle, Clock, MapPin, Loader2, FileText, AlertTriangle, Receipt, ListTodo, History, Calculator, RefreshCw, FilePlus2, Calendar as CalendarIcon, Users, LayoutTemplate, Sparkles, Image as ImageIcon, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { formatRupiah } from '@/utils/format';
+import { buildB2BQuotationPdf, loadLogoAsDataUrl } from '@/lib/pdf/b2bQuotationPdf';
 
 import ModalFormInvoice from '../../billing/component/ModalFormInvoice';
 
@@ -184,6 +185,65 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
       syncBookingsWithInvoices();
     }
   }, [invoices, historyBookings, appId]);
+
+  const [isDownloadingB2BPdf, setIsDownloadingB2BPdf] = useState(false);
+
+  const handleDownloadB2BPdf = async (booking: Booking) => {
+    setIsDownloadingB2BPdf(true);
+    const toastId = toast.loading('Menyiapkan Draf Estimasi Resmi B2B (PDF)...');
+
+    try {
+      const logoBase64 = await loadLogoAsDataUrl('/logo-stp.png');
+      const docNumber = `STP/B2B-EST/${(booking.createdAt || Date.now()).toString().slice(-6)}`;
+
+      const start = new Date(booking.startDate);
+      const end = new Date(booking.endDate || booking.startDate);
+      let diffDays = 1;
+      if (!isNaN(start.getTime()) && !isNaN(end.getTime()) && end >= start) {
+        diffDays = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+      }
+
+      const doc = buildB2BQuotationPdf({
+        quotationNumber: docNumber,
+        agencyName: booking.agency || 'Instansi Mitra',
+        picName: booking.userName || 'Perwakilan Mitra',
+        picPosition: booking.picPosition || 'Penanggung Jawab',
+        picPhone: booking.userPhone || '-',
+        picEmail: booking.userEmail || '-',
+        eventType: booking.eventType || booking.purpose || 'Kegiatan Institusi / B2B',
+        startDate: booking.startDate,
+        endDate: booking.endDate,
+        durationDays: diffDays,
+        estimatedAttendance: booking.estimatedAttendance || 0,
+        rooms: (booking.packageRooms || []).map((r) => ({
+          id: r.id,
+          name: r.name,
+          pricePerDay: r.priceValue || 0,
+        })),
+        addons: (booking.packageAddons || []).map((a) => ({
+          id: a.id,
+          name: a.name,
+          price: a.price,
+          unit: a.unit,
+        })),
+        discountAmount: (booking.packageRooms && booking.packageRooms.length >= 2) ? Math.round((booking.estimatedBudget || 0) * 0.1) : 0,
+        totalBudget: booking.estimatedBudget || 0,
+        isSurveyRequested: booking.isSurveyRequested,
+        preferredSurveyDate: booking.preferredSurveyDate,
+        logoBase64: logoBase64 || undefined,
+      });
+
+      const safeAgency = (booking.agency || 'Mitra').replace(/[^a-zA-Z0-9]/g, '_');
+      doc.save(`Estimasi_Penawaran_STP_${safeAgency}_${docNumber.replace(/\//g, '_')}.pdf`);
+
+      toast.success('Draf Penawaran Resmi berhasil diunduh dalam format PDF murni!', { id: toastId });
+    } catch (err) {
+      console.error('Gagal generate PDF:', err);
+      toast.error('Gagal menyusun dokumen PDF.', { id: toastId });
+    } finally {
+      setIsDownloadingB2BPdf(false);
+    }
+  };
 
   const handleApproveWithBilling = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -826,6 +886,27 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
                         🔍 Calon mitra meminta jadwal survey fisik lokasi pada: {selectedBooking.preferredSurveyDate || 'Segera (Hubungi PIC)'}
                       </div>
                     )}
+
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      disabled={isDownloadingB2BPdf}
+                      onClick={() => handleDownloadB2BPdf(selectedBooking)}
+                      className="w-full mt-2 rounded-xl text-xs font-bold text-indigo-700 border-indigo-200 bg-white hover:bg-indigo-50 gap-1.5 cursor-pointer shadow-2xs"
+                    >
+                      {isDownloadingB2BPdf ? (
+                        <>
+                          <Loader2 size={13} className="animate-spin" />
+                          <span>Menyusun Dokumen PDF...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Download size={13} />
+                          <span>Unduh Draf Penawaran Resmi (Vektor PDF)</span>
+                        </>
+                      )}
+                    </Button>
                   </div>
                 )}
 

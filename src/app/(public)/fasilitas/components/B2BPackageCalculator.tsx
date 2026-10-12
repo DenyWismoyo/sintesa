@@ -34,6 +34,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { formatRupiah } from '@/utils/format';
 import { toast } from 'sonner';
+import { buildB2BQuotationPdf, loadLogoAsDataUrl } from '@/lib/pdf/b2bQuotationPdf';
 
 interface B2BPackageCalculatorProps {
   rooms: Asset[];
@@ -144,6 +145,69 @@ export default function B2BPackageCalculator({
   const rawTotal = (roomsDailyTotal + addonsDailyTotal) * Math.max(1, durationDays);
   const discountAmount = isBundleDiscountEligible ? Math.round(rawTotal * 0.1) : 0;
   const finalEstimatedBudget = Math.max(0, rawTotal - discountAmount);
+
+  // Status ekspor PDF
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+
+  // Handler Download PDF Murni
+  const handleDownloadPdf = async () => {
+    if (selectedRoomsList.length === 0) {
+      toast.error('Pilih minimal 1 ruangan untuk membuat estimasi penawaran resmi.');
+      return;
+    }
+
+    setIsExportingPdf(true);
+    const toastId = toast.loading('Menyusun Dokumen PDF Resmi (Vektor A4)...');
+
+    try {
+      const logoBase64 = await loadLogoAsDataUrl('/logo-stp.png');
+      const docNumber = `STP/B2B-EST/${Date.now().toString().slice(-6)}`;
+
+      const doc = buildB2BQuotationPdf({
+        quotationNumber: docNumber,
+        agencyName: agencyName.trim() || 'Instansi / Korporat Mitra',
+        picName: picName.trim() || 'Perwakilan Mitra',
+        picPosition: picPosition.trim() || 'Penanggung Jawab Acara',
+        picPhone: picPhone.trim() || '-',
+        picEmail: picEmail.trim() || '-',
+        eventType,
+        startDate: startDate || undefined,
+        endDate: endDate || startDate || undefined,
+        durationDays: Math.max(1, durationDays),
+        estimatedAttendance: parseInt(estimatedAttendance.replace(/\D/g, '')) || 0,
+        rooms: selectedRoomsList.map((r) => ({
+          id: r.id || '',
+          name: r.name,
+          capacity: r.capacity,
+          location: r.location,
+          pricePerDay: Number(r.priceValue) || 0,
+        })),
+        addons: selectedAddonsList.map((a) => ({
+          id: a.id,
+          name: a.name,
+          description: a.description,
+          price: a.price,
+          unit: a.unit,
+        })),
+        discountAmount,
+        totalBudget: finalEstimatedBudget,
+        isSurveyRequested,
+        preferredSurveyDate: preferredSurveyDate || undefined,
+        logoBase64: logoBase64 || undefined,
+      });
+
+      const safeAgency = (agencyName.trim() || 'Mitra').replace(/[^a-zA-Z0-9]/g, '_');
+      const filename = `Draf_Penawaran_STP_${safeAgency}_${docNumber.replace(/\//g, '_')}.pdf`;
+      doc.save(filename);
+
+      toast.success('Draf Penawaran Resmi berhasil diunduh dalam format PDF murni!', { id: toastId });
+    } catch (err) {
+      console.error('Gagal mengekspor PDF:', err);
+      toast.error('Terjadi kesalahan saat menyusun dokumen PDF.', { id: toastId });
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
 
   // Submit Form Pengajuan Paket B2B
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -527,16 +591,36 @@ export default function B2BPackageCalculator({
                 <span>Ajukan Penawaran & Jadwal Survey</span>
               </Button>
 
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsPrintPreviewOpen(true)}
-                disabled={selectedRoomsList.length === 0}
-                className="w-full h-10 rounded-xl text-xs font-bold text-slate-700 border-slate-300 hover:bg-slate-50 gap-2 cursor-pointer"
-              >
-                <Printer className="w-3.5 h-3.5 text-slate-500" />
-                <span>Pratinjau & Cetak Draf Penawaran Resmi</span>
-              </Button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsPrintPreviewOpen(true)}
+                  disabled={selectedRoomsList.length === 0}
+                  className="h-10 rounded-xl text-xs font-bold text-slate-700 border-slate-300 hover:bg-slate-50 gap-1.5 cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Pratinjau Draf</span>
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleDownloadPdf}
+                  disabled={selectedRoomsList.length === 0 || isExportingPdf}
+                  className="h-10 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white gap-1.5 cursor-pointer shadow-xs"
+                >
+                  {isExportingPdf ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Menyusun...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-3.5 h-3.5 text-indigo-300" />
+                      <span>Unduh PDF Murni</span>
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
 
             {/* Jaminan Layanan BLUD */}
@@ -735,11 +819,21 @@ export default function B2BPackageCalculator({
                 <Button
                   type="button"
                   size="sm"
-                  onClick={() => window.print()}
-                  className="rounded-xl h-8 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5 cursor-pointer"
+                  onClick={handleDownloadPdf}
+                  disabled={isExportingPdf}
+                  className="rounded-xl h-9 px-4 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white gap-2 cursor-pointer shadow-sm"
                 >
-                  <Printer className="w-3.5 h-3.5" />
-                  <span>Cetak / Simpan PDF</span>
+                  {isExportingPdf ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Menyusun Dokumen PDF...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Unduh Dokumen PDF Resmi (A4)</span>
+                    </>
+                  )}
                 </Button>
                 <button
                   type="button"
@@ -751,105 +845,185 @@ export default function B2BPackageCalculator({
               </div>
             </div>
 
-            {/* Draf Surat Penawaran Resmi */}
-            <div className="p-6 rounded-2xl border border-slate-200 bg-white font-sans text-xs space-y-5 text-slate-800">
-              {/* Kop Surat Singkat */}
-              <div className="flex items-center justify-between pb-4 border-b-2 border-slate-900">
-                <div>
-                  <h2 className="text-sm font-black tracking-tight text-slate-900 uppercase">
-                    UPT Solo Technopark
-                  </h2>
-                  <p className="text-[10px] text-slate-500">
-                    Kawasan Sains & Teknologi Terpadu • PPK Badan Layanan Umum Daerah (BLUD)
-                  </p>
-                  <p className="text-[10px] text-slate-500">
-                    Jl. Ki Hajar Dewantara No.19, Jebres, Surakarta, Jawa Tengah 57126
-                  </p>
+            {/* Lembar Draf Surat Penawaran Resmi (Desain Dokumen A4 Elegan) */}
+            <div className="p-7 sm:p-9 rounded-2xl border border-slate-300 bg-white font-sans text-xs space-y-6 text-slate-800 shadow-sm">
+              {/* Kop Surat Kedinasan */}
+              <div className="flex items-center justify-between pb-3 border-b-2 border-slate-900 gap-4">
+                <div className="flex items-center gap-4">
+                  <img
+                    src="/logo-stp.png"
+                    alt="Logo Solo Technopark"
+                    className="w-16 h-16 object-contain shrink-0"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                  <div>
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      PEMERINTAH KOTA SURAKARTA
+                    </h3>
+                    <h2 className="text-base font-black tracking-tight text-slate-900 uppercase">
+                      UPT KAWASAN SAINS DAN TEKNOLOGI SOLO TECHNOPARK
+                    </h2>
+                    <p className="text-[11px] text-slate-500 font-medium">
+                      Pusat Inovasi, Vokasi, dan Kewirausahaan Teknologi Berbasis BLUD
+                    </p>
+                    <p className="text-[10px] text-slate-400">
+                      Jl. Ki Hajar Dewantara No.19, Jebres, Surakarta 57126 • Telp: (0271) 666628 • https://solotechnopark.id
+                    </p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <span className="inline-block px-2 py-0.5 rounded bg-indigo-100 text-indigo-900 text-[10px] font-black uppercase">
-                    Draf Estimasi Resmi
+                <div className="text-right shrink-0">
+                  <span className="inline-block px-2.5 py-1 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-900 text-[10px] font-black uppercase tracking-wider">
+                    Draf Estimasi BLUD
                   </span>
-                  <p className="text-[10px] text-slate-400 mt-1">
+                  <p className="text-[10px] text-slate-400 font-mono mt-1">
                     No: STP/B2B-EST/{Date.now().toString().slice(-6)}
                   </p>
                 </div>
               </div>
 
-              {/* Rincian Hal */}
-              <div className="grid grid-cols-2 gap-2 text-[11px]">
-                <div>
-                  <span className="text-slate-400 block">Perihal:</span>
-                  <span className="font-bold text-slate-900">
-                    Estimasi Sewa Fasilitas Paket Acara: {eventType}
+              {/* Judul Dokumen */}
+              <div className="text-center">
+                <h4 className="text-sm font-black text-slate-900 uppercase tracking-tight">
+                  ESTIMASI PENAWARAN RESMI SEWA FASILITAS & PAKET EVENT B2B
+                </h4>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Tanggal Terbit: {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </p>
+              </div>
+
+              {/* Rincian Instansi & Acara (2 Kolom) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200 text-[11px]">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Instansi / Korporat Pemohon:
+                  </span>
+                  <span className="font-bold text-slate-900 block text-xs">
+                    {agencyName || 'Instansi / Korporat Mitra'}
+                  </span>
+                  <span className="text-slate-600 block">
+                    PIC: {picName || 'Perwakilan Mitra'} {picPosition ? `(${picPosition})` : ''}
+                  </span>
+                  <span className="text-slate-500 block">
+                    Kontak: {picPhone || '-'} • {picEmail || '-'}
+                  </span>
+                  <span className="text-slate-600 block pt-1">
+                    Survey Lokasi Fisik: <strong className={isSurveyRequested ? 'text-emerald-700' : 'text-slate-500'}>
+                      {isSurveyRequested ? `Diminta (${preferredSurveyDate || 'Jadwal Menyusul'})` : 'Tidak Membutuhkan Survey'}
+                    </strong>
                   </span>
                 </div>
-                <div>
-                  <span className="text-slate-400 block">Jadwal Rencana:</span>
-                  <span className="font-bold text-slate-900">
-                    {startDate || 'Menyesuaikan Jadwal'} s/d {endDate || startDate || '-'} ({durationDays} Hari)
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Spesifikasi Kegiatan:
+                  </span>
+                  <span className="font-bold text-slate-900 block text-xs">
+                    {eventType}
+                  </span>
+                  <span className="text-slate-600 block">
+                    Jadwal Rencana: {startDate ? `${startDate} s/d ${endDate || startDate}` : 'Menyesuaikan Jadwal'}
+                  </span>
+                  <span className="text-slate-600 block">
+                    Durasi: <strong>{durationDays} Hari Operasional</strong>
+                  </span>
+                  <span className="text-slate-500 block">
+                    Estimasi Peserta: {estimatedAttendance}
                   </span>
                 </div>
               </div>
 
               {/* Tabel Rincian Anggaran */}
-              <table className="w-full text-left text-xs border border-slate-200 rounded-lg overflow-hidden">
-                <thead className="bg-slate-100 text-slate-700 text-[10px] uppercase font-bold">
-                  <tr>
-                    <th className="p-2 border-b">Komponen Fasilitas / Layanan</th>
-                    <th className="p-2 border-b text-center">Durasi</th>
-                    <th className="p-2 border-b text-right">Tarif Satuan</th>
-                    <th className="p-2 border-b text-right">Subtotal</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {selectedRoomsList.map((r) => {
-                    const price = Number(r.priceValue) || 0;
-                    return (
-                      <tr key={r.id}>
-                        <td className="p-2 font-medium">Sewa: {r.name}</td>
-                        <td className="p-2 text-center">{durationDays} Hari</td>
-                        <td className="p-2 text-right">{formatRupiah(price)}</td>
-                        <td className="p-2 text-right font-semibold">
-                          {formatRupiah(price * durationDays)}
+              <div className="border border-slate-200 rounded-xl overflow-hidden">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-900 text-white text-[10px] uppercase font-bold tracking-wider">
+                    <tr>
+                      <th className="p-2.5">Komponen Fasilitas / Layanan</th>
+                      <th className="p-2.5 text-center">Durasi</th>
+                      <th className="p-2.5 text-right">Tarif Satuan</th>
+                      <th className="p-2.5 text-right">Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {selectedRoomsList.map((r) => {
+                      const price = Number(r.priceValue) || 0;
+                      return (
+                        <tr key={r.id} className="hover:bg-slate-50/50">
+                          <td className="p-2.5">
+                            <div className="font-bold text-slate-900">Sewa: {r.name}</div>
+                            <div className="text-[10px] text-slate-400">
+                              Kapasitas: {r.capacity || 'Sesuai Tata Letak'} org • {r.location || 'Kawasan STP'}
+                            </div>
+                          </td>
+                          <td className="p-2.5 text-center font-medium">{durationDays} Hari</td>
+                          <td className="p-2.5 text-right text-slate-600 font-mono">{formatRupiah(price)}</td>
+                          <td className="p-2.5 text-right font-bold text-slate-900 font-mono">
+                            {formatRupiah(price * durationDays)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {selectedAddonsList.map((a) => (
+                      <tr key={a.id} className="hover:bg-slate-50/50">
+                        <td className="p-2.5">
+                          <div className="font-bold text-slate-900">Add-on: {a.name}</div>
+                          <div className="text-[10px] text-slate-400">{a.description}</div>
+                        </td>
+                        <td className="p-2.5 text-center font-medium">{durationDays} Hari</td>
+                        <td className="p-2.5 text-right text-slate-600 font-mono">{formatRupiah(a.price)}</td>
+                        <td className="p-2.5 text-right font-bold text-slate-900 font-mono">
+                          {formatRupiah(a.price * durationDays)}
                         </td>
                       </tr>
-                    );
-                  })}
-                  {selectedAddonsList.map((a) => (
-                    <tr key={a.id}>
-                      <td className="p-2 font-medium">Add-on: {a.name}</td>
-                      <td className="p-2 text-center">{durationDays} Hari</td>
-                      <td className="p-2 text-right">{formatRupiah(a.price)}</td>
-                      <td className="p-2 text-right font-semibold">
-                        {formatRupiah(a.price * durationDays)}
+                    ))}
+                    {discountAmount > 0 && (
+                      <tr className="bg-emerald-50 text-emerald-800 font-bold">
+                        <td colSpan={3} className="p-2.5 text-right">
+                          Insentif Bundling Mitra B2B (Diskon Multi-Ruangan 10%):
+                        </td>
+                        <td className="p-2.5 text-right font-mono">- {formatRupiah(discountAmount)}</td>
+                      </tr>
+                    )}
+                    <tr className="bg-slate-900 text-white font-bold">
+                      <td colSpan={3} className="p-3 text-right uppercase text-xs tracking-wider">
+                        Total Estimasi Anggaran (PPK-BLUD):
+                      </td>
+                      <td className="p-3 text-right text-sm font-black text-emerald-400 font-mono">
+                        {formatRupiah(finalEstimatedBudget)}
                       </td>
                     </tr>
-                  ))}
-                  {discountAmount > 0 && (
-                    <tr className="bg-emerald-50/50 text-emerald-800 font-bold">
-                      <td colSpan={3} className="p-2 text-right">
-                        Insentif Bundling Mitra B2B (10%):
-                      </td>
-                      <td className="p-2 text-right">- {formatRupiah(discountAmount)}</td>
-                    </tr>
-                  )}
-                  <tr className="bg-slate-50 font-black text-slate-900 text-sm">
-                    <td colSpan={3} className="p-2.5 text-right">
-                      Total Estimasi Anggaran:
-                    </td>
-                    <td className="p-2.5 text-right text-indigo-950">
-                      {formatRupiah(finalEstimatedBudget)}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                  </tbody>
+                </table>
+              </div>
 
-              <div className="p-3 rounded-xl bg-slate-50 text-[10px] text-slate-500 space-y-1">
-                <p className="font-bold text-slate-700">Keterangan:</p>
-                <p>1. Draf estimasi ini diterbitkan untuk keperluan penganggaran internal instansi mitra.</p>
-                <p>2. Penetapan jadwal resmi mengikat setelah persetujuan teknis dan penerbitan Bukti Pemesanan.</p>
-                <p>3. Untuk koordinasi survey lokasi fisik (*site visit*), hubungi Helpdesk B2B STP: 0812-3456-7890.</p>
+              {/* Keterangan & Catatan Regulasi */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-[10px] text-slate-600 space-y-1">
+                <p className="font-bold text-slate-800 uppercase tracking-wide">Ketentuan & Catatan Resmi:</p>
+                <p>1. Draf estimasi ini diterbitkan untuk asistensi penganggaran resmi internal instansi mitra pemohon.</p>
+                <p>2. Penetapan jadwal resmi mengikat setelah persetujuan teknis dan penerbitan Bukti Pemesanan definitif.</p>
+                <p>3. Seluruh pembayaran resmi ditujukan ke Rekening Kas Badan Layanan Umum Daerah (BLUD) Solo Technopark.</p>
+                <p>4. Untuk koordinasi survey fisik (*site visit*), hubungi Helpdesk Layanan B2B STP: (0271) 666628 / 0812-3456-7890.</p>
+              </div>
+
+              {/* Blok Validasi Digital & Stempel */}
+              <div className="pt-2 grid grid-cols-2 gap-8 items-end text-center text-xs">
+                <div>
+                  <p className="text-[11px] text-slate-500 mb-12">Perwakilan Instansi Pemohon,</p>
+                  <p className="font-bold text-slate-900 underline">
+                    {picName || '...................................................'}
+                  </p>
+                  <p className="text-[10px] text-slate-500">{picPosition || 'Penanggung Jawab Acara'}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-slate-500 mb-1">Surakarta, {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                  <p className="text-[10px] font-bold text-indigo-900 uppercase">UPT KST Solo Technopark</p>
+                  <div className="my-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-800 text-[9px] font-black">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>TECHNO SIGN DIGITAL VERIFIED</span>
+                  </div>
+                  <p className="font-bold text-slate-900 underline">TIM PENGELOLA FASILITAS BLUD</p>
+                  <p className="text-[10px] text-slate-500">PPK-BLUD Kota Surakarta</p>
+                </div>
               </div>
             </div>
           </div>
