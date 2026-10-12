@@ -13,7 +13,7 @@ function initAdminApp(): App {
     return getApps()[0];
   }
 
-  // 1. Coba load dari service-account-katalog.json di root project
+  // 1. Coba load dari service-account-katalog.json di root project (local development)
   const saLocalPath = path.resolve(process.cwd(), "service-account-katalog.json");
   if (fs.existsSync(saLocalPath)) {
     try {
@@ -29,17 +29,38 @@ function initAdminApp(): App {
     }
   }
 
-  // 2. Fallback ke Environment Variables
+  // 1b. Coba load dari string JSON utuh di Environment Variable (App Hosting / Secret Manager)
+  const saJsonString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY || process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT;
+  if (saJsonString) {
+    try {
+      const sa = JSON.parse(saJsonString);
+      adminApp = initializeApp({
+        credential: cert(sa),
+        storageBucket: process.env.NEXT_PUBLIC_PRESENSI_STORAGE_BUCKET || "presensi-solo-technopark",
+      });
+      return adminApp;
+    } catch (e) {
+      console.warn("[Firebase Admin Presensi] Gagal mem-parse FIREBASE_SERVICE_ACCOUNT_KEY JSON:", e);
+    }
+  }
+
+  // 2. Fallback ke Environment Variables individual
   const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY;
+  let privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY;
 
   if (projectId && clientEmail && privateKey) {
+    // Normalisasi format PEM newline dan hapus kutip berlebih
+    if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
+      privateKey = privateKey.slice(1, -1);
+    }
+    const cleanPrivateKey = privateKey.replace(/\\n/g, "\n");
+
     adminApp = initializeApp({
       credential: cert({
         projectId,
         clientEmail,
-        privateKey: privateKey.replace(/\\n/g, "\n"),
+        privateKey: cleanPrivateKey,
       }),
       storageBucket: process.env.NEXT_PUBLIC_PRESENSI_STORAGE_BUCKET || "presensi-solo-technopark",
     });
@@ -55,6 +76,17 @@ function initAdminApp(): App {
 }
 
 export function isFirebaseAdminConfigured(): boolean {
+  // Cek file lokal
+  const saLocalPath = path.resolve(process.cwd(), "service-account-katalog.json");
+  if (fs.existsSync(saLocalPath)) return true;
+
+  // Cek env string JSON
+  if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY || process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT) return true;
+
+  // Cek trio env individual
+  if (process.env.FIREBASE_ADMIN_CLIENT_EMAIL && process.env.FIREBASE_ADMIN_PRIVATE_KEY) return true;
+
+  // Jika di lingkungan GCP App Hosting / Cloud Run yang memiliki ADC
   return true;
 }
 

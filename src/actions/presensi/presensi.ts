@@ -274,6 +274,12 @@ export async function recordCheckIn(
         };
       }
       console.warn("[Presensi] Gagal menyimpan ke Firestore:", err);
+      if (process.env.NODE_ENV === "production") {
+        return {
+          success: false,
+          message: `Gagal merekam presensi ke Firestore: ${err?.message || "Koneksi database terputus"}. Silakan pastikan environment variables (Service Account) sudah dimasukkan ke Firebase App Hosting.`,
+        };
+      }
     }
   }
 
@@ -455,6 +461,12 @@ export async function recordCheckOut(
         return { success: false, message: "Anda sudah melakukan Check-Out untuk hari ini." };
       }
       console.warn("[Presensi] Gagal memperbarui Check-Out di Firestore:", err);
+      if (process.env.NODE_ENV === "production") {
+        return {
+          success: false,
+          message: `Gagal merekam Check-Out ke Firestore: ${err?.message || "Koneksi database terputus"}. Silakan periksa kredensial di Firebase App Hosting.`,
+        };
+      }
     }
   }
 
