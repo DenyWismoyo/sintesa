@@ -410,6 +410,22 @@ service cloud.firestore {
         allow update, delete: if hasAnyRole(['admin', 'super_admin', 'admin_tenant']);
       }
 
+      // Fasilitas Teknis & Perlengkapan Operasional (Add-ons B2B & Sewa Kawasan)
+      match /facility_addons/{addonId} {
+        // Terbuka dibaca publik untuk kalkulator simulasi paket B2B & sewa
+        allow read: if true;
+        // Penambahan, pengubahan, dan penghapusan hanya oleh pengelola aset & administrator
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_aset', 'operator_aset']);
+      }
+
+      // Kemitraan Strategis Industri & Pengajuan RFP / MoU
+      match /partnership_inquiries/{inquiryId} {
+        // Publik / calon mitra industri dapat mengajukan permohonan kerjasama
+        allow create: if true;
+        // Akses peninjauan dan pembaruan status hanya oleh tim admin & kemitraan
+        allow read, update, delete: if hasAnyRole(['admin', 'super_admin', 'admin_tenant', 'admin_aset']);
+      }
+
       // Pengaturan Umum Instansi
       match /settings/{docId} {
         allow read: if true;

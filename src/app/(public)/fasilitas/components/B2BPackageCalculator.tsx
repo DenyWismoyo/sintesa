@@ -1,8 +1,7 @@
-// src/app/(public)/fasilitas/components/B2BPackageCalculator.tsx
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { Asset } from '@/types';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Asset, FacilityAddon } from '@/types';
 import {
   Building2,
   Calendar,
@@ -30,11 +29,16 @@ import {
   Briefcase,
   AlertCircle,
   Loader2,
+  Zap,
+  Cpu,
+  Wrench,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatRupiah } from '@/utils/format';
 import { toast } from 'sonner';
 import { buildB2BQuotationPdf, loadLogoAsDataUrl } from '@/lib/pdf/b2bQuotationPdf';
+import { facilityAddonService } from '@/services/facilityAddon.service';
 
 interface B2BPackageCalculatorProps {
   rooms: Asset[];
@@ -42,13 +46,28 @@ interface B2BPackageCalculatorProps {
   isSubmitting?: boolean;
 }
 
-// Katalog Add-Ons Teknis & Operasional Standar Kawasan
+const ICON_MAP: Record<string, React.ElementType> = {
+  Monitor,
+  Radio,
+  Video,
+  Wifi,
+  ShieldCheck,
+  Zap,
+  Sparkles,
+  Layers,
+  Cpu,
+  Wrench,
+  SlidersHorizontal,
+  Tag,
+};
+
+// Katalog Add-Ons Teknis & Operasional Standar Kawasan (Fallback)
 const STANDARD_ADDONS = [
-  { id: 'addon-videotron', name: 'Videotron LED P2.5 Indoor Stage', price: 3500000, unit: 'hari', icon: Monitor, description: 'Layar LED utama resolusi tinggi untuk panggung utama' },
-  { id: 'addon-audio', name: 'Sound System Pro Line Array & 4 Mic Wireless', price: 2000000, unit: 'hari', icon: Radio, description: 'Sistem tata suara jernih berstandar konser auditorium' },
-  { id: 'addon-streaming', name: 'Live Streaming Multi-Camera Kit + Operator', price: 2500000, unit: 'hari', icon: Video, description: '3 kamera broadcast, audio mixer, dan siaran YouTube/Zoom' },
-  { id: 'addon-internet', name: 'Dedicated High-Speed Fiber Internet (100 Mbps)', price: 1200000, unit: 'hari', icon: Wifi, description: 'Jalur internet dedicated khusus panitia & peserta' },
-  { id: 'addon-technician', name: 'Pendampingan Standby Tim Teknisi Lab & IT STP', price: 600000, unit: 'hari', icon: ShieldCheck, description: 'Tim teknis profesional mengawal kelancaran teknis acara' },
+  { id: 'addon-videotron', name: 'Videotron LED P2.5 Indoor Stage', price: 3500000, unit: 'hari', icon: Monitor, iconName: 'Monitor', description: 'Layar LED utama resolusi tinggi untuk panggung utama' },
+  { id: 'addon-audio', name: 'Sound System Pro Line Array & 4 Mic Wireless', price: 2000000, unit: 'hari', icon: Radio, iconName: 'Radio', description: 'Sistem tata suara jernih berstandar konser auditorium' },
+  { id: 'addon-streaming', name: 'Live Streaming Multi-Camera Kit + Operator', price: 2500000, unit: 'hari', icon: Video, iconName: 'Video', description: '3 kamera broadcast, audio mixer, dan siaran YouTube/Zoom' },
+  { id: 'addon-internet', name: 'Dedicated High-Speed Fiber Internet (100 Mbps)', price: 1200000, unit: 'hari', icon: Wifi, iconName: 'Wifi', description: 'Jalur internet dedicated khusus panitia & peserta' },
+  { id: 'addon-technician', name: 'Pendampingan Standby Tim Teknisi Lab & IT STP', price: 600000, unit: 'hari', icon: ShieldCheck, iconName: 'ShieldCheck', description: 'Tim teknis profesional mengawal kelancaran teknis acara' },
 ];
 
 const EVENT_TYPES = [
@@ -73,12 +92,52 @@ export default function B2BPackageCalculator({
   const [endDate, setEndDate] = useState('');
   const [durationDays, setDurationDays] = useState(1);
 
+  // Fasilitas Teknis & Add-ons Dinamis dari Firestore
+  const [availableAddons, setAvailableAddons] = useState<FacilityAddon[]>(
+    STANDARD_ADDONS.map((a) => ({
+      id: a.id,
+      name: a.name,
+      category: 'OTHER' as const,
+      price: a.price,
+      unit: a.unit,
+      description: a.description,
+      stockQuantity: 1,
+      isAvailable: true,
+      iconName: a.iconName,
+    }))
+  );
+  const [loadingAddons, setLoadingAddons] = useState(true);
+
   // Ruangan & Addons yang dipilih
   const [selectedRoomIds, setSelectedRoomIds] = useState<string[]>([]);
   const [selectedAddonIds, setSelectedAddonIds] = useState<string[]>([
     'addon-videotron',
     'addon-audio',
   ]);
+
+  useEffect(() => {
+    const fetchAddons = async () => {
+      try {
+        const data = await facilityAddonService.getActiveAddons();
+        if (data && data.length > 0) {
+          setAvailableAddons(data);
+          // Ambil ID dari 2 addon pertama jika default
+          setSelectedAddonIds((prev) => {
+            const validIds = prev.filter((id) => data.some((d) => d.id === id));
+            if (validIds.length === 0) {
+              return data.slice(0, 2).map((d) => d.id || '');
+            }
+            return validIds;
+          });
+        }
+      } catch (err) {
+        console.error('Gagal mengambil data fasilitas teknis dinamis:', err);
+      } finally {
+        setLoadingAddons(false);
+      }
+    };
+    fetchAddons();
+  }, []);
 
   // Modal Form Permohonan Resmi B2B
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -133,8 +192,8 @@ export default function B2BPackageCalculator({
 
   // Perhitungan Subtotal Add-ons
   const selectedAddonsList = useMemo(() => {
-    return STANDARD_ADDONS.filter((a) => selectedAddonIds.includes(a.id));
-  }, [selectedAddonIds]);
+    return availableAddons.filter((a) => selectedAddonIds.includes(a.id || ''));
+  }, [availableAddons, selectedAddonIds]);
 
   const addonsDailyTotal = useMemo(() => {
     return selectedAddonsList.reduce((acc, a) => acc + a.price, 0);
@@ -183,7 +242,7 @@ export default function B2BPackageCalculator({
           pricePerDay: Number(r.priceValue) || 0,
         })),
         addons: selectedAddonsList.map((a) => ({
-          id: a.id,
+          id: a.id || '',
           name: a.name,
           description: a.description,
           price: a.price,
@@ -448,13 +507,14 @@ export default function B2BPackageCalculator({
             </div>
 
             <div className="grid grid-cols-1 gap-2.5">
-              {STANDARD_ADDONS.map((addon) => {
-                const isSelected = selectedAddonIds.includes(addon.id);
-                const IconComp = addon.icon;
+              {availableAddons.map((addon) => {
+                const addonId = addon.id || '';
+                const isSelected = selectedAddonIds.includes(addonId);
+                const IconComp = ICON_MAP[addon.iconName || 'Monitor'] || Monitor;
                 return (
                   <div
-                    key={addon.id}
-                    onClick={() => toggleAddon(addon.id)}
+                    key={addonId}
+                    onClick={() => toggleAddon(addonId)}
                     className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                       isSelected
                         ? 'border-emerald-500 bg-emerald-50/40 shadow-2xs'

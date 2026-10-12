@@ -42,3 +42,6 @@ export * from './job.types';
 
 // 13. Strategic B2B Partnerships & Inquiries
 export * from './partnership.types';
+
+// 14. Technical Facilities & Operational Add-ons
+export * from './facilityAddon.types';
