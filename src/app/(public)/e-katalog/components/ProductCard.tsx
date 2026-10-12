@@ -47,29 +47,39 @@ export default function ProductCard({ product }: ProductCardProps) {
           <div className="public-card-scrim" />
         </Link>
 
-        {/* Badge Kategori */}
-        <div className="public-card-badge-top-left pointer-events-none">
-          <div className="bg-white/95 backdrop-blur-md text-slate-800 text-[10px] px-2.5 py-1 rounded-full font-black uppercase tracking-widest shadow-xs">
-            {product.category}
+        {/* Indikator Jumlah Foto (jika ada lebih dari 1 foto, di pojok bawah scrim) */}
+        {product.images && product.images.length > 1 && (
+          <div className="public-card-badge-bottom-left pointer-events-none">
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-white/90 bg-slate-950/60 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/10 shadow-xs">
+              <ImageIcon size={11} className="text-emerald-400" />
+              <span>{product.images.length} Foto</span>
+            </span>
           </div>
-        </div>
-
-        {/* Badge Kepemilikan */}
-        <div className="public-card-badge-top-right pointer-events-none">
-          {product.ownerType?.toUpperCase() === 'TENANT' ? (
-            <div className="bg-amber-50 text-amber-800 text-[10px] px-2.5 py-1 rounded-full font-bold shadow-xs flex items-center gap-1.5">
-              <Store size={12} /> <span className="max-w-[80px] truncate">{product.tenantName || 'Tenant'}</span>
-            </div>
-          ) : (
-            <div className="bg-blue-50 text-blue-800 text-[10px] px-2.5 py-1 rounded-full font-bold shadow-xs flex items-center gap-1.5">
-              <Building2 size={12} /> Internal
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
       {/* Konten Text Elegan Menggunakan Card Anatomy */}
       <div className="public-card-body">
+        {/* Header Kategori & Kepemilikan (Internal STP vs Tenant) */}
+        <div className="flex items-center justify-between gap-2 mb-2.5">
+          {/* Badge Kategori Elegan */}
+          <span className="inline-flex items-center text-[10px] font-extrabold uppercase tracking-wider text-slate-700 bg-slate-100 border border-slate-200/80 px-2.5 py-0.5 rounded-md shadow-2xs">
+            {product.category}
+          </span>
+
+          {/* Badge Kepemilikan Elegan (Internal vs Tenant) */}
+          {product.ownerType?.toUpperCase() === 'TENANT' ? (
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-800 bg-amber-50/90 border border-amber-200/80 px-2.5 py-0.5 rounded-full shadow-2xs">
+              <Store size={11} className="text-amber-600 shrink-0" />
+              <span className="max-w-[120px] truncate">{product.tenantName || 'Tenant Mitra'}</span>
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-sky-800 bg-sky-50/90 border border-sky-200/80 px-2.5 py-0.5 rounded-full shadow-2xs">
+              <Building2 size={11} className="text-sky-600 shrink-0" />
+              <span>Internal STP</span>
+            </span>
+          )}
+        </div>
         <h3 className="public-card-title group-hover:text-emerald-600" title={product.name}>
           <Link href={`/e-katalog/${product.id}`} prefetch={true} className="hover:text-emerald-600 transition-colors">
             {product.name}

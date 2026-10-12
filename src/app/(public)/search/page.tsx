@@ -340,13 +340,13 @@ function SearchPageContent() {
                         {item.domain === 'TENANT' && <Users size={32} />}
                       </div>
                     )}
-                    <span className={`absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-2xs ${item.badgeColor}`}>
-                      {item.badgeLabel}
-                    </span>
                   </div>
 
                   {/* Body Content */}
                   <div className="p-4 space-y-2">
+                    <span className={`inline-block text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md border shadow-2xs ${item.badgeColor}`}>
+                      {item.badgeLabel}
+                    </span>
                     <h4 className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-2 leading-snug">
                       {item.title}
                     </h4>

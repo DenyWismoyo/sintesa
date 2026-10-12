@@ -36,17 +36,7 @@ export default function RoomCard({ room, onShowDetail, onBook }: RoomCardProps) 
         
         <div className="public-card-scrim" />
         
-        {/* Badge Kategori */}
-        <div className="public-card-badge-top-left">
-          <StatusBadge 
-            label={room.category}
-            variant="default"
-            size="sm"
-            className="bg-white/95 backdrop-blur-md font-bold"
-          />
-        </div>
-        
-        {/* Badge Kapasitas */}
+        {/* Badge Kapasitas di pojok bawah (elegan & tidak menutup foto) */}
         <div className="public-card-badge-bottom-left">
           <div className="flex items-center gap-1.5 text-white text-[10px] sm:text-xs font-semibold bg-slate-900/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/15 shadow-xs">
             <Users size={13} className="text-sky-300" /> 
@@ -57,6 +47,17 @@ export default function RoomCard({ room, onShowDetail, onBook }: RoomCardProps) 
       
       {/* Area Konten */}
       <div className="public-card-body">
+        {/* Header Kategori & Kepemilikan Kawasan */}
+        <div className="flex items-center justify-between gap-2 mb-2.5">
+          <span className="inline-flex items-center text-[10px] font-extrabold uppercase tracking-wider text-slate-700 bg-slate-100 border border-slate-200/80 px-2.5 py-0.5 rounded-md shadow-2xs">
+            {room.category || 'Ruangan'}
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-sky-800 bg-sky-50/90 border border-sky-200/80 px-2.5 py-0.5 rounded-full shadow-2xs">
+            <Building2 size={11} className="text-sky-600 shrink-0" />
+            <span>Fasilitas STP</span>
+          </span>
+        </div>
+
         <h3 className="public-card-title group-hover:text-sky-600">
           {room.name}
         </h3>

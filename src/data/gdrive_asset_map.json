@@ -1,0 +1,618 @@
+[
+  {
+    "driveId": "1ooivpSk0EMzq96iUayvxcLEw5Ln5zy25",
+    "originalName": "Game Working Space Solo Technopark (1).png",
+    "cleanName": "Game_Working_Space_Solo_Technopark_(1).png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Game_Working_Space_Solo_Technopark_(1).png",
+    "sizeBytes": 1690218
+  },
+  {
+    "driveId": "1KjWEHkoILF8Yd8ifghR6P1NMkAi_Edk5",
+    "originalName": "Game Working Space Solo Technopark (2).png",
+    "cleanName": "Game_Working_Space_Solo_Technopark_(2).png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Game_Working_Space_Solo_Technopark_(2).png",
+    "sizeBytes": 1606939
+  },
+  {
+    "driveId": "1ooI_6nHifwZu4ak2UOLYBi_aUjM7tXNS",
+    "originalName": "Game Working Space Solo Technopark.png",
+    "cleanName": "Game_Working_Space_Solo_Technopark.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Game_Working_Space_Solo_Technopark.png",
+    "sizeBytes": 1402453
+  },
+  {
+    "driveId": "1Vv9tqUJDb_v6aRhuMSpLBLUthJ2u5LJ9",
+    "originalName": "Las GMAW_MIG 1F–4F (Plat) (2).png",
+    "cleanName": "Las_GMAW_MIG_1F-4F_(Plat)_(2).png",
+    "category": "welding",
+    "localPath": "/images/stp-assets/welding/Las_GMAW_MIG_1F-4F_(Plat)_(2).png",
+    "sizeBytes": 1478552
+  },
+  {
+    "driveId": "1A-oMnEleaA2C84M6ScvLBdf2FfvxlZTl",
+    "originalName": "Las GMAW_MIG 1F–4F (Plat).png",
+    "cleanName": "Las_GMAW_MIG_1F-4F_(Plat).png",
+    "category": "welding",
+    "localPath": "/images/stp-assets/welding/Las_GMAW_MIG_1F-4F_(Plat).png",
+    "sizeBytes": 1472818
+  },
+  {
+    "driveId": "1xNUMfJEVEwzBTfFhBn8tLncXUwQJqQDi",
+    "originalName": "Welding FCAW 1G–2G (Pipa) (1).png",
+    "cleanName": "Welding_FCAW_1G-2G_(Pipa)_(1).png",
+    "category": "welding",
+    "localPath": "/images/stp-assets/welding/Welding_FCAW_1G-2G_(Pipa)_(1).png",
+    "sizeBytes": 1255291
+  },
+  {
+    "driveId": "16VIcE14MLZafIXHUBbs-i7ylmP2OTqIQ",
+    "originalName": "Welding FCAW 1G–2G (Pipa) (2).png",
+    "cleanName": "Welding_FCAW_1G-2G_(Pipa)_(2).png",
+    "category": "welding",
+    "localPath": "/images/stp-assets/welding/Welding_FCAW_1G-2G_(Pipa)_(2).png",
+    "sizeBytes": 1300288
+  },
+  {
+    "driveId": "18EYigC0hPqCQM7S-V8dTaTe3WxdnctEn",
+    "originalName": "Lab Cyber Security Solo Technopark.png",
+    "cleanName": "Lab_Cyber_Security_Solo_Technopark.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Lab_Cyber_Security_Solo_Technopark.png",
+    "sizeBytes": 1628290
+  },
+  {
+    "driveId": "1kaKqK1SQHf-PLQOEndhNTXLL5eJkpyhm",
+    "originalName": "Lapangan Basket Solo Technopark slide 1.png",
+    "cleanName": "Lapangan_Basket_Solo_Technopark_slide_1.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Lapangan_Basket_Solo_Technopark_slide_1.png",
+    "sizeBytes": 1723792
+  },
+  {
+    "driveId": "19r4pUdJDSZKlajd3hLqr71Np_5SXdjdt",
+    "originalName": "Lapangan Basket Solo Technopark slide 2.png",
+    "cleanName": "Lapangan_Basket_Solo_Technopark_slide_2.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Lapangan_Basket_Solo_Technopark_slide_2.png",
+    "sizeBytes": 1782480
+  },
+  {
+    "driveId": "14kPulGvun1ms0Tkuz_MCmakjiGydIrag",
+    "originalName": "Lapangan Futsal Solo Technopark slide 1.png",
+    "cleanName": "Lapangan_Futsal_Solo_Technopark_slide_1.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Lapangan_Futsal_Solo_Technopark_slide_1.png",
+    "sizeBytes": 1871552
+  },
+  {
+    "driveId": "1Fd5Wa76BjQd8nmoIYGdolp1eK7MBJnWa",
+    "originalName": "Lapangan Futsal Solo Technopark slide 2.png",
+    "cleanName": "Lapangan_Futsal_Solo_Technopark_slide_2.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Lapangan_Futsal_Solo_Technopark_slide_2.png",
+    "sizeBytes": 1902465
+  },
+  {
+    "driveId": "1-OF-0BacrD1ugoUdmKRagP68nhUf0rxA",
+    "originalName": "Ruang Aula RND slide 1.png",
+    "cleanName": "Ruang_Aula_RND_slide_1.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Ruang_Aula_RND_slide_1.png",
+    "sizeBytes": 1479344
+  },
+  {
+    "driveId": "1megSXP5KIsqfuLfAIMVx7qpbMlOcchjM",
+    "originalName": "Ruang Aula RND slide 2.png",
+    "cleanName": "Ruang_Aula_RND_slide_2.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Ruang_Aula_RND_slide_2.png",
+    "sizeBytes": 1772242
+  },
+  {
+    "driveId": "1hegwX0h-0x0ciLzI2JBP0tN4bHOzqUOw",
+    "originalName": "Ruang Aula RND slide 3.png",
+    "cleanName": "Ruang_Aula_RND_slide_3.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Ruang_Aula_RND_slide_3.png",
+    "sizeBytes": 1500198
+  },
+  {
+    "driveId": "1rIOPg9S2HWt34FH3KC4tYBOE_7s4KcNH",
+    "originalName": "Ruang Kelas Teori 1 slide 1.png",
+    "cleanName": "Ruang_Kelas_Teori_1_slide_1.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Ruang_Kelas_Teori_1_slide_1.png",
+    "sizeBytes": 1680411
+  },
+  {
+    "driveId": "1fM3WjJBj--Ch9SXNSICfNNhqTc1QO6uU",
+    "originalName": "Ruang Kelas Teori 1 slide 2.png",
+    "cleanName": "Ruang_Kelas_Teori_1_slide_2.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Ruang_Kelas_Teori_1_slide_2.png",
+    "sizeBytes": 1681180
+  },
+  {
+    "driveId": "16NP7Ryb7CKjSZodq--b86ser9ea8l9Ku",
+    "originalName": "Ruang Kelas Teori 2 slide 2.png",
+    "cleanName": "Ruang_Kelas_Teori_2_slide_2.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Ruang_Kelas_Teori_2_slide_2.png",
+    "sizeBytes": 1636471
+  },
+  {
+    "driveId": "1CgJUp11fIw2u_IiMKqMOD1KG-GMbcIZk",
+    "originalName": "Ruang Kelas Teori 3.png",
+    "cleanName": "Ruang_Kelas_Teori_3.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Ruang_Kelas_Teori_3.png",
+    "sizeBytes": 1701970
+  },
+  {
+    "driveId": "1bBbxbhmIJ8rHAeRhKbuxlO1uQR6AZhbY",
+    "originalName": "Ruang Meeting RND slide 1.png",
+    "cleanName": "Ruang_Meeting_RND_slide_1.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Ruang_Meeting_RND_slide_1.png",
+    "sizeBytes": 1718189
+  },
+  {
+    "driveId": "1iV7M0_et2FzvhvTnN2pwyw35m8SzzxEM",
+    "originalName": "Ruang Meeting RND slide 2.png",
+    "cleanName": "Ruang_Meeting_RND_slide_2.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Ruang_Meeting_RND_slide_2.png",
+    "sizeBytes": 1587969
+  },
+  {
+    "driveId": "1zqmV2k2YEem64ZXYYk3w9PXiMqLZj4VJ",
+    "originalName": "Ruang Pertemuan A (Business Space) slide 1.png",
+    "cleanName": "Ruang_Pertemuan_A_(Business_Space)_slide_1.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Ruang_Pertemuan_A_(Business_Space)_slide_1.png",
+    "sizeBytes": 1694245
+  },
+  {
+    "driveId": "1XYDYleqGf_xsMqygR50CBvgrw5yjaBVE",
+    "originalName": "Ruang Pertemuan A (Business Space) slide 2.png",
+    "cleanName": "Ruang_Pertemuan_A_(Business_Space)_slide_2.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Ruang_Pertemuan_A_(Business_Space)_slide_2.png",
+    "sizeBytes": 1792393
+  },
+  {
+    "driveId": "1-miZGqcAQ_JcvWmZNDME3XNfq8gairCY",
+    "originalName": "Ruang Pertemuan B (Business Space) slide 1.png",
+    "cleanName": "Ruang_Pertemuan_B_(Business_Space)_slide_1.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Ruang_Pertemuan_B_(Business_Space)_slide_1.png",
+    "sizeBytes": 1769319
+  },
+  {
+    "driveId": "1b_9xGdB0baEAmQ8gCCsTXdyxXBvovbp7",
+    "originalName": "Ruang Pertemuan B (Business Space) slide 2.png",
+    "cleanName": "Ruang_Pertemuan_B_(Business_Space)_slide_2.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Ruang_Pertemuan_B_(Business_Space)_slide_2.png",
+    "sizeBytes": 1748612
+  },
+  {
+    "driveId": "1Wh5QWlNnmRuBw071nmey1NoJPCPJ6PhI",
+    "originalName": "Ruang Pertemuan E (Business Space) slide 1.png",
+    "cleanName": "Ruang_Pertemuan_E_(Business_Space)_slide_1.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Ruang_Pertemuan_E_(Business_Space)_slide_1.png",
+    "sizeBytes": 1812297
+  },
+  {
+    "driveId": "1gOyum8SHJIZ-LATNS_mgkYdoF7hURVx-",
+    "originalName": "Ruang Pertemuan E (Business Space) slide 2.png",
+    "cleanName": "Ruang_Pertemuan_E_(Business_Space)_slide_2.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Ruang_Pertemuan_E_(Business_Space)_slide_2.png",
+    "sizeBytes": 1860294
+  },
+  {
+    "driveId": "1IifuwIsxaCT_rX2Mxjm3OHqQL3db92Bz",
+    "originalName": "Ruang Seminar Besar.png",
+    "cleanName": "Ruang_Seminar_Besar.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Ruang_Seminar_Besar.png",
+    "sizeBytes": 1614670
+  },
+  {
+    "driveId": "1Wn0b9mQfDjyNZYoitEMRRZ0r4_dCjq3O",
+    "originalName": "Studio Podcast Modern Solo Technopark slide 1.png",
+    "cleanName": "Studio_Podcast_Modern_Solo_Technopark_slide_1.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Studio_Podcast_Modern_Solo_Technopark_slide_1.png",
+    "sizeBytes": 2106797
+  },
+  {
+    "driveId": "1xFCNHSbgOCP1A4fxKIlY8QXEv0qS26kC",
+    "originalName": "Studio Podcast Modern Solo Technopark slide 2.png",
+    "cleanName": "Studio_Podcast_Modern_Solo_Technopark_slide_2.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Studio_Podcast_Modern_Solo_Technopark_slide_2.png",
+    "sizeBytes": 1943083
+  },
+  {
+    "driveId": "1gC3cFG1YzXOBMxC8HAC5jqEMvqJKGgO0",
+    "originalName": "Studio Podcast Modern Solo Technopark slide 3.png",
+    "cleanName": "Studio_Podcast_Modern_Solo_Technopark_slide_3.png",
+    "category": "ruangan",
+    "localPath": "/images/stp-assets/ruangan/Studio_Podcast_Modern_Solo_Technopark_slide_3.png",
+    "sizeBytes": 1890789
+  },
+  {
+    "driveId": "1eLXca09HEAJHpbx-diiBpIvcnrwik1rX",
+    "originalName": "Pelatihan Gouging Underwater (1 Minggu  40 JP).png",
+    "cleanName": "Pelatihan_Gouging_Underwater_(1_Minggu_40_JP).png",
+    "category": "pelatihan",
+    "localPath": "/images/stp-assets/pelatihan/Pelatihan_Gouging_Underwater_(1_Minggu_40_JP).png",
+    "sizeBytes": 1354615
+  },
+  {
+    "driveId": "1rE_yumWsN8iwu8dymIji5BR45dfOznq4",
+    "originalName": "Pelatihan Gouging Underwater (1 Minggu _ 40 JP).png",
+    "cleanName": "Pelatihan_Gouging_Underwater_(1_Minggu_40_JP).png",
+    "category": "pelatihan",
+    "localPath": "/images/stp-assets/pelatihan/Pelatihan_Gouging_Underwater_(1_Minggu_40_JP).png",
+    "sizeBytes": 1354615
+  },
+  {
+    "driveId": "1vcq4xNQsLgQDSXLTiPyR-zoC2mTRUlCR",
+    "originalName": "Pelatihan Underwater Wet Welding (1 Bulan _ 160 JP) (2).png",
+    "cleanName": "Pelatihan_Underwater_Wet_Welding_(1_Bulan_160_JP)_(2).png",
+    "category": "pelatihan",
+    "localPath": "/images/stp-assets/pelatihan/Pelatihan_Underwater_Wet_Welding_(1_Bulan_160_JP)_(2).png",
+    "sizeBytes": 1287754
+  },
+  {
+    "driveId": "17N8sfIjID88Cl7Y_LB4yn3ItSDdLBf7X",
+    "originalName": "Pelatihan Underwater Wet Welding (1 Bulan _ 160 JP).png",
+    "cleanName": "Pelatihan_Underwater_Wet_Welding_(1_Bulan_160_JP).png",
+    "category": "pelatihan",
+    "localPath": "/images/stp-assets/pelatihan/Pelatihan_Underwater_Wet_Welding_(1_Bulan_160_JP).png",
+    "sizeBytes": 1281724
+  },
+  {
+    "driveId": "1Ymsx_zZYE3AODOPb8NFaiauAlX7LIkEd",
+    "originalName": "Pelatihan Underwater Wet Welding (2 Minggu _ 80 JP) (2).png",
+    "cleanName": "Pelatihan_Underwater_Wet_Welding_(2_Minggu_80_JP)_(2).png",
+    "category": "pelatihan",
+    "localPath": "/images/stp-assets/pelatihan/Pelatihan_Underwater_Wet_Welding_(2_Minggu_80_JP)_(2).png",
+    "sizeBytes": 1236869
+  },
+  {
+    "driveId": "12WhQNZ6ncCRRHdEgXW-jB3zAAuvOpKQ-",
+    "originalName": "Pelatihan Underwater Wet Welding (2 Minggu _ 80 JP).png",
+    "cleanName": "Pelatihan_Underwater_Wet_Welding_(2_Minggu_80_JP).png",
+    "category": "pelatihan",
+    "localPath": "/images/stp-assets/pelatihan/Pelatihan_Underwater_Wet_Welding_(2_Minggu_80_JP).png",
+    "sizeBytes": 1229936
+  },
+  {
+    "driveId": "1W13rk0W4Pqh3iUHFrDLr5TusdijKfHBE",
+    "originalName": "Las GMAW_MIG 1F–4F (Plat) (2).png",
+    "cleanName": "Las_GMAW_MIG_1F-4F_(Plat)_(2).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_GMAW_MIG_1F-4F_(Plat)_(2).png",
+    "sizeBytes": 1474755
+  },
+  {
+    "driveId": "1IT5_8TvRhQAj6Rr3lUCXJkwvv-WpImV-",
+    "originalName": "Las GMAW_MIG 1F–4F (Plat).png",
+    "cleanName": "Las_GMAW_MIG_1F-4F_(Plat).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_GMAW_MIG_1F-4F_(Plat).png",
+    "sizeBytes": 1469199
+  },
+  {
+    "driveId": "19ZesiKKjJ7ysM4ZtKAtdeMUb2zdQhKbR",
+    "originalName": "Las GMAW_MIG 1G–2G (Pipa) (2).png",
+    "cleanName": "Las_GMAW_MIG_1G-2G_(Pipa)_(2).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_GMAW_MIG_1G-2G_(Pipa)_(2).png",
+    "sizeBytes": 1366053
+  },
+  {
+    "driveId": "1Fsdi_TJOWad73hRGnHaax-fWAGvmIMjZ",
+    "originalName": "Las GMAW_MIG 1G–2G (Pipa).png",
+    "cleanName": "Las_GMAW_MIG_1G-2G_(Pipa).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_GMAW_MIG_1G-2G_(Pipa).png",
+    "sizeBytes": 1365940
+  },
+  {
+    "driveId": "15k0eJDqEcQ9KzblJimOZPwtQFxpxy_9F",
+    "originalName": "Las GMAW_MIG 1G–2G (Plat) (2).png",
+    "cleanName": "Las_GMAW_MIG_1G-2G_(Plat)_(2).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_GMAW_MIG_1G-2G_(Plat)_(2).png",
+    "sizeBytes": 1373668
+  },
+  {
+    "driveId": "1kF4la30aBZ9_ujbm5CxO3vggPGYngXTD",
+    "originalName": "Las GMAW_MIG 1G–2G (Plat).png",
+    "cleanName": "Las_GMAW_MIG_1G-2G_(Plat).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_GMAW_MIG_1G-2G_(Plat).png",
+    "sizeBytes": 1375046
+  },
+  {
+    "driveId": "1dK1W2mXIQ7xFl4-xOuy2g2iM4KIw-ro0",
+    "originalName": "Las GMAW_MIG 3G–4G (Plat) (2).png",
+    "cleanName": "Las_GMAW_MIG_3G-4G_(Plat)_(2).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_GMAW_MIG_3G-4G_(Plat)_(2).png",
+    "sizeBytes": 1281951
+  },
+  {
+    "driveId": "1lu4loDHPYDM_1LUbtIsR0Jwe9avJzF_z",
+    "originalName": "Las GMAW_MIG 3G–4G (Plat).png",
+    "cleanName": "Las_GMAW_MIG_3G-4G_(Plat).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_GMAW_MIG_3G-4G_(Plat).png",
+    "sizeBytes": 1281665
+  },
+  {
+    "driveId": "1g4HtCNeWmoPnllRDAxtwspPCAlg0VAui",
+    "originalName": "Las GMAW_MIG 5G–6G (Pipa) (2).png",
+    "cleanName": "Las_GMAW_MIG_5G-6G_(Pipa)_(2).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_GMAW_MIG_5G-6G_(Pipa)_(2).png",
+    "sizeBytes": 1390407
+  },
+  {
+    "driveId": "1TvMmxRlore44ymAWH1koxhRvZM_LUEuz",
+    "originalName": "Las GMAW_MIG 5G–6G (Pipa).png",
+    "cleanName": "Las_GMAW_MIG_5G-6G_(Pipa).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_GMAW_MIG_5G-6G_(Pipa).png",
+    "sizeBytes": 1391758
+  },
+  {
+    "driveId": "1BVQYdZ0ZUT434-A3PGxedQ4KarU5Upwg",
+    "originalName": "Las SMAW 1F–4F (Plat) (2).png",
+    "cleanName": "Las_SMAW_1F-4F_(Plat)_(2).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_SMAW_1F-4F_(Plat)_(2).png",
+    "sizeBytes": 1456435
+  },
+  {
+    "driveId": "1DARNzm4E7pQmaFlJfg8d1QTUc_czuqif",
+    "originalName": "Las SMAW 1F–4F (Plat).png",
+    "cleanName": "Las_SMAW_1F-4F_(Plat).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_SMAW_1F-4F_(Plat).png",
+    "sizeBytes": 1451827
+  },
+  {
+    "driveId": "1lh8CwZO0TT6vhEBTLG_MDnQ_Qd3A6eML",
+    "originalName": "Las SMAW 1G–2G (Pipa) (2).png",
+    "cleanName": "Las_SMAW_1G-2G_(Pipa)_(2).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_SMAW_1G-2G_(Pipa)_(2).png",
+    "sizeBytes": 1243783
+  },
+  {
+    "driveId": "14kHNLdNah-PnB5gWLPa2XZNplsR91SF2",
+    "originalName": "Las SMAW 1G–2G (Pipa).png",
+    "cleanName": "Las_SMAW_1G-2G_(Pipa).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_SMAW_1G-2G_(Pipa).png",
+    "sizeBytes": 1242037
+  },
+  {
+    "driveId": "1tRNJeJftSuD_EPLe5is0m4cVVH8vKRw7",
+    "originalName": "Las SMAW 1G–2G (Plat) (2).png",
+    "cleanName": "Las_SMAW_1G-2G_(Plat)_(2).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_SMAW_1G-2G_(Plat)_(2).png",
+    "sizeBytes": 1314901
+  },
+  {
+    "driveId": "1cJE-ItQ5PIjR1MkoP_txC0_5yhfvYCJj",
+    "originalName": "Las SMAW 1G–2G (Plat).png",
+    "cleanName": "Las_SMAW_1G-2G_(Plat).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_SMAW_1G-2G_(Plat).png",
+    "sizeBytes": 1316233
+  },
+  {
+    "driveId": "1K9vjtDoUPRdlb5QY0EtBNxgabQoPgsTq",
+    "originalName": "Las SMAW 3G–4G (Plat) (2).png",
+    "cleanName": "Las_SMAW_3G-4G_(Plat)_(2).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_SMAW_3G-4G_(Plat)_(2).png",
+    "sizeBytes": 1381821
+  },
+  {
+    "driveId": "1zOmR7tOb10x8Pt7wBzQdRbLu9--exmwC",
+    "originalName": "Las SMAW 3G–4G (Plat).png",
+    "cleanName": "Las_SMAW_3G-4G_(Plat).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_SMAW_3G-4G_(Plat).png",
+    "sizeBytes": 1383788
+  },
+  {
+    "driveId": "1-6CkzbKsHZ8G_UKrS7kGCN1uuNBlDPTc",
+    "originalName": "Las SMAW 5G–6G (Pipa) (2).png",
+    "cleanName": "Las_SMAW_5G-6G_(Pipa)_(2).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_SMAW_5G-6G_(Pipa)_(2).png",
+    "sizeBytes": 1480201
+  },
+  {
+    "driveId": "1Ycdz0a8nepdKHxYu687NUfkTtW37GOP8",
+    "originalName": "Las SMAW 5G–6G (Pipa).png",
+    "cleanName": "Las_SMAW_5G-6G_(Pipa).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_SMAW_5G-6G_(Pipa).png",
+    "sizeBytes": 1477632
+  },
+  {
+    "driveId": "1iueXBH2WBmvRy4mScPLmMn6l82Ae9sfn",
+    "originalName": "Las TIG_GTAW 1F–4F (2).png",
+    "cleanName": "Las_TIG_GTAW_1F-4F_(2).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_TIG_GTAW_1F-4F_(2).png",
+    "sizeBytes": 1407709
+  },
+  {
+    "driveId": "1JON-SKCviYBS0IQJqqoCscHU_dvFcEl6",
+    "originalName": "Las TIG_GTAW 1F–4F.png",
+    "cleanName": "Las_TIG_GTAW_1F-4F.png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_TIG_GTAW_1F-4F.png",
+    "sizeBytes": 1405379
+  },
+  {
+    "driveId": "1DxnM4fKrGdcWrZgaJ-47SlP__wyl-p8C",
+    "originalName": "Las TIG_GTAW 1G–2G (Pipa) (2).png",
+    "cleanName": "Las_TIG_GTAW_1G-2G_(Pipa)_(2).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_TIG_GTAW_1G-2G_(Pipa)_(2).png",
+    "sizeBytes": 1386706
+  },
+  {
+    "driveId": "13t4sYyU66ORtl68Ixwv_Am25RERd7QOv",
+    "originalName": "Las TIG_GTAW 1G–2G (Pipa).png",
+    "cleanName": "Las_TIG_GTAW_1G-2G_(Pipa).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_TIG_GTAW_1G-2G_(Pipa).png",
+    "sizeBytes": 1382539
+  },
+  {
+    "driveId": "1O9XpcL4wM0H3OAPpchy-U0ovsUfxuDzk",
+    "originalName": "Las TIG_GTAW 1G–2G (Plat) (2).png",
+    "cleanName": "Las_TIG_GTAW_1G-2G_(Plat)_(2).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_TIG_GTAW_1G-2G_(Plat)_(2).png",
+    "sizeBytes": 1321005
+  },
+  {
+    "driveId": "1f7a4h3-NWyKKnefjvG9IOzz9fr-5GkEQ",
+    "originalName": "Las TIG_GTAW 1G–2G (Plat).png",
+    "cleanName": "Las_TIG_GTAW_1G-2G_(Plat).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_TIG_GTAW_1G-2G_(Plat).png",
+    "sizeBytes": 1322821
+  },
+  {
+    "driveId": "1z0jM0jey-pK0eyqBmzkrUu0VA8DYa_VT",
+    "originalName": "Las TIG_GTAW 3G–4G (Plat) (2).png",
+    "cleanName": "Las_TIG_GTAW_3G-4G_(Plat)_(2).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_TIG_GTAW_3G-4G_(Plat)_(2).png",
+    "sizeBytes": 1319055
+  },
+  {
+    "driveId": "1SCVKgRglzFwLcTiYQsHFl6Gx7baUqJcz",
+    "originalName": "Las TIG_GTAW 3G–4G (Plat).png",
+    "cleanName": "Las_TIG_GTAW_3G-4G_(Plat).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_TIG_GTAW_3G-4G_(Plat).png",
+    "sizeBytes": 1317459
+  },
+  {
+    "driveId": "1ReUu7PA4EocixJg0hNM0VTqN1NREhBdv",
+    "originalName": "Las TIG_GTAW 5G–6G (Pipa) (2).png",
+    "cleanName": "Las_TIG_GTAW_5G-6G_(Pipa)_(2).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_TIG_GTAW_5G-6G_(Pipa)_(2).png",
+    "sizeBytes": 1343288
+  },
+  {
+    "driveId": "1jmyKcYANJ78X9uliMyQPqqtNx_lLihau",
+    "originalName": "Las TIG_GTAW 5G–6G (Pipa).png",
+    "cleanName": "Las_TIG_GTAW_5G-6G_(Pipa).png",
+    "category": "las",
+    "localPath": "/images/stp-assets/las/Las_TIG_GTAW_5G-6G_(Pipa).png",
+    "sizeBytes": 1339427
+  },
+  {
+    "driveId": "1UVtoDvFyk73nQZf5cG_ftgKoHC2wAsDY",
+    "originalName": "Welding FCAW 1F–4F (Plat) (2).png",
+    "cleanName": "Welding_FCAW_1F-4F_(Plat)_(2).png",
+    "category": "welding",
+    "localPath": "/images/stp-assets/welding/Welding_FCAW_1F-4F_(Plat)_(2).png",
+    "sizeBytes": 1442217
+  },
+  {
+    "driveId": "1KyKdxOq0mZNFFL5w94lNFSoB6EFj5-S2",
+    "originalName": "Welding FCAW 1F–4F (Plat).png",
+    "cleanName": "Welding_FCAW_1F-4F_(Plat).png",
+    "category": "welding",
+    "localPath": "/images/stp-assets/welding/Welding_FCAW_1F-4F_(Plat).png",
+    "sizeBytes": 1437068
+  },
+  {
+    "driveId": "1EofSluHtddgzUTjiobATzuJboyD_833_",
+    "originalName": "Welding FCAW 1G–2G (Pipa) (2).png",
+    "cleanName": "Welding_FCAW_1G-2G_(Pipa)_(2).png",
+    "category": "welding",
+    "localPath": "/images/stp-assets/welding/Welding_FCAW_1G-2G_(Pipa)_(2).png",
+    "sizeBytes": 1300288
+  },
+  {
+    "driveId": "1uGt3eJVWcS0FGe9Is9jNUDeSvxDD7Wlz",
+    "originalName": "Welding FCAW 1G–2G (Pipa).png",
+    "cleanName": "Welding_FCAW_1G-2G_(Pipa).png",
+    "category": "welding",
+    "localPath": "/images/stp-assets/welding/Welding_FCAW_1G-2G_(Pipa).png",
+    "sizeBytes": 1400674
+  },
+  {
+    "driveId": "1LMrfEIUrcpquSWU5Bucys6Ol_3di0V0T",
+    "originalName": "Welding FCAW 1G–2G (Plat) (2).png",
+    "cleanName": "Welding_FCAW_1G-2G_(Plat)_(2).png",
+    "category": "welding",
+    "localPath": "/images/stp-assets/welding/Welding_FCAW_1G-2G_(Plat)_(2).png",
+    "sizeBytes": 1389987
+  },
+  {
+    "driveId": "1s9aI-NhIV3yEBlpxtqS0NqrlgavcVxLP",
+    "originalName": "Welding FCAW 1G–2G (Plat).png",
+    "cleanName": "Welding_FCAW_1G-2G_(Plat).png",
+    "category": "welding",
+    "localPath": "/images/stp-assets/welding/Welding_FCAW_1G-2G_(Plat).png",
+    "sizeBytes": 1389931
+  },
+  {
+    "driveId": "1yi57ZCackFnTdlV5F-OEje1vl4HqLYNM",
+    "originalName": "Welding FCAW 3G–4G (Plat) (2).png",
+    "cleanName": "Welding_FCAW_3G-4G_(Plat)_(2).png",
+    "category": "welding",
+    "localPath": "/images/stp-assets/welding/Welding_FCAW_3G-4G_(Plat)_(2).png",
+    "sizeBytes": 1413392
+  },
+  {
+    "driveId": "1WbrLCX-MWc6ottoQuzBgEdxJzoUU0gBB",
+    "originalName": "Welding FCAW 3G–4G (Plat).png",
+    "cleanName": "Welding_FCAW_3G-4G_(Plat).png",
+    "category": "welding",
+    "localPath": "/images/stp-assets/welding/Welding_FCAW_3G-4G_(Plat).png",
+    "sizeBytes": 1411167
+  },
+  {
+    "driveId": "11s-CakaO21yvmqG602sm9H9VuFLnqDkp",
+    "originalName": "Welding FCAW 5G–6G (Pipa) (2).png",
+    "cleanName": "Welding_FCAW_5G-6G_(Pipa)_(2).png",
+    "category": "welding",
+    "localPath": "/images/stp-assets/welding/Welding_FCAW_5G-6G_(Pipa)_(2).png",
+    "sizeBytes": 1476541
+  },
+  {
+    "driveId": "1s56TksULsKv5FdvfTWSXiMIj4t-ELO3F",
+    "originalName": "Welding FCAW 5G–6G (Pipa).png",
+    "cleanName": "Welding_FCAW_5G-6G_(Pipa).png",
+    "category": "welding",
+    "localPath": "/images/stp-assets/welding/Welding_FCAW_5G-6G_(Pipa).png",
+    "sizeBytes": 1474564
+  }
+]

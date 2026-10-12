@@ -14,6 +14,7 @@ import { useEvents } from '@/hooks/useEvents';
 import { Invoice, Booking, Training } from '@/types';
 import { formatRupiah } from '@/utils/format';
 import { toast } from 'sonner';
+import { useLoginModal } from '@/context/LoginModalContext';
 
 import {
   GraduationCap,
@@ -47,6 +48,7 @@ import SectionContainer from '@/components/ui/SectionContainer';
 export default function PortalDashboardPage() {
   const router = useRouter();
   const { user, role, loading: authLoading } = useAuth();
+  const { openLoginModal } = useLoginModal();
   const { profile: affiliate } = useAffiliateProfile(user?.uid);
   const isApprovedAffiliate = affiliate?.status === 'APPROVED';
 
@@ -119,12 +121,16 @@ export default function PortalDashboardPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              href="/login"
-              className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2"
+            <button
+              type="button"
+              onClick={() => openLoginModal({
+                title: 'Masuk ke Portal Personal',
+                subtitle: 'Gunakan akun Google Anda untuk mengakses kursus, riwayat tagihan, dan peminjaman secara instan.'
+              })}
+              className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer hover:-translate-y-0.5 active:translate-y-0"
             >
               <LogIn size={18} /> Masuk ke Akun Anda
-            </Link>
+            </button>
             <Link
               href="/program-pelatihan"
               className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-sm shadow-2xs transition-all flex items-center justify-center gap-2"

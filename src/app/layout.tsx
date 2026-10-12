@@ -5,6 +5,8 @@ import "./globals.css";
 import QueryProvider from '@/lib/QueryProvider';
 import { AuthProvider } from "@/lib/AuthContext";
 import { Toaster } from 'sonner';
+import { LoginModalProvider } from "@/context/LoginModalContext";
+import LoginModal from "@/components/auth/LoginModal";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -48,8 +50,11 @@ export default function RootLayout({
       <body className={inter.className}>
         <QueryProvider>
           <AuthProvider>
-            {children}
-            <Toaster position="top-center" richColors />
+            <LoginModalProvider>
+              {children}
+              <LoginModal />
+              <Toaster position="top-center" richColors />
+            </LoginModalProvider>
           </AuthProvider>
         </QueryProvider>
       </body>

@@ -29,6 +29,7 @@ import { MobileStickyBottomBar } from '@/components/common/MobileStickyBottomBar
 import { getActiveRefCode } from '@/components/common/AffiliateTracker';
 import { AffiliateShareButton } from '@/components/common/AffiliateShareButton';
 import { affiliateService } from '@/services/affiliate.service';
+import { useLoginModal } from '@/context/LoginModalContext';
 
 type TabType = 'description' | 'specifications' | 'highlights';
 
@@ -40,6 +41,7 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { openLoginModal } = useLoginModal();
   
   // Hooks
   const { getProduct, products: allProducts } = useCatalog(); 
@@ -148,7 +150,10 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
   // Logic Pemesanan (Invoice)
   const handlePesanViaInvoice = async () => {
     if (!user) {
-      toast.error("Akses Ditolak", { description: "Silakan login terlebih dahulu.", action: { label: "Login", onClick: () => router.push('/login') } });
+      openLoginModal({
+        title: 'Masuk untuk Memesan Layanan',
+        subtitle: 'Silakan masuk dengan Google agar pesanan langsung tercatat pada akun Anda tanpa berpindah halaman.',
+      });
       return;
     }
     
@@ -257,7 +262,10 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
       router.push('/fasilitas');
     } else {
       if (!user) {
-        toast.error("Akses Ditolak", { description: "Silakan login terlebih dahulu.", action: { label: "Login", onClick: () => router.push('/login') } });
+        openLoginModal({
+          title: 'Masuk untuk Memesan Layanan',
+          subtitle: 'Silakan masuk dengan Google agar pesanan langsung tercatat pada akun Anda tanpa berpindah halaman.',
+        });
         return;
       }
       setShowConfirmModal(true);

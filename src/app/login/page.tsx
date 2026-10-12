@@ -3,11 +3,9 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { signInWithPopup, GoogleAuthProvider, signInAnonymously } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase'; 
 import { Key, Loader2, Building, ArrowLeft, GraduationCap, Sparkles, Building2, Briefcase, Users, Radio } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { authService } from '@/services/auth.service';
 
 // Mengambil sedikit data Pentahelix untuk hiasan UI di sisi kiri (opsional tapi bagus untuk branding)
 const PENTAHELIX_PREVIEW = [
@@ -35,111 +33,33 @@ export default function LoginPage() {
     setIsGoogleLoading(true);
 
     try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-
-      const userRef = doc(db, 'users', user.uid);
-      const userSnap = await getDoc(userRef);
-
-      let role = 'public'; 
-
-      if (!userSnap.exists()) {
-        const tenantsRef = collection(db, 'tenants');
-        const qTenant = query(tenantsRef, where('email', '==', user.email), limit(1));
-        const tenantSnap = await getDocs(qTenant);
-
-        if (!tenantSnap.empty) {
-          role = 'tenant';
-          await setDoc(userRef, {
-            email: user.email,
-            name: user.displayName,
-            photoURL: user.photoURL,
-            role: 'tenant',
-            tenantId: tenantSnap.docs[0].id,
-            createdAt: Date.now()
-          });
-        } else {
-          await setDoc(userRef, {
-            email: user.email,
-            name: user.displayName,
-            photoURL: user.photoURL,
-            role: 'public', 
-            createdAt: Date.now()
-          });
-        }
-      } 
-      else {
-        role = userSnap.data()?.role || 'public';
-        if (role === 'public' && user.email) {
-            const tenantsRef = collection(db, 'tenants');
-            const qTenant = query(tenantsRef, where('email', '==', user.email), limit(1));
-            const tenantSnap = await getDocs(qTenant);
-            
-            if (!tenantSnap.empty) {
-                role = 'tenant';
-                await updateDoc(userRef, { role: 'tenant', tenantId: tenantSnap.docs[0].id });
-            }
-        }
-      }
-
-      await user.getIdToken(true);
-      document.cookie = `userRole=${role}; path=/; max-age=86400; SameSite=Strict`;
-
-      // PERUBAHAN: Apapun rolenya, arahkan ke Homepage
+      await authService.loginWithGoogle();
+      // Apapun rolenya, arahkan ke Homepage
       window.location.href = '/'; 
-
     } catch (err: any) {
       console.error(err);
-      setError('Gagal login dengan Google. Silakan coba lagi.');
+      if (err.code === 'auth/popup-closed-by-user') {
+        setError('Jendela login ditutup sebelum proses selesai.');
+      } else {
+        setError('Gagal login dengan Google. Silakan coba lagi.');
+      }
     } finally {
       setIsGoogleLoading(false);
     }
   };
 
-  // --- FUNGSI 2: LOGIN TENANT DENGAN KODE AKSES (ANONYMOUS MAP) ---
+  // --- FUNGSI 2: LOGIN TENANT DENGAN KODE AKSES ---
   const handleAccessCodeLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
     try {
-      const code = accessCode.trim().toUpperCase();
-
-      const userCredential = await signInAnonymously(auth);
-      const user = userCredential.user;
-
-      const q = query(collection(db, 'tenants'), where('accessCode', '==', code), limit(1));
-      const snap = await getDocs(q);
-
-      if (snap.empty) {
-        await auth.signOut();
-        throw new Error('INVALID_CODE');
-      }
-
-      const tenantId = snap.docs[0].id;
-      const tenantData = snap.docs[0].data();
-
-      await setDoc(doc(db, 'users', user.uid), {
-        role: 'tenant',
-        tenantId: tenantId,
-        name: `Tim ${tenantData.name}`,
-        authMethod: 'access_code',
-        createdAt: Date.now()
-      });
-
-      document.cookie = `userRole=tenant; path=/; max-age=86400; SameSite=Strict`;
-      
-      // PERUBAHAN: Setelah login tenant pakai kode akses, kembalikan arahnya ke dashboard tenant
+      await authService.loginWithTenantAccessCode(accessCode);
       window.location.href = '/tenant/dashboard';
-
     } catch (err: any) {
       console.error("Login Error:", err);
-      if (err.message === 'INVALID_CODE') {
-        setError('Kode Akses tidak valid. Pastikan mengetik dengan benar.');
-      } else {
-        setError('Gagal memproses otentikasi ke server. Silakan coba lagi.');
-      }
+      setError(err.message || 'Gagal memproses otentikasi. Silakan periksa kembali kode akses Anda.');
     } finally {
       setIsLoading(false);
     }

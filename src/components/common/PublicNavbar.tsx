@@ -34,6 +34,8 @@ import { signOut } from 'firebase/auth';
 import { toast } from 'sonner';
 import { isInternalStaff, APP_ROLES, canAccessCareer } from '@/config/roles';
 import GlobalSearchModal from './GlobalSearchModal';
+import { useLoginModal } from '@/context/LoginModalContext';
+import { authService } from '@/services/auth.service';
 
 export interface NavMenu {
   name: string;
@@ -162,6 +164,7 @@ export default function PublicNavbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, role, loading } = useAuth();
+  const { openLoginModal } = useLoginModal();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -275,13 +278,14 @@ export default function PublicNavbar() {
 
     if (!user) {
       return (
-        <Link
-          href="/login"
-          className="px-4 py-2 h-9 text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-full transition-all shadow-xs flex items-center gap-1.5 hover:-translate-y-0.5 active:translate-y-0"
+        <button
+          type="button"
+          onClick={() => openLoginModal()}
+          className="px-4 py-2 h-9 text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-full transition-all shadow-xs flex items-center gap-1.5 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
         >
           <span>Masuk Portal</span>
           <ArrowUpRight size={14} className="opacity-70" />
-        </Link>
+        </button>
       );
     }
 
@@ -345,14 +349,17 @@ export default function PublicNavbar() {
 
     if (!user) {
       return (
-        <Link
-          href="/login"
-          onClick={() => setIsMobileMenuOpen(false)}
-          className="w-full h-12 text-sm font-bold bg-gradient-to-r from-slate-900 to-slate-800 active:from-slate-800 active:to-slate-700 text-white rounded-xl shadow-xs transition-all flex items-center justify-center gap-2"
+        <button
+          type="button"
+          onClick={() => {
+            setIsMobileMenuOpen(false);
+            openLoginModal();
+          }}
+          className="w-full h-12 text-sm font-bold bg-gradient-to-r from-slate-900 to-slate-800 active:from-slate-800 active:to-slate-700 text-white rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
         >
           <span>Masuk Portal Layanan</span>
           <ArrowUpRight size={16} className="opacity-70" />
-        </Link>
+        </button>
       );
     }
 

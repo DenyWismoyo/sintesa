@@ -7,7 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { 
   Clock, Award, Calendar, UserCircle2, MapPin, 
-  ArrowRight, Sparkles, GraduationCap 
+  ArrowRight, Sparkles, GraduationCap, Building2 
 } from 'lucide-react';
 import { Training } from '@/types';
 import { formatRupiah } from '@/utils/format';
@@ -80,26 +80,16 @@ export default function TrainingCard({ training }: TrainingCardProps) {
           <div className="public-card-scrim" />
         </Link>
 
-        {/* Badge Kategori (Top Left) */}
-        <div className="public-card-badge-top-left pointer-events-none">
-          <div className="bg-white/95 backdrop-blur-md text-amber-900 border border-amber-200/60 text-[10px] px-2.5 py-1 rounded-full font-black uppercase tracking-wider shadow-2xs">
-            {training.category || 'Pelatihan'}
-          </div>
-        </div>
-
-        {/* Badge Level & Status Penuh (Top Right) */}
-        <div className="public-card-badge-top-right pointer-events-none flex flex-col items-end gap-1.5">
-          <div className={`text-[10px] px-2.5 py-1 rounded-full font-bold shadow-2xs border backdrop-blur-md flex items-center gap-1 ${getLevelBadgeClass(training.level)}`}>
-            <Sparkles size={11} /> {training.level || 'Pemula'}
-          </div>
-          {isFull && (
-            <div className="bg-rose-500 text-white text-[10px] px-2.5 py-0.5 rounded-full font-bold shadow-2xs uppercase tracking-wider">
+        {/* Status Penuh (Hanya muncul jika kuota penuh, minimalis di pojok kanan) */}
+        {isFull && (
+          <div className="public-card-badge-top-right pointer-events-none">
+            <div className="bg-rose-500/95 backdrop-blur-md text-white text-[10px] px-2.5 py-0.5 rounded-full font-bold shadow-xs uppercase tracking-wider">
               Penuh
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Badges Durasi & Sertifikasi (Bottom Left) */}
+        {/* Badges Durasi & Sertifikasi (Bottom Left Scrim) */}
         <div className="public-card-badge-bottom-left pointer-events-none flex flex-wrap items-center gap-1.5 max-w-[90%]">
           {training.durationDisplay && (
             <span className="bg-slate-950/80 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 shadow-2xs">
@@ -118,7 +108,22 @@ export default function TrainingCard({ training }: TrainingCardProps) {
 
       {/* 2. Konten Text Mengikuti Standar Public Card Body */}
       <div className="public-card-body p-4 sm:p-5">
-        
+        {/* Header Kategori, Level & Diklat STP */}
+        <div className="flex items-center justify-between gap-2 mb-2.5">
+          <span className="inline-flex items-center text-[10px] font-extrabold uppercase tracking-wider text-amber-800 bg-amber-50 border border-amber-200/80 px-2.5 py-0.5 rounded-md shadow-2xs">
+            {training.category || 'Pelatihan'}
+          </span>
+          <div className="flex items-center gap-1.5">
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold shadow-2xs border flex items-center gap-1 ${getLevelBadgeClass(training.level)}`}>
+              <Sparkles size={10} /> {training.level || 'Semua Level'}
+            </span>
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-sky-800 bg-sky-50 border border-sky-200/70 px-2 py-0.5 rounded-full shadow-2xs">
+              <Building2 size={10} className="text-sky-600 shrink-0" />
+              <span>Diklat STP</span>
+            </span>
+          </div>
+        </div>
+
         {/* Judul Pelatihan */}
         <h3 className="public-card-title group-hover:text-amber-600 transition-colors line-clamp-2 leading-snug mb-2" title={training.title}>
           <Link href={`/program-pelatihan/${training.id}`} className="hover:text-amber-600 transition-colors">

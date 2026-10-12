@@ -313,12 +313,6 @@ export default function SmartHubLanding() {
                     )}
                     <div className="public-card-scrim" />
 
-                    <div className="public-card-badge-top-left">
-                      <span className="text-[10px] font-black bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-md text-slate-800 uppercase tracking-wider shadow-2xs">
-                        {t.type || 'Offline'}
-                      </span>
-                    </div>
-
                     <div className="public-card-badge-bottom-left">
                       <span className="text-[10px] font-bold bg-amber-500 text-white px-2 py-0.5 rounded shadow-xs">
                         Kuota: {t.registeredCount || 0}/{t.quota || '∞'}
@@ -328,7 +322,14 @@ export default function SmartHubLanding() {
 
                   {/* Body Konten */}
                   <div className="public-card-body p-5">
-                    <span className="text-[11px] font-bold text-amber-600 uppercase tracking-wider">{t.category || 'Vokasi'}</span>
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 bg-amber-50 border border-amber-200/80 px-2.5 py-0.5 rounded-md shadow-2xs">
+                        {t.category || 'Vokasi'}
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200/60 px-2 py-0.5 rounded-full shadow-2xs">
+                        {t.type || 'Offline'}
+                      </span>
+                    </div>
                     <h3 className="text-base font-black text-slate-900 group-hover:text-amber-600 transition-colors line-clamp-2 mt-1">
                       {t.title}
                     </h3>
