@@ -15,7 +15,26 @@ function loadStpUsers() {
   return [];
 }
 
-const STP_CREDENTIALS_LIST = loadStpUsers();
+// Helper sorting hierarki jabatan resmi BLUD Solo Technopark:
+// 1. Pemimpin BLUD
+// 2. Pejabat Teknis & Admin BLUD
+// 3. Kepala Divisi & Manager
+// 4. Staf / Instruktur / Operator / Pelaksana Teknis (diurutkan abjad nama)
+function getPositionTier(jabatan = "") {
+  const s = jabatan.toLowerCase();
+  if (s.includes('pemimpin blud')) return 1;
+  if (s.includes('pejabat teknis') || s.includes('admin blud')) return 2;
+  if (s.includes('kepala divisi') || s.includes('manager')) return 3;
+  return 4;
+}
+
+const RAW_CREDENTIALS = loadStpUsers();
+const STP_CREDENTIALS_LIST = [...RAW_CREDENTIALS].sort((a, b) => {
+  const tierA = getPositionTier(a.jabatan);
+  const tierB = getPositionTier(b.jabatan);
+  if (tierA !== tierB) return tierA - tierB;
+  return a.nama.localeCompare(b.nama, 'id');
+});
 
 async function generatePresensiGuidePdf() {
   console.log("Memulai perancangan ulang Dokumen Panduan Presensi Techno Sign PDF...");
@@ -251,7 +270,7 @@ async function generatePresensiGuidePdf() {
   doc.text("Metode Login Utama:", col1Left, col1Y);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...colors.slateDark);
-  doc.text("Kode Akses NIP  (Contoh: STP-50120)", col1Left, col1Y + 3.8);
+  doc.text("Kode Akses Pegawai  (Contoh: STP-50120)", col1Left, col1Y + 3.8);
 
   col1Y += 10;
   doc.setFont('helvetica', 'normal');
@@ -312,11 +331,11 @@ async function generatePresensiGuidePdf() {
   // Langkah 2
   currentY = drawStepCard(
     2,
-    "Otentikasi Akun Pegawai (Login Menggunakan Kode Akses NIP)",
+    "Otentikasi Akun Pegawai (Login Menggunakan Kode Akses Pegawai)",
     [
-      "• Buka aplikasi Techno Sign, lalu masukkan Kode Akses NIP Anda (Contoh: STP-50120 atau STP-53851).",
+      "• Buka aplikasi Techno Sign, lalu masukkan Kode Akses Pegawai Anda (Contoh: STP-50120 atau STP-53851).",
       "• Masukkan kata sandi awal: StpUser2026! kemudian klik tombol 'Masuk ke Presensi'.",
-      "• Jika lupa kode akses NIP, silakan periksa tabel direktori pegawai pada lembar lampiran dokumen ini.",
+      "• Jika lupa kode akses, silakan periksa tabel direktori pegawai pada lembar lampiran dokumen ini.",
       "• Demi menjaga keamanan privasi dan akun, segera perbarui kata sandi Anda di menu pengaturan profil.",
     ],
     currentY
@@ -521,20 +540,20 @@ async function generatePresensiGuidePdf() {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
   doc.setTextColor(...colors.slateDark);
-  doc.text("DIREKTORI KODE AKSES NIP PEGAWAI SOLO TECHNOPARK", margin, currentY + 3);
+  doc.text("DIREKTORI KODE AKSES PEGAWAI SOLO TECHNOPARK", margin, currentY + 3);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.8);
   doc.setTextColor(...colors.slateMuted);
   doc.text(
-    "Daftar 46 pegawai resmi terdaftar pada database presensi. Gunakan Kode Akses NIP untuk otentikasi login:",
+    "Daftar 46 pegawai resmi terdaftar pada sistem presensi. Gunakan Kode Akses Pegawai untuk otentikasi login:",
     margin,
     currentY + 7.5
   );
 
   currentY += 11;
 
-  // Siapkan Data Tabel (NO, KODE AKSES NIP, NAMA LENGKAP, UNIT KERJA / PENUGASAN)
+  // Siapkan Data Tabel (NO, KODE AKSES, NAMA LENGKAP, UNIT KERJA / PENUGASAN)
   // Kolom email dan kolom role telah dihilangkan sesuai instruksi pengguna.
   const tableData = STP_CREDENTIALS_LIST.map((u, idx) => [
     idx + 1,
@@ -546,7 +565,7 @@ async function generatePresensiGuidePdf() {
   autoTable(doc, {
     startY: currentY,
     margin: { top: 26, bottom: 16, left: margin, right: margin },
-    head: [["No", "Kode Akses (NIP)", "Nama Lengkap Pegawai", "Unit Kerja / Penugasan"]],
+    head: [["No", "Kode Akses", "Nama Lengkap Pegawai", "Unit Kerja / Penugasan"]],
     body: tableData,
     theme: 'grid',
     styles: {
@@ -601,7 +620,7 @@ async function generatePresensiGuidePdf() {
     doc.setFontSize(6.8);
     doc.setTextColor(...colors.slateBody);
     doc.text(
-      "1. Kode Akses NIP dan kata sandi bersifat rahasia kedinasan internal. Dilarang membagikan atau memindahtangankan akun kepada pihak lain.",
+      "1. Kode Akses Pegawai dan kata sandi bersifat rahasia kedinasan internal. Dilarang membagikan atau memindahtangankan akun kepada pihak lain.",
       margin + 5,
       noteY + 10
     );

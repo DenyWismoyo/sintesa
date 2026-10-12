@@ -59,7 +59,7 @@ export default function PresensiLoginPage() {
     setErrorMsg("");
     setSuccessMsg("");
     if (!nipOrEmail) {
-      setErrorMsg("Kode Akses, NIP, atau Email kedinasan wajib diisi.");
+      setErrorMsg("Kode Akses Pegawai atau Email kedinasan wajib diisi.");
       return;
     }
     if (!password) {
@@ -114,7 +114,7 @@ export default function PresensiLoginPage() {
     setSuccessMsg("");
 
     if (!syncCode.trim()) {
-      setErrorMsg("Kode Akses atau NIP pegawai wajib diisi.");
+      setErrorMsg("Kode Akses Pegawai wajib diisi.");
       return;
     }
     if (!syncPassword) {
@@ -248,14 +248,14 @@ export default function PresensiLoginPage() {
                 </div>
 
                 <div className="p-3 bg-amber-50/70 border border-amber-200/60 rounded-xl text-[11px] text-amber-800 leading-relaxed">
-                  Masukkan <strong>Kode Akses / NIP / Username</strong> dan <strong>Kata Sandi Presensi</strong> Anda satu kali saja untuk menyatukan akun Google ini menjadi <strong>1 akun yang sama</strong> (dapat dipakai untuk operasional Katalog dan Presensi).
+                  Masukkan <strong>Kode Akses Pegawai / Username</strong> dan <strong>Kata Sandi Presensi</strong> Anda satu kali saja untuk menyatukan akun Google ini menjadi <strong>1 akun yang sama</strong> (dapat dipakai untuk operasional Katalog dan Presensi).
                 </div>
 
                 {/* FORM VALIDASI SINKRONISASI */}
                 <form onSubmit={handleSyncSubmit} className="space-y-3.5">
                   <div className="space-y-1.5">
                     <Label htmlFor="syncCode" className="text-xs font-semibold text-slate-700">
-                      Kode Akses / NIP / Username Presensi
+                      Kode Akses Pegawai / Username Presensi
                     </Label>
                     <Input
                       id="syncCode"
@@ -359,16 +359,16 @@ export default function PresensiLoginPage() {
                   </div>
                 </div>
 
-                {/* FORM LOGIN MANUAL KREDENSIAL MOCK / NIP */}
+                {/* FORM LOGIN MANUAL KREDENSIAL MOCK / KODE AKSES PEGAWAI */}
                 <form onSubmit={handleManualLogin} className="space-y-3.5">
                   <div className="space-y-1.5">
                     <Label htmlFor="nip" className="text-xs font-semibold text-slate-700">
-                      Kode Akses / Email / NIP
+                      Kode Akses Pegawai / Email
                     </Label>
                     <Input
                       id="nip"
                       type="text"
-                      placeholder="Contoh: STP-22757 atau email pegawai"
+                      placeholder="Contoh: STP-22757 atau STP-50120"
                       value={nipOrEmail}
                       onChange={(e) => setNipOrEmail(e.target.value)}
                       className="bg-slate-50/70 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-emerald-600 focus:ring-emerald-500/10 text-sm h-11 rounded-xl"
