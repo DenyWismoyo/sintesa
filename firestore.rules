@@ -508,7 +508,7 @@ service cloud.firestore {
     }
 
     // 17. Pengajuan & Rekam Lembur
-    match /lemburRecords/{lemburId} {
+        match /lemburRecords/{lemburId} {
       allow read: if isAuth() && (
         resource.data.userId == request.auth.uid ||
         resource.data.atasanId == request.auth.uid ||
@@ -524,6 +524,27 @@ service cloud.firestore {
       );
       allow delete: if isAuth() && (
         (resource.data.userId == request.auth.uid && resource.data.status in ['draft', 'diajukan']) ||
+        isPresAdmin()
+      );
+    }
+
+    // 17b. Pengajuan Revisi Presensi
+    match /revisi_presensi/{revisiId} {
+      allow read: if isAuth() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.atasanId == request.auth.uid ||
+        isPresAtasanOrAdmin()
+      );
+      allow create: if isAuth() && (
+        request.resource.data.userId == request.auth.uid || isPresAdmin()
+      );
+      allow update: if isAuth() && (
+        (resource.data.userId == request.auth.uid && resource.data.status in ['menunggu', 'diajukan']) ||
+        resource.data.atasanId == request.auth.uid ||
+        isPresAdmin()
+      );
+      allow delete: if isAuth() && (
+        (resource.data.userId == request.auth.uid && resource.data.status in ['menunggu', 'diajukan']) ||
         isPresAdmin()
       );
     }

@@ -1,5 +1,5 @@
 // =============================================================================
-// FIRESTORE SECURITY RULES — DATABASE: presensi-pegawai
+// FIRESTORE SECURITY RULES ï¿½ DATABASE: presensi-pegawai
 // Berlaku HANYA untuk named database 'presensi-pegawai', bukan default database
 //
 // PENTING: Rules ini harus di-paste di:
@@ -120,13 +120,32 @@ service cloud.firestore {
       );
     }
 
-    // 7. Organisasi & Unit Kerja
+    // 7. Pengajuan Revisi Presensi
+    match /revisi_presensi/{revisiId} {
+      allow read: if isAuth() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.atasanId == request.auth.uid ||
+        isAtasanOrAdmin()
+      );
+      allow create: if isAuth() && (request.resource.data.userId == request.auth.uid || isPresAdmin());
+      allow update: if isAuth() && (
+        (resource.data.userId == request.auth.uid && resource.data.status in ['menunggu', 'diajukan']) ||
+        resource.data.atasanId == request.auth.uid ||
+        isPresAdmin()
+      );
+      allow delete: if isAuth() && (
+        (resource.data.userId == request.auth.uid && resource.data.status in ['menunggu', 'diajukan']) ||
+        isPresAdmin()
+      );
+    }
+
+    // 8. Organisasi & Unit Kerja
     match /organizations/{orgId} {
       allow read: if isAuth();
       allow write: if isPresAdmin();
     }
 
-    // 8. Audit Log (Immutable)
+    // 9. Audit Log (Immutable)
     match /auditLogs/{logId} {
       allow read: if isPresAdmin();
       allow create: if isAuth();
