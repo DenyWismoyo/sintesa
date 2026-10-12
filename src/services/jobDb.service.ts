@@ -16,6 +16,7 @@ import { JobListing, JobListingSchema } from '@/types/job.types';
 import { fetchJSearchJobs } from '@/services/jsearch.service';
 import { aggregateMultiProviderJobs } from '@/services/jobAggregator.service';
 import SYNCED_SNAPSHOT from '@/data/jobs/syncedJobs.json';
+import { getAppId } from '@/lib/appId';
 
 const JOBS_COLLECTION = 'jobs';
 const SYNC_METADATA_DOC = 'app_settings/jobs_sync';
@@ -104,19 +105,42 @@ export const jobDbService = {
   },
 
   /**
-   * Mengambil lowongan langsung dari database / persistent snapshot
+   * Mengambil lowongan langsung dari database:
+   * Prioritas 1: Master Cache dokumen artifacts/{appId}/public/data/cache_jobs doc 'master' (1 Read tunggal)
+   * Prioritas 2: Local persistent snapshot syncedJobs.json
+   * Prioritas 3: Query root collection 'jobs'
    */
   async getJobsFromFirestore(): Promise<JobListing[]> {
-    // 1. Cek local persistent snapshot
+    const appId = getAppId();
+
+    // 1. Coba baca dari Firestore Master Cache (1 Read untuk ratusan loker)
+    try {
+      const cacheRef = doc(db, `artifacts/${appId}/public/data/cache_jobs`, 'master');
+      const cachePromise = getDoc(cacheRef);
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Cache timeout')), 1200)
+      );
+      const cacheSnap = await Promise.race([cachePromise, timeoutPromise]);
+      if (cacheSnap.exists()) {
+        const cacheData = cacheSnap.data();
+        if (cacheData && Array.isArray(cacheData.data) && cacheData.data.length > 0) {
+          return cacheData.data as JobListing[];
+        }
+      }
+    } catch {
+      // Lanjut ke fallback
+    }
+
+    // 2. Cek local persistent snapshot
     const local = readLocalSnapshot();
     if (local?.jobs && local.jobs.length > 0) {
       return local.jobs;
     }
 
-    // 2. Coba baca dari Firestore dengan timeout pengaman (mencegah hang gRPC di server)
+    // 3. Fallback: Query langsung dari Firestore collection 'jobs'
     try {
       const fetchPromise = getDocs(
-        query(collection(db, JOBS_COLLECTION), orderBy('postedAt', 'desc'), limit(150))
+        query(collection(db, JOBS_COLLECTION), orderBy('postedAt', 'desc'), limit(250))
       );
       const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('Firestore read timeout')), 1500)
@@ -135,11 +159,33 @@ export const jobDbService = {
       if (jobs.length > 0) {
         return jobs;
       }
-    } catch (err) {
+    } catch {
       // Fallback
     }
 
     return [];
+  },
+
+  /**
+   * Rebuild Master Cache di artifacts/{appId}/public/data/cache_jobs/master
+   */
+  async rebuildMasterCache(appId: string = getAppId(), jobsToCache?: JobListing[]): Promise<boolean> {
+    try {
+      const jobs = jobsToCache || (await this.getJobsFromFirestore());
+      if (!jobs.length) return false;
+
+      const cacheRef = doc(db, `artifacts/${appId}/public/data/cache_jobs`, 'master');
+      await setDoc(cacheRef, {
+        lastUpdated: Date.now(),
+        count: jobs.length,
+        data: jobs,
+      }, { merge: true });
+      console.log(`[jobDbService] Master Cache berhasil diperbarui di artifacts/${appId} (${jobs.length} loker)`);
+      return true;
+    } catch (err) {
+      console.warn('[jobDbService] Gagal memperbarui Master Cache:', err);
+      return false;
+    }
   },
 
   /**
@@ -305,16 +351,30 @@ export const jobDbService = {
         }
       }
 
-      // 3. Pertahankan lowongan industri & mitra vokasi STP dari database lokal/Firestore
+      // 3. PENGGABUNGAN KUMULATIF MINGGUAN: Seluruh lowongan yang pernah tercatat sebelumnya TIDAK AKAN HILANG
       const existingJobs = await this.getJobsFromFirestore();
-      const existingIndustrialJobs = existingJobs.filter(
-        (j) => j.isStpPartner || j.id.startsWith('ind-') || j.source === 'stp_partner'
-      );
-
-      // Gabungkan & deduplikasi
       const combinedMap = new Map<string, JobListing>();
-      existingIndustrialJobs.forEach((j) => combinedMap.set(j.id, j));
-      realtimeJobs.forEach((j) => combinedMap.set(j.id, j));
+
+      // Masukkan SEMUA lowongan terdahulu ke Map bank data kumulatif
+      existingJobs.forEach((j) => {
+        combinedMap.set(j.id, {
+          ...j,
+          firstSeenAt: j.firstSeenAt || j.postedAt || now,
+          lastSeenAt: j.lastSeenAt || j.postedAt || now,
+          isActive: j.isActive !== false,
+        });
+      });
+
+      // Tambahkan dan mutakhirkan lowongan baru dari sinkronisasi minggu ini
+      realtimeJobs.forEach((newJob) => {
+        const prev = combinedMap.get(newJob.id);
+        combinedMap.set(newJob.id, {
+          ...newJob,
+          firstSeenAt: prev?.firstSeenAt || newJob.postedAt || now,
+          lastSeenAt: now,
+          isActive: true,
+        });
+      });
 
       const allJobsToSave: JobListing[] = Array.from(combinedMap.values());
 
@@ -345,13 +405,14 @@ export const jobDbService = {
         realtimeJobsCount: allJobsToSave.length - stpCount,
         stpJobsCount: stpCount,
         status: 'SUCCESS',
-        message: `Berhasil menyinkronkan ${allJobsToSave.length} lowongan (mencakup lowongan industri STP & agregasi open API). Update berikutnya dalam 7 hari.`,
+        message: `Berhasil mengakumulasi ${allJobsToSave.length} lowongan (bank data kumulatif terus bertambah). Update berikutnya dalam 7 hari.`,
         provider: providerName,
       };
 
-      // 5. Simpan snapshot lokal & simpan ke Firestore
+      // 5. Simpan snapshot lokal & simpan ke Firestore & Master Cache
       writeLocalSnapshot(allJobsToSave, updatedMetadata);
       await this.saveJobsToFirestore(allJobsToSave).catch(() => {});
+      await this.rebuildMasterCache(getAppId(), allJobsToSave).catch(() => {});
 
       // Simpan metadata ke Firestore jika online
       try {
@@ -364,7 +425,7 @@ export const jobDbService = {
         // Fallback snapshot tetap aman
       }
 
-      console.log(`[jobDbService] Sinkronisasi sukses! ${allJobsToSave.length} lowongan tersimpan.`);
+      console.log(`[jobDbService] Sinkronisasi kumulatif sukses! ${allJobsToSave.length} lowongan tersimpan di bank data.`);
 
       return {
         success: true,

@@ -124,6 +124,8 @@ export const weeklyJobSyncScheduler = onSchedule(
                 isStpPartner: false,
                 isFeatured: false,
                 postedAt: job.job_posted_at_timestamp ? job.job_posted_at_timestamp * 1000 : now,
+                firstSeenAt: job.job_posted_at_timestamp ? job.job_posted_at_timestamp * 1000 : now,
+                lastSeenAt: now,
                 deadlineAt: now + 30 * 24 * 60 * 60 * 1000,
                 isActive: true,
                 updatedAt: now,
@@ -155,6 +157,49 @@ export const weeklyJobSyncScheduler = onSchedule(
       },
       { merge: true }
     );
+
+    // Auto-rebuild Master Cache dokumen artifacts/blud-app-dev/public/data/cache_jobs/master
+    try {
+      const snapAll = await db.collection("jobs").orderBy("postedAt", "desc").limit(250).get();
+      const compressedJobs: any[] = [];
+      snapAll.forEach((docSnap) => {
+        const d = docSnap.data();
+        compressedJobs.push({
+          id: docSnap.id,
+          slug: d.slug || docSnap.id,
+          title: d.title || "",
+          company: d.company || "",
+          companyLogo: d.companyLogo || null,
+          category: d.category || "IT & Rekayasa Perangkat Lunak",
+          location: d.location || "Indonesia",
+          city: d.city || "",
+          workType: d.workType || "Full-time",
+          workSetup: d.workSetup || "On-site",
+          experienceLevel: d.experienceLevel || "Fresh Graduate / Alumni Pelatihan",
+          description: d.description ? d.description.substring(0, 1500) : "",
+          skills: Array.isArray(d.skills) ? d.skills : [],
+          relevantTrainingPrograms: Array.isArray(d.relevantTrainingPrograms) ? d.relevantTrainingPrograms : [],
+          applicationUrl: d.applicationUrl || null,
+          isStpPartner: Boolean(d.isStpPartner),
+          postedAt: d.postedAt || now,
+          firstSeenAt: d.firstSeenAt || now,
+          lastSeenAt: d.lastSeenAt || now,
+          isActive: d.isActive !== false,
+        });
+      });
+
+      await db.collection("artifacts/blud-app-dev/public/data/cache_jobs").doc("master").set({
+        lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+        count: compressedJobs.length,
+        lastSyncedAt: now,
+        nextSyncAt,
+        data: compressedJobs,
+      });
+
+      console.log(`[Weekly Job Sync] Master Cache berhasil diperbarui otomatis (${compressedJobs.length} lowongan).`);
+    } catch (cacheErr) {
+      console.warn("[Weekly Job Sync] Gagal memperbarui Master Cache otomatis:", cacheErr);
+    }
 
     console.log(`[Weekly Job Sync] Sukses! ${totalSaved} lowongan tersimpan di database.`);
   }

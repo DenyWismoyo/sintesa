@@ -3,16 +3,14 @@
 
 import React from 'react';
 import {
-  Filter,
   RotateCcw,
-  ShieldCheck,
   GraduationCap,
-  Briefcase,
   MapPin,
+  Calendar,
+  Layers,
   Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 
 interface JobFilterToolbarProps {
   workType: string;
@@ -27,6 +25,10 @@ interface JobFilterToolbarProps {
   setIsStpPartnerOnly: (val: boolean) => void;
   sourceFilter?: string;
   setSourceFilter?: (val: string) => void;
+  locationRegion: string;
+  setLocationRegion: (val: string) => void;
+  freshness: string;
+  setFreshness: (val: string) => void;
   sort: string;
   setSort: (val: string) => void;
   totalFound: number;
@@ -60,6 +62,10 @@ export default function JobFilterToolbar({
   setIsStpPartnerOnly,
   sourceFilter,
   setSourceFilter,
+  locationRegion,
+  setLocationRegion,
+  freshness,
+  setFreshness,
   sort,
   setSort,
   totalFound,
@@ -73,6 +79,8 @@ export default function JobFilterToolbar({
     Boolean(trainingProgram) ||
     isStpPartnerOnly ||
     (Boolean(sourceFilter) && sourceFilter !== 'all') ||
+    locationRegion !== 'all' ||
+    freshness !== 'all' ||
     sort !== 'newest';
 
   return (
@@ -108,8 +116,45 @@ export default function JobFilterToolbar({
         </div>
       </div>
 
-      {/* ─── Baris Bawah: Dropdown Filter & Sort ─── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-2.5">
+      {/* ─── Grid Filter Utama yang Lebih Mantap ─── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+        {/* Filter Wilayah / Regional */}
+        <div>
+          <label className="flex items-center gap-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+            <MapPin className="w-3 h-3 text-emerald-600" />
+            <span>Wilayah</span>
+          </label>
+          <select
+            value={locationRegion}
+            onChange={(e) => setLocationRegion(e.target.value)}
+            className="w-full h-8.5 px-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50/60 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+          >
+            <option value="all">Semua Wilayah</option>
+            <option value="solo_raya">Solo Raya & Sekitarnya</option>
+            <option value="jabodetabek">Jabodetabek & Banten</option>
+            <option value="jawa">Pulau Jawa</option>
+            <option value="luar_jawa">Luar Jawa (Nasional)</option>
+            <option value="luar_negeri">Global / Luar Negeri</option>
+          </select>
+        </div>
+
+        {/* Filter Freshness / Periode Kumulatif */}
+        <div>
+          <label className="flex items-center gap-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+            <Calendar className="w-3 h-3 text-emerald-600" />
+            <span>Periode Data</span>
+          </label>
+          <select
+            value={freshness}
+            onChange={(e) => setFreshness(e.target.value)}
+            className="w-full h-8.5 px-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50/60 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+          >
+            <option value="all">Semua Riwayat (Bank Data)</option>
+            <option value="week">Baru Minggu Ini</option>
+            <option value="month">30 Hari Terakhir</option>
+          </select>
+        </div>
+
         {/* Tipe Pekerjaan */}
         <div>
           <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
@@ -129,7 +174,7 @@ export default function JobFilterToolbar({
           </select>
         </div>
 
-        {/* Work Setup */}
+        {/* Penataan Kerja (Work Setup) */}
         <div>
           <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
             Penataan Kerja
@@ -139,7 +184,7 @@ export default function JobFilterToolbar({
             onChange={(e) => setWorkSetup(e.target.value)}
             className="w-full h-8.5 px-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50/60 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
           >
-            <option value="all">Semua Lokasi</option>
+            <option value="all">Semua Model</option>
             <option value="On-site (Solo Technopark)">On-site di STP</option>
             <option value="Hybrid">Hybrid</option>
             <option value="Remote / WFH">Remote / WFH</option>
@@ -165,62 +210,38 @@ export default function JobFilterToolbar({
           </select>
         </div>
 
-        {/* Sumber Lowongan (Portal Asal Internet) */}
-        <div>
-          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-            Sumber Portal
-          </label>
-          <select
-            value={sourceFilter || 'all'}
-            onChange={(e) => setSourceFilter?.(e.target.value)}
-            className="w-full h-8.5 px-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50/60 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-          >
-            <option value="all">Semua Portal Realtime</option>
-            <option value="Indeed">Indeed</option>
-            <option value="LinkedIn">LinkedIn</option>
-            <option value="ZipRecruiter">ZipRecruiter</option>
-          </select>
-        </div>
-
-        {/* Urutan Sort */}
-        <div>
+        {/* Urutan Sort & Reset Filter */}
+        <div className="space-y-1">
           <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
             Urutkan
           </label>
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-            className="w-full h-8.5 px-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50/60 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-          >
-            <option value="newest">Terbaru</option>
-            <option value="salary_high">Gaji Tertinggi</option>
-          </select>
-        </div>
-
-        {/* Reset Filter Button */}
-        <div className="col-span-2 sm:col-span-4 lg:col-span-1 flex items-end gap-2">
-          {hasActiveFilter ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onReset}
-              className="w-full h-8.5 px-2.5 text-xs font-semibold text-rose-600 border-rose-200 hover:bg-rose-50 rounded-xl gap-1.5"
-              title="Reset Semua Filter"
+          <div className="flex gap-1.5">
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              className="flex-1 h-8.5 px-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50/60 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset Filter</span>
-            </Button>
-          ) : (
-            <div className="w-full h-8.5 flex items-center justify-center text-[11px] text-slate-400 italic">
-              Live Realtime
-            </div>
-          )}
+              <option value="newest">Terbaru</option>
+              <option value="salary_high">Gaji Tertinggi</option>
+            </select>
+            {hasActiveFilter && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onReset}
+                className="h-8.5 px-2 text-xs font-semibold text-rose-600 border-rose-200 hover:bg-rose-50 rounded-xl"
+                title="Reset Semua Filter"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
       {/* ─── Status Info Baris ─── */}
-      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+      <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
         <div>
           {isLoading ? (
             <div className="flex items-center gap-2 text-emerald-700 font-medium">
@@ -228,18 +249,30 @@ export default function JobFilterToolbar({
               <span>Memuat lowongan pekerjaan aktif...</span>
             </div>
           ) : (
-            <div>
-              Menampilkan <span className="font-bold text-slate-900">{totalFound}</span> lowongan pekerjaan aktif
+            <div className="flex items-center gap-2">
+              <span>Menampilkan</span>
+              <span className="font-bold text-slate-900 bg-emerald-50 border border-emerald-200/60 text-emerald-800 px-2 py-0.5 rounded-md text-[11px]">
+                {totalFound} lowongan
+              </span>
+              <span className="text-slate-400 hidden sm:inline">• Arsip kumulatif tersimpan aman</span>
             </div>
           )}
         </div>
 
-        {trainingProgram && (
-          <div className="flex items-center gap-1.5 text-emerald-700 text-[11px] font-semibold">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Difilter untuk: {trainingProgram}</span>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {locationRegion !== 'all' && (
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+              <MapPin className="w-3 h-3 text-emerald-600" />
+              Wilayah terpilih
+            </span>
+          )}
+          {trainingProgram && (
+            <div className="flex items-center gap-1.5 text-emerald-700 text-[11px] font-semibold">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Diklat: {trainingProgram}</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

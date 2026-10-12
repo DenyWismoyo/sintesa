@@ -17,6 +17,7 @@ export * from './callables/alumniCache';
 export * from './callables/tenantCache'; 
 export * from './callables/catalogCache';
 export * from './callables/assetCache';
+export * from './callables/jobCache';
 
 export * from './triggers/tenantAuth';
 export * from './triggers/purchaseAutomation';

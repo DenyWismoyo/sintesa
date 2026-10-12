@@ -25,6 +25,8 @@ export const jobService = {
       if (filters.trainingProgram) params.set('trainingProgram', filters.trainingProgram);
       if (filters.isStpPartner !== undefined) params.set('isStpPartner', String(filters.isStpPartner));
       if (filters.source && filters.source !== 'all') params.set('source', filters.source);
+      if (filters.locationRegion && filters.locationRegion !== 'all') params.set('locationRegion', filters.locationRegion);
+      if (filters.freshness && filters.freshness !== 'all') params.set('freshness', filters.freshness);
       if (filters.sort) params.set('sort', filters.sort);
 
       try {
@@ -157,6 +159,69 @@ export function filterAndSortJobs(
       result = result.filter((job) => job.source === 'stp_partner' || job.isStpPartner);
     } else if (filters.source === 'jsearch_realtime') {
       result = result.filter((job) => job.source === 'jsearch_realtime');
+    }
+  }
+
+  // Filter Wilayah / Regional Geografis
+  if (filters.locationRegion && filters.locationRegion !== 'all') {
+    const soloKeywords = ['solo', 'surakarta', 'sukoharjo', 'karanganyar', 'sragen', 'boyolali', 'klaten', 'wonogiri', 'stp', 'technopark'];
+    const jaboKeywords = ['jakarta', 'bogor', 'depok', 'tangerang', 'bekasi', 'dki', 'jabodetabek', 'bsd', 'banten', 'cikarang'];
+    const jawaKeywords = [
+      ...soloKeywords,
+      ...jaboKeywords,
+      'bandung', 'semarang', 'surabaya', 'yogyakarta', 'jogja', 'malang', 'sidoarjo', 'cirebon', 'jawa', 'java', 'jateng', 'jatim', 'jabar', 'diy'
+    ];
+    const foreignKeywords = [
+      'singapore', 'singapura', 'malaysia', 'kuala lumpur', 'tokyo', 'japan', 'jepang',
+      'philippines', 'filipina', 'thailand', 'bangkok', 'vietnam', 'hanoi', 'worldwide',
+      'anywhere', 'global', 'remote worldwide', 'united states', 'australia', 'germany'
+    ];
+
+    result = result.filter((job) => {
+      const loc = (job.location + ' ' + (job.city || '')).toLowerCase();
+      const setup = job.workSetup;
+
+      if (filters.locationRegion === 'solo_raya') {
+        return soloKeywords.some((k) => loc.includes(k)) || setup === 'On-site (Solo Technopark)';
+      }
+      if (filters.locationRegion === 'jabodetabek') {
+        return jaboKeywords.some((k) => loc.includes(k));
+      }
+      if (filters.locationRegion === 'jawa') {
+        return jawaKeywords.some((k) => loc.includes(k));
+      }
+      if (filters.locationRegion === 'luar_negeri') {
+        return (
+          foreignKeywords.some((k) => loc.includes(k)) ||
+          (!loc.includes('indonesia') && !jawaKeywords.some((k) => loc.includes(k)) && foreignKeywords.some((k) => loc.includes(k)))
+        );
+      }
+      if (filters.locationRegion === 'luar_jawa') {
+        // Lokasi di Indonesia tapi bukan di pulau Jawa
+        const isForeign = foreignKeywords.some((k) => loc.includes(k));
+        const isJawa = jawaKeywords.some((k) => loc.includes(k));
+        return !isForeign && !isJawa;
+      }
+      return true;
+    });
+  }
+
+  // Filter Freshness / Periode Kemunculan Data Kumulatif
+  if (filters.freshness && filters.freshness !== 'all') {
+    const now = Date.now();
+    const oneDay = 86400000;
+    if (filters.freshness === 'week') {
+      const sevenDaysAgo = now - 7 * oneDay;
+      result = result.filter((job) => {
+        const time = job.lastSeenAt || job.firstSeenAt || job.postedAt;
+        return time >= sevenDaysAgo;
+      });
+    } else if (filters.freshness === 'month') {
+      const thirtyDaysAgo = now - 30 * oneDay;
+      result = result.filter((job) => {
+        const time = job.lastSeenAt || job.firstSeenAt || job.postedAt;
+        return time >= thirtyDaysAgo;
+      });
     }
   }
 

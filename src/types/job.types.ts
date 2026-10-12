@@ -90,6 +90,8 @@ export const JobListingSchema = z.object({
   isFeatured: z.boolean().default(false),
   postedAt: z.number(),
   deadlineAt: z.number().optional(),
+  firstSeenAt: z.number().optional(),
+  lastSeenAt: z.number().optional(),
   viewsCount: z.number().default(0),
   applicantCount: z.number().default(0),
   isActive: z.boolean().default(true),
@@ -106,6 +108,8 @@ export interface JobFilterParams {
   isStpPartner?: boolean;
   source?: 'all' | 'stp_partner' | 'jsearch_realtime';
   sort?: 'newest' | 'salary_high' | 'featured';
+  locationRegion?: 'all' | 'solo_raya' | 'jabodetabek' | 'jawa' | 'luar_jawa' | 'luar_negeri';
+  freshness?: 'all' | 'week' | 'month';
   page?: number;
   limit?: number;
 }

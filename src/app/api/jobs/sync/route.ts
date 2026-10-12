@@ -4,58 +4,26 @@ import { jobDbService } from '@/services/jobDb.service';
 
 export const dynamic = 'force-dynamic';
 
-/**
- * GET: Mengambil status dan jadwal sinkronisasi lowongan pekerjaan
- */
-export async function GET() {
-  try {
-    const metadata = await jobDbService.getSyncMetadata();
-    const now = Date.now();
-    const isDue = !metadata.lastSyncedAt || !metadata.nextSyncAt || now >= metadata.nextSyncAt;
-
-    return NextResponse.json({
-      success: true,
-      metadata,
-      isDue,
-      nextSyncHuman: metadata.nextSyncAt
-        ? new Date(metadata.nextSyncAt).toLocaleDateString('id-ID', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          })
-        : 'Belum dijadwalkan',
-      lastSyncHuman: metadata.lastSyncedAt
-        ? new Date(metadata.lastSyncedAt).toLocaleDateString('id-ID', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          })
-        : 'Belum pernah disinkronkan',
-    });
-  } catch (error: any) {
-    console.error('[API /api/jobs/sync GET] Error:', error);
-    return NextResponse.json(
-      { success: false, message: 'Gagal mengambil metadata sinkronisasi: ' + error.message },
-      { status: 500 }
-    );
-  }
-}
-
-/**
- * POST: Menjalankan sinkronisasi database mingguan dari RapidAPI ke Firestore
- * Mendukung parameter: ?force=true
- */
 export async function POST(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const force = searchParams.get('force') === 'true';
+    const authHeader = request.headers.get('authorization');
+    const secret = process.env.CRON_SECRET || process.env.NEXTAUTH_SECRET || 'blud-cron-secret';
 
+    // Simple security bearer token check
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      if (token !== secret && process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+          { success: false, message: 'Akses tidak diizinkan.' },
+          { status: 401 }
+        );
+      }
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const force = Boolean(body.force);
+
+    console.log(`[API /api/jobs/sync] Memicu sinkronisasi mingguan kumulatif (force: ${force})...`);
     const result = await jobDbService.syncWeeklyJobs({ force });
 
     return NextResponse.json({
@@ -65,9 +33,24 @@ export async function POST(request: NextRequest) {
       metadata: result.metadata,
     });
   } catch (error: any) {
-    console.error('[API /api/jobs/sync POST] Error:', error);
+    console.error('[API /api/jobs/sync] Error:', error);
     return NextResponse.json(
-      { success: false, message: 'Gagal memproses sinkronisasi lowongan: ' + error.message },
+      { success: false, message: 'Gagal menjalankan sinkronisasi: ' + error.message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const meta = await jobDbService.getSyncMetadata();
+    return NextResponse.json({
+      success: true,
+      metadata: meta,
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, message: 'Gagal mengambil metadata sinkronisasi: ' + error.message },
       { status: 500 }
     );
   }

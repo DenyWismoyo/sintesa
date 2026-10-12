@@ -33,6 +33,8 @@ export async function GET(request: NextRequest) {
     const isStpPartnerParam = searchParams.get('isStpPartner');
     const isStpPartner = isStpPartnerParam !== null ? isStpPartnerParam === 'true' : undefined;
     const sourceParam = (searchParams.get('source') as any) || 'all';
+    const locationRegion = (searchParams.get('locationRegion') as any) || 'all';
+    const freshness = (searchParams.get('freshness') as any) || 'all';
     const sort = (searchParams.get('sort') as any) || 'newest';
 
     // 1. Ambil data langsung dari Database (murni dari internet)
@@ -63,6 +65,8 @@ export async function GET(request: NextRequest) {
       trainingProgram,
       isStpPartner,
       source: sourceParam,
+      locationRegion,
+      freshness,
       sort,
     });
 
