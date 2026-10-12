@@ -17,19 +17,28 @@ function loadStpUsers() {
 
 // Helper sorting hierarki jabatan resmi BLUD Solo Technopark:
 // 1. Pemimpin BLUD
-// 2. Pejabat Teknis & Admin BLUD
-// 3. Kepala Divisi & Manager
-// 4. Staf / Instruktur / Operator / Pelaksana Teknis (diurutkan abjad nama)
+// 2. Pejabat Teknis
+// 3. Manager
+// 4. Kepala Divisi
+// 5. Staf / Instruktur / Operator / Pelaksana Teknis (diurutkan abjad nama)
 function getPositionTier(jabatan = "") {
   const s = jabatan.toLowerCase();
   if (s.includes('pemimpin blud')) return 1;
-  if (s.includes('pejabat teknis') || s.includes('admin blud')) return 2;
-  if (s.includes('kepala divisi') || s.includes('manager')) return 3;
-  return 4;
+  if (s.includes('pejabat teknis')) return 2;
+  if (s.includes('manager')) return 3;
+  if (s.includes('kepala divisi')) return 4;
+  return 5;
 }
 
 const RAW_CREDENTIALS = loadStpUsers();
-const STP_CREDENTIALS_LIST = [...RAW_CREDENTIALS].sort((a, b) => {
+// Hilangkan akun admin operasional/sistem dari daftar direktori pegawai
+const FILTERED_CREDENTIALS = RAW_CREDENTIALS.filter((u) => {
+  const n = (u.nama || "").toLowerCase();
+  const j = (u.jabatan || "").toLowerCase();
+  return !(n.includes('admin blud') || j.includes('admin blud'));
+});
+
+const STP_CREDENTIALS_LIST = [...FILTERED_CREDENTIALS].sort((a, b) => {
   const tierA = getPositionTier(a.jabatan);
   const tierB = getPositionTier(b.jabatan);
   if (tierA !== tierB) return tierA - tierB;
@@ -546,7 +555,7 @@ async function generatePresensiGuidePdf() {
   doc.setFontSize(7.8);
   doc.setTextColor(...colors.slateMuted);
   doc.text(
-    "Daftar 46 pegawai resmi terdaftar pada sistem presensi. Gunakan Kode Akses Pegawai untuk otentikasi login:",
+    `Daftar ${STP_CREDENTIALS_LIST.length} pegawai resmi terdaftar pada sistem presensi. Gunakan Kode Akses Pegawai untuk otentikasi login:`,
     margin,
     currentY + 7.5
   );
