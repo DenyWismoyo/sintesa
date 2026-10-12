@@ -137,7 +137,7 @@ export const weeklyJobSyncScheduler = onSchedule(
           await batch.commit();
         }
       } catch (err) {
-        console.error(`[Weekly Job Sync] Terjadi error pada query '${queryStr}':`, err);
+        console.error(`[Weekly Job Sync] Terjadi error pada query '${target.query}':`, err);
       }
     }
 

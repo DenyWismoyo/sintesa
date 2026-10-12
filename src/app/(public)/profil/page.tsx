@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { useRouter } from 'next/navigation';
-import { User, BookOpen, CreditCard, LogOut, ArrowLeft, Loader2, GraduationCap, Key, CheckCircle, Sparkles, ChevronRight, ArrowRight, Share2 } from 'lucide-react';
+import { User, BookOpen, CreditCard, LogOut, ArrowLeft, Loader2, GraduationCap, Key, CheckCircle, Sparkles, ChevronRight, ArrowRight, Share2, Clock } from 'lucide-react';
 import SectionContainer from '@/components/ui/SectionContainer';
 import TabDataDiri from './components/TabDataDiri';
 import TabRiwayat from './components/TabRiwayat';
@@ -88,7 +88,7 @@ export default function ProfilPage() {
 
   const menuItems = [
     { id: 'data-diri', label: 'Data Diri', icon: User, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { id: 'riwayat', label: 'Riwayat Pelatihan', icon: BookOpen, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { id: 'riwayat', label: 'Riwayat Aktivitas', icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
     { id: 'tagihan', label: 'Tagihan & Pembayaran', icon: CreditCard, color: 'text-indigo-600', bg: 'bg-indigo-50' },
     { id: 'afiliasi', label: 'Program Afiliasi', icon: Share2, color: 'text-violet-600', bg: 'bg-violet-50' },
   ];
@@ -223,7 +223,7 @@ export default function ProfilPage() {
               className="public-card p-6 sm:p-8 lg:p-10 h-full"
             >
               {activeTab === 'data-diri' && <TabDataDiri user={user} />}
-              {activeTab === 'riwayat' && <TabRiwayat userEmail={user.email!} />}
+              {activeTab === 'riwayat' && <TabRiwayat userEmail={user.email!} userName={user.displayName || ''} />}
               {activeTab === 'tagihan' && <TabTagihan userEmail={user.email!} />}
               {activeTab === 'alumni' && alumniData && <TabAlumni initialData={alumniData} />}
               {activeTab === 'afiliasi' && <TabAfiliasi user={user} />}

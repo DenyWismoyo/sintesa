@@ -179,7 +179,14 @@ export default function PortalDashboardPage() {
               </p>
             </div>
 
-            <div className="flex items-center gap-3 shrink-0">
+            <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+              <Link
+                href="/profil"
+                className="px-4 py-2.5 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-200/80 text-xs font-bold text-amber-900 flex items-center gap-2 transition-all shadow-2xs"
+              >
+                <Clock size={15} className="text-amber-600" />
+                <span>Riwayat Aktivitas</span>
+              </Link>
               <Link
                 href="/profil"
                 className="px-4 py-2.5 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-xs font-bold text-slate-700 flex items-center gap-2 transition-all shadow-2xs"
