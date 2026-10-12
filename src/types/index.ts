@@ -39,3 +39,6 @@ export * from './presensi';
 
 // 12. Career & Job Opportunities (Bursa Kerja Alumni STP)
 export * from './job.types';
+
+// 13. Strategic B2B Partnerships & Inquiries
+export * from './partnership.types';

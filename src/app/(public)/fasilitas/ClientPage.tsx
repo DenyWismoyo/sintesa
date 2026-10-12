@@ -22,6 +22,7 @@ import RoomCard from './components/RoomCard';
 import RoomDetailModal from './components/RoomDetailModal';
 import BookingWizardModal from './components/BookingWizardModal';
 import FacilityCalendar from './components/FacilityCalendar';
+import B2BPackageCalculator from './components/B2BPackageCalculator';
 import { getActiveRefCode } from '@/components/common/AffiliateTracker';
 
 const staggerContainer: Variants = {
@@ -59,7 +60,7 @@ export default function FasilitasPublicPage() {
 
   const { submitBooking } = useBooking('public');
   
-  const [activeTab, setActiveTab] = useState<'daftar' | 'kalender'>('daftar');
+  const [activeTab, setActiveTab] = useState<'daftar' | 'paket_b2b' | 'kalender'>('daftar');
   const [approvedBookings, setApprovedBookings] = useState<Booking[]>([]);
   const [loadingCalendar, setLoadingCalendar] = useState(false);
 
@@ -106,6 +107,27 @@ export default function FasilitasPublicPage() {
     }
   };
 
+  const handleB2BBooking = async (formData: any) => {
+    setIsSubmitting(true);
+    const refCode = getActiveRefCode();
+    const payload = {
+      ...formData,
+      referralCode: refCode || undefined,
+    };
+    const res = await submitBooking(payload);
+    setIsSubmitting(false);
+
+    if (res.success) {
+      toast.success("Pengajuan Paket B2B Terkirim!", {
+        description: "PIC Partnership Desk Solo Technopark akan segera menghubungi Anda untuk koordinasi survey lokasi & draf penawaran resmi.",
+      });
+    } else {
+      toast.error("Gagal Mengajukan Paket B2B", {
+        description: res.error || "Jadwal atau ruangan mungkin sedang terisi.",
+      });
+    }
+  };
+
   return (
     <SectionContainer accent="sky">
       {/* Header Reusable PageHero */}
@@ -121,16 +143,16 @@ export default function FasilitasPublicPage() {
         isLoadingSearch={loadingAssets}
       />
 
-      {/* Pill Tabs + Sortir Dropdown */}
       {/* Pill Tabs + Sortir Dropdown Minimalis */}
       <div className="flex flex-row items-center justify-between gap-2.5 mb-3 sm:mb-6 relative z-10 overflow-x-auto no-scrollbar py-0.5">
         <PillTabs
           tabs={[
             { key: 'daftar', label: 'Katalog Ruangan', icon: <DoorOpen size={14} /> },
+            { key: 'paket_b2b', label: 'Simulasi Paket B2B & Acara', icon: <Building2 size={14} /> },
             { key: 'kalender', label: 'Cek Kalender Master', icon: <CalendarIcon size={14} /> },
           ]}
           active={activeTab}
-          onChange={(val) => setActiveTab(val as 'daftar' | 'kalender')}
+          onChange={(val) => setActiveTab(val as 'daftar' | 'paket_b2b' | 'kalender')}
           layoutId="fasilitas-pill-tab"
         />
 
@@ -186,6 +208,22 @@ export default function FasilitasPublicPage() {
                   ))}
                 </motion.div>
               )}
+            </motion.div>
+          )}
+
+          {activeTab === 'paket_b2b' && (
+            <motion.div
+              key="paket_b2b"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
+            >
+              <B2BPackageCalculator
+                rooms={rooms}
+                onSubmitBooking={handleB2BBooking}
+                isSubmitting={isSubmitting}
+              />
             </motion.div>
           )}
 

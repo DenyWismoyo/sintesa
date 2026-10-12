@@ -5,13 +5,14 @@ import React, { useState } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { getAppId } from '@/lib/appId';
 import { useBooking } from '@/hooks/useBooking'; 
-import { ListTodo, Calendar as CalendarIcon, DoorOpen, Loader2 } from 'lucide-react';
+import { ListTodo, Calendar as CalendarIcon, DoorOpen, Loader2, Handshake } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin';
 
 // Import Tab Components
 import TabOverviewBooking from './components/TabOverviewBooking';
 import TabKalenderMaster from './components/TabKalenderMaster';
 import TabManajemenRuangan from './components/TabManajemenRuangan';
+import TabKemitraanB2B from './components/TabKemitraanB2B';
 
 export default function AdminBookingPage() {
   const { user } = useAuth();
@@ -19,7 +20,7 @@ export default function AdminBookingPage() {
 
   const { bookings, loading } = useBooking('admin');
   
-  const [activeTab, setActiveTab] = useState<'Antrean' | 'Kalender' | 'Ruangan'>('Antrean');
+  const [activeTab, setActiveTab] = useState<'Antrean' | 'Kalender' | 'Ruangan' | 'Kemitraan'>('Antrean');
 
   const pendingCount = bookings.filter(b => b.status === 'pending').length;
 
@@ -57,6 +58,12 @@ export default function AdminBookingPage() {
           >
             <DoorOpen size={16}/> Manajemen Ruangan
           </button>
+          <button 
+            onClick={() => setActiveTab('Kemitraan')} 
+            className={`flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${activeTab === 'Kemitraan' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+          >
+            <Handshake size={16}/> Kemitraan B2B & RFP
+          </button>
         </div>
       </AdminPageHeader>
 
@@ -64,6 +71,7 @@ export default function AdminBookingPage() {
       {activeTab === 'Antrean' && <TabOverviewBooking bookings={bookings} appId={appId} />}
       {activeTab === 'Kalender' && <TabKalenderMaster bookings={bookings} />}
       {activeTab === 'Ruangan' && <TabManajemenRuangan />}
+      {activeTab === 'Kemitraan' && <TabKemitraanB2B />}
 
     </div>
   );

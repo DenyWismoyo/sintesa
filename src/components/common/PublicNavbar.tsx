@@ -26,6 +26,8 @@ import {
   Search,
   Briefcase,
   ChevronDown,
+  Handshake,
+  MapPin,
 } from 'lucide-react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { useAuth } from '@/lib/AuthContext';
@@ -69,6 +71,12 @@ export const PUBLIC_NAV_GROUPS: NavGroup[] = [
         description: 'Sewa coworking space, lab riset & ruang acara',
         icon: Building2,
       },
+      {
+        name: 'Peta Kawasan Interaktif',
+        path: '/peta-kawasan',
+        description: 'Denah & navigasi virtual gedung kawasan STP',
+        icon: MapPin,
+      },
     ],
   },
   {
@@ -99,8 +107,15 @@ export const PUBLIC_NAV_GROUPS: NavGroup[] = [
   },
   {
     id: 'ekosistem',
-    label: 'Ekosistem',
+    label: 'Ekosistem & Kemitraan',
     items: [
+      {
+        name: 'Kemitraan Industri & B2B',
+        path: '/kemitraan',
+        description: 'Sinergi B2B/B2G, venue MICE & kolaborasi riset',
+        icon: Handshake,
+        badge: 'B2B Hub',
+      },
       {
         name: 'Jejaring Ekosistem',
         path: '/ekosistem',

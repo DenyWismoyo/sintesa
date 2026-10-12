@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { formatRupiah } from '@/utils/format';
 
 import ModalFormInvoice from '../../billing/component/ModalFormInvoice';
 
@@ -105,6 +106,12 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
         unitPrice = 0;
         dText = `${diffDays > 1 ? diffDays + ' Hari' : diffHours + ' Jam'} (Gratis - Terdeteksi Kegiatan Internal)`;
       } 
+      else if (selectedBooking.bookingType === 'B2B_PACKAGE' && selectedBooking.estimatedBudget) {
+        calcPrice = selectedBooking.estimatedBudget;
+        unitPrice = selectedBooking.estimatedBudget;
+        qty = 1;
+        dText = `Paket Acara B2B (${selectedBooking.eventType || 'Multi-Ruangan'}) • ${diffDays} Hari • Estimasi Resmi`;
+      }
       else if (assetMatch && assetMatch.isRentable && assetMatch.priceValue) {
         const type = (assetMatch.pricingType || '').toLowerCase();
         unitPrice = assetMatch.priceValue;
@@ -201,7 +208,9 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
             id: Date.now().toString(),
             referenceId: selectedBooking.id, 
             referenceType: 'BOOKING', 
-            description: `Sewa Ruang/Fasilitas: ${selectedBooking.assetName} (${selectedBooking.startDate})`,
+            description: selectedBooking.bookingType === 'B2B_PACKAGE'
+              ? `Paket Acara B2B [${selectedBooking.eventType || 'Institusi'}]: ${selectedBooking.assetName} (${selectedBooking.startDate} - ${selectedBooking.endDate || selectedBooking.startDate})`
+              : `Sewa Ruang/Fasilitas: ${selectedBooking.assetName} (${selectedBooking.startDate})`,
             quantity: 1, 
             unitPrice: billingAmount,
             total: billingAmount
@@ -209,7 +218,7 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
           subTotal: billingAmount, taxAmount: 0, discountAmount: 0, totalAmount: billingAmount, paidAmount: 0, remainingAmount: billingAmount,
           term: 'FULL_PAYMENT', date: today, dueDate: selectedBooking.startDate, status: 'PENDING',
           issuerName: 'Sistem', issuerRole: 'Admin', issuerNIP: '', history: [],
-          notes: `Keperluan: ${selectedBooking.purpose}`,
+          notes: `Instansi: ${selectedBooking.agency || '-'} | PIC: ${selectedBooking.userName} (${selectedBooking.userPhone}) | Agenda: ${selectedBooking.purpose}`,
           referralCode: selectedBooking.referralCode || undefined
         };
 
@@ -440,11 +449,31 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
                         <div className="font-bold text-slate-800 text-sm">{booking.userName}</div>
                         <div className="text-xs text-slate-500 mt-0.5">{booking.agency || 'Individu'}</div>
                         <div className="text-[10px] text-slate-400 mt-0.5">{booking.userEmail}</div>
+                        {booking.bookingType === 'B2B_PACKAGE' && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200 mt-1">
+                            💼 Paket Event B2B
+                          </span>
+                        )}
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="font-bold text-blue-700 text-sm flex items-center gap-1.5 mb-1">
                           <MapPin size={13}/> {booking.assetName}
                         </div>
+                        {booking.packageRooms && booking.packageRooms.length > 0 && (
+                          <div className="text-[11px] text-indigo-950 font-semibold mb-1">
+                            📦 Rincian: {booking.packageRooms.map((pr: any) => pr.name).join(' + ')}
+                          </div>
+                        )}
+                        {booking.estimatedBudget ? (
+                          <div className="text-[11px] text-emerald-700 font-bold mb-1">
+                            💰 Estimasi Anggaran: {formatRupiah(booking.estimatedBudget)}
+                          </div>
+                        ) : null}
+                        {booking.isSurveyRequested && (
+                          <div className="text-[10px] text-amber-800 font-semibold mb-1 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 w-fit">
+                            🔍 Minta Survey Lokasi: {booking.preferredSurveyDate || 'Diusulkan'}
+                          </div>
+                        )}
                         {(() => {
                           const r = allRooms.find(item => item.id === booking.assetId || item.name.toLowerCase() === booking.assetName.toLowerCase());
                           if (!r || (!r.capacity && !r.layout)) return null;
@@ -495,10 +524,15 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
                       <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
                         {booking.agency || 'Individu'}
                       </span>
+                      {booking.bookingType === 'B2B_PACKAGE' && (
+                        <span className="ml-1.5 inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">
+                          💼 Paket B2B
+                        </span>
+                      )}
                       <h4 className="font-bold text-slate-800 text-sm mt-1">{booking.userName}</h4>
                       <p className="text-[11px] text-slate-400">{booking.userEmail}</p>
                     </div>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
                       Menunggu
                     </span>
                   </div>
@@ -508,6 +542,21 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
                       <MapPin size={13} className="shrink-0 text-blue-600" />
                       <span className="truncate">{booking.assetName}</span>
                     </div>
+                    {booking.packageRooms && booking.packageRooms.length > 0 && (
+                      <div className="text-[11px] text-indigo-950 font-semibold">
+                        📦 Rincian: {booking.packageRooms.map((pr: any) => pr.name).join(' + ')}
+                      </div>
+                    )}
+                    {booking.estimatedBudget ? (
+                      <div className="text-[11px] text-emerald-700 font-bold">
+                        💰 Estimasi Anggaran: {formatRupiah(booking.estimatedBudget)}
+                      </div>
+                    ) : null}
+                    {booking.isSurveyRequested && (
+                      <div className="text-[10px] text-amber-800 font-semibold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 w-fit">
+                        🔍 Minta Survey Lokasi: {booking.preferredSurveyDate || 'Diusulkan'}
+                      </div>
+                    )}
                     {(() => {
                       const r = allRooms.find(item => item.id === booking.assetId || item.name.toLowerCase() === booking.assetName.toLowerCase());
                       if (!r || (!r.capacity && !r.layout)) return null;
@@ -724,6 +773,9 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
                   {selectedBooking.agency && (
                     <div className="flex justify-between items-center"><span className="text-slate-500">Instansi:</span><span className="font-semibold text-slate-700">{selectedBooking.agency}</span></div>
                   )}
+                  {selectedBooking.picPosition && (
+                    <div className="flex justify-between items-center"><span className="text-slate-500">Jabatan PIC:</span><span className="font-semibold text-slate-700">{selectedBooking.picPosition}</span></div>
+                  )}
                   {selectedBooking.purpose && (
                     <div className="pt-2 border-t border-slate-200/60">
                       <span className="text-[11px] text-slate-400 font-medium block">Agenda / Keperluan:</span>
@@ -731,6 +783,51 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
                     </div>
                   )}
                 </div>
+
+                {/* DETAIL PAKET ACARA B2B JIKA TERSEDIA */}
+                {selectedBooking.bookingType === 'B2B_PACKAGE' && (
+                  <div className="p-4 bg-indigo-50/70 rounded-2xl border border-indigo-200 space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="font-extrabold text-indigo-950 flex items-center gap-1.5">
+                        💼 Rincian Paket Acara B2B
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-800">
+                        {selectedBooking.eventType || 'Event Institusi'}
+                      </span>
+                    </div>
+                    {selectedBooking.packageRooms && selectedBooking.packageRooms.length > 0 && (
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase block">Ruangan Termasuk:</span>
+                        <div className="space-y-1">
+                          {selectedBooking.packageRooms.map((pr: any, i: number) => (
+                            <div key={i} className="flex justify-between text-slate-700 text-[11px]">
+                              <span>• {pr.name}</span>
+                              <span className="font-semibold">{formatRupiah(pr.priceValue || 0)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {selectedBooking.packageAddons && selectedBooking.packageAddons.length > 0 && (
+                      <div className="pt-1 border-t border-indigo-200/60 space-y-1">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase block">Add-ons Teknis:</span>
+                        <div className="space-y-1">
+                          {selectedBooking.packageAddons.map((pa: any, i: number) => (
+                            <div key={i} className="flex justify-between text-slate-700 text-[11px]">
+                              <span>• {pa.name}</span>
+                              <span className="font-semibold">{formatRupiah(pa.price || 0)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {selectedBooking.isSurveyRequested && (
+                      <div className="text-[11px] text-amber-900 font-bold bg-amber-50 p-2.5 rounded-xl border border-amber-200 mt-1">
+                        🔍 Calon mitra meminta jadwal survey fisik lokasi pada: {selectedBooking.preferredSurveyDate || 'Segera (Hubungi PIC)'}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* KARTU SPESIFIKASI RUANGAN */}
                 {matchedRoom && (
