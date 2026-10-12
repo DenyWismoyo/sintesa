@@ -15,7 +15,8 @@ describe('PWA Manifest & Icon Separation Suite', () => {
     expect(m.start_url).toBe('/');
     expect(m.scope).toBe('/');
     expect(m.display).toBe('standalone');
-    expect(m.theme_color).toBe('#0f172a');
+    expect(m.theme_color).toBe('#ffffff');
+    expect(m.background_color).toBe('#ffffff');
 
     // Memastikan icons katalog terdaftar
     const iconSrcs = m.icons?.map(i => i.src) || [];

@@ -9,8 +9,8 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: '/',
     scope: '/',
     display: 'standalone', // Tampil full-screen seperti aplikasi native
-    background_color: '#0f172a',
-    theme_color: '#0f172a',
+    background_color: '#ffffff',
+    theme_color: '#ffffff',
     orientation: 'portrait-primary',
     icons: [
       {

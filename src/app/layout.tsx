@@ -12,7 +12,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 // --- KONFIGURASI VIEWPORT (Khusus Next.js 14+) ---
 export const viewport: Viewport = {
-  themeColor: "#0f172a", // Warna header aplikasi (Slate 900)
+  themeColor: "#ffffff", // Warna header aplikasi (Clean White)
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
