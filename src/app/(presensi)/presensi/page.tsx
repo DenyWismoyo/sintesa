@@ -121,6 +121,20 @@ export default function DashboardPage() {
                 <span className="sm:hidden">Logbook</span>
               </Button>
             </Link>
+            <a
+              href="/docs/panduan-presensi-techno-sign.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden md:inline-flex"
+            >
+              <Button
+                variant="outline"
+                className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs h-10 px-4 rounded-xl"
+              >
+                <FileText className="w-4 h-4 mr-1.5" />
+                <span>Panduan PDF</span>
+              </Button>
+            </a>
           </div>
         </div>
       </motion.div>

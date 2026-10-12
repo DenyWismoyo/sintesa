@@ -76,4 +76,12 @@ describe("Audit Komprehensif Arsitektur Multi-Database Presensi", () => {
     // Cookie presensi tidak menimpa cookie katalog (__session)
     expect(PRESENSI_COOKIE_NAME).toBe("techno_sign_session");
   });
+
+  it("6. Dokumen Panduan Presensi & Direktori Akun PDF Tersedia Secara Publik", () => {
+    const pdfPath = path.join(rootDir, "public/docs/panduan-presensi-techno-sign.pdf");
+    expect(fs.existsSync(pdfPath)).toBe(true);
+
+    const stat = fs.statSync(pdfPath);
+    expect(stat.size).toBeGreaterThan(100000); // Minimal 100 KB
+  });
 });
