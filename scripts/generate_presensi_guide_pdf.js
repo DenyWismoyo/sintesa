@@ -534,20 +534,19 @@ async function generatePresensiGuidePdf() {
 
   currentY += 11;
 
-  // Siapkan Data Tabel (HANYA NO, KODE AKSES NIP, NAMA LENGKAP, UNIT KERJA / PENUGASAN, ROLE AKSES)
-  // Kolom email kedinasan dihilangkan sepenuhnya sesuai instruksi pengguna.
+  // Siapkan Data Tabel (NO, KODE AKSES NIP, NAMA LENGKAP, UNIT KERJA / PENUGASAN)
+  // Kolom email dan kolom role telah dihilangkan sesuai instruksi pengguna.
   const tableData = STP_CREDENTIALS_LIST.map((u, idx) => [
     idx + 1,
     u.accessCode,
     u.nama,
     u.jabatan || u.departmentName || "-",
-    u.role.toUpperCase(),
   ]);
 
   autoTable(doc, {
     startY: currentY,
     margin: { top: 26, bottom: 16, left: margin, right: margin },
-    head: [["No", "Kode Akses (NIP)", "Nama Lengkap Pegawai", "Unit Kerja / Penugasan", "Role"]],
+    head: [["No", "Kode Akses (NIP)", "Nama Lengkap Pegawai", "Unit Kerja / Penugasan"]],
     body: tableData,
     theme: 'grid',
     styles: {
@@ -571,11 +570,10 @@ async function generatePresensiGuidePdf() {
       fillColor: [248, 250, 252], // Slate 50
     },
     columnStyles: {
-      0: { halign: 'center', cellWidth: 9 },
-      1: { halign: 'center', fontStyle: 'bold', textColor: colors.primary, cellWidth: 32 },
-      2: { fontStyle: 'bold', textColor: colors.slateDark, cellWidth: 62 },
-      3: { cellWidth: 57 },
-      4: { halign: 'center', fontStyle: 'bold', cellWidth: 22 },
+      0: { halign: 'center', cellWidth: 10 },
+      1: { halign: 'center', fontStyle: 'bold', textColor: colors.primary, cellWidth: 38 },
+      2: { fontStyle: 'bold', textColor: colors.slateDark, cellWidth: 68 },
+      3: { cellWidth: 66 },
     },
     didDrawPage: (data) => {
       // Jika melompat ke halaman berikutnya dari tabel (halaman ke-4 dokumen), gambar running header
@@ -585,64 +583,34 @@ async function generatePresensiGuidePdf() {
     },
   });
 
-  // ============================================================================
-  // PENGESAHAN DOKUMEN RESMI PADA HALAMAN AKHIR (DI BAWAH TABEL)
-  // ============================================================================
+  // Catatan Kerahasiaan Kredensial Pegawai di Bawah Tabel (Tanpa Penandatanganan)
   const lastTableY = doc.lastAutoTable.finalY;
-  const signY = Math.min(lastTableY + 8, pageHeight - 55);
+  if (lastTableY + 22 < pageHeight - 12) {
+    const noteY = lastTableY + 6;
+    doc.setFillColor(...colors.cardBg);
+    doc.setDrawColor(...colors.borderLight);
+    doc.setLineWidth(0.2);
+    doc.roundedRect(margin, noteY, contentWidth, 20, 2, 2, 'FD');
 
-  // Catatan Kerahasiaan di Kiri
-  const noteW = 95;
-  doc.setFillColor(...colors.cardBg);
-  doc.setDrawColor(...colors.borderLight);
-  doc.setLineWidth(0.2);
-  doc.roundedRect(margin, signY, noteW, 36, 2, 2, 'FD');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(...colors.slateDark);
+    doc.text("KETENTUAN KERAHASIAAN KREDENSIAL PEGAWAI:", margin + 5, noteY + 5);
 
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.5);
-  doc.setTextColor(...colors.slateDark);
-  doc.text("KETENTUAN KERAHASIAAN KREDENSIAL:", margin + 4, signY + 5);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(6.8);
-  doc.setTextColor(...colors.slateBody);
-  const noteText = [
-    "1. Kode Akses NIP dan kata sandi bersifat rahasia kedinasan internal.",
-    "2. Pegawai dilarang membagikan atau memindahtangankan akun kepada siapapun.",
-    "3. Seluruh aktivitas presensi dan pelaporan kinerja dipantau oleh sistem audit forensik.",
-    "4. Penggantian kata sandi berkala wajib dilakukan melalui menu pengaturan profil.",
-  ];
-  let noteTextY = signY + 10;
-  noteText.forEach((nt) => {
-    doc.text(nt, margin + 4, noteTextY);
-    noteTextY += 5;
-  });
-
-  // Pengesahan Pemimpin BLUD di Kanan
-  const signLeft = margin + noteW + 12;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7.2);
-  doc.setTextColor(...colors.slateBody);
-  doc.text("Surakarta, 12 Oktober 2026", signLeft + 15, signY + 5);
-  doc.setFont('helvetica', 'bold');
-  doc.text("Pemimpin BLUD Solo Technopark", signLeft + 10, signY + 9.5);
-
-  // Ruang Tanda Tangan / Stempel
-  doc.setFont('helvetica', 'italic');
-  doc.setFontSize(6.5);
-  doc.setTextColor(...colors.slateMuted);
-  doc.text("[ Ditandatangani Secara Elektronik ]", signLeft + 10, signY + 22);
-
-  // Nama Pejabat
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.8);
-  doc.setTextColor(...colors.slateDark);
-  doc.text("YUDIT CAHYANTORO NYOTO SAPUTRO, S.T., M.T.", signLeft, signY + 29);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(...colors.slateMuted);
-  doc.text("NIP. STP-22757  •  Pemimpin BLUD", signLeft + 14, signY + 33);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.8);
+    doc.setTextColor(...colors.slateBody);
+    doc.text(
+      "1. Kode Akses NIP dan kata sandi bersifat rahasia kedinasan internal. Dilarang membagikan atau memindahtangankan akun kepada pihak lain.",
+      margin + 5,
+      noteY + 10
+    );
+    doc.text(
+      "2. Seluruh transaksi kehadiran dipantau audit log server. Segera lakukan penggantian kata sandi berkala di menu profil aplikasi presensi.",
+      margin + 5,
+      noteY + 15
+    );
+  }
 
   // ============================================================================
   // FOOTER & NOMOR HALAMAN DI SELURUH LEMBAR
