@@ -268,11 +268,29 @@ export default function ApprovalPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Contextual Mobile Back Header */}
       <MobilePageHeader
         title="Persetujuan Kinerja Tim"
-        subtitle="Verifikasi akuntabilitas LKH, lembur, dan izin/cuti bawahan"
+        subtitle="Verifikasi LKH, lembur, dan izin/cuti bawahan"
+        backHref="/presensi"
+        rightElement={
+          activeTab === "lkh" && validForBatchApprove.length > 0 ? (
+            <Button
+              onClick={handleBatchApprove}
+              disabled={isBatchApproving || approveMutation.isPending}
+              size="sm"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] h-8 px-2.5 font-bold shadow-xs rounded-xl flex items-center gap-1 active:scale-95 transition-all"
+            >
+              {isBatchApproving ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <CheckCircle2 className="w-3 h-3" />
+              )}
+              <span>Setujui ({validForBatchApprove.length})</span>
+            </Button>
+          ) : undefined
+        }
       />
 
       {/* Header Halaman (Desktop) */}

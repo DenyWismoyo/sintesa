@@ -19,6 +19,7 @@ interface CameraCaptureProps {
   allowRetake?: boolean;
   requireFace?: boolean;
   onError?: (message: string) => void;
+  onReady?: () => void;
   capturedUrl?: string | null; // Foto yang sudah diambil sebelumnya
   nip?: string;
   nama?: string;
@@ -49,6 +50,7 @@ export default function CameraCapture({
   allowRetake = true,
   requireFace = true,
   onError,
+  onReady,
   capturedUrl,
   nip,
   nama,
@@ -60,6 +62,12 @@ export default function CameraCapture({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
+
+  // Simpan callback terbaru dalam ref agar startCamera stabil dan tidak trigger re-mount terus-menerus
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
+  const onReadyRef = useRef(onReady);
+  onReadyRef.current = onReady;
 
   const [cameraState, setCameraState] = useState<CameraState>(
     capturedUrl ? "captured" : "requesting"
@@ -78,58 +86,106 @@ export default function CameraCapture({
   }, []);
 
   const startCamera = useCallback(async () => {
+    // 1. Matikan track lama terlebih dahulu untuk mencegah resource lock di webcam OS
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+
     setCameraState("requesting");
     setErrorMessage("");
 
-    try {
-      // Prioritaskan kamera depan (selfie) untuk presensi
-      const stream = await navigator.mediaDevices.getUserMedia({
+    if (typeof window === "undefined" || !navigator?.mediaDevices?.getUserMedia) {
+      const msg = "Browser ini tidak mendukung akses kamera langsung.";
+      setErrorMessage(msg);
+      setCameraState("error");
+      onErrorRef.current?.(msg);
+      return;
+    }
+
+    // Daftar constraint bertingkat (front camera ideal -> front camera basic -> sembarang kamera/webcam)
+    const constraintList: MediaStreamConstraints[] = [
+      {
         video: {
           facingMode: "user",
           width: { ideal: 1280 },
           height: { ideal: 720 },
         },
         audio: false,
-      });
+      },
+      {
+        video: { facingMode: "user" },
+        audio: false,
+      },
+      {
+        video: true,
+        audio: false,
+      },
+    ];
 
-      streamRef.current = stream;
+    let activeStream: MediaStream | null = null;
+    let lastError: Error | null = null;
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-        setCameraState("streaming");
+    for (const constraints of constraintList) {
+      try {
+        activeStream = await navigator.mediaDevices.getUserMedia(constraints);
+        if (activeStream) break;
+      } catch (err) {
+        lastError = err as Error;
+        // Jika izin ditolak permanen, jangan buang waktu mencoba fallback
+        if (
+          lastError.name === "NotAllowedError" ||
+          lastError.name === "PermissionDeniedError"
+        ) {
+          break;
+        }
       }
-    } catch (err) {
-      const error = err as Error;
-      let msg = "Kamera tidak dapat diakses.";
+    }
 
-      if (error.name === "NotAllowedError" || error.name === "PermissionDeniedError") {
-        msg = "Izin kamera ditolak. Harap aktifkan izin kamera di pengaturan browser Anda, lalu muat ulang halaman.";
-      } else if (error.name === "NotFoundError" || error.name === "DevicesNotFoundError") {
-        msg = "Kamera tidak ditemukan pada perangkat ini.";
-      } else if (error.name === "NotReadableError") {
-        msg = "Kamera sedang digunakan oleh aplikasi lain. Tutup aplikasi lain dan coba lagi.";
-      } else if (error.name === "OverconstrainedError") {
-        // Fallback ke kamera manapun jika kamera depan tidak tersedia
-        try {
-          const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-          streamRef.current = fallbackStream;
-          if (videoRef.current) {
-            videoRef.current.srcObject = fallbackStream;
-            await videoRef.current.play();
-            setCameraState("streaming");
-            return;
-          }
-        } catch {
-          msg = "Tidak ada kamera yang tersedia pada perangkat ini.";
+    if (!activeStream) {
+      let msg = "Kamera tidak dapat diakses.";
+      if (lastError) {
+        if (lastError.name === "NotAllowedError" || lastError.name === "PermissionDeniedError") {
+          msg = "Izin kamera ditolak. Harap aktifkan izin kamera di pengaturan browser Anda, lalu muat ulang halaman.";
+        } else if (lastError.name === "NotFoundError" || lastError.name === "DevicesNotFoundError") {
+          msg = "Kamera tidak ditemukan pada perangkat ini.";
+        } else if (lastError.name === "NotReadableError") {
+          msg = "Kamera sedang digunakan oleh aplikasi lain. Tutup aplikasi lain dan coba lagi.";
         }
       }
 
       setErrorMessage(msg);
       setCameraState("error");
-      onError?.(msg);
+      onErrorRef.current?.(msg);
+      return;
     }
-  }, [onError]);
+
+    // 2. Pasang stream ke elemen video
+    streamRef.current = activeStream;
+
+    if (videoRef.current) {
+      const videoEl = videoRef.current;
+      videoEl.srcObject = activeStream;
+
+      try {
+        await videoEl.play();
+      } catch (playErr) {
+        const pErr = playErr as Error;
+        if (pErr.name !== "AbortError") {
+          console.warn("[CameraCapture] Play warning:", pErr);
+        }
+      }
+
+      setCameraState("streaming");
+      setErrorMessage("");
+      // Bersihkan error di parent karena kamera sekarang terverifikasi aktif
+      onErrorRef.current?.("");
+      onReadyRef.current?.();
+    }
+  }, []);
 
   useEffect(() => {
     if (!capturedUrl) {
@@ -405,6 +461,17 @@ export default function CameraCapture({
                  {cameraState === "captured" ? "TERVERIFIKASI" : "KAMERA AKTIF"}
                </span>
              </div>
+             {cameraState === "streaming" && (
+               <button
+                 type="button"
+                 onClick={() => startCamera()}
+                 title="Muat ulang kamera"
+                 className="px-2.5 py-1.5 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/10 shadow-sm flex items-center gap-1.5 text-white/90 hover:text-white transition-all active:scale-95 text-[10px]"
+               >
+                 <RefreshCw className="w-3 h-3 text-emerald-400" />
+                 <span className="font-medium">Refresh Kamera</span>
+               </button>
+             )}
              {cameraState === "captured" && (
                <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg border-2 border-emerald-400">
                  <Check className="w-4 h-4 text-white" />

@@ -138,8 +138,31 @@ export default function KalenderPage() {
     <div className="space-y-6">
       {/* Contextual Mobile Back Header */}
       <MobilePageHeader
-        title="Kalender Kerja & Hari Libur"
-        subtitle="Jadwal dinas, presensi bulanan, dan evaluasi disiplin"
+        title="Kalender Kerja Pegawai"
+        subtitle={`${monthNames[currentMonth]} ${currentYear} • Disiplin ${metrics.disiplinRate}%`}
+        backHref="/presensi"
+        rightElement={
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handlePrevMonth}
+              className="h-7 w-7 p-0 rounded-lg text-slate-700 active:scale-95"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleNextMonth}
+              className="h-7 w-7 p-0 rounded-lg text-slate-700 active:scale-95"
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Button>
+          </div>
+        }
       />
 
       {/* Header Halaman (Desktop) */}

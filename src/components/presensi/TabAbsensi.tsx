@@ -515,6 +515,8 @@ export default function TabAbsensi() {
 
   const handleFotoCaptured = (fotoUrl: string, sizeBytes: number) => {
     setCapturedFotoUrl(fotoUrl);
+    setCheckInError(null);
+    setCheckOutError(null);
     console.info(`[Presensi] Foto diupload: ${fotoUrl}, ukuran: ${sizeBytes} bytes`);
   };
 
@@ -1432,7 +1434,8 @@ export default function TabAbsensi() {
                   userId={user?.id || ""}
                   orgId={user?.orgId || ""}
                   onCapture={handleFotoCaptured}
-                  onError={(msg) => setCheckOutError(msg)}
+                  onReady={() => setCheckOutError(null)}
+                  onError={(msg) => setCheckOutError(msg || null)}
                   capturedUrl={capturedFotoUrl}
                   nip={user?.nip || ""}
                   nama={user?.nama || ""}
@@ -1444,9 +1447,19 @@ export default function TabAbsensi() {
 
               {/* Error Banner */}
               {checkOutError && (
-                <div className="bg-rose-50 rounded-2xl p-4 border border-rose-100 flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
-                  <p className="text-xs text-rose-700 font-medium leading-relaxed">{checkOutError}</p>
+                <div className="bg-rose-50 rounded-2xl p-4 border border-rose-100 flex items-start justify-between gap-3 animate-in fade-in">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
+                    <p className="text-xs text-rose-700 font-medium leading-relaxed">{checkOutError}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCheckOutError(null)}
+                    className="text-rose-400 hover:text-rose-600 text-xs shrink-0 p-1"
+                    title="Tutup pesan"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
               )}
 
@@ -1530,7 +1543,8 @@ export default function TabAbsensi() {
                   userId={user?.id || ""}
                   orgId={user?.orgId || ""}
                   onCapture={handleFotoCaptured}
-                  onError={(msg) => setCheckInError(msg)}
+                  onReady={() => setCheckInError(null)}
+                  onError={(msg) => setCheckInError(msg || null)}
                   capturedUrl={capturedFotoUrl}
                   nip={user?.nip || ""}
                   nama={user?.nama || ""}
@@ -1541,9 +1555,19 @@ export default function TabAbsensi() {
               </div>
 
               {checkInError && (
-                <div className="bg-rose-50 rounded-2xl p-4 border border-rose-100 flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
-                  <p className="text-xs text-rose-700 font-medium leading-relaxed">{checkInError}</p>
+                <div className="bg-rose-50 rounded-2xl p-4 border border-rose-100 flex items-start justify-between gap-3 animate-in fade-in">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
+                    <p className="text-xs text-rose-700 font-medium leading-relaxed">{checkInError}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCheckInError(null)}
+                    className="text-rose-400 hover:text-rose-600 text-xs shrink-0 p-1"
+                    title="Tutup pesan"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
               )}
 

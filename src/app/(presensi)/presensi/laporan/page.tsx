@@ -338,12 +338,89 @@ export default function LaporanPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Contextual Mobile Back Header */}
+    <div className="space-y-4 sm:space-y-6">
+      {/* Contextual Mobile Back Header dengan Status Badge Terpadu */}
       <MobilePageHeader
         title="Logbook Kinerja Harian"
-        subtitle="Pelaporan tugas dinas & pemenuhan 300 poin SKP"
+        subtitle={`${totalPoinHarian}/300 Poin • ${kegiatanList.length} Kegiatan`}
+        backHref="/presensi"
+        rightElement={
+          <Badge
+            variant={
+              isApproved
+                ? "default"
+                : isSubmitted
+                ? "secondary"
+                : isRejected
+                ? "destructive"
+                : "outline"
+            }
+            className={cn(
+              "text-[10px] px-2 py-0.5 font-bold uppercase",
+              isApproved && "bg-emerald-600 text-white",
+              isSubmitted && "bg-amber-100 text-amber-800 border-amber-300",
+              isRejected && "bg-rose-100 text-rose-800 border-rose-300",
+              !isApproved && !isSubmitted && !isRejected && "bg-slate-100 text-slate-700"
+            )}
+          >
+            {isApproved
+              ? "Disetujui"
+              : isSubmitted
+              ? "Review"
+              : isRejected
+              ? "Perbaikan"
+              : "Draf"}
+          </Badge>
+        }
       />
+
+      {/* Mobile Quick Action Strip (Khusus Layar Ponsel - Borderless & Ergonomis) */}
+      {canEdit && (
+        <div className="md:hidden px-4 py-2.5 bg-white border-y border-slate-100/90 flex items-center justify-between gap-2 shadow-2xs">
+          <div className="flex items-center gap-1.5 text-[11px] text-slate-600 font-medium truncate">
+            <span className={cn(
+              "w-2 h-2 rounded-full shrink-0",
+              totalPoinHarian >= TARGET_POIN_HARIAN ? "bg-emerald-500" : "bg-amber-500 animate-pulse"
+            )} />
+            <span className="truncate">
+              {kegiatanList.length} Kegiatan ({totalPoinHarian} Pts)
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              onClick={handleSaveDraft}
+              disabled={saveLKHMutation.isPending}
+              variant="outline"
+              size="sm"
+              className="h-8 px-2.5 text-[11px] font-semibold border-slate-200 text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl active:scale-95 transition-all"
+            >
+              {saveLKHMutation.isPending ? (
+                <Loader2 className="w-3 h-3 animate-spin text-teal-600 mr-1" />
+              ) : (
+                <Save className="w-3 h-3 text-teal-600 mr-1" />
+              )}
+              Simpan
+            </Button>
+
+            {kegiatanList.length > 0 && (
+              <Button
+                onClick={handleSubmitLKH}
+                disabled={submitLKHMutation.isPending || saveLKHMutation.isPending}
+                size="sm"
+                className="h-8 px-3 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs active:scale-95 transition-all"
+              >
+                {submitLKHMutation.isPending ? (
+                  <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                ) : (
+                  <Send className="w-3 h-3 mr-1" />
+                )}
+                {isRejected ? "Kirim Ulang" : "Kirim"}
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Header Halaman (Desktop) */}
       <div className="hidden md:flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -988,6 +1065,56 @@ export default function LaporanPage() {
                   ))
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Action Strip di Mobile (Ponsel) di atas Bottom Navigation Bar */}
+      {canEdit && kegiatanList.length > 0 && (
+        <div className="md:hidden fixed bottom-20 left-4 right-4 z-30 pointer-events-none">
+          <div className="pointer-events-auto bg-slate-900/95 backdrop-blur-xl text-white p-2.5 px-3.5 rounded-2xl shadow-xl shadow-slate-950/20 border border-slate-800/90 flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200">
+            <div className="min-w-0">
+              <div className="text-xs font-extrabold flex items-center gap-1.5 truncate">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
+                <span>{kegiatanList.length} Kegiatan</span>
+                <span className="text-emerald-300">+{totalPoinHarian} Pts</span>
+              </div>
+              <div className="text-[10px] text-slate-400 truncate">
+                {totalPoinHarian >= TARGET_POIN_HARIAN
+                  ? "Target SKP Terpenuhi ✓"
+                  : `${TARGET_POIN_HARIAN - totalPoinHarian} pts menuju target`}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 shrink-0">
+              <Button
+                size="sm"
+                onClick={handleSaveDraft}
+                disabled={saveLKHMutation.isPending}
+                className="h-8 px-2.5 text-[11px] font-semibold bg-white/10 hover:bg-white/20 text-white rounded-xl border border-white/20 active:scale-95 cursor-pointer"
+              >
+                {saveLKHMutation.isPending ? (
+                  <Loader2 className="w-3 h-3 animate-spin mr-1 text-teal-400" />
+                ) : (
+                  <Save className="w-3 h-3 mr-1 text-teal-300" />
+                )}
+                Draf
+              </Button>
+
+              <Button
+                size="sm"
+                onClick={handleSubmitLKH}
+                disabled={submitLKHMutation.isPending || saveLKHMutation.isPending}
+                className="h-8 px-3 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs active:scale-95 cursor-pointer"
+              >
+                {submitLKHMutation.isPending ? (
+                  <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                ) : (
+                  <Send className="w-3 h-3 mr-1" />
+                )}
+                {isRejected ? "Kirim Ulang" : "Kirim"}
+              </Button>
             </div>
           </div>
         </div>

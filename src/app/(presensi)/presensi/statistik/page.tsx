@@ -351,9 +351,24 @@ export default function StatistikPage() {
   }, [selectedKantor, kantorList]);
 
   return (
-    <div className="space-y-6 pb-20 md:pb-8 print:p-0 print:m-0 print:space-y-4">
+    <div className="space-y-4 sm:space-y-6 pb-20 md:pb-8 print:p-0 print:m-0 print:space-y-4">
       <div className="print:hidden">
-        <MobilePageHeader title="Rekap & Statistik Pegawai" backHref="/presensi" />
+        <MobilePageHeader
+          title="Rekap & Statistik Pegawai"
+          subtitle={`${NAMA_BULAN[selectedBulan - 1]} ${selectedTahun} • ${selectedKantorName}`}
+          backHref="/presensi"
+          rightElement={
+            <Button
+              onClick={() => setShowBeritaAcaraModal(true)}
+              size="sm"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] h-8 px-2.5 font-bold shadow-xs rounded-xl flex items-center gap-1 active:scale-95"
+              title="Pratinjau Berita Acara A4"
+            >
+              <FileCheck className="w-3.5 h-3.5 text-emerald-200" />
+              <span>Berita Acara</span>
+            </Button>
+          }
+        />
       </div>
 
       {/* Kop Resmi Khusus Cetak / Print Only */}
@@ -373,7 +388,7 @@ export default function StatistikPage() {
       </div>
 
       {/* Hero Header & Filter Controls (Disembunyikan saat Print) */}
-      <div className="print:hidden relative overflow-hidden rounded-none sm:rounded-3xl border-y sm:border border-emerald-800/30 bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 p-5 md:p-6 text-white shadow-md">
+      <div className="print:hidden relative overflow-hidden rounded-none sm:rounded-3xl border-y sm:border border-emerald-800/30 bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 p-4 sm:p-5 md:p-6 text-white shadow-md">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[11px] font-medium border border-emerald-400/30">
@@ -388,32 +403,49 @@ export default function StatistikPage() {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
+          {/* Action Buttons Toolbar: 2 Kolom di Ponsel, Flex di Desktop */}
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 shrink-0 pt-2 sm:pt-0">
             <Button
               onClick={() => setShowBeritaAcaraModal(true)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-10 px-3.5 shadow-sm border border-emerald-500 cursor-pointer gap-1.5 text-xs"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-9 sm:h-10 px-3 shadow-sm border border-emerald-500 cursor-pointer gap-1.5 text-xs rounded-xl active:scale-95"
               title="Pratinjau Dokumen Berita Acara Resmi Format A4 Berstandar Kedinasan"
             >
-              <FileCheck className="w-4 h-4 text-emerald-200" />
-              Berita Acara Resmi (A4)
+              <FileCheck className="w-3.5 h-3.5 text-emerald-200" />
+              <span className="truncate">Berita Acara (A4)</span>
             </Button>
             <Button
               onClick={() => handleDownloadBeritaAcaraPdf(false)}
               disabled={isGeneratingPdf}
-              className="bg-slate-800 hover:bg-slate-700 text-white font-semibold h-10 px-3.5 shadow-sm border border-slate-700 cursor-pointer gap-1.5 text-xs"
+              className="bg-slate-800 hover:bg-slate-700 text-white font-semibold h-9 sm:h-10 px-3 shadow-sm border border-slate-700 cursor-pointer gap-1.5 text-xs rounded-xl active:scale-95"
               title="Unduh Dokumen Berita Acara Langsung dalam Format PDF Murni"
             >
               {isGeneratingPdf ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
-                  <span>Memproses PDF...</span>
+                  <span className="truncate">Memproses...</span>
                 </>
               ) : (
                 <>
                   <FileDown className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Unduh File PDF</span>
+                  <span className="truncate">Unduh PDF</span>
                 </>
               )}
+            </Button>
+            <Button
+              onClick={handleTriggerAiAnalysis}
+              className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold h-9 sm:h-10 px-3 shadow-md shadow-violet-950/50 border border-violet-400/30 cursor-pointer gap-1.5 text-xs rounded-xl active:scale-95"
+              title="Analisis Eksekutif Kinerja & Disiplin ASN Berbasis Clario DeepSeek V4 Pro"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-violet-200 animate-pulse" />
+              <span className="truncate">Analisis AI Clario</span>
+            </Button>
+            <Button
+              onClick={handleExportExcel}
+              className="bg-emerald-700 hover:bg-emerald-600 text-white font-semibold h-9 sm:h-10 px-3 shadow-sm border border-emerald-500/40 cursor-pointer gap-1.5 text-xs rounded-xl active:scale-95"
+              title="Unduh Berkas Microsoft Excel (.xlsx) Multi-Sheet Resmi BLUD"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-200" />
+              <span className="truncate">Export Excel</span>
             </Button>
             <Button
               onClick={() => {
@@ -423,63 +455,47 @@ export default function StatistikPage() {
                 setShowKoreksiModal(true);
               }}
               variant="outline"
-              className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border-amber-500/40 h-10 px-3 text-xs gap-1.5 font-semibold cursor-pointer"
+              className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border-amber-500/40 h-9 sm:h-10 px-2.5 text-xs gap-1 font-semibold cursor-pointer rounded-xl active:scale-95"
               title="Koreksi Administratif Presensi Pegawai Pra-Berita Acara"
             >
-              <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
-              <span>Koreksi Presensi</span>
+              <RotateCcw className="w-3 text-amber-400" />
+              <span className="truncate">Koreksi</span>
               {pendingRevisiList.length > 0 && (
-                <span className="ml-1 bg-amber-500 text-slate-950 font-bold px-1.5 py-0.2 rounded-full text-[10px]">
+                <span className="ml-0.5 bg-amber-500 text-slate-950 font-bold px-1.5 py-0.2 rounded-full text-[9px]">
                   {pendingRevisiList.length}
                 </span>
               )}
             </Button>
             <Button
-              onClick={handleTriggerAiAnalysis}
-              className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold h-10 px-3.5 shadow-md shadow-violet-950/50 border border-violet-400/30 cursor-pointer gap-1.5 text-xs"
-              title="Analisis Eksekutif Kinerja & Disiplin ASN Berbasis Clario DeepSeek V4 Pro"
-            >
-              <Sparkles className="w-4 h-4 text-violet-200 animate-pulse" />
-              <span>Analisis AI Clario</span>
-            </Button>
-            <Button
-              onClick={handleExportExcel}
-              className="bg-emerald-700 hover:bg-emerald-600 text-white font-semibold h-10 px-3.5 shadow-sm border border-emerald-500/40 cursor-pointer gap-1.5 text-xs"
-              title="Unduh Berkas Microsoft Excel (.xlsx) Multi-Sheet Resmi BLUD"
-            >
-              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-200" />
-              <span>Export Excel (.xlsx)</span>
-            </Button>
-            <Button
               onClick={handleEvaluateAbsence}
               disabled={isEvaluatingAbsence}
               variant="outline"
-              className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border-rose-500/30 h-10 px-3 text-xs gap-1.5 font-semibold cursor-pointer"
+              className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border-rose-500/30 h-9 sm:h-10 px-2.5 text-xs gap-1 font-semibold cursor-pointer rounded-xl active:scale-95"
               title="Jalankan Evaluasi Alpa Otomatis untuk Pegawai Tanpa Keterangan"
             >
               {isEvaluatingAbsence ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-400" />
+                <Loader2 className="w-3 h-3 animate-spin text-rose-400" />
               ) : (
-                <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                <AlertCircle className="w-3 h-3 text-rose-400" />
               )}
-              <span>Evaluasi Alpa</span>
+              <span className="truncate">Evaluasi Alpa</span>
             </Button>
             <Button
               onClick={handleExportCsv}
               variant="outline"
-              className="btn-glass h-10 px-3 text-xs"
+              className="btn-glass h-9 sm:h-10 px-2.5 text-xs rounded-xl hidden sm:inline-flex"
               title="Unduh Data Rekapitulasi Format CSV"
             >
-              <Download className="w-3.5 h-3.5 mr-1.5" />
+              <Download className="w-3.5 h-3.5 mr-1" />
               CSV
             </Button>
             <Button
               onClick={handlePrint}
               variant="outline"
-              className="btn-glass h-10 px-3 text-xs"
+              className="btn-glass h-9 sm:h-10 px-2.5 text-xs rounded-xl hidden sm:inline-flex"
             >
-              <Printer className="w-3.5 h-3.5 mr-1.5" />
-              Cetak Rekap
+              <Printer className="w-3.5 h-3.5 mr-1" />
+              Cetak
             </Button>
           </div>
         </div>
