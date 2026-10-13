@@ -127,9 +127,9 @@ export const canAccessCareer = (role: string | null): boolean => {
 export const hasAccess = (role: string | null, pathname: string): boolean => {
   if (!role) return false;
   
-  // Rute Presensi Pegawai STP (Techno Sign) terbuka untuk seluruh staf & admin
+  // Rute Presensi Pegawai STP (Techno Sign) hanya terbuka untuk staf internal & admin BLUD Solo Technopark
   if (pathname === '/presensi' || pathname.startsWith('/presensi/')) {
-    return true;
+    return isInternalStaff(role);
   }
 
   // Fitur rute bursa karir bersifat eksklusif bagi Alumni dan seluruh Administrator

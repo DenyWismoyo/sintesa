@@ -16,6 +16,7 @@ const PROTECTED_PREFIXES = [
   '/manajemen-faq',
   '/manajemen-artikel',
   '/pengaturan',
+  '/presensi',
 ];
 
 /**
@@ -46,6 +47,11 @@ function getVerifiedRoleFromToken(tokenString: string | undefined): string | nul
 export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
+  // 0. Izinkan halaman login presensi & aset manifest terbuka untuk umum
+  if (path === '/presensi/login' || path.startsWith('/presensi/login')) {
+    return NextResponse.next();
+  }
+
   // 1. Cek apakah rute ini termasuk rute yang diproteksi
   const isProtected = PROTECTED_PREFIXES.some(prefix => path === prefix || path.startsWith(`${prefix}/`));
   if (!isProtected) {
@@ -53,7 +59,7 @@ export function proxy(request: NextRequest) {
   }
 
   // 2. Baca session token terenkripsi dan cookie peran (R-036)
-  const sessionToken = request.cookies.get('__session')?.value;
+  const sessionToken = request.cookies.get('__session')?.value || request.cookies.get('techno_sign_session')?.value;
   const cookieRole = request.cookies.get('userRole')?.value;
 
   // Utamakan peran dari token JWT terverifikasi untuk mengeliminasi risiko spoofing
@@ -62,6 +68,11 @@ export function proxy(request: NextRequest) {
 
   // 3. Jika rute privat diakses tanpa cookie sesi / belum login
   if (!role) {
+    if (path === '/presensi' || path.startsWith('/presensi/')) {
+      const presensiLoginUrl = new URL('/presensi/login', request.url);
+      presensiLoginUrl.searchParams.set('redirect', path);
+      return NextResponse.redirect(presensiLoginUrl);
+    }
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', path);
     return NextResponse.redirect(loginUrl);
@@ -72,6 +83,10 @@ export function proxy(request: NextRequest) {
 
   if (!isAllowed) {
     // Penanganan jika akses ditolak:
+    // Pengguna publik yang mencoba mengakses presensi dialihkan ke beranda utama
+    if (path === '/presensi' || path.startsWith('/presensi/')) {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
     // Akun tenant dialihkan ke portal tenant mereka sendiri
     if (role === APP_ROLES.TENANT) {
       return NextResponse.redirect(new URL('/tenant/dashboard', request.url));

@@ -241,13 +241,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
 
             <div className="flex items-center gap-1 shrink-0">
-              <Link 
-                href="/presensi" 
-                className="p-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors flex items-center"
-                title="Presensi Pegawai STP (Techno Sign)"
-              >
-                <ClockCheck className="w-3.5 h-3.5" />
-              </Link>
+              {hasAccess(role, '/presensi') && (
+                <Link 
+                  href="/presensi" 
+                  className="p-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors flex items-center"
+                  title="Presensi Pegawai STP (Techno Sign)"
+                >
+                  <ClockCheck className="w-3.5 h-3.5" />
+                </Link>
+              )}
               <Link 
                 href="/" 
                 className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
@@ -345,14 +347,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                    </div>
                  </div>
                  <div className="flex items-center gap-1 shrink-0">
-                   <Link 
-                     href="/presensi" 
-                     onClick={() => setIsMobileMenuOpen(false)}
-                     className="p-1 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-md"
-                     title="Presensi Pegawai STP"
-                   >
-                     <ClockCheck className="w-3.5 h-3.5" />
-                   </Link>
+                   {hasAccess(role, '/presensi') && (
+                     <Link 
+                       href="/presensi" 
+                       onClick={() => setIsMobileMenuOpen(false)}
+                       className="p-1 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-md"
+                       title="Presensi Pegawai STP"
+                     >
+                       <ClockCheck className="w-3.5 h-3.5" />
+                     </Link>
+                   )}
                    <Link 
                      href="/" 
                      onClick={() => setIsMobileMenuOpen(false)}

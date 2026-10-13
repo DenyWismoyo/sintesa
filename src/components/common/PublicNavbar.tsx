@@ -28,6 +28,7 @@ import {
   ChevronDown,
   Handshake,
   MapPin,
+  ClockCheck,
 } from 'lucide-react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { useAuth } from '@/lib/AuthContext';
@@ -306,13 +307,23 @@ export default function PublicNavbar() {
 
     if (isInternalStaff(role)) {
       return (
-        <Link
-          href="/dashboard"
-          className="px-4 py-2 h-9 text-xs font-bold bg-gradient-to-r from-indigo-600 to-blue-700 hover:from-indigo-700 hover:to-blue-800 text-white rounded-full transition-all shadow-xs flex items-center gap-1.5 hover:-translate-y-0.5"
-        >
-          <ShieldCheck size={15} />
-          <span>Dashboard Admin</span>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/dashboard"
+            className="px-4 py-2 h-9 text-xs font-bold bg-gradient-to-r from-indigo-600 to-blue-700 hover:from-indigo-700 hover:to-blue-800 text-white rounded-full transition-all shadow-xs flex items-center gap-1.5 hover:-translate-y-0.5"
+          >
+            <ShieldCheck size={15} />
+            <span>Dashboard Admin</span>
+          </Link>
+          <Link
+            href="/presensi"
+            className="px-3.5 py-1.5 h-9 text-xs font-bold bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 text-emerald-700 rounded-full transition-all flex items-center gap-1.5 shadow-2xs hover:-translate-y-0.5"
+            title="Presensi Pegawai STP (Techno Sign)"
+          >
+            <ClockCheck size={14} className="text-emerald-600" />
+            <span>Presensi STP</span>
+          </Link>
+        </div>
       );
     }
 
@@ -401,14 +412,24 @@ export default function PublicNavbar() {
 
         {/* Action Button sesuai role */}
         {isInternalStaff(role) ? (
-          <Link
-            href="/dashboard"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="w-full h-11 text-xs font-bold bg-gradient-to-r from-indigo-600 to-blue-700 text-white rounded-xl shadow-xs flex items-center justify-center gap-2"
-          >
-            <ShieldCheck size={16} />
-            <span>Buka Dashboard Admin</span>
-          </Link>
+          <div className="flex flex-col gap-2 w-full">
+            <Link
+              href="/dashboard"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="w-full h-11 text-xs font-bold bg-gradient-to-r from-indigo-600 to-blue-700 text-white rounded-xl shadow-xs flex items-center justify-center gap-2"
+            >
+              <ShieldCheck size={16} />
+              <span>Buka Dashboard Admin</span>
+            </Link>
+            <Link
+              href="/presensi"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="w-full h-10 text-xs font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl shadow-2xs flex items-center justify-center gap-2 transition-all"
+            >
+              <ClockCheck size={15} className="text-emerald-600" />
+              <span>Presensi Pegawai STP</span>
+            </Link>
+          </div>
         ) : role === APP_ROLES.TENANT ? (
           <Link
             href="/tenant/dashboard"

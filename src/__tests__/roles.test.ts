@@ -120,4 +120,46 @@ describe('Role-Based Access Control (RBAC) System', () => {
       });
     });
   });
+
+  describe('Presensi Pegawai STP Route Protection (Internal Staff Only)', () => {
+    it('should grant presensi access to all internal staff and admin roles', () => {
+      const internalRoles = [
+        APP_ROLES.SUPER_ADMIN,
+        APP_ROLES.ADMIN,
+        APP_ROLES.ADMIN_KEUANGAN,
+        APP_ROLES.KASIR,
+        APP_ROLES.KASIR_PENGELUARAN,
+        APP_ROLES.ADMIN_ASET,
+        APP_ROLES.OPERATOR_ASET,
+        APP_ROLES.ADMIN_TENANT,
+        APP_ROLES.OPERATOR_TENANT,
+        APP_ROLES.ADMIN_PELATIHAN,
+        APP_ROLES.OPERATOR_PELATIHAN,
+      ];
+
+      internalRoles.forEach((role) => {
+        expect(hasAccess(role, '/presensi')).toBe(true);
+        expect(hasAccess(role, '/presensi/scan')).toBe(true);
+        expect(hasAccess(role, '/presensi/laporan')).toBe(true);
+      });
+    });
+
+    it('should STRICTLY DENY presensi access to public and non-staff roles', () => {
+      const publicAndExternalRoles = [
+        APP_ROLES.PUBLIC,
+        APP_ROLES.TENANT,
+        APP_ROLES.ALUMNI,
+        APP_ROLES.INVESTOR,
+        APP_ROLES.KAMPUS,
+        APP_ROLES.INDUSTRI,
+        null,
+      ];
+
+      publicAndExternalRoles.forEach((role) => {
+        expect(hasAccess(role, '/presensi')).toBe(false);
+        expect(hasAccess(role, '/presensi/scan')).toBe(false);
+        expect(hasAccess(role, '/presensi/laporan')).toBe(false);
+      });
+    });
+  });
 });
