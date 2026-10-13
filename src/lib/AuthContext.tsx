@@ -63,16 +63,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setIsInstructor(!instSnap.empty);
           }
 
-          // 3. Sinkronisasi cookie userRole dan __session (JWT) untuk validasi Edge Proxy (R-036)
+          // 3. Sinkronisasi cookie userRole, __session (JWT), dan techno_sign_session untuk Edge Proxy & Presensi (SSO Dua Arah)
           const token = idTokenResult.token;
-          document.cookie = `userRole=${currentRole}; path=/; max-age=86400; SameSite=Strict`;
-          document.cookie = `__session=${token}; path=/; max-age=3600; SameSite=Strict`;
+          document.cookie = `userRole=${currentRole}; path=/; max-age=86400; SameSite=Lax`;
+          document.cookie = `__session=${token}; path=/; max-age=86400; SameSite=Lax`;
+          document.cookie = `techno_sign_session=${token}; path=/; max-age=86400; SameSite=Lax`;
 
         } catch (error) {
           console.error("Gagal memeriksa otorisasi:", error);
           setRole('public');
           setIsInstructor(false);
-          document.cookie = `userRole=public; path=/; max-age=86400; SameSite=Strict`;
+          document.cookie = `userRole=public; path=/; max-age=86400; SameSite=Lax`;
         }
       } else {
         setRole(null);
@@ -80,6 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Hapus cookie sesi saat user logout / tidak ada user aktif
         document.cookie = 'userRole=; path=/; max-age=0;';
         document.cookie = '__session=; path=/; max-age=0;';
+        document.cookie = 'techno_sign_session=; path=/; max-age=0;';
       }
       
       setLoading(false);

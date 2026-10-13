@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { usePresensiAuth } from "@/lib/presensi/auth-context";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,12 @@ import {
   Calendar,
   CheckCircle2,
   Sparkles,
+  LayoutDashboard,
+  ExternalLink,
+  ArrowRight,
+  Layers,
+  GraduationCap,
+  KeyRound,
 } from "lucide-react";
 
 export default function ProfilPage() {
@@ -155,6 +162,108 @@ export default function ProfilPage() {
               <span className="font-semibold text-slate-800 font-mono">
                 {user?.nomorHp || "081234567890"}
               </span>
+            </div>
+          </div>
+
+          {/* Hak Akses Portal & Integrasi Katalog Kawasan (Single Sign-On) */}
+          <div className="p-4 rounded-2xl border border-slate-200/90 bg-gradient-to-b from-slate-50/90 to-white space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <Layers className="w-4 h-4 text-emerald-600" />
+                Hak Akses Portal & Integrasi E-Katalog
+              </span>
+              {user?.canAccessCatalogAdmin ? (
+                <Badge className="bg-emerald-600 text-white text-[10px] font-semibold px-2 py-0.5">
+                  Admin Katalog Terverifikasi
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-slate-600 border-slate-300 text-[10px]">
+                  Pegawai STP
+                </Badge>
+              )}
+            </div>
+
+            <div className="p-3 rounded-xl bg-white border border-slate-200/80 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-500">Peran di Portal Katalog:</span>
+                <span className="font-bold text-slate-900 capitalize">
+                  {user?.catalogRole || (user?.role === "admin" ? "admin" : "pegawai")}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-500">Status Single Sign-On (SSO):</span>
+                <span className="text-emerald-700 font-semibold flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  Sesi Tersinkronisasi
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 leading-relaxed pt-1 border-t border-slate-100">
+                Sesi login Techno Sign Anda aktif secara otomatis di seluruh sistem kawasan Solo Technopark tanpa perlu otentikasi berulang.
+              </p>
+            </div>
+
+            {/* Tombol Bypass Langsung ke Admin Katalog jika memiliki wewenang */}
+            {user?.canAccessCatalogAdmin && (
+              <Link
+                href="/dashboard"
+                className="flex items-center justify-between p-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white transition-all shadow-xs group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                    <LayoutDashboard className="w-4 h-4" />
+                  </div>
+                  <div className="text-left">
+                    <div className="text-xs font-bold leading-tight flex items-center gap-1.5">
+                      Buka Dashboard Admin Sintesa
+                    </div>
+                    <div className="text-[10px] text-slate-400 leading-tight mt-0.5">
+                      Kelola e-katalog, invoice, booking, tenant & event kawasan
+                    </div>
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-emerald-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
+              </Link>
+            )}
+
+            {/* Menu Pintasan Layanan Kawasan STP */}
+            <div className="pt-1 space-y-1.5">
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Pintasan Menu E-Katalog & Kawasan STP
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <Link
+                  href="/"
+                  className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-slate-200/80 hover:border-slate-300 hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition-all text-xs font-medium"
+                >
+                  <Building2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <div className="truncate">
+                    <div className="font-semibold text-slate-800 truncate">E-Katalog</div>
+                    <div className="text-[10px] text-slate-400 truncate">Layanan & Produk</div>
+                  </div>
+                </Link>
+
+                <Link
+                  href="/fasilitas"
+                  className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-slate-200/80 hover:border-slate-300 hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition-all text-xs font-medium"
+                >
+                  <Building className="w-4 h-4 text-teal-600 shrink-0" />
+                  <div className="truncate">
+                    <div className="font-semibold text-slate-800 truncate">Fasilitas</div>
+                    <div className="text-[10px] text-slate-400 truncate">Sewa Ruang & Lab</div>
+                  </div>
+                </Link>
+
+                <Link
+                  href="/lms"
+                  className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-slate-200/80 hover:border-slate-300 hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition-all text-xs font-medium"
+                >
+                  <GraduationCap className="w-4 h-4 text-blue-600 shrink-0" />
+                  <div className="truncate">
+                    <div className="font-semibold text-slate-800 truncate">Akademi STP</div>
+                    <div className="text-[10px] text-slate-400 truncate">Pelatihan & LMS</div>
+                  </div>
+                </Link>
+              </div>
             </div>
           </div>
 

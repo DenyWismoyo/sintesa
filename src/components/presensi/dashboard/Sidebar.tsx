@@ -23,6 +23,8 @@ import {
   Timer,
   RotateCcw,
   Network,
+  ShoppingBag,
+  GraduationCap,
 } from "lucide-react";
 import TechnoSignLogo from "@/components/presensi/TechnoSignLogo";
 
@@ -158,41 +160,68 @@ export default function Sidebar() {
         })}
       </div>
 
-      {/* Geofence & Office Badge */}
-      <div className="p-4 m-3 rounded-2xl bg-gradient-to-br from-slate-50 to-emerald-50/50 border border-slate-200/80 space-y-2">
+      {/* Pintasan Portal & Layanan Kawasan STP */}
+      <div className="p-3.5 m-3 rounded-2xl bg-gradient-to-br from-slate-50 to-emerald-50/40 border border-slate-200/80 space-y-2.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-            <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Zona Presensi</span>
+            <Building2 className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Ekosistem Kawasan</span>
           </div>
           <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100/70 border border-emerald-300/50 px-2 py-0.5 rounded-full">
-            Radius 150m
+            KST Solo
           </span>
         </div>
-        <p className="text-[10px] text-slate-500 leading-relaxed">
-          UPTD KST Solo Technopark (Pukul 08:00 - 16:00 WIB)
-        </p>
 
+        {/* Bypass Admin Portal Sintesa (jika user memiliki akses admin/staf katalog) */}
         {user?.canAccessCatalogAdmin && (
           <Link
             href="/dashboard"
-            className="flex items-center justify-between p-2 rounded-xl bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-800 text-[11px] font-semibold transition-colors mt-2"
+            className="flex items-center justify-between p-2.5 rounded-xl bg-blue-600/10 hover:bg-blue-600/15 border border-blue-200/70 text-blue-900 text-xs font-bold transition-all shadow-2xs group"
           >
-            <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <span className="flex items-center gap-2">
+              <LayoutDashboard className="w-4 h-4 text-blue-600" />
               <span>Admin Portal Sintesa</span>
             </span>
-            <ExternalLink className="w-3 h-3 text-emerald-600" />
+            <ExternalLink className="w-3.5 h-3.5 text-blue-500 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         )}
 
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-500 hover:text-emerald-700 pt-1"
-        >
-          <span>Katalog Utama</span>
-          <ExternalLink className="w-3 h-3" />
-        </Link>
+        {/* Menu Bypass ke Katalog & Fasilitas STP bagi Seluruh Pegawai */}
+        <div className="pt-1.5 border-t border-slate-200/60 space-y-1 text-[11px]">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block px-1">
+            Pintasan Layanan STP
+          </span>
+          <Link
+            href="/"
+            className="flex items-center justify-between px-2 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/80 transition-colors font-medium"
+          >
+            <span className="flex items-center gap-2">
+              <ShoppingBag className="w-3.5 h-3.5 text-slate-400" />
+              <span>Katalog & Layanan</span>
+            </span>
+            <ExternalLink className="w-3 h-3 text-slate-400" />
+          </Link>
+          <Link
+            href="/fasilitas"
+            className="flex items-center justify-between px-2 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/80 transition-colors font-medium"
+          >
+            <span className="flex items-center gap-2">
+              <Building2 className="w-3.5 h-3.5 text-slate-400" />
+              <span>Sewa Aset & Fasilitas</span>
+            </span>
+            <ExternalLink className="w-3 h-3 text-slate-400" />
+          </Link>
+          <Link
+            href="/lms"
+            className="flex items-center justify-between px-2 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/80 transition-colors font-medium"
+          >
+            <span className="flex items-center gap-2">
+              <GraduationCap className="w-3.5 h-3.5 text-slate-400" />
+              <span>Pelatihan & LMS</span>
+            </span>
+            <ExternalLink className="w-3 h-3 text-slate-400" />
+          </Link>
+        </div>
       </div>
     </aside>
   );

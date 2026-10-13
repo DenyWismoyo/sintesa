@@ -127,6 +127,11 @@ export const canAccessCareer = (role: string | null): boolean => {
 export const hasAccess = (role: string | null, pathname: string): boolean => {
   if (!role) return false;
   
+  // Rute Presensi Pegawai STP (Techno Sign) terbuka untuk seluruh staf & admin
+  if (pathname === '/presensi' || pathname.startsWith('/presensi/')) {
+    return true;
+  }
+
   // Fitur rute bursa karir bersifat eksklusif bagi Alumni dan seluruh Administrator
   if (pathname === '/karir' || pathname.startsWith('/karir/')) {
     return canAccessCareer(role);

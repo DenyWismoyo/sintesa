@@ -84,6 +84,7 @@ export interface UserProfile {
   storageLimitBytes: number;
   createdAt?: string;
   canAccessCatalogAdmin?: boolean;
+  catalogRole?: string;
   googleEmail?: string;
   isLinkedGoogle?: boolean;
   linkedGoogleUid?: string;
