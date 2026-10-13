@@ -12,6 +12,7 @@ export interface CreatePegawaiPayload {
   email: string;
   password?: string;
   role: UserRole;
+  jabatanId?: string;
   jabatan: string;
   golongan: string;
   instansi?: string;
@@ -20,7 +21,14 @@ export interface CreatePegawaiPayload {
   departmentName?: string;
   kantorId: string;
   namaKantor: string;
+  /** Level hierarki numerik (1=Pemimpin BLUD ... 10=Magang). Wajib diisi. */
+  rankLevel?: number;
+  /** ID supervisor/atasan langsung. Diset oleh admin. */
+  supervisorId?: string;
+  supervisorNama?: string;
+  /** @deprecated Gunakan supervisorId */
   atasanId?: string;
+  /** @deprecated Gunakan supervisorNama */
   atasanNama?: string;
   nomorHp?: string;
 }
@@ -28,18 +36,19 @@ export interface CreatePegawaiPayload {
 export interface PegawaiFilter {
   kantorId?: string;
   role?: UserRole;
+  rankLevel?: number;
   search?: string;
   departmentName?: string;
 }
 
 /**
- * Mengambil daftar seluruh ASN terdaftar.
- * Akses: Admin & Atasan (Pejabat Penilai).
+ * Mengambil daftar seluruh pegawai terdaftar.
+ * Akses: Admin (semua) & Supervisor/Pegawai biasa (hanya bawahan mereka).
  */
 export async function getPegawaiList(
   filters?: PegawaiFilter
 ): Promise<UserProfile[]> {
-  const sessionUser = await requireAuth(["admin", "atasan"]);
+  const sessionUser = await requireAuth(["admin", "pegawai"]);
 
   let list: UserProfile[] = [];
 
@@ -54,14 +63,34 @@ export async function getPegawaiList(
     }
   }
 
-  // Mode Development Fallback: Gunakan dev store
+  // Mode Development Fallback: Gunakan dev store jika Firestore benar-benar kosong
   if (list.length === 0 && process.env.NODE_ENV === "development") {
     list = (Array.from(getDevUsersStore().values()) as UserProfile[]).filter((u: UserProfile) => u.orgId === sessionUser.orgId);
   }
 
+  // Deduplikasi mutlak berdasarkan accessCode / NIP / Email (1 orang = 1 entri unik)
+  const uniqueMap = new Map<string, UserProfile>();
+  for (const u of list) {
+    const key = (u.accessCode || u.nip || u.email || u.id).trim().toLowerCase();
+    const existing = uniqueMap.get(key);
+    if (!existing) {
+      uniqueMap.set(key, u);
+    } else {
+      // Prioritaskan dokumen definitif (misal akun yang terhubung Google atau yang memiliki rankLevel)
+      if (
+        u.isLinkedGoogle ||
+        (u.rankLevel !== undefined && existing.rankLevel === undefined) ||
+        (!u.id.startsWith("stp-") && existing.id.startsWith("stp-"))
+      ) {
+        uniqueMap.set(key, u);
+      }
+    }
+  }
+  list = Array.from(uniqueMap.values());
+
   // Terapkan filter di memori
   if (filters) {
-    const { kantorId, role, search, departmentName } = filters;
+    const { kantorId, role, search, departmentName, rankLevel } = filters;
     if (kantorId && kantorId !== "all") {
       list = list.filter((u) => u.kantorId === kantorId);
     }
@@ -70,6 +99,9 @@ export async function getPegawaiList(
     }
     if (role && role !== ("all" as unknown as UserRole)) {
       list = list.filter((u) => u.role === role);
+    }
+    if (rankLevel !== undefined) {
+      list = list.filter((u) => u.rankLevel === rankLevel);
     }
     if (search && search.trim()) {
       const q = search.toLowerCase().trim();
@@ -83,12 +115,11 @@ export async function getPegawaiList(
     }
   }
 
-  // Urutkan berdasarkan Role (Admin -> Atasan -> Pegawai) lalu Nama
-  const roleWeight: Record<UserRole, number> = { admin: 1, atasan: 2, pegawai: 3 };
+  // Urutkan berdasarkan rankLevel (1=paling senior) lalu Nama
   return list.sort((a, b) => {
-    const weightA = roleWeight[a.role] || 99;
-    const weightB = roleWeight[b.role] || 99;
-    if (weightA !== weightB) return weightA - weightB;
+    const levelA = a.rankLevel ?? 99;
+    const levelB = b.rankLevel ?? 99;
+    if (levelA !== levelB) return levelA - levelB;
     return a.nama.localeCompare(b.nama);
   });
 }
@@ -168,6 +199,8 @@ export async function createPegawaiAction(
     nama: payload.nama.trim(),
     email: emailLower,
     role: payload.role,
+    jabatanId: payload.jabatanId,
+    rankLevel: payload.rankLevel,
     jabatan: payload.jabatan.trim(),
     golongan: payload.golongan.trim(),
     instansi: payload.instansi || "Perusahaan XYZ - Kantor Pusat",
@@ -176,8 +209,11 @@ export async function createPegawaiAction(
     departmentName: payload.departmentName || "Subdivisi Rekayasa Perangkat Lunak & AI",
     kantorId: payload.kantorId,
     namaKantor: payload.namaKantor,
-    atasanId: payload.atasanId,
-    atasanNama: payload.atasanNama,
+    // Dukung keduanya supervisorId (baru) dan atasanId (backward compat)
+    supervisorId: payload.supervisorId || payload.atasanId,
+    supervisorNama: payload.supervisorNama || payload.atasanNama,
+    atasanId: payload.supervisorId || payload.atasanId,
+    atasanNama: payload.supervisorNama || payload.atasanNama,
     nomorHp: payload.nomorHp?.trim() || "",
     storageUsedBytes: 0,
     storageLimitBytes: DEFAULT_STORAGE_LIMIT_BYTES,
@@ -217,26 +253,39 @@ export async function updatePegawaiAction(
 
   let finalPayload = { ...payload };
 
-  // Sync atasanNama: jika atasanId disediakan tapi atasanNama tidak, resolve dari Firestore/dev store
-  if (finalPayload.atasanId && !finalPayload.atasanNama) {
+  // Sync atasanNama/supervisorNama: jika supervisorId/atasanId disediakan tapi nama tidak, resolve dari Firestore/dev store
+  const newSupervisorId = finalPayload.supervisorId || finalPayload.atasanId;
+  if (newSupervisorId && !finalPayload.supervisorNama && !finalPayload.atasanNama) {
     if (isFirebaseAdminConfigured()) {
       try {
-        const atasanSnap = await adminPresensiDb.collection("users").doc(finalPayload.atasanId).get();
-        if (atasanSnap.exists) {
-          finalPayload.atasanNama = (atasanSnap.data() as UserProfile).nama;
+        const supSnap = await adminPresensiDb.collection("users").doc(newSupervisorId).get();
+        if (supSnap.exists) {
+          const supNama = (supSnap.data() as UserProfile).nama;
+          finalPayload.supervisorNama = supNama;
+          finalPayload.atasanNama = supNama; // backward compat
         }
       } catch (err) {
-        console.warn("[Pegawai Update] Gagal resolve atasanNama:", err);
+        console.warn("[Pegawai Update] Gagal resolve supervisorNama:", err);
       }
     } else if (process.env.NODE_ENV === "development") {
       const store = getDevUsersStore();
-      const atasan = store.get(finalPayload.atasanId);
-      if (atasan) finalPayload.atasanNama = atasan.nama;
+      const sup = store.get(newSupervisorId);
+      if (sup) {
+        finalPayload.supervisorNama = sup.nama;
+        finalPayload.atasanNama = sup.nama; // backward compat
+      }
     }
+    // Sinkronkan supervisorId ke atasanId untuk backward compat
+    finalPayload.atasanId = newSupervisorId;
+    finalPayload.supervisorId = newSupervisorId;
   }
 
-  // Jika atasanId dikosongkan, hapus atasanNama juga
-  if (finalPayload.atasanId === "" || finalPayload.atasanId === null) {
+  // Jika supervisorId dikosongkan, hapus semua field terkait
+  if (finalPayload.supervisorId === "" || finalPayload.supervisorId === null ||
+      finalPayload.atasanId === "" || finalPayload.atasanId === null) {
+    finalPayload.supervisorId = "";
+    finalPayload.supervisorNama = "";
+    finalPayload.atasanId = "";
     finalPayload.atasanNama = "";
   }
 

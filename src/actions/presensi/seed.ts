@@ -4,10 +4,11 @@
 import { adminPresensiDb, adminPresensiAuth } from "@/lib/presensi/firebase-admin";
 import { KANTOR_SOLO_TECHNOPARK } from "@/data/presensi/masterKantor";
 import { STP_CREDENTIALS_LIST } from "@/data/presensi/stpUsers";
+import { DEFAULT_JABATAN_LIST } from "@/data/presensi/masterJabatan";
 import { UserProfile } from "@/types/presensi";
 
 /**
- * Menyuntikkan seluruh master kantor Solo Technopark dan akun pegawai STP ke database 'presensi-pegawai'
+ * Menyuntikkan seluruh master kantor Solo Technopark, master jabatan, dan akun pegawai STP ke database 'presensi-pegawai'
  */
 export async function seedStpDatabaseAction(): Promise<{ success: boolean; count: number; message: string }> {
   try {
@@ -17,9 +18,22 @@ export async function seedStpDatabaseAction(): Promise<{ success: boolean; count
       .doc(KANTOR_SOLO_TECHNOPARK.id)
       .set(KANTOR_SOLO_TECHNOPARK, { merge: true });
 
+    // 2. Simpan Master Jabatan Solo Technopark
+    const batchJabatan = adminPresensiDb.batch();
+    for (const jbt of DEFAULT_JABATAN_LIST) {
+      batchJabatan.set(adminPresensiDb.collection("jabatan").doc(jbt.id), jbt, { merge: true });
+    }
+    await batchJabatan.commit();
+
     let count = 0;
 
-    // 2. Provisioning Akun Pegawai STP
+    // Map jabatan untuk pencocokan cepat
+    const jbtMap = new Map();
+    DEFAULT_JABATAN_LIST.forEach((j) => {
+      jbtMap.set(j.namaJabatan.toLowerCase().trim(), j);
+    });
+
+    // 3. Provisioning Akun Pegawai STP
     for (const cred of STP_CREDENTIALS_LIST) {
       let uid = `stp-user-${cred.accessCode.toLowerCase()}`;
 
@@ -41,18 +55,25 @@ export async function seedStpDatabaseAction(): Promise<{ success: boolean; count
         }
       }
 
-      const profile: UserProfile = {
+      const matchedJbt = jbtMap.get(cred.jabatan.toLowerCase().trim());
+      const rankLevel = matchedJbt ? matchedJbt.level : 9;
+      const jabatanId = matchedJbt ? matchedJbt.id : "";
+      const finalRole = cred.role === "admin" ? "admin" : "pegawai";
+
+      const profile: Partial<UserProfile> = {
         id: uid,
         nip: cred.accessCode,
         accessCode: cred.accessCode,
         nama: cred.nama,
         email: cred.email,
-        role: cred.role,
+        role: finalRole,
+        jabatanId,
+        rankLevel,
         jabatan: cred.jabatan,
         golongan: "Pegawai BLUD Solo Technopark",
         instansi: "UPTD KST Solo Technopark",
         departmentId: `dept-${cred.departmentName.toLowerCase().replace(/[^a-z0-9]/g, "-")}`,
-        departmentName: cred.departmentName,
+        departmentName: matchedJbt ? matchedJbt.departemen : cred.departmentName,
         kantorId: KANTOR_SOLO_TECHNOPARK.id,
         namaKantor: KANTOR_SOLO_TECHNOPARK.namaKantor,
         orgId: "solotechnopark",

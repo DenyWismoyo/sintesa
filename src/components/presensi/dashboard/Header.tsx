@@ -39,16 +39,13 @@ import {
 import { usePresensiHarian } from "@/hooks/presensi/usePresensi";
 import TechnoSignLogo from "@/components/presensi/TechnoSignLogo";
 
-function getRoleLabel(role?: UserRole): string {
-  switch (role) {
-    case "admin":
-      return "Admin BLUD";
-    case "atasan":
-      return "Pejabat / Atasan";
-    case "pegawai":
-    default:
-      return "Pegawai";
-  }
+function getRoleLabel(role?: UserRole, rankLevel?: number): string {
+  if (role === "admin") return "Admin BLUD";
+  const level = rankLevel ?? 9;
+  if (level <= 2) return "Pimpinan BLUD";
+  if (level <= 4) return "Kepala Divisi / Pejabat";
+  if (level <= 6) return "Instruktur Senior";
+  return "Pegawai";
 }
 
 export default function Header() {
@@ -136,49 +133,49 @@ export default function Header() {
       name: "Dashboard Utama",
       href: "/presensi",
       icon: LayoutDashboard,
-      roles: ["admin", "atasan", "pegawai"],
+      roles: ["admin", "pegawai"],
     },
     {
       name: "Presensi Swafoto",
       href: "/presensi/scan",
       icon: ClockCheck,
-      roles: ["admin", "atasan", "pegawai"],
+      roles: ["admin", "pegawai"],
     },
     {
       name: "Laporan Kinerja (LKH)",
       href: "/presensi/laporan",
       icon: FileSpreadsheet,
-      roles: ["admin", "atasan", "pegawai"],
+      roles: ["admin", "pegawai"],
     },
     {
       name: "Pengajuan Cuti / Izin",
       href: "/presensi/izin",
       icon: ShieldCheck,
-      roles: ["admin", "atasan", "pegawai"],
+      roles: ["admin", "pegawai"],
     },
     {
       name: "Permohonan Revisi",
       href: "/presensi/revisi",
       icon: RotateCcw,
-      roles: ["admin", "atasan", "pegawai"],
+      roles: ["admin", "pegawai"],
     },
     {
       name: "Kalender Kerja",
       href: "/presensi/kalender",
       icon: Calendar,
-      roles: ["admin", "atasan", "pegawai"],
+      roles: ["admin", "pegawai"],
     },
     {
       name: "Approval Atasan",
       href: "/presensi/approval",
       icon: ShieldCheck,
-      roles: ["admin", "atasan"],
+      maxRankLevel: 4, // Pimpinan, Pejabat Teknis, Manager, Kepala Divisi
     },
     {
       name: "Rekap & Statistik",
       href: "/presensi/statistik",
       icon: BarChart3,
-      roles: ["admin", "atasan"],
+      maxRankLevel: 4,
     },
     {
       name: "Data Pegawai STP",
@@ -196,13 +193,17 @@ export default function Header() {
       name: "Profil Pegawai",
       href: "/presensi/profil",
       icon: User,
-      roles: ["admin", "atasan", "pegawai"],
+      roles: ["admin", "pegawai"],
     },
   ];
 
-  const filteredNav = fullNavigation.filter((item) =>
-    user ? item.roles.includes(user.role) : true
-  );
+  const filteredNav = fullNavigation.filter((item: any) => {
+    if (!user) return true;
+    if (user.role === "admin") return true;
+    if (item.roles && !item.roles.includes(user.role)) return false;
+    if (item.maxRankLevel !== undefined && (user.rankLevel ?? 9) > item.maxRankLevel) return false;
+    return true;
+  });
 
   return (
     <>
@@ -239,7 +240,7 @@ export default function Header() {
           {/* Role Badge */}
           <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200/70 text-emerald-800 text-[11px] font-semibold">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-            <span>{getRoleLabel(user?.role)}</span>
+            <span>{getRoleLabel(user?.role, user?.rankLevel)}</span>
           </div>
 
           {/* Pengingat Presensi Web Push Notification */}
@@ -332,7 +333,7 @@ export default function Header() {
               <div className="text-[10px] text-emerald-700 font-medium truncate">{user?.jabatan}</div>
               <div className="pt-1.5 flex items-center gap-1.5">
                 <Badge variant="secondary" className="text-[9px] px-2 py-0.5">
-                  {getRoleLabel(user?.role)}
+                  {getRoleLabel(user?.role, user?.rankLevel)}
                 </Badge>
               </div>
             </div>

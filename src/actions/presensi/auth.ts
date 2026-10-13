@@ -89,6 +89,7 @@ export async function validateAndSyncGooglePresensi(
             accessCode: u.accessCode || u.nip || "STP-99999",
             passwordDefault: "StpUser2026!",
             role: u.role || "pegawai",
+            rankLevel: u.rankLevel ?? 9,
             departmentName: u.departmentName || "UPTD Solo Technopark",
           };
           break;

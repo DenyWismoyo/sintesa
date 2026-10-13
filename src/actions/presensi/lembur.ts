@@ -126,8 +126,8 @@ export async function pengajuanLembur(
 }
 
 /**
- * Menyetujui pengajuan lembur bawahan.
- * Hanya dapat diakses oleh role atasan atau admin.
+ * Menyetujui pengajuan lembur.
+ * Hanya supervisor langsung (atasanId) atau admin yang dapat menyetujui.
  */
 export async function approveLembur(
   lemburId: string,
@@ -135,9 +135,10 @@ export async function approveLembur(
   atasanNama: string,
   catatanAtasan?: string
 ): Promise<{ success: boolean; data?: LemburRecord; message?: string }> {
-  const sessionUser = await requireAuth(["atasan", "admin"]);
-  if (sessionUser.id !== atasanId && sessionUser.role !== "admin") {
-    return { success: false, message: "FORBIDDEN: ID atasan tidak sesuai dengan sesi login." };
+  const sessionUser = await requireAuth();
+  const isAuthorized = sessionUser.role === "admin" || sessionUser.id === atasanId;
+  if (!isAuthorized) {
+    return { success: false, message: "FORBIDDEN: Hanya supervisor langsung atau admin yang dapat menyetujui lembur ini." };
   }
 
   let target: LemburRecord | null = null;
@@ -185,8 +186,8 @@ export async function approveLembur(
 }
 
 /**
- * Menolak pengajuan lembur bawahan.
- * Hanya dapat diakses oleh role atasan atau admin.
+ * Menolak pengajuan lembur.
+ * Hanya supervisor langsung (atasanId) atau admin yang dapat menolak.
  */
 export async function rejectLembur(
   lemburId: string,
@@ -194,9 +195,10 @@ export async function rejectLembur(
   atasanNama: string,
   alasanPenolakan: string
 ): Promise<{ success: boolean; data?: LemburRecord; message?: string }> {
-  const sessionUser = await requireAuth(["atasan", "admin"]);
-  if (sessionUser.id !== atasanId && sessionUser.role !== "admin") {
-    return { success: false, message: "FORBIDDEN: ID atasan tidak sesuai dengan sesi login." };
+  const sessionUser = await requireAuth();
+  const isAuthorized = sessionUser.role === "admin" || sessionUser.id === atasanId;
+  if (!isAuthorized) {
+    return { success: false, message: "FORBIDDEN: Hanya supervisor langsung atau admin yang dapat menolak lembur ini." };
   }
 
   let target: LemburRecord | null = null;
@@ -447,12 +449,12 @@ export async function checkOutLembur(
 
 /**
  * Mengambil daftar pengajuan lembur yang menunggu persetujuan.
- * Atasan hanya melihat lembur bawahan langsungnya.
+ * Admin melihat semua; supervisor hanya bawahan langsungnya.
  */
 export async function getPendingLemburList(
   orgId?: string
 ): Promise<LemburRecord[]> {
-  const sessionUser = await requireAuth(["atasan", "admin"]);
+  const sessionUser = await requireAuth();
 
   if (isFirebaseAdminConfigured()) {
     try {
@@ -465,9 +467,9 @@ export async function getPendingLemburList(
 
       if (!snap.empty) {
         let list = snap.docs.map((doc) => doc.data() as LemburRecord);
-        // Filter: atasan hanya melihat bawahan langsungnya
-        if (sessionUser.role === "atasan") {
-          list = list.filter((item) => item.atasanId === sessionUser.id);
+        // Admin melihat semua; supervisor hanya bawahan langsungnya
+        if (sessionUser.role !== "admin") {
+          list = list.filter((item) => item.atasanId === sessionUser.id || (item as any).supervisorId === sessionUser.id);
         }
         return list.sort((a, b) => a.tanggal.localeCompare(b.tanggal));
       }
@@ -481,8 +483,8 @@ export async function getPendingLemburList(
       (item) =>
         item.status === "diajukan" && item.orgId === sessionUser.orgId
     );
-    if (sessionUser.role === "atasan") {
-      list = list.filter((item) => item.atasanId === sessionUser.id);
+    if (sessionUser.role !== "admin") {
+      list = list.filter((item) => item.atasanId === sessionUser.id || (item as any).supervisorId === sessionUser.id);
     }
     return list.sort((a, b) => a.tanggal.localeCompare(b.tanggal));
   }

@@ -26,8 +26,9 @@ export async function getDaftarRevisiPresensiAction(params?: {
 }): Promise<PermohonanRevisiPresensi[]> {
   const sessionUser = await requireAuth();
 
-  const filterUserId =
-    sessionUser.role === "pegawai" ? sessionUser.id : params?.userId;
+  const isSupervisorApprovalView =
+    !params?.userId &&
+    (sessionUser.role === "admin" || (sessionUser.rankLevel !== undefined && sessionUser.rankLevel <= 4));
 
   if (isFirebaseAdminConfigured()) {
     try {
@@ -39,13 +40,19 @@ export async function getDaftarRevisiPresensiAction(params?: {
       if (params?.status) {
         query = query.where("status", "==", params.status);
       }
-      if (filterUserId) {
-        query = query.where("userId", "==", filterUserId);
+      if (params?.userId) {
+        query = query.where("userId", "==", params.userId);
+      } else if (!isSupervisorApprovalView) {
+        query = query.where("userId", "==", sessionUser.id);
       }
 
       const snap = await query.get();
       if (!snap.empty) {
-        return snap.docs.map((doc) => doc.data() as PermohonanRevisiPresensi);
+        let results = snap.docs.map((doc) => doc.data() as PermohonanRevisiPresensi);
+        if (sessionUser.role !== "admin" && isSupervisorApprovalView) {
+          results = results.filter((r) => r.atasanId === sessionUser.id || (r as any).supervisorId === sessionUser.id);
+        }
+        return results;
       }
       return [];
     } catch (err) {
@@ -58,17 +65,19 @@ export async function getDaftarRevisiPresensiAction(params?: {
     let list = Array.from(getDevRevisiStore().values()).sort((a, b) =>
       b.createdAt.localeCompare(a.createdAt)
     );
-
-    if (sessionUser.orgId) {
-      list = list.filter((r) => r.orgId === sessionUser.orgId);
-    }
+    list = list.filter((item) => item.orgId === sessionUser.orgId);
     if (params?.status) {
-      list = list.filter((r) => r.status === params.status);
+      list = list.filter((item) => item.status === params.status);
     }
-    if (filterUserId) {
-      list = list.filter((r) => r.userId === filterUserId);
+    if (params?.userId) {
+      list = list.filter((item) => item.userId === params.userId);
+    } else if (sessionUser.role !== "admin") {
+      if (isSupervisorApprovalView) {
+        list = list.filter((r) => r.atasanId === sessionUser.id || (r as any).supervisorId === sessionUser.id);
+      } else {
+        list = list.filter((item) => item.userId === sessionUser.id);
+      }
     }
-
     return list;
   }
 
@@ -142,6 +151,8 @@ export async function ajukanRevisiPresensiAction(payload: {
     jamPulangDiajukan: payload.jamPulangDiajukan,
     alasan: payload.alasan.trim(),
     lampiranUrl: payload.lampiranUrl,
+    supervisorId: sessionUser.supervisorId || sessionUser.atasanId,
+    atasanId: sessionUser.supervisorId || sessionUser.atasanId,
     status: "menunggu",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -183,7 +194,8 @@ export async function approveRevisiPresensiAction(params: {
   revisiId: string;
   catatanReview?: string;
 }): Promise<{ success: boolean; data?: PermohonanRevisiPresensi; message?: string }> {
-  const sessionUser = await requireAuth(["admin", "atasan"]);
+  // Supervisor langsung ATAU admin dapat menyetujui revisi presensi
+  const sessionUser = await requireAuth();
 
   let revisi: PermohonanRevisiPresensi | null = null;
 
@@ -357,7 +369,8 @@ export async function rejectRevisiPresensiAction(params: {
   revisiId: string;
   alasanPenolakan: string;
 }): Promise<{ success: boolean; data?: PermohonanRevisiPresensi; message?: string }> {
-  const sessionUser = await requireAuth(["admin", "atasan"]);
+  // Supervisor langsung ATAU admin dapat menolak revisi presensi
+  const sessionUser = await requireAuth();
 
   if (!params.alasanPenolakan?.trim()) {
     return { success: false, message: "Alasan penolakan permohonan revisi wajib diisi." };

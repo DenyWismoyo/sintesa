@@ -4,7 +4,8 @@ import React, { useState, useMemo } from "react";
 import { usePresensiAuth } from "@/lib/presensi/auth-context";
 import { usePegawaiList, useCreatePegawaiMutation, useDeletePegawaiMutation, useUpdatePegawaiMutation } from "@/hooks/presensi/usePegawai";
 import { useKantorList } from "@/hooks/presensi/useKantor";
-import { UserProfile, UserRole } from "@/types/presensi";
+import { useJabatanList } from "@/hooks/presensi/useJabatan";
+import { UserProfile, UserRole, DAFTAR_LEVEL_HIERARKI } from "@/types/presensi";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -55,33 +56,56 @@ const DAFTAR_GOLONGAN_ASN = [
   { kode: "IV/e - Pembina Utama", label: "IV/e - Pembina Utama" },
 ];
 
-function getRoleBadge(role: UserRole) {
-  switch (role) {
-    case "admin":
-      return (
-        <Badge variant="outline" className="bg-rose-500/10 text-rose-600 border-rose-200 text-[10px] font-semibold">
-          Admin BKPSDM
-        </Badge>
-      );
-    case "atasan":
-      return (
-        <Badge variant="outline" className="bg-teal-500/10 text-teal-700 border-teal-200 text-[10px] font-semibold">
-          Pejabat Penilai
-        </Badge>
-      );
-    case "pegawai":
-    default:
-      return (
-        <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 border-emerald-200 text-[10px] font-semibold">
-          Pegawai
-        </Badge>
-      );
+function getLevelBadge(rankLevel?: number, role?: UserRole) {
+  if (role === "admin") {
+    return (
+      <Badge variant="outline" className="bg-rose-500/10 text-rose-600 border-rose-200 text-[10px] font-semibold">
+        Admin Sistem
+      </Badge>
+    );
   }
+  const level = rankLevel ?? 9;
+  if (level <= 2) {
+    return (
+      <Badge variant="outline" className="bg-purple-500/10 text-purple-700 border-purple-200 text-[10px] font-semibold">
+        L{level} • Pimpinan BLUD
+      </Badge>
+    );
+  }
+  if (level <= 4) {
+    return (
+      <Badge variant="outline" className="bg-teal-500/10 text-teal-700 border-teal-200 text-[10px] font-semibold">
+        L{level} • {level === 3 ? "Manager" : "Kepala Divisi"}
+      </Badge>
+    );
+  }
+  if (level <= 6) {
+    return (
+      <Badge variant="outline" className="bg-blue-500/10 text-blue-700 border-blue-200 text-[10px] font-semibold">
+        L{level} • Instruktur Senior
+      </Badge>
+    );
+  }
+  if (level <= 8) {
+    return (
+      <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 border-emerald-200 text-[10px] font-semibold">
+        L{level} • Staf Senior
+      </Badge>
+    );
+  }
+  return (
+    <Badge variant="outline" className="bg-slate-500/10 text-slate-700 border-slate-200 text-[10px] font-semibold">
+      L{level} • Staf Pelaksana
+    </Badge>
+  );
 }
 
-function getAvatarColor(nama: string, role: UserRole) {
+function getAvatarColor(nama: string, role: UserRole, rankLevel?: number) {
   if (role === "admin") return "from-rose-600 to-amber-600";
-  if (role === "atasan") return "from-teal-600 to-cyan-700";
+  const level = rankLevel ?? 9;
+  if (level <= 2) return "from-purple-600 to-violet-700";
+  if (level <= 4) return "from-teal-600 to-cyan-700";
+  if (level <= 6) return "from-blue-600 to-indigo-700";
   return "from-emerald-600 to-teal-600";
 }
 
@@ -95,6 +119,7 @@ export default function PegawaiManagementPage() {
   const [selectedDepartment, setSelectedDepartment] = useState("all");
 
   const { data: kantorList = [] } = useKantorList(user?.orgId);
+  const { data: masterJabatanList = [] } = useJabatanList(user?.orgId);
   const {
     data: pegawaiList = [],
     isLoading,
@@ -135,6 +160,8 @@ export default function PegawaiManagementPage() {
     email: "",
     password: "stp123456",
     role: "pegawai" as UserRole,
+    jabatanId: "",
+    rankLevel: 9,
     jabatan: "",
     golongan: "III/a - Penata Muda",
     departmentName: "Subdivisi Rekayasa Perangkat Lunak & AI",
@@ -143,18 +170,76 @@ export default function PegawaiManagementPage() {
     nomorHp: "",
   });
 
-  // Filter daftar atasan yang tersedia untuk dropdown
-  const atasanList = useMemo(() => {
-    return pegawaiList.filter((p) => p.role === "atasan" || p.role === "admin");
-  }, [pegawaiList]);
+  // Handler saat admin memilih Jabatan dari Master Data (Form Create)
+  const handleJabatanSelectCreate = (selectedId: string) => {
+    if (selectedId === "custom") {
+      setFormData((prev) => ({ ...prev, jabatanId: "" }));
+      return;
+    }
+    const jbt = masterJabatanList.find((j) => j.id === selectedId);
+    if (jbt) {
+      // Rekomendasi atasan langsung jika ada parentJabatanId
+      let recAtasanId = formData.atasanId;
+      if (jbt.parentJabatanId) {
+        const parentHolders = allPegawai.filter(
+          (p) =>
+            p.jabatanId === jbt.parentJabatanId ||
+            p.jabatan?.trim().toLowerCase() === jbt.parentJabatanNama?.trim().toLowerCase()
+        );
+        if (parentHolders.length > 0) {
+          recAtasanId = parentHolders[0].id;
+        }
+      }
 
-  // Statistik Ringkas
+      setFormData((prev) => ({
+        ...prev,
+        jabatanId: jbt.id,
+        jabatan: jbt.namaJabatan,
+        rankLevel: jbt.level,
+        departmentName: jbt.departemen || prev.departmentName,
+        atasanId: recAtasanId,
+      }));
+    }
+  };
+
+  // Handler saat admin memilih Jabatan dari Master Data (Form Edit)
+  const handleJabatanSelectEdit = (selectedId: string) => {
+    if (selectedId === "custom") {
+      setEditForm((prev) => ({ ...prev, jabatanId: "" }));
+      return;
+    }
+    const jbt = masterJabatanList.find((j) => j.id === selectedId);
+    if (jbt) {
+      setEditForm((prev) => ({
+        ...prev,
+        jabatanId: jbt.id,
+        jabatan: jbt.namaJabatan,
+        rankLevel: jbt.level,
+        departmentName: jbt.departemen || prev.departmentName,
+      }));
+    }
+  };
+
+  // Filter daftar supervisor yang tersedia untuk dropdown (diurutkan berdasarkan senioritas rankLevel)
+  const atasanList = useMemo(() => {
+    return allPegawai
+      .filter((p) => p.role === "admin" || (p.rankLevel !== undefined && p.rankLevel <= 8))
+      .sort((a, b) => {
+        const levelA = a.rankLevel ?? 99;
+        const levelB = b.rankLevel ?? 99;
+        if (levelA !== levelB) return levelA - levelB;
+        return a.nama.localeCompare(b.nama);
+      });
+  }, [allPegawai]);
+
+  // Statistik Ringkas berdasarkan rankLevel
   const stats = useMemo(() => {
     const total = pegawaiList.length;
-    const pegawaiCount = pegawaiList.filter((p) => p.role === "pegawai").length;
-    const atasanCount = pegawaiList.filter((p) => p.role === "atasan").length;
+    const pemimpinCount = pegawaiList.filter((p) => (p.rankLevel ?? 9) <= 2).length;
+    const kepDivisiCount = pegawaiList.filter((p) => (p.rankLevel ?? 9) === 4).length;
+    const stafCount = pegawaiList.filter((p) => (p.rankLevel ?? 9) >= 9).length;
     const adminCount = pegawaiList.filter((p) => p.role === "admin").length;
-    return { total, pegawaiCount, atasanCount, adminCount };
+    return { total, pemimpinCount, kepDivisiCount, stafCount, adminCount };
   }, [pegawaiList]);
 
   // Handler input NIP otomatis auto-suggest email
@@ -170,15 +255,19 @@ export default function PegawaiManagementPage() {
   const handleOpenModal = () => {
     const defaultKantor = kantorList[0]?.id || "kantor-stp";
     const defaultAtasan = atasanList[0]?.id || "";
+    const defaultJbt = masterJabatanList.find((j) => j.level >= 8) || masterJabatanList[0];
+
     setFormData({
       nip: "",
       nama: "",
       email: "",
       password: "stp123456",
       role: "pegawai",
-      jabatan: "Pranata Komputer Ahli Pertama",
+      jabatanId: defaultJbt?.id || "",
+      rankLevel: defaultJbt?.level || 9,
+      jabatan: defaultJbt?.namaJabatan || "Staf Pelaksana",
       golongan: "III/a - Penata Muda",
-      departmentName: "Subdivisi Rekayasa Perangkat Lunak & AI",
+      departmentName: defaultJbt?.departemen || "Subdivisi Rekayasa Perangkat Lunak & AI",
       kantorId: defaultKantor,
       atasanId: defaultAtasan,
       nomorHp: "",
@@ -201,11 +290,15 @@ export default function PegawaiManagementPage() {
         email: formData.email,
         password: formData.password,
         role: formData.role,
+        jabatanId: formData.jabatanId,
+        rankLevel: Number(formData.rankLevel),
         jabatan: formData.jabatan,
         golongan: formData.golongan,
         kantorId: kantorObj?.id || "kantor-stp",
         namaKantor: kantorObj?.namaKantor || "Kantor Pusat",
         departmentName: formData.departmentName,
+        supervisorId: atasanObj?.id,
+        supervisorNama: atasanObj?.nama,
         atasanId: atasanObj?.id,
         atasanNama: atasanObj?.nama,
         nomorHp: formData.nomorHp,
@@ -254,15 +347,23 @@ export default function PegawaiManagementPage() {
 
   const handleOpenEditModal = (targetUser: UserProfile) => {
     setEditingPegawai(targetUser);
+    const matchedJbt = masterJabatanList.find(
+      (j) =>
+        j.id === targetUser.jabatanId ||
+        j.namaJabatan.trim().toLowerCase() === targetUser.jabatan?.trim().toLowerCase()
+    );
+
     setEditForm({
+      jabatanId: matchedJbt?.id || targetUser.jabatanId || "",
       jabatan: targetUser.jabatan || "",
       golongan: targetUser.golongan || "III/a - Penata Muda",
       departmentName: targetUser.departmentName || "",
       kantorId: targetUser.kantorId || "",
-      atasanId: targetUser.atasanId || "",
-      atasanNama: targetUser.atasanNama || "",
+      atasanId: targetUser.supervisorId || targetUser.atasanId || "",
+      atasanNama: targetUser.supervisorNama || targetUser.atasanNama || "",
       nomorHp: targetUser.nomorHp || "",
       role: targetUser.role,
+      rankLevel: targetUser.rankLevel ?? matchedJbt?.level ?? 9,
     });
     setAlertMessage(null);
     setIsEditModalOpen(true);
@@ -276,13 +377,17 @@ export default function PegawaiManagementPage() {
     const atasanObj = atasanList.find((a) => a.id === editForm.atasanId);
 
     const payload: Partial<UserProfile> = {
+      jabatanId: editForm.jabatanId,
       jabatan: editForm.jabatan,
       golongan: editForm.golongan,
       departmentName: editForm.departmentName,
       kantorId: kantorObj?.id || editForm.kantorId,
       namaKantor: kantorObj?.namaKantor,
+      rankLevel: editForm.rankLevel !== undefined ? Number(editForm.rankLevel) : 9,
+      supervisorId: atasanObj?.id || editForm.atasanId || "",
+      supervisorNama: atasanObj?.nama || editForm.atasanNama || "",
       atasanId: atasanObj?.id || editForm.atasanId || "",
-      atasanNama: atasanObj?.nama || "",
+      atasanNama: atasanObj?.nama || editForm.atasanNama || "",
       nomorHp: editForm.nomorHp,
       role: editForm.role as UserRole,
     };
@@ -343,16 +448,16 @@ export default function PegawaiManagementPage() {
             <div className="text-lg md:text-xl font-bold text-white mt-0.5">{stats.total} Pegawai</div>
           </div>
           <div className="bg-slate-800/50 backdrop-blur rounded-xl p-3 border border-slate-700/50">
+            <div className="text-[10px] text-purple-400 uppercase tracking-wider font-semibold">Pimpinan BLUD</div>
+            <div className="text-lg md:text-xl font-bold text-purple-300 mt-0.5">{stats.pemimpinCount} Pegawai</div>
+          </div>
+          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-3 border border-slate-700/50">
+            <div className="text-[10px] text-teal-400 uppercase tracking-wider font-semibold">Kepala Divisi</div>
+            <div className="text-lg md:text-xl font-bold text-teal-300 mt-0.5">{stats.kepDivisiCount} Orang</div>
+          </div>
+          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-3 border border-slate-700/50">
             <div className="text-[10px] text-emerald-400 uppercase tracking-wider font-semibold">Staf Pelaksana</div>
-            <div className="text-lg md:text-xl font-bold text-emerald-300 mt-0.5">{stats.pegawaiCount} Pegawai</div>
-          </div>
-          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-3 border border-slate-700/50">
-            <div className="text-[10px] text-teal-400 uppercase tracking-wider font-semibold">Pejabat Penilai</div>
-            <div className="text-lg md:text-xl font-bold text-teal-300 mt-0.5">{stats.atasanCount} Atasan</div>
-          </div>
-          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-3 border border-slate-700/50">
-            <div className="text-[10px] text-rose-400 uppercase tracking-wider font-semibold">Admin Sistem</div>
-            <div className="text-lg md:text-xl font-bold text-rose-300 mt-0.5">{stats.adminCount} Akun</div>
+            <div className="text-lg md:text-xl font-bold text-emerald-300 mt-0.5">{stats.stafCount} Pegawai</div>
           </div>
         </div>
       </div>
@@ -414,7 +519,6 @@ export default function PegawaiManagementPage() {
               >
                 <option value="all">Semua Peran</option>
                 <option value="pegawai">Pegawai</option>
-                <option value="atasan">Pejabat Penilai</option>
                 <option value="admin">Admin Techno Sign</option>
               </select>
             </div>
@@ -508,18 +612,18 @@ export default function PegawaiManagementPage() {
 
                       {/* Atasan Langsung */}
                       <td className="py-3 px-4">
-                        {p.atasanNama ? (
+                        {p.supervisorNama || p.atasanNama ? (
                           <div className="text-slate-700">
-                            <div className="font-medium">{p.atasanNama}</div>
-                            <div className="text-[10px] text-slate-400">Penilai Kinerja</div>
+                            <div className="font-medium">{p.supervisorNama || p.atasanNama}</div>
+                            <div className="text-[10px] text-teal-600 font-medium">Atasan Langsung</div>
                           </div>
                         ) : (
                           <span className="text-slate-400 italic text-[11px]">— Mandiri / Pimpinan</span>
                         )}
                       </td>
 
-                      {/* Role Badge */}
-                      <td className="py-3 px-4">{getRoleBadge(p.role)}</td>
+                      {/* Level & Role Badge */}
+                      <td className="py-3 px-4">{getLevelBadge(p.rankLevel, p.role)}</td>
 
                       {/* Actions */}
                       {isAdmin && (
@@ -574,7 +678,7 @@ export default function PegawaiManagementPage() {
                         <div className="text-[11px] text-slate-500 font-mono mt-0.5">NIP: {p.nip}</div>
                       </div>
                     </div>
-                    {getRoleBadge(p.role)}
+                    {getLevelBadge(p.rankLevel, p.role)}
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 text-[11px] pt-2 border-t border-slate-100">
@@ -593,10 +697,10 @@ export default function PegawaiManagementPage() {
                       <Building2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                       <span>Kantor: {p.namaKantor || "Kantor Pusat"}</span>
                     </div>
-                    {p.atasanNama && (
+                    {(p.supervisorNama || p.atasanNama) && (
                       <div className="flex items-center gap-1.5">
                         <UserCheck className="w-3.5 h-3.5 text-teal-600 shrink-0" />
-                        <span>Atasan: {p.atasanNama}</span>
+                        <span>Atasan: {p.supervisorNama || p.atasanNama}</span>
                       </div>
                     )}
                     <div className="flex items-center gap-1.5 text-slate-400">
@@ -605,17 +709,28 @@ export default function PegawaiManagementPage() {
                     </div>
                   </div>
 
-                  {isAdmin && p.id !== user?.id && (
-                    <div className="flex justify-end pt-1">
+                  {isAdmin && (
+                    <div className="flex justify-end items-center gap-2 pt-1">
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleDeleteUser(p)}
-                        className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 text-[11px] h-8 border-rose-200"
+                        onClick={() => handleOpenEditModal(p)}
+                        className="text-violet-600 hover:text-violet-700 hover:bg-violet-50 text-[11px] h-8 border-violet-200"
                       >
-                        <Trash2 className="w-3.5 h-3.5 mr-1" />
-                        Nonaktifkan
+                        <Pencil className="w-3.5 h-3.5 mr-1" />
+                        Edit Pegawai
                       </Button>
+                      {p.id !== user?.id && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteUser(p)}
+                          className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 text-[11px] h-8 border-rose-200"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 mr-1" />
+                          Nonaktifkan
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -744,7 +859,7 @@ export default function PegawaiManagementPage() {
                 </div>
               </div>
 
-              {/* Grid 3 Kolom Peran, Golongan & Jabatan */}
+              {/* Grid 3 Kolom Peran, Level & Golongan */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-slate-700">
@@ -755,15 +870,31 @@ export default function PegawaiManagementPage() {
                     onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
                     className="w-full text-xs h-9 rounded-md border border-slate-200 bg-white px-3 text-slate-800 focus:ring-2 focus:ring-emerald-500"
                   >
-                    <option value="pegawai">Pegawai (Staf)</option>
-                    <option value="atasan">Pejabat Penilai (Atasan)</option>
-                    <option value="admin">Administrator (BKPSDM)</option>
+                    <option value="pegawai">Pegawai</option>
+                    <option value="admin">Administrator</option>
                   </select>
                 </div>
 
-                <div className="space-y-1 sm:col-span-2">
+                <div className="space-y-1">
                   <Label className="text-xs font-semibold text-slate-700">
-                    Pangkat & Golongan Ruang <span className="text-rose-500">*</span>
+                    Tingkat Hierarki (Level) <span className="text-rose-500">*</span>
+                  </Label>
+                  <select
+                    value={formData.rankLevel}
+                    onChange={(e) => setFormData({ ...formData, rankLevel: Number(e.target.value) })}
+                    className="w-full text-xs h-9 rounded-md border border-slate-200 bg-white px-3 text-slate-800 focus:ring-2 focus:ring-emerald-500 font-medium"
+                  >
+                    {DAFTAR_LEVEL_HIERARKI.map((lvl) => (
+                      <option key={lvl.level} value={lvl.level}>
+                        {lvl.short} (L{lvl.level})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold text-slate-700">
+                    Pangkat & Golongan <span className="text-rose-500">*</span>
                   </Label>
                   <select
                     value={formData.golongan}
@@ -779,34 +910,75 @@ export default function PegawaiManagementPage() {
                 </div>
               </div>
 
-              {/* Jabatan & Unit Kerja */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-slate-700">
-                    Nama Jabatan Kedinasan <span className="text-rose-500">*</span>
+              {/* Master Jabatan & Level Otomatis */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <Briefcase className="w-3.5 h-3.5 text-emerald-600" />
+                    Pilih Master Jabatan Organisasi <span className="text-rose-500">*</span>
                   </Label>
-                  <Input
-                    type="text"
-                    required
-                    placeholder="Contoh: Pranata Komputer Ahli Pertama"
-                    value={formData.jabatan}
-                    onChange={(e) => setFormData({ ...formData, jabatan: e.target.value })}
-                    className="text-xs h-9"
-                  />
+                  <span className="text-[10px] text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-md font-semibold">
+                    Level Terpilih: L{formData.rankLevel}
+                  </span>
                 </div>
 
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-slate-700">
-                    Subdivisi / Bidang Unit
-                  </Label>
-                  <Input
-                    type="text"
-                    placeholder="Contoh: Subdivisi Rekayasa Perangkat Lunak"
-                    value={formData.departmentName}
-                    onChange={(e) => setFormData({ ...formData, departmentName: e.target.value })}
-                    className="text-xs h-9"
-                  />
+                <select
+                  value={formData.jabatanId || "custom"}
+                  onChange={(e) => handleJabatanSelectCreate(e.target.value)}
+                  className="w-full text-xs h-9 rounded-md border border-slate-200 bg-white px-3 text-slate-800 focus:ring-2 focus:ring-emerald-500 font-medium"
+                >
+                  <option value="custom">— Masukkan Jabatan Kustom / Input Manual —</option>
+                  {masterJabatanList.map((j) => (
+                    <option key={j.id} value={j.id}>
+                      {j.namaJabatan} • Level {j.level} ({j.tipeJabatan || "pelaksana"})
+                    </option>
+                  ))}
+                </select>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+                  <div className="sm:col-span-2 space-y-1">
+                    <Label className="text-[11px] font-medium text-slate-600">
+                      Nama Jabatan Tercetak <span className="text-rose-500">*</span>
+                    </Label>
+                    <Input
+                      type="text"
+                      required
+                      placeholder="Contoh: Pranata Komputer Ahli Pertama"
+                      value={formData.jabatan}
+                      onChange={(e) => setFormData({ ...formData, jabatan: e.target.value })}
+                      className="text-xs h-8.5 bg-white"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-[11px] font-medium text-slate-600">
+                      Level Hierarki
+                    </Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={20}
+                      required
+                      value={formData.rankLevel}
+                      onChange={(e) => setFormData({ ...formData, rankLevel: Number(e.target.value) })}
+                      className="text-xs h-8.5 bg-white font-bold"
+                    />
+                  </div>
                 </div>
+              </div>
+
+              {/* Subdivisi Unit Kerja */}
+              <div className="space-y-1">
+                <Label className="text-xs font-semibold text-slate-700">
+                  Subdivisi / Bidang Unit
+                </Label>
+                <Input
+                  type="text"
+                  placeholder="Contoh: Subdivisi Rekayasa Perangkat Lunak"
+                  value={formData.departmentName}
+                  onChange={(e) => setFormData({ ...formData, departmentName: e.target.value })}
+                  className="text-xs h-9"
+                />
               </div>
 
               {/* Kantor Unit & Atasan Langsung */}
@@ -832,17 +1004,17 @@ export default function PegawaiManagementPage() {
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
                     <UserCheck className="w-3.5 h-3.5 text-teal-600" />
-                    Atasan Langsung (Penilai LKH)
+                    Atasan Langsung (Penilai Kinerja / Approval)
                   </Label>
                   <select
                     value={formData.atasanId}
                     onChange={(e) => setFormData({ ...formData, atasanId: e.target.value })}
                     className="w-full text-xs h-9 rounded-md border border-slate-200 bg-white px-3 text-slate-800 focus:ring-2 focus:ring-emerald-500"
                   >
-                    <option value="">— Tidak Ada (Pejabat Utama) —</option>
+                    <option value="">— Tidak Ada (Pimpinan Utama) —</option>
                     {atasanList.map((a) => (
                       <option key={a.id} value={a.id}>
-                        {a.nama} ({a.jabatan})
+                        {a.nama} ({a.jabatan} • Level {a.rankLevel ?? 9})
                       </option>
                     ))}
                   </select>
@@ -929,30 +1101,71 @@ export default function PegawaiManagementPage() {
             )}
 
             <form onSubmit={handleSaveEdit} className="p-5 space-y-4">
-              {/* Role */}
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold text-slate-700">Role / Jabatan Fungsional</Label>
-                <select
-                  value={editForm.role || "pegawai"}
-                  onChange={(e) => setEditForm({ ...editForm, role: e.target.value as UserRole })}
-                  className="w-full text-xs h-9 rounded-md border border-slate-200 bg-white px-3 text-slate-800 focus:ring-2 focus:ring-violet-500"
-                >
-                  <option value="pegawai">Pegawai</option>
-                  <option value="atasan">Atasan / Pejabat Penilai</option>
-                  <option value="admin">Admin BKPSDM</option>
-                </select>
+              {/* Role & Tingkat Hierarki */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold text-slate-700">Peran Sistem (Role)</Label>
+                  <select
+                    value={editForm.role || "pegawai"}
+                    onChange={(e) => setEditForm({ ...editForm, role: e.target.value as UserRole })}
+                    className="w-full text-xs h-9 rounded-md border border-slate-200 bg-white px-3 text-slate-800 focus:ring-2 focus:ring-violet-500"
+                  >
+                    <option value="pegawai">Pegawai</option>
+                    <option value="admin">Administrator</option>
+                  </select>
+                </div>
+
               </div>
 
-              {/* Jabatan */}
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold text-slate-700">Jabatan</Label>
-                <Input
-                  type="text"
-                  value={editForm.jabatan || ""}
-                  onChange={(e) => setEditForm({ ...editForm, jabatan: e.target.value })}
-                  placeholder="Contoh: Pranata Komputer Ahli Pertama"
-                  className="text-xs h-9"
-                />
+              {/* Master Jabatan & Level Otomatis (Modal Edit) */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <Briefcase className="w-3.5 h-3.5 text-violet-600" />
+                    Pilih Master Jabatan Organisasi
+                  </Label>
+                  <span className="text-[10px] text-violet-700 bg-violet-100/80 px-2 py-0.5 rounded-md font-semibold">
+                    Level Terpilih: L{editForm.rankLevel ?? 9}
+                  </span>
+                </div>
+
+                <select
+                  value={editForm.jabatanId || "custom"}
+                  onChange={(e) => handleJabatanSelectEdit(e.target.value)}
+                  className="w-full text-xs h-9 rounded-md border border-slate-200 bg-white px-3 text-slate-800 focus:ring-2 focus:ring-violet-500 font-medium"
+                >
+                  <option value="custom">— Masukkan Jabatan Kustom / Input Manual —</option>
+                  {masterJabatanList.map((j) => (
+                    <option key={j.id} value={j.id}>
+                      {j.namaJabatan} • Level {j.level} ({j.tipeJabatan || "pelaksana"})
+                    </option>
+                  ))}
+                </select>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+                  <div className="sm:col-span-2 space-y-1">
+                    <Label className="text-[11px] font-medium text-slate-600">Nama Jabatan</Label>
+                    <Input
+                      type="text"
+                      value={editForm.jabatan || ""}
+                      onChange={(e) => setEditForm({ ...editForm, jabatan: e.target.value })}
+                      placeholder="Contoh: Pranata Komputer Ahli Pertama"
+                      className="text-xs h-8.5 bg-white"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-[11px] font-medium text-slate-600">Level Hierarki</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={20}
+                      value={editForm.rankLevel ?? 9}
+                      onChange={(e) => setEditForm({ ...editForm, rankLevel: Number(e.target.value) })}
+                      className="text-xs h-8.5 bg-white font-bold"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Golongan */}
@@ -1016,12 +1229,12 @@ export default function PegawaiManagementPage() {
                   }}
                   className="w-full text-xs h-9 rounded-md border border-slate-200 bg-white px-3 text-slate-800 focus:ring-2 focus:ring-violet-500"
                 >
-                  <option value="">— Mandiri / Tidak Ada Atasan —</option>
+                  <option value="">— Mandiri / Pimpinan Utama —</option>
                   {atasanList
                     .filter((a) => a.id !== editingPegawai.id) // Tidak bisa jadi atasan diri sendiri
                     .map((a) => (
                       <option key={a.id} value={a.id}>
-                        {a.nama} — {a.jabatan || a.role}
+                        {a.nama} ({a.jabatan} • Level {a.rankLevel ?? 9})
                       </option>
                     ))}
                 </select>

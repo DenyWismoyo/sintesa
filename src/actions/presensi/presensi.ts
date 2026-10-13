@@ -547,7 +547,7 @@ export async function evaluateDailyAbsenceAction(targetTanggal?: string): Promis
   totalAlpaDihasilkan: number;
   message: string;
 }> {
-  const sessionUser = await requireAuth(["admin", "atasan"]);
+  const sessionUser = await requireAuth(["admin"]);
   const tanggal = targetTanggal || getWIBDateString();
 
   // 1. Cek apakah tanggal evaluasi adalah hari kerja

@@ -1,6 +1,7 @@
-import { PresensiRecord, LKHRecord, UserProfile, PermohonanRevisiPresensi, PengajuanIzinItem, LemburRecord } from "@/types/presensi";
+import { PresensiRecord, LKHRecord, UserProfile, PermohonanRevisiPresensi, PengajuanIzinItem, LemburRecord, MasterJabatan } from "@/types/presensi";
 import { STP_CREDENTIALS_LIST } from "./stpUsers";
 import { KANTOR_SOLO_TECHNOPARK } from "./masterKantor";
+import { DEFAULT_JABATAN_LIST } from "./masterJabatan";
 
 // In-memory dev stores dengan singleton globalThis agar persist antar Hot-Reload Next.js
 const globalAny = globalThis as any;
@@ -11,6 +12,12 @@ const devUserStore: Map<string, UserProfile> = globalAny._devUserStore || new Ma
 const devRevisiStore: Map<string, PermohonanRevisiPresensi> = globalAny._devRevisiStore || new Map();
 const devIzinStore: Map<string, PengajuanIzinItem> = globalAny._devIzinStore || new Map();
 const devLemburStore: Map<string, LemburRecord> = globalAny._devLemburStore || new Map();
+const devJabatanStore: Map<string, MasterJabatan> = globalAny._devJabatanStore || new Map();
+
+// Inisialisasi awal devJabatanStore jika kosong
+if (devJabatanStore.size === 0) {
+  DEFAULT_JABATAN_LIST.forEach((j) => devJabatanStore.set(j.id, { ...j }));
+}
 
 if (process.env.NODE_ENV !== "production") {
   globalAny._devPresensiStore = devPresensiStore;
@@ -19,6 +26,7 @@ if (process.env.NODE_ENV !== "production") {
   globalAny._devRevisiStore = devRevisiStore;
   globalAny._devIzinStore = devIzinStore;
   globalAny._devLemburStore = devLemburStore;
+  globalAny._devJabatanStore = devJabatanStore;
 }
 
 // Inisialisasi seed permohonan revisi awal realistis
@@ -131,6 +139,30 @@ export function getDevUserProfile(emailOrUid: string): UserProfile | null {
     storageUsedBytes: 0,
     storageLimitBytes: 1073741824,
   };
+}
+
+export function getDevJabatanStore() {
+  return devJabatanStore;
+}
+
+export function addDevJabatan(jabatan: MasterJabatan) {
+  devJabatanStore.set(jabatan.id, jabatan);
+}
+
+export function updateDevJabatan(id: string, updates: Partial<MasterJabatan>) {
+  const existing = devJabatanStore.get(id);
+  if (existing) {
+    devJabatanStore.set(id, { ...existing, ...updates, updatedAt: new Date().toISOString() });
+  }
+}
+
+export function deleteDevJabatan(id: string) {
+  devJabatanStore.delete(id);
+}
+
+export function resetDevJabatan() {
+  devJabatanStore.clear();
+  DEFAULT_JABATAN_LIST.forEach((j) => devJabatanStore.set(j.id, { ...j }));
 }
 
 export const SEED_FIREBASE_UIDS = {

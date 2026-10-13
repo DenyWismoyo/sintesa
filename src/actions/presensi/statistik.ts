@@ -105,10 +105,10 @@ export async function calculateRekapStatistik(
     }
   }
 
-  // Jika atasan login, prioritaskan menampilkan timnya atau kantornya
-  if (userRole === "atasan" && userId) {
+  // Jika pegawai/supervisor login bukan admin, prioritaskan menampilkan tim bawahannya atau dirinya sendiri
+  if (userRole !== "admin" && userId) {
     const timBawahan = pegawaiList.filter(
-      (p) => p.atasanId === userId || p.id === userId
+      (p) => p.supervisorId === userId || p.atasanId === userId || p.id === userId
     );
     if (timBawahan.length > 0) {
       pegawaiList = timBawahan;
@@ -367,14 +367,16 @@ export async function calculateRekapStatistik(
 
 /**
  * Server Action resmi yang dipanggil dari antarmuka pengguna
- * Dilindungi autentikasi ketat bagi Role Admin dan Atasan.
+/**
+ * Mendapatkan rekap statistik. Admin mendapat akses penuh,
+ * supervisor mendapat akses terbatas ke bawahan langsungnya.
  */
 export async function getRekapStatistikAction(params: {
   bulan?: number;
   tahun?: number;
   kantorId?: string;
 }): Promise<RekapStatistikData> {
-  const sessionUser = await requireAuth(["admin", "atasan"]);
+  const sessionUser = await requireAuth();
   return await calculateRekapStatistik(
     { ...params, orgId: sessionUser.orgId },
     sessionUser.role,

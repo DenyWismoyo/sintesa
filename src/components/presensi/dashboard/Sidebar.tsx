@@ -22,6 +22,7 @@ import {
   ExternalLink,
   Timer,
   RotateCcw,
+  Network,
 } from "lucide-react";
 import TechnoSignLogo from "@/components/presensi/TechnoSignLogo";
 
@@ -34,60 +35,66 @@ export default function Sidebar() {
       name: "Dashboard Utama",
       href: "/presensi",
       icon: LayoutDashboard,
-      roles: ["admin", "atasan", "pegawai"],
+      roles: ["admin", "pegawai"],
     },
     {
       name: "Presensi Swafoto",
       href: "/presensi/scan",
       icon: ClockCheck,
-      roles: ["admin", "atasan", "pegawai"],
+      roles: ["admin", "pegawai"],
     },
     {
       name: "Laporan Kinerja (LKH)",
       href: "/presensi/laporan",
       icon: FileSpreadsheet,
-      roles: ["admin", "atasan", "pegawai"],
+      roles: ["admin", "pegawai"],
     },
     {
       name: "Pengajuan Cuti / Izin",
       href: "/presensi/izin",
       icon: ShieldCheck,
-      roles: ["admin", "atasan", "pegawai"],
+      roles: ["admin", "pegawai"],
     },
     {
       name: "Pengajuan Lembur",
       href: "/presensi/lembur",
       icon: Timer,
-      roles: ["admin", "atasan", "pegawai"],
+      roles: ["admin", "pegawai"],
     },
     {
       name: "Permohonan Revisi",
       href: "/presensi/revisi",
       icon: RotateCcw,
-      roles: ["admin", "atasan", "pegawai"],
+      roles: ["admin", "pegawai"],
     },
     {
       name: "Kalender Kerja",
       href: "/presensi/kalender",
       icon: Calendar,
-      roles: ["admin", "atasan", "pegawai"],
+      roles: ["admin", "pegawai"],
     },
     {
       name: "Approval Atasan",
       href: "/presensi/approval",
       icon: ShieldCheck,
-      roles: ["admin", "atasan"],
+      maxRankLevel: 4, // Pimpinan, Pejabat Teknis, Manager, Kepala Divisi
     },
     {
       name: "Rekap & Statistik",
       href: "/presensi/statistik",
       icon: BarChart3,
-      roles: ["admin", "atasan"],
+      maxRankLevel: 4,
     },
     {
       name: "Data Pegawai STP",
       href: "/presensi/pegawai",
       icon: Users,
+      roles: ["admin"],
+    },
+    {
+      name: "Hierarki Jabatan",
+      href: "/presensi/jabatan",
+      icon: Network,
       roles: ["admin"],
     },
     {
@@ -98,9 +105,13 @@ export default function Sidebar() {
     },
   ];
 
-  const filteredNav = navigation.filter((item) =>
-    user ? item.roles.includes(user.role) : true
-  );
+  const filteredNav = navigation.filter((item: any) => {
+    if (!user) return true;
+    if (user.role === "admin") return true;
+    if (item.roles && !item.roles.includes(user.role)) return false;
+    if (item.maxRankLevel !== undefined && (user.rankLevel ?? 9) > item.maxRankLevel) return false;
+    return true;
+  });
 
   return (
     <aside className="hidden md:flex w-64 flex-col shrink-0 bg-white/95 border-r border-slate-200/90 min-h-screen sticky top-0 backdrop-blur-md shadow-xs">

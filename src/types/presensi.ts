@@ -1,7 +1,13 @@
 // src/types/presensi.ts
 import { z } from "zod";
 
-export type UserRole = "admin" | "atasan" | "pegawai";
+/**
+ * Role sistem: "admin" = Admin Presensi (akses manajemen penuh),
+ * "pegawai" = Semua pegawai operasional (termasuk pimpinan).
+ * Hierarki kewenangan kini ditentukan oleh rankLevel (1-10) dan supervisorId,
+ * bukan role. Role "atasan" telah dihapus.
+ */
+export type UserRole = "admin" | "pegawai";
 
 export type PresensiStatus =
   | "hadir"
@@ -37,8 +43,37 @@ export interface UserProfile {
   instansi: string; // UPTD KST Solo Technopark
   departmentId: string;
   departmentName: string;
+
+  /**
+   * Level hierarki numerik pegawai (1=Pemimpin BLUD, 10=Magang/Honorer).
+   * Digunakan sebagai pengganti role-based hierarchy untuk approval.
+   * Skema: 1=Pemimpin BLUD, 2=Pejabat Teknis, 3=Manager,
+   *        4=Kepala Divisi, 5-6=Instruktur Senior, 7-8=Instruktur/Staf Senior,
+   *        9=Staf/Operator, 10=Magang/Honorer.
+   */
+  /** ID master jabatan yang dipilih (referensi ke MasterJabatan) */
+  jabatanId?: string;
+
+  /**
+   * Level hierarki numerik pegawai (1=Pemimpin BLUD, 10=Magang/Honorer).
+   * Digunakan sebagai pengganti role-based hierarchy untuk approval.
+   * Nilai ini otomatis disinkronisasi dari MasterJabatan yang dipilih,
+   * atau bisa disesuaikan secara manual oleh Admin.
+   */
+  rankLevel?: number;
+
+  /**
+   * ID atasan langsung pegawai ini. Diset oleh Admin melalui panel manajemen pegawai.
+   * Approval izin/lembur/revisi/LKH hanya bisa dilakukan oleh supervisorId ini atau admin.
+   */
+  supervisorId?: string;
+  supervisorNama?: string;
+
+  /** @deprecated Gunakan supervisorId. Dipertahankan untuk backward compat data Firestore lama. */
   atasanId?: string;
+  /** @deprecated Gunakan supervisorNama. Dipertahankan untuk backward compat. */
   atasanNama?: string;
+
   fotoUrl?: string;
   orgId: string;
   nomorHp?: string;
@@ -55,6 +90,52 @@ export interface UserProfile {
   linkedGoogleEmail?: string;
   linkedAt?: string;
 }
+
+/**
+ * Master Data Jabatan & Hierarki Dinamis.
+ * Level menentukan derajat kewenangan (1=Tertinggi/Pimpinan Puncak, angka lebih besar = tingkatan di bawahnya).
+ * Tidak di-hardcode ke angka kaku 1-10; admin bebas menambah jabatan dan menentukan levelnya.
+ */
+export interface MasterJabatan {
+  id: string;
+  namaJabatan: string;
+  /** Angka level hierarki (1=Tertinggi, makin kecil makin tinggi kewenangannya) */
+  level: number;
+  /** ID jabatan atasan langsung dalam organogram pohon hierarki */
+  parentJabatanId?: string | null;
+  /** Nama jabatan atasan langsung (denormalisasi untuk display cepat) */
+  parentJabatanNama?: string | null;
+  /** Subdivisi atau unit kerja default yang terkait dengan jabatan ini */
+  departemen?: string;
+  /** Klasifikasi birokrasi / jenis jabatan */
+  tipeJabatan?: "struktural" | "fungsional" | "pelaksana";
+  /** Status operasional jabatan */
+  status: "aktif" | "nonaktif";
+  /** Keterangan atau uraian tugas ringkas */
+  keterangan?: string;
+  orgId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface LevelHierarkiItem {
+  level: number;
+  label: string;
+  short: string;
+}
+
+export const DAFTAR_LEVEL_HIERARKI: LevelHierarkiItem[] = [
+  { level: 1, label: "Level 1 — Pemimpin BLUD / Direktur Eksekutif", short: "Pemimpin BLUD" },
+  { level: 2, label: "Level 2 — Pejabat Keuangan & Teknis", short: "Pejabat Teknis" },
+  { level: 3, label: "Level 3 — Manager Operasional", short: "Manager" },
+  { level: 4, label: "Level 4 — Kepala Divisi / Unit", short: "Kepala Divisi" },
+  { level: 5, label: "Level 5 — Instruktur Senior / Koordinator", short: "Instruktur Senior" },
+  { level: 6, label: "Level 6 — Instruktur Ahli", short: "Instruktur Ahli" },
+  { level: 7, label: "Level 7 — Instruktur Muda", short: "Instruktur Muda" },
+  { level: 8, label: "Level 8 — Staf Senior", short: "Staf Senior" },
+  { level: 9, label: "Level 9 — Staf Pelaksana / Operator", short: "Staf Pelaksana" },
+  { level: 10, label: "Level 10 — Magang / Tenaga Teknis Lepas", short: "Magang / Lepas" },
+];
 
 export type KategoriKantor =
   | "Pusat"
@@ -346,6 +427,8 @@ export interface PermohonanRevisiPresensi {
   jamPulangDiajukan?: string;
   alasan: string;
   lampiranUrl?: string;
+  supervisorId?: string;
+  atasanId?: string;
   status: StatusRevisiPresensi;
   catatanReview?: string;
   reviewedBy?: string;

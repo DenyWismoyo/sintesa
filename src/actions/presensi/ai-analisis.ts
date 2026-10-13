@@ -32,7 +32,7 @@ const NAMA_BULAN = [
 export async function generatePresensiAIAnalysisAction(
   payload: GeneratePresensiAIAnalysisPayload
 ): Promise<AIAnalysisResult> {
-  const sessionUser = await requireAuth(["admin", "atasan"]);
+  const sessionUser = await requireAuth();
 
   const { bulan, tahun, namaUnit, summary, daftarPegawai } = payload;
   const namaBulanStr = NAMA_BULAN[bulan - 1] || `Bulan ${bulan}`;

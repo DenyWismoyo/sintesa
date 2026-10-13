@@ -45,11 +45,13 @@ import {
 
 export default function ApprovalPage() {
   const { user } = usePresensiAuth();
-  const isAtasanOrAdmin = user?.role === "atasan" || user?.role === "admin";
+  // Semua pegawai yang menjadi supervisor dapat mengakses approval.
+  // Akses tidak lagi dibatasi oleh role "atasan"; data difilter di server berdasarkan supervisorId.
+  const isSupervisorOrAdmin = true; // server-side authorization handles access control
 
   const { data: pendingList = [], isLoading } = usePendingLKHList(user?.orgId);
   const { data: pendingLemburList = [], isLoading: isLoadingLembur } = usePendingLemburList(user?.orgId);
-  const { data: pendingIzinList = [], isLoading: isLoadingIzin } = usePendingIzinList(isAtasanOrAdmin);
+  const { data: pendingIzinList = [], isLoading: isLoadingIzin } = usePendingIzinList(isSupervisorOrAdmin);
   const { data: pendingRevisiList = [], isLoading: isLoadingRevisi } = useDaftarRevisiPresensi("menunggu");
 
   const approveMutation = useApproveLKHMutation();
@@ -251,7 +253,7 @@ export default function ApprovalPage() {
     }
   };
 
-  if (!isAtasanOrAdmin) {
+  if (!isSupervisorOrAdmin) {
     return (
       <div className="p-8 max-w-2xl mx-auto text-center space-y-4">
         <div className="w-16 h-16 rounded-2xl bg-amber-100 border border-amber-300 text-amber-700 flex items-center justify-center mx-auto">

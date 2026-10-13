@@ -103,10 +103,11 @@ describe("Presensi Techno Sign Solo Technopark", () => {
       expect(admin?.nama).toContain("Admin BLUD");
     });
 
-    it("harus memvalidasi akun Kepala Divisi Riset (Abednego Danu) berkewenangan atasan", () => {
+    it("harus memvalidasi akun Kepala Divisi Riset (Abednego Danu) berpangkat Kepala Divisi (rankLevel 4)", () => {
       const atasan = getStpUserProfileByEmail("abednego.danu@solotechnopark.id");
       expect(atasan).toBeDefined();
-      expect(atasan?.role).toBe("atasan");
+      expect(atasan?.role).toBe("pegawai");
+      expect(atasan?.rankLevel).toBe(4);
       expect(atasan?.nama).toContain("Abednego Danu");
     });
 

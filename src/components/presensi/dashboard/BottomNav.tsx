@@ -21,9 +21,9 @@ export default function BottomNav() {
   const pathname = usePathname();
   const { user } = usePresensiAuth();
 
-  const isAtasanOrAdmin = user?.role === "atasan" || user?.role === "admin";
-  const { data: pendingList = [] } = usePendingLKHList(isAtasanOrAdmin ? user?.orgId : undefined);
-  const pendingCount = isAtasanOrAdmin ? pendingList.length : 0;
+  const isSupervisorOrAdmin = user?.role === "admin" || (user?.rankLevel !== undefined && user.rankLevel <= 4);
+  const { data: pendingList = [] } = usePendingLKHList(isSupervisorOrAdmin ? user?.orgId : undefined);
+  const pendingCount = isSupervisorOrAdmin ? pendingList.length : 0;
 
   const navItems = [
     {
@@ -42,7 +42,7 @@ export default function BottomNav() {
       icon: ClockCheck,
       isSpecial: true,
     },
-    isAtasanOrAdmin
+    isSupervisorOrAdmin
       ? {
           name: "Approval",
           href: "/presensi/approval",

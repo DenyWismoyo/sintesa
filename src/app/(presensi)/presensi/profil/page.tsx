@@ -113,11 +113,15 @@ export default function ProfilPage() {
                 Peran Sistem
               </span>
               <div className="font-semibold text-slate-800 capitalize">
-                {user?.role === "pegawai"
-                  ? "Pegawai Pelaksana"
-                  : user?.role === "atasan"
-                  ? "Pejabat Penilai / Atasan"
-                  : "Administrator Techno Sign"}
+                {user?.role === "admin"
+                  ? "Administrator Techno Sign"
+                  : (user?.rankLevel ?? 9) <= 2
+                  ? "Pimpinan BLUD"
+                  : (user?.rankLevel ?? 9) <= 3
+                  ? "Pejabat Teknis"
+                  : (user?.rankLevel ?? 9) <= 4
+                  ? "Manager / Kepala Divisi"
+                  : "Pegawai Pelaksana"}
               </div>
             </div>
           </div>

@@ -33,7 +33,11 @@ export async function getLKHByDate(
   tanggal: string
 ): Promise<LKHRecord | null> {
   const sessionUser = await requireAuth();
-  if (sessionUser.role === "pegawai" && sessionUser.id !== userId) {
+  const isSupervisorOrAdmin =
+    sessionUser.role === "admin" ||
+    (sessionUser.rankLevel !== undefined && sessionUser.rankLevel <= 4);
+
+  if (!isSupervisorOrAdmin && sessionUser.id !== userId) {
     throw new Error("FORBIDDEN: Anda hanya dapat mengakses LKH milik Anda sendiri.");
   }
 
@@ -200,8 +204,10 @@ export async function submitLKH(
 export async function getPendingLKHList(
   orgId?: string
 ): Promise<LKHRecord[]> {
-  // Validasi sesi — hanya atasan/admin
-  const sessionUser = await requireAuth(["atasan", "admin"]);
+  // Semua pegawai bisa memanggil ini; filter dilakukan di level data:
+  // - Admin: semua LKH submitted dalam orgId
+  // - Supervisor: hanya LKH yang atasanId === sessionUser.id
+  const sessionUser = await requireAuth();
 
   if (isFirebaseAdminConfigured()) {
     try {
@@ -213,8 +219,8 @@ export async function getPendingLKHList(
 
       if (!snap.empty) {
         let list = snap.docs.map((doc) => doc.data() as LKHRecord);
-        // Filter: atasan hanya melihat LKH bawahan langsungnya
-        if (sessionUser.role === "atasan") {
+        // Admin melihat semua; supervisor hanya bawahan langsungnya
+        if (sessionUser.role !== "admin") {
           list = list.filter((item) => item.atasanId === sessionUser.id);
         }
         return list;
@@ -228,8 +234,8 @@ export async function getPendingLKHList(
   if (process.env.NODE_ENV === "development") {
     let list = Array.from(getDevLKHStore().values());
     list = list.filter((item) => item.status === "submitted" && item.orgId === sessionUser.orgId);
-    // Filter per atasan
-    if (sessionUser.role === "atasan") {
+    // Admin melihat semua; supervisor hanya bawahan langsungnya
+    if (sessionUser.role !== "admin") {
       list = list.filter((item) => item.atasanId === sessionUser.id);
     }
     return list;
@@ -239,8 +245,8 @@ export async function getPendingLKHList(
 }
 
 /**
- * Menyetujui LKH bawahan oleh Atasan Langsung.
- * Hanya dapat diakses oleh role atasan/admin.
+ * Menyetujui LKH bawahan.
+ * Hanya supervisor langsung (atasanId) atau admin yang dapat menyetujui.
  */
 export async function approveLKH(
   lkhId: string,
@@ -248,10 +254,10 @@ export async function approveLKH(
   atasanNama: string,
   catatanAtasan?: string
 ): Promise<{ success: boolean; data?: LKHRecord; message?: string }> {
-  // Validasi sesi — hanya atasan/admin
-  const sessionUser = await requireAuth(["atasan", "admin"]);
-  if (sessionUser.id !== atasanId && sessionUser.role !== "admin") {
-    return { success: false, message: "FORBIDDEN: ID atasan tidak sesuai dengan sesi login." };
+  const sessionUser = await requireAuth();
+  const isAuthorized = sessionUser.role === "admin" || sessionUser.id === atasanId;
+  if (!isAuthorized) {
+    return { success: false, message: "FORBIDDEN: Hanya supervisor langsung atau admin yang dapat menyetujui LKH ini." };
   }
 
   let target: LKHRecord | null = null;
@@ -319,7 +325,7 @@ export async function approveLKH(
 
 /**
  * Menolak/Mengembalikan LKH bawahan untuk perbaikan.
- * Hanya dapat diakses oleh role atasan/admin.
+ * Hanya supervisor langsung (atasanId) atau admin yang dapat menolak.
  */
 export async function rejectLKH(
   lkhId: string,
@@ -327,10 +333,10 @@ export async function rejectLKH(
   atasanNama: string,
   rejectedReason: string
 ): Promise<{ success: boolean; data?: LKHRecord; message?: string }> {
-  // Validasi sesi — hanya atasan/admin
-  const sessionUser = await requireAuth(["atasan", "admin"]);
-  if (sessionUser.id !== atasanId && sessionUser.role !== "admin") {
-    return { success: false, message: "FORBIDDEN: ID atasan tidak sesuai dengan sesi login." };
+  const sessionUser = await requireAuth();
+  const isAuthorized = sessionUser.role === "admin" || sessionUser.id === atasanId;
+  if (!isAuthorized) {
+    return { success: false, message: "FORBIDDEN: Hanya supervisor langsung atau admin yang dapat menolak LKH ini." };
   }
 
   let target: LKHRecord | null = null;

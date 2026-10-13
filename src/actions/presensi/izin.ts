@@ -8,7 +8,8 @@ import { getDevIzinStore, getDevPresensiStore } from "@/data/presensi/seedData";
 /**
  * Mengambil daftar pengajuan izin.
  * Pegawai hanya bisa melihat izin miliknya sendiri.
- * Atasan/admin bisa melihat semua izin bawahan (berdasarkan orgId).
+ * Admin bisa melihat semua izin dalam orgId-nya.
+ * Supervisor (supervisorId) bisa melihat izin bawahannya.
  */
 export async function getIzinList(userId?: string): Promise<PengajuanIzinItem[]> {
   // FIX: requireAuth WAJIB dipanggil sebelum query
@@ -21,7 +22,8 @@ export async function getIzinList(userId?: string): Promise<PengajuanIzinItem[]>
         query = query.where("userId", "==", userId);
       } else {
         query = query.where("orgId", "==", sessionUser.orgId);
-        if (sessionUser.role === "atasan") {
+        // Jika bukan admin, hanya tampilkan izin di mana user adalah supervisor langsung
+        if (sessionUser.role !== "admin") {
           query = query.where("atasanId", "==", sessionUser.id);
         }
       }
@@ -46,7 +48,8 @@ export async function getIzinList(userId?: string): Promise<PengajuanIzinItem[]>
     }
     
     list = list.filter((item) => item.orgId === sessionUser.orgId);
-    if (sessionUser.role === "atasan") {
+    // Jika bukan admin, hanya tampilkan izin yang ditujukan ke user ini sebagai supervisor
+    if (sessionUser.role !== "admin") {
       list = list.filter((item) => item.atasanId === sessionUser.id);
     }
     return list;
@@ -100,17 +103,19 @@ export async function submitIzin(
 }
 
 /**
- * Menyetujui pengajuan izin/cuti bawahan.
- * Hanya dapat diakses oleh role atasan atau admin.
+ * Menyetujui pengajuan izin/cuti.
+ * Hanya supervisor langsung (atasanId) atau admin yang dapat menyetujui.
  */
 export async function approveIzin(
   izinId: string,
   atasanId: string,
   catatanAtasan?: string
 ): Promise<{ success: boolean; data?: PengajuanIzinItem; message?: string }> {
-  const sessionUser = await requireAuth(["atasan", "admin"]);
-  if (sessionUser.id !== atasanId && sessionUser.role !== "admin") {
-    return { success: false, message: "FORBIDDEN: ID atasan tidak sesuai dengan sesi login." };
+  const sessionUser = await requireAuth();
+  // Otorisasi: harus admin ATAU supervisor langsung dari pengajuan ini
+  const isAuthorized = sessionUser.role === "admin" || sessionUser.id === atasanId;
+  if (!isAuthorized) {
+    return { success: false, message: "FORBIDDEN: Hanya supervisor langsung atau admin yang dapat menyetujui izin ini." };
   }
 
   let target: PengajuanIzinItem | null = null;
@@ -198,17 +203,18 @@ export async function approveIzin(
 }
 
 /**
- * Menolak pengajuan izin/cuti bawahan.
- * Hanya dapat diakses oleh role atasan atau admin.
+ * Menolak pengajuan izin/cuti.
+ * Hanya supervisor langsung (atasanId) atau admin yang dapat menolak.
  */
 export async function rejectIzin(
   izinId: string,
   atasanId: string,
   alasanPenolakan: string
 ): Promise<{ success: boolean; data?: PengajuanIzinItem; message?: string }> {
-  const sessionUser = await requireAuth(["atasan", "admin"]);
-  if (sessionUser.id !== atasanId && sessionUser.role !== "admin") {
-    return { success: false, message: "FORBIDDEN: ID atasan tidak sesuai dengan sesi login." };
+  const sessionUser = await requireAuth();
+  const isAuthorized = sessionUser.role === "admin" || sessionUser.id === atasanId;
+  if (!isAuthorized) {
+    return { success: false, message: "FORBIDDEN: Hanya supervisor langsung atau admin yang dapat menolak izin ini." };
   }
 
   let target: PengajuanIzinItem | null = null;

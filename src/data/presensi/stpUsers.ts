@@ -9,6 +9,8 @@ export interface StpCredentialItem {
   passwordDefault: string;
   role: UserRole;
   departmentName: string;
+  /** Level hierarki numerik (1=Pemimpin BLUD … 10=Magang) */
+  rankLevel: number;
 }
 
 export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
@@ -18,7 +20,8 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "email": "abednego.danu@solotechnopark.id",
     "accessCode": "STP-50120",
     "passwordDefault": "StpUser2026!",
-    "role": "atasan",
+    "role": "pegawai",
+    "rankLevel": 4,
     "departmentName": "Kepala Divisi Riset dan Inkubator"
   },
   {
@@ -28,6 +31,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-53851",
     "passwordDefault": "StpUser2026!",
     "role": "admin",
+    "rankLevel": 1,
     "departmentName": "Admin BLUD Solo Technopark"
   },
   {
@@ -36,7 +40,8 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "email": "agus.jatmiko@solotechnopark.id",
     "accessCode": "STP-91377",
     "passwordDefault": "StpUser2026!",
-    "role": "atasan",
+    "role": "pegawai",
+    "rankLevel": 4,
     "departmentName": "Kepala Divisi Information Technology"
   },
   {
@@ -46,6 +51,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-63160",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 7,
     "departmentName": "Instruktur Welding"
   },
   {
@@ -55,6 +61,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-56814",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 7,
     "departmentName": "Instruktur Kerja Bangku"
   },
   {
@@ -64,6 +71,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-16048",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 9,
     "departmentName": "Staf Divisi Kerjasama dan Hukum 2"
   },
   {
@@ -72,7 +80,8 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "email": "anang.handyka@solotechnopark.id",
     "accessCode": "STP-87081",
     "passwordDefault": "StpUser2026!",
-    "role": "atasan",
+    "role": "pegawai",
+    "rankLevel": 4,
     "departmentName": "Kepala Divisi Anggaran"
   },
   {
@@ -82,6 +91,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-47261",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 9,
     "departmentName": "Staff Maintenance 1"
   },
   {
@@ -91,6 +101,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-73339",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 9,
     "departmentName": "Support OGSCI"
   },
   {
@@ -100,6 +111,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-75127",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 9,
     "departmentName": "Operator CNC Milling"
   },
   {
@@ -108,7 +120,8 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "email": "ani.anggraeni@solotechnopark.id",
     "accessCode": "STP-68417",
     "passwordDefault": "StpUser2026!",
-    "role": "atasan",
+    "role": "pegawai",
+    "rankLevel": 4,
     "departmentName": "Kepala Divisi Administrasi dan Kepegawaian"
   },
   {
@@ -118,6 +131,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-42901",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 7,
     "departmentName": "Instruktur Milling"
   },
   {
@@ -126,7 +140,8 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "email": "arief.wibowo@solotechnopark.id",
     "accessCode": "STP-17980",
     "passwordDefault": "StpUser2026!",
-    "role": "atasan",
+    "role": "pegawai",
+    "rankLevel": 4,
     "departmentName": "Kepala Divisi Diklat"
   },
   {
@@ -135,7 +150,8 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "email": "ariyani.oktaviana@solotechnopark.id",
     "accessCode": "STP-17789",
     "passwordDefault": "StpUser2026!",
-    "role": "atasan",
+    "role": "pegawai",
+    "rankLevel": 4,
     "departmentName": "Kepala Divisi Akuntansi"
   },
   {
@@ -145,6 +161,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-69265",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 9,
     "departmentName": "Operator Manual"
   },
   {
@@ -153,7 +170,8 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "email": "budiharto@solotechnopark.id",
     "accessCode": "STP-43334",
     "passwordDefault": "StpUser2026!",
-    "role": "atasan",
+    "role": "pegawai",
+    "rankLevel": 4,
     "departmentName": "Kepala Divisi Pemasaran dan Marketing"
   },
   {
@@ -162,7 +180,8 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "email": "danang.cahyono@solotechnopark.id",
     "accessCode": "STP-29693",
     "passwordDefault": "StpUser2026!",
-    "role": "atasan",
+    "role": "pegawai",
+    "rankLevel": 4,
     "departmentName": "Kepala Divisi Pemberdayaan Kawasan"
   },
   {
@@ -171,7 +190,8 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "email": "erwin.sudrajat@solotechnopark.id",
     "accessCode": "STP-57679",
     "passwordDefault": "StpUser2026!",
-    "role": "atasan",
+    "role": "pegawai",
+    "rankLevel": 4,
     "departmentName": "Kepala Divisi Welding Edukasi"
   },
   {
@@ -181,6 +201,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-52267",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 8,
     "departmentName": "Marketing Diklat"
   },
   {
@@ -190,6 +211,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-48540",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 8,
     "departmentName": "Programer CNC Milling 1"
   },
   {
@@ -198,7 +220,8 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "email": "febri.arif@solotechnopark.id",
     "accessCode": "STP-72545",
     "passwordDefault": "StpUser2026!",
-    "role": "atasan",
+    "role": "pegawai",
+    "rankLevel": 4,
     "departmentName": "Kepala Divisi Produksi Dan Pemasaran"
   },
   {
@@ -208,6 +231,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-53771",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 8,
     "departmentName": "Programer CNC Bubut"
   },
   {
@@ -217,6 +241,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-90943",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 9,
     "departmentName": "Toolman dan Expedisi"
   },
   {
@@ -225,7 +250,8 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "email": "lucia.citra@solotechnopark.id",
     "accessCode": "STP-62041",
     "passwordDefault": "StpUser2026!",
-    "role": "atasan",
+    "role": "pegawai",
+    "rankLevel": 4,
     "departmentName": "Kepala Divisi Public Relation"
   },
   {
@@ -235,6 +261,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-34311",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 9,
     "departmentName": "Staf Information Technology"
   },
   {
@@ -244,6 +271,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-23952",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 7,
     "departmentName": "Instruktur Grinding"
   },
   {
@@ -253,6 +281,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-38799",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 9,
     "departmentName": "Driver"
   },
   {
@@ -261,7 +290,8 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "email": "oktafianto.nugroho@solotechnopark.id",
     "accessCode": "STP-97793",
     "passwordDefault": "StpUser2026!",
-    "role": "atasan",
+    "role": "pegawai",
+    "rankLevel": 4,
     "departmentName": "Kepala Divisi Logistik"
   },
   {
@@ -271,6 +301,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-61588",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 9,
     "departmentName": "Staf Riset dan Inkubator 2"
   },
   {
@@ -280,6 +311,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-50918",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 7,
     "departmentName": "Instruktur Bubut"
   },
   {
@@ -289,6 +321,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-11421",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 9,
     "departmentName": "Staf Kesekretariatan"
   },
   {
@@ -298,6 +331,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-48762",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 9,
     "departmentName": "Staf Riset dan Inkubator 1"
   },
   {
@@ -307,6 +341,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-97738",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 8,
     "departmentName": "Marketing Pemberdayaan Kawasan"
   },
   {
@@ -315,7 +350,8 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "email": "riza.kurniawan@solotechnopark.id",
     "accessCode": "STP-65505",
     "passwordDefault": "StpUser2026!",
-    "role": "atasan",
+    "role": "pegawai",
+    "rankLevel": 4,
     "departmentName": "Kepala Divisi Kerjasama dan Hukum"
   },
   {
@@ -325,6 +361,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-83915",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 9,
     "departmentName": "Staf Keuangan"
   },
   {
@@ -334,6 +371,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-40130",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 9,
     "departmentName": "House Keeping"
   },
   {
@@ -343,6 +381,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-36117",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 9,
     "departmentName": "Staff Maintenance 3"
   },
   {
@@ -352,6 +391,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-31342",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 9,
     "departmentName": "Operator Welding"
   },
   {
@@ -361,6 +401,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-45069",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 9,
     "departmentName": "Staff Maintenance 2"
   },
   {
@@ -369,7 +410,8 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "email": "susilo.budi@solotechnopark.id",
     "accessCode": "STP-64199",
     "passwordDefault": "StpUser2026!",
-    "role": "atasan",
+    "role": "pegawai",
+    "rankLevel": 3,
     "departmentName": "Manager Dukungan Bisnis Pelayanan dan Pengembangan"
   },
   {
@@ -379,6 +421,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-10911",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 9,
     "departmentName": "Staf Pemberdayaan Kawasan 1"
   },
   {
@@ -388,6 +431,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-30298",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 8,
     "departmentName": "Marketing Officer"
   },
   {
@@ -397,6 +441,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-78003",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 7,
     "departmentName": "Instruktur Cadcam/ Gambar Teknik"
   },
   {
@@ -405,7 +450,8 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "email": "untung.priyohananto@solotechnopark.id",
     "accessCode": "STP-44486",
     "passwordDefault": "StpUser2026!",
-    "role": "atasan",
+    "role": "pegawai",
+    "rankLevel": 2,
     "departmentName": "Pejabat Teknis Umum"
   },
   {
@@ -414,7 +460,8 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "email": "yudit.cahyantoro@solotechnopark.id",
     "accessCode": "STP-22757",
     "passwordDefault": "StpUser2026!",
-    "role": "atasan",
+    "role": "pegawai",
+    "rankLevel": 1,
     "departmentName": "Pemimpin BLUD"
   },
   {
@@ -424,6 +471,7 @@ export const STP_CREDENTIALS_LIST: StpCredentialItem[] = [
     "accessCode": "STP-53681",
     "passwordDefault": "StpUser2026!",
     "role": "pegawai",
+    "rankLevel": 9,
     "departmentName": "Staf Divisi Kerjasama dan Hukum 1"
   }
 ];
@@ -448,6 +496,7 @@ export function getStpUserProfileByEmail(emailOrCode: string): UserProfile | nul
     nama: found.nama,
     email: found.email,
     role: found.role,
+    rankLevel: found.rankLevel,
     jabatan: found.jabatan,
     golongan: "Pegawai BLUD Solo Technopark",
     instansi: "UPTD KST Solo Technopark",
