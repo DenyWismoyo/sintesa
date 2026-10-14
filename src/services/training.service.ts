@@ -84,6 +84,17 @@ export const trainingService = {
     });
     
     await updateDoc(doc(db, COLLECTION_NAME, trainingId), { registeredCount: increment(1) });
+    
+    if (registrationData.batchId) {
+      try {
+        await updateDoc(doc(db, COLLECTION_NAME, trainingId, 'batches', registrationData.batchId), {
+          registeredCount: increment(1),
+        });
+      } catch (err) {
+        console.warn("[BATCH COUNT] Gagal meng-update count batch:", err);
+      }
+    }
+
     return { success: true, registrationId: regRef.id };
   },
 

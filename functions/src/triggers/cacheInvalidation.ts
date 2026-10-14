@@ -248,3 +248,52 @@ export const onTrainingWrittenInvalidateCache = onDocumentWritten("trainings/{tr
     return false;
   }
 });
+
+/**
+ * P16: Trigger otomatis saat ada dokumen alumni yang dibuat, diubah, atau dihapus (Yudisium Batch / Smart Import).
+ * Menjamin master cache alumni (/cache_alumnis/master) selalu sinkron tanpa N-Reads di frontend.
+ */
+export const onAlumniWrittenInvalidateCache = onDocumentWritten("alumnis/{alumniId}", async (event) => {
+  try {
+    const snapshot = await db.collection('alumnis').orderBy('createdAt', 'desc').get();
+    const compressedAlumnis: any[] = [];
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      compressedAlumnis.push({
+        id: doc.id,
+        name: data.name || '',
+        phone: data.phone || '',
+        email: data.email || '',
+        programTaken: data.programTaken || '',
+        trainingYear: data.trainingYear || data.graduationYear || '',
+        batch: data.batch || '',
+        status: data.status || 'DORMANT',
+        registrationCode: data.registrationCode || '',
+        employmentStatus: (!data.employmentStatus || data.employmentStatus === 'Belum Bekerja') ? 'Proses Verifikasi' : data.employmentStatus,
+        company: data.company || '',
+        currentJob: data.currentJob || '',
+        birthInfo: data.birthInfo || '',
+        address: data.address || '',
+        certificationResult: data.certificationResult || '',
+        createdAt: data.createdAt || 0
+      });
+    });
+
+    const cachePayload = {
+      lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+      count: compressedAlumnis.length,
+      data: compressedAlumnis
+    };
+
+    guardDocumentSize('cache_alumnis/master', cachePayload);
+
+    await db.collection(`artifacts/${DEFAULT_APP_ID}/public/data/cache_alumnis`).doc('master').set(cachePayload);
+
+    console.log(`[AUTO CACHE ALUMNI] Master cache alumni berhasil di-update secara otomatis (${compressedAlumnis.length} alumni).`);
+    return true;
+  } catch (error) {
+    console.error("[AUTO CACHE ALUMNI ERROR]", error);
+    return false;
+  }
+});

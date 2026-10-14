@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { useRouter } from 'next/navigation';
-import { Plus, Search, Edit, Trash2, Calendar, Loader2, LayoutGrid, Users, BookOpen, Tag, Info, GraduationCap, Briefcase } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Calendar, Loader2, LayoutGrid, Users, BookOpen, Tag, Info, GraduationCap, Briefcase, Layers } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin';
 import { useTraining } from '@/hooks/useTraining';
 import { canPerformAction, PERMISSIONS } from '@/config/roles';
@@ -189,7 +189,8 @@ export default function AdminPelatihanPage() {
                         </td>
                         <td className="px-5 py-3.5 text-right pr-6" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-end gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => router.push(`/pelatihan/${t.id}/peserta`)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 bg-white border border-slate-200 rounded-lg shadow-2xs" title="Lihat Peserta"><Users size={14} /></button>
+                            <button onClick={() => router.push(`/pelatihan/${t.id}/peserta?view=batches`)} className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 bg-white border border-slate-200 rounded-lg shadow-2xs" title="Kelola 4 Batch"><Layers size={14} /></button>
+                            <button onClick={() => router.push(`/pelatihan/${t.id}/peserta`)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 bg-white border border-slate-200 rounded-lg shadow-2xs" title="Lihat Peserta & Penilaian"><Users size={14} /></button>
                             <button onClick={() => router.push(`/pelatihan/builder?id=${t.id}`)} className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 bg-white border border-slate-200 rounded-lg shadow-2xs" title="Edit Kelas"><Edit size={14} /></button>
                             <button onClick={() => t.id && handleDelete(t.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 bg-white border border-slate-200 rounded-lg shadow-2xs" title="Hapus Kelas"><Trash2 size={14} /></button>
                           </div>

@@ -90,21 +90,20 @@ export default function AlumniQuickMatchBanner() {
             <span>{isSyncing ? 'Menyinkronkan Database...' : 'Sinkronkan Database Sekarang'}</span>
           </Button>
 
-          <Link href="/program-pelatihan" className="w-full">
+          <Link href="/profil" className="w-full">
             <Button className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-md gap-2">
               <GraduationCap className="w-4 h-4" />
-              <span>Ikuti Pelatihan Baru di STP</span>
+              <span>Klaim Profil Alumni STP (Kode AL-...)</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Button>
           </Link>
 
-          <Link href="/ekosistem" className="w-full">
+          <Link href="/program-pelatihan" className="w-full">
             <Button
               variant="outline"
-              className="w-full h-11 bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs font-bold rounded-xl"
+              className="w-full h-11 bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs font-bold rounded-xl gap-2"
             >
-              <Building2 className="w-4 h-4 mr-2" />
-              <span>Lihat Mitra Industri Kawasan</span>
+              <span>Lihat Katalog Pelatihan</span>
             </Button>
           </Link>
         </div>

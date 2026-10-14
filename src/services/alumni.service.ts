@@ -1,5 +1,5 @@
 import { 
-  collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, 
+  collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, setDoc,
   query, where, orderBy, limit, startAfter, writeBatch,
   DocumentData, QueryDocumentSnapshot
 } from 'firebase/firestore';
@@ -244,5 +244,53 @@ export const alumniService = {
       console.error("Error claiming alumni:", error);
       throw new Error("Terjadi kesalahan sistem saat mencoba klaim profil.");
     }
-  }
+  },
+
+  /**
+   * P16: Sinkronisasi Master Cache Alumni (1-Read Pattern)
+   * Mengkompresi seluruh data alumni ke dalam dokumen tunggal cache_alumnis/master
+   */
+  syncAlumniMasterCache: async () => {
+    try {
+      const appId = getAppId();
+      const q = query(collection(db, COLLECTION_NAME), orderBy('createdAt', 'desc'));
+      const snapshot = await getDocs(q);
+      const compressed: any[] = [];
+
+      snapshot.forEach((d) => {
+        const data = d.data();
+        compressed.push({
+          id: d.id,
+          name: data.name || '',
+          phone: data.phone || '',
+          email: data.email || '',
+          programTaken: data.programTaken || '',
+          trainingYear: data.trainingYear || data.graduationYear || '',
+          batch: data.batch || '',
+          status: data.status || 'DORMANT',
+          registrationCode: data.registrationCode || '',
+          employmentStatus: (!data.employmentStatus || data.employmentStatus === 'Belum Bekerja') ? 'Proses Verifikasi' : data.employmentStatus,
+          company: data.company || '',
+          currentJob: data.currentJob || '',
+          birthInfo: data.birthInfo || '',
+          address: data.address || '',
+          certificationResult: data.certificationResult || '',
+          createdAt: data.createdAt || 0,
+        });
+      });
+
+      const cacheRef = doc(db, `artifacts/${appId}/public/data/cache_alumnis`, 'master');
+      await setDoc(cacheRef, {
+        lastUpdated: Date.now(),
+        count: compressed.length,
+        data: compressed,
+      });
+
+      console.log(`[SYNC CACHE ALUMNI] Berhasil menyinkronkan master cache alumni (${compressed.length} alumni)`);
+      return { success: true, count: compressed.length };
+    } catch (err) {
+      console.warn("[SYNC CACHE ALUMNI WARNING] Gagal sinkronisasi cache alumni:", err);
+      return { success: false, error: err };
+    }
+  },
 };

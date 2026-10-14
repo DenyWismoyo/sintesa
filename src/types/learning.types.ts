@@ -88,23 +88,65 @@ export const TrainingSchema = z.object({
   status: z.enum(['Draft', 'Published', 'Aktif', 'Selesai', 'Dibatalkan']).default('Draft'),
   instructorAccessCode: z.string().optional(), 
   authorizedInstructorIds: z.array(z.string()).optional().default([]),
+  enableBatches: z.boolean().optional().default(true),
+  currentActiveBatch: z.number().min(1).max(4).optional().default(1),
   createdAt: z.number().optional()
 });
 export type Training = z.infer<typeof TrainingSchema>;
 
+export const TrainingBatchSchema = z.object({
+  id: z.string(),
+  trainingId: z.string(),
+  batchNumber: z.number().min(1).max(4), // Batch 1 (Q1), Batch 2 (Q2), Batch 3 (Q3), Batch 4 (Q4)
+  year: z.number(),                      // Tahun Anggaran (misal: 2026, 2027)
+  title: z.string(),                     // "Batch 1 — Kuartal I 2026"
+  startDate: z.string(),                 // YYYY-MM-DD
+  endDate: z.string(),                   // YYYY-MM-DD
+  registrationDeadline: z.string(),      // Batas akhir pendaftaran
+  quota: z.number().default(30),
+  registeredCount: z.number().default(0),
+  status: z.enum(['UPCOMING', 'REGISTRATION_OPEN', 'ONGOING', 'COMPLETED', 'ARCHIVED']).default('UPCOMING'),
+  fundingScheme: z.enum(['MANDIRI_BLUD', 'BEASISWA_PEMKOT', 'KEMENPERIN', 'CSR_INDUSTRI', 'CAMPURAN']).default('MANDIRI_BLUD'),
+  instructorIds: z.array(z.string()).default([]),
+  location: z.string().default('Gedung Diklat Solo Technopark'),
+  createdAt: z.number().optional()
+});
+export type TrainingBatch = z.infer<typeof TrainingBatchSchema>;
+
 export const TrainingRegistrationSchema = z.object({
   id: z.string().optional(),
   trainingId: z.string(),
+  batchId: z.string().optional(),             // Relasi ke Batch tertentu
+  batchNumber: z.number().optional(),         // 1, 2, 3, 4
+  registrationSource: z.enum([                // Kanal asal pendaftaran
+    'CATALOG_ONLINE', 
+    'OFFLINE_WALKIN', 
+    'PARTNER_DINAS', 
+    'PARTNER_SMK', 
+    'PARTNER_CSR'
+  ]).default('CATALOG_ONLINE'),
   name: z.string(),
   email: z.string().email(),
   phone: z.string(),
+  nik: z.string().optional(),                 // NIK 16 digit untuk verifikasi sertifikasi negara
   origin: z.string(), 
   customData: z.record(z.string(), z.string()).optional(), 
   completedLessons: z.array(z.string()).optional().default([]),
   lastAccessedAt: z.number().optional(),
   invoiceId: z.string().optional(),
   referralCode: z.string().optional(),
+  voucherCode: z.string().optional(),
   paymentStatus: z.enum(['FREE', 'PENDING', 'PAID']).default('FREE'),
+  finalScore: z.number().optional(),          // Skor evaluasi kelulusan (0-100)
+  graduationStatus: z.enum([                  // Status kelulusan & sertifikasi
+    'IN_PROGRESS', 
+    'GRADUATED', 
+    'INCOMPLETE', 
+    'DROPOUT'
+  ]).default('IN_PROGRESS'),
+  certificateNumber: z.string().optional(),   // Nomor sertifikat resmi STP
+  certificateUrl: z.string().optional(),      // Tautan e-sertifikat
+  alumniId: z.string().optional(),            // Relasi ke dokumen 'alumnis'
   status: z.enum(['PENDING', 'CONFIRMED', 'REJECTED', 'CANCELLED']).default('PENDING'),
   createdAt: z.number().optional()
 });

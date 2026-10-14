@@ -1,19 +1,35 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Training } from '@/types';
+import { Training, TrainingBatch } from '@/types';
 import { useTraining } from '@/hooks/useTraining';
 import { useAuth } from '@/lib/AuthContext';
 import { billingService } from '@/services/billing.service';
 import { affiliateService } from '@/services/affiliate.service';
+import { batchService } from '@/services/batch.service';
 import { getActiveRefCode } from '@/components/common/AffiliateTracker';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
-import { ArrowLeft, Loader2, ShieldCheck, FileText, UploadCloud, File as FileIcon, CreditCard, Badge } from 'lucide-react';
+import {
+  ArrowLeft,
+  Loader2,
+  ShieldCheck,
+  FileText,
+  UploadCloud,
+  File as FileIcon,
+  CreditCard,
+  Badge,
+  Calendar,
+  Layers,
+  CheckCircle,
+  Tag,
+  Building2,
+  Users,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,12 +38,24 @@ import { toast } from 'sonner';
 export default function PendaftaranKelasPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const trainingId = params?.id as string;
+  const initialVoucher = searchParams?.get('voucher') || '';
+  const initialBatch = searchParams?.get('batch') || '';
 
   const { user } = useAuth();
   const { registerForTraining, uploadImage } = useTraining();
 
   const [training, setTraining] = useState<Training | null>(null);
+  const [batches, setBatches] = useState<TrainingBatch[]>([]);
+  const [selectedBatchId, setSelectedBatchId] = useState<string>('');
+  const [voucherInput, setVoucherInput] = useState<string>(initialVoucher);
+  const [appliedVoucher, setAppliedVoucher] = useState<{
+    code: string;
+    label: string;
+    source: 'PARTNER_DINAS' | 'PARTNER_SMK' | 'PARTNER_CSR';
+  } | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -51,12 +79,28 @@ export default function PendaftaranKelasPage() {
   }, [user]);
 
   useEffect(() => {
-    const fetchTraining = async () => {
+    const fetchTrainingAndBatches = async () => {
       if (!trainingId) return;
       try {
-        const docSnap = await getDoc(doc(db, 'trainings', trainingId));
+        const [docSnap, bList] = await Promise.all([
+          getDoc(doc(db, 'trainings', trainingId)),
+          batchService.getBatches(trainingId),
+        ]);
+
         if (docSnap.exists()) {
           setTraining({ id: docSnap.id, ...docSnap.data() } as Training);
+        }
+        setBatches(bList);
+
+        if (bList.length > 0) {
+          if (initialBatch) {
+            const matched = bList.find(b => String(b.batchNumber) === initialBatch || b.id === initialBatch);
+            if (matched) setSelectedBatchId(matched.id);
+            else setSelectedBatchId(bList[0].id);
+          } else {
+            const openBatch = bList.find(b => b.status === 'REGISTRATION_OPEN') || bList[0];
+            setSelectedBatchId(openBatch.id);
+          }
         }
       } catch (error) {
         console.error("Gagal memuat data kelas:", error);
@@ -64,8 +108,44 @@ export default function PendaftaranKelasPage() {
         setLoading(false);
       }
     };
-    fetchTraining();
-  }, [trainingId]);
+    fetchTrainingAndBatches();
+  }, [trainingId, initialBatch]);
+
+  useEffect(() => {
+    if (initialVoucher) {
+      applyVoucherCode(initialVoucher);
+    }
+  }, [initialVoucher]);
+
+  const applyVoucherCode = (code: string) => {
+    const clean = code.trim().toUpperCase();
+    if (!clean) return;
+
+    if (clean.includes('DINAS') || clean.includes('DISNAKER') || clean.includes('PEMKOT')) {
+      setAppliedVoucher({
+        code: clean,
+        label: 'Beasiswa Kemitraan Dinas / Pemkot Surakarta (100% Subsidi)',
+        source: 'PARTNER_DINAS'
+      });
+      toast.success('Voucher Kemitraan Dinas Berhasil Digunakan!', { description: 'Biaya pendaftaran disubsidi penuh 100%.' });
+    } else if (clean.includes('SMK') || clean.includes('VOKASI') || clean.includes('KAMPUS')) {
+      setAppliedVoucher({
+        code: clean,
+        label: 'Program Vokasi Kemitraan Sekolah / Kampus (100% Subsidi)',
+        source: 'PARTNER_SMK'
+      });
+      toast.success('Voucher Kemitraan Vokasi Berhasil Digunakan!', { description: 'Biaya pendaftaran disubsidi penuh 100%.' });
+    } else if (clean.includes('CSR') || clean.includes('INDUSTRI')) {
+      setAppliedVoucher({
+        code: clean,
+        label: 'Program Penugasan Industri & CSR Korporasi (100% Subsidi)',
+        source: 'PARTNER_CSR'
+      });
+      toast.success('Voucher CSR Industri Berhasil Digunakan!', { description: 'Biaya pendaftaran disubsidi penuh 100%.' });
+    } else {
+      toast.error('Kode voucher tidak valid atau tidak berlaku untuk program ini.');
+    }
+  };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-amber-500" /></div>;
   if (!training) return <div className="min-h-screen flex items-center justify-center text-slate-500">Kelas tidak ditemukan.</div>;
@@ -107,11 +187,19 @@ export default function PendaftaranKelasPage() {
       toast.info("Menyimpan data pendaftaran...");
       const refCode = getActiveRefCode();
 
+      const isSubsidized = !!appliedVoucher;
+      const isActuallyFree = training.isFree || isSubsidized;
+
+      const selectedBatch = batches.find(b => b.id === selectedBatchId);
+
       const regData = {
         ...form,
+        batchId: selectedBatch?.id || undefined,
+        batchNumber: selectedBatch?.batchNumber || undefined,
+        registrationSource: appliedVoucher ? appliedVoucher.source : 'CATALOG_ONLINE',
         customData: finalCustomData,
-        paymentStatus: training.isFree ? 'FREE' : 'PENDING',
-        status: training.isFree ? 'CONFIRMED' : 'PENDING',
+        paymentStatus: isActuallyFree ? 'FREE' : 'PENDING',
+        status: isActuallyFree ? 'CONFIRMED' : 'PENDING',
         referralCode: refCode || undefined
       };
 
@@ -121,7 +209,7 @@ export default function PendaftaranKelasPage() {
          throw new Error(regRes.error || "Gagal mendaftar ke server.");
       }
 
-      if (!training.isFree) {
+      if (!isActuallyFree) {
         // Buat Invoice Tagihan Resmi di Modul Billing
         const today = new Date().toISOString().split('T')[0];
         const dueDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -231,9 +319,76 @@ export default function PendaftaranKelasPage() {
           
           <div className="lg:col-span-2 xl:col-span-3 space-y-6">
             
+            {/* Step 1: Pilihan Batch Pelatihan Kuartal I - IV (Jika Ada) */}
+            {batches.length > 0 && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <span className="bg-blue-100 text-blue-700 w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span> 
+                    Pilih Batch Pelatihan (Kuartal I–IV)
+                  </h2>
+                  <span className="text-xs font-semibold text-slate-400">Tahun {batches[0]?.year}</span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+                  {batches.map((b) => {
+                    const isSelected = selectedBatchId === b.id;
+                    const isBatchOpen = b.status === 'REGISTRATION_OPEN';
+                    const isBatchFull = b.registeredCount >= b.quota && b.quota > 0;
+
+                    return (
+                      <div
+                        key={b.id}
+                        onClick={() => {
+                          if (!isBatchFull) setSelectedBatchId(b.id);
+                        }}
+                        className={`p-4 rounded-2xl border-2 transition-all cursor-pointer relative flex flex-col justify-between ${
+                          isSelected
+                            ? 'border-blue-600 bg-blue-50/40 shadow-xs ring-2 ring-blue-500/20'
+                            : isBatchFull
+                            ? 'border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed'
+                            : 'border-slate-200 hover:border-blue-300 bg-white'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center justify-between gap-2 mb-2">
+                            <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${
+                              isBatchOpen ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
+                            }`}>
+                              {isBatchOpen ? 'Pendaftaran Dibuka' : b.status}
+                            </span>
+                            <span className="text-[10px] font-bold text-slate-500">
+                              Kuota: {b.registeredCount}/{b.quota}
+                            </span>
+                          </div>
+
+                          <h4 className="font-black text-slate-900 text-sm">{b.title}</h4>
+                          <div className="flex items-center gap-1.5 mt-2 text-slate-500 text-xs">
+                            <Calendar size={13} className="text-slate-400 shrink-0" />
+                            <span>
+                              {new Date(b.startDate).toLocaleDateString('id-ID', { month: 'short', day: 'numeric' })} – {new Date(b.endDate).toLocaleDateString('id-ID', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                          <span className="text-slate-400 font-medium">Jalur: {b.fundingScheme.replace('_', ' ')}</span>
+                          {isSelected && (
+                            <span className="flex items-center gap-1 text-blue-600 font-bold">
+                              <CheckCircle size={13} /> Terpilih
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200/80 shadow-sm">
               <h2 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-3 mb-5 flex items-center gap-2">
-                 <span className="bg-amber-100 text-amber-700 w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span> Informasi Pribadi
+                 <span className="bg-amber-100 text-amber-700 w-6 h-6 rounded-full flex items-center justify-center text-xs">{batches.length > 0 ? '2' : '1'}</span> Informasi Pribadi
               </h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -369,18 +524,79 @@ export default function PendaftaranKelasPage() {
                     <span>Harga Kelas</span>
                     <span className="text-slate-800">{training.isFree ? 'Rp 0' : formatRupiah(training.price)}</span>
                   </div>
+                  {appliedVoucher && (
+                    <div className="flex items-center justify-between text-sm font-bold text-emerald-600">
+                      <span>Subsidi Kemitraan</span>
+                      <span>- {formatRupiah(training.price || 0)}</span>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between text-sm font-bold text-slate-500">
                     <span>Pajak & Layanan</span>
                     <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">Gratis</span>
                   </div>
                 </div>
 
+                {/* Voucher Kemitraan Box */}
+                {!training.isFree && (
+                  <div className="space-y-2 pt-2 border-t border-slate-150">
+                    <Label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                      <Tag size={13} className="text-amber-500" /> Kode Voucher / Kemitraan
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={voucherInput}
+                        onChange={(e) => setVoucherInput(e.target.value)}
+                        placeholder="Cth: STP-DISNAKER / STP-SMK"
+                        className="h-10 text-xs uppercase font-mono rounded-xl bg-slate-50"
+                        disabled={!!appliedVoucher}
+                      />
+                      {appliedVoucher ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setAppliedVoucher(null);
+                            setVoucherInput('');
+                            toast.info("Voucher kemitraan dilepas.");
+                          }}
+                          className="h-10 text-xs font-bold text-red-600 rounded-xl hover:bg-red-50 shrink-0"
+                        >
+                          Batal
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => applyVoucherCode(voucherInput)}
+                          className="h-10 text-xs font-bold bg-slate-900 text-white rounded-xl hover:bg-slate-800 shrink-0"
+                        >
+                          Pakai
+                        </Button>
+                      )}
+                    </div>
+                    {appliedVoucher && (
+                      <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-800 flex items-start gap-2 animate-in fade-in">
+                        <CheckCircle size={14} className="text-emerald-600 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-bold">{appliedVoucher.label}</p>
+                          <p className="text-[10px] text-emerald-600 font-semibold">100% Bebas Biaya Pendaftaran</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <hr className="border-slate-200 border-dashed" />
 
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-slate-900 text-base">Total Tagihan</span>
                   <span className="font-black text-2xl text-slate-900">
-                    {training.isFree ? <span className="text-emerald-500">Gratis</span> : formatRupiah(training.price)}
+                    {training.isFree || appliedVoucher ? (
+                      <span className="text-emerald-600">Gratis</span>
+                    ) : (
+                      formatRupiah(training.price)
+                    )}
                   </span>
                 </div>
 
@@ -391,8 +607,8 @@ export default function PendaftaranKelasPage() {
                 >
                   {isSubmitting ? (
                     <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Memproses...</>
-                  ) : training.isFree ? (
-                    'Selesaikan Pendaftaran'
+                  ) : (training.isFree || appliedVoucher) ? (
+                    'Selesaikan Pendaftaran (Gratis)'
                   ) : (
                     <><CreditCard className="mr-2 h-5 w-5" /> Lanjut ke Pembayaran</>
                   )}
