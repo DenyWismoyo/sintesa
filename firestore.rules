@@ -573,5 +573,59 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+
+    // 22. Program Pelatihan Diklat & LMS Solo Technopark
+    match /trainings/{trainingId} {
+      allow read: if true;
+      allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan']);
+
+      // Subkoleksi 4 Batch Kuartalan
+      match /batches/{batchId} {
+        allow read: if true;
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan']);
+      }
+
+      // Subkoleksi Pendaftaran Peserta (Online, Offline, Walk-in, Kemitraan)
+      match /registrations/{registrationId} {
+        allow read: if isAuth() && (
+          resource.data.email == request.auth.token.email ||
+          resource.data.userId == request.auth.uid ||
+          hasAnyRole(['admin', 'super_admin', 'admin_pelatihan'])
+        );
+        allow create: if isAuth() || 
+          request.resource.data.paymentStatus in ['FREE', 'PAID', 'PENDING'] ||
+          request.resource.data.registrationSource in ['PARTNER_DINAS', 'PARTNER_SMK', 'PARTNER_CSR', 'OFFLINE_WALKIN', 'CATALOG_ONLINE'];
+        allow update: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan']) || 
+          (isAuth() && resource.data.email == request.auth.token.email);
+        allow delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan']);
+
+        // Subkoleksi Pengumpulan Tugas & Submissions
+        match /submissions/{submissionId} {
+          allow read: if isAuth();
+          allow write: if isAuth();
+        }
+      }
+    }
+
+    // 23. Database Master Alumni Solo Technopark
+    match /alumnis/{alumniId} {
+      allow read: if true;
+      allow create: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan']);
+      allow update: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan']) ||
+        (isAuth() && (
+          resource.data.claimedByUserId == request.auth.uid ||
+          (resource.data.status == 'DORMANT' && request.resource.data.status == 'CLAIMED')
+        ));
+      allow delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan']);
+    }
+
+    // Query CollectionGroup Registrations untuk halaman profil peserta
+    match /{path=**}/registrations/{registrationId} {
+      allow read: if isAuth() && (
+        resource.data.email == request.auth.token.email ||
+        resource.data.userId == request.auth.uid ||
+        hasAnyRole(['admin', 'super_admin', 'admin_pelatihan'])
+      );
+    }
   }
 }
