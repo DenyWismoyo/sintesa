@@ -8,9 +8,21 @@ export const CapTableEntrySchema = z.object({
 });
 export type CapTableEntry = z.infer<typeof CapTableEntrySchema>;
 
+export const FUNDING_STAGES = [
+  'Bootstrapped',
+  'Pre-Seed',
+  'Seed',
+  'Pre-Series A',
+  'Series A',
+  'Series B+',
+  'Bridge/Convertible',
+] as const;
+export const FundingStageSchema = z.enum(FUNDING_STAGES);
+export type FundingStage = z.infer<typeof FundingStageSchema>;
+
 export const FundingRoundSchema = z.object({
   id: z.string(),
-  roundName: z.enum(['Bootstrapped', 'Pre-Seed', 'Seed', 'Pre-Series A', 'Series A', 'Series B+', 'Bridge/Convertible']),
+  roundName: FundingStageSchema,
   date: z.string(),
   amount: z.number(),
   valuation: z.number().optional(),
@@ -61,7 +73,7 @@ export const TenantSchema = z.object({
   }).optional(),
   teamSize: z.number().optional(),
   
-  fundingStage: z.enum(['Bootstrapped', 'Pre-Seed', 'Seed', 'Series A', 'Series B+']).default('Bootstrapped').optional(),
+  fundingStage: FundingStageSchema.default('Bootstrapped').optional(),
   isRaising: z.boolean().default(false),
   currentNeeds: z.array(z.string()).optional(),
   

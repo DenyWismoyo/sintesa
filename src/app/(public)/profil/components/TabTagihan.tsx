@@ -240,8 +240,8 @@ export default function TabTagihan({ userEmail }: { userEmail: string }) {
                 <table className="w-full text-[10px] md:text-xs text-left border-collapse min-w-[400px]">
                   <thead className="bg-slate-50 text-slate-500 text-[8px] md:text-[9px] font-bold uppercase tracking-wider border-b border-slate-200">
                     <tr>
-                      <th className="px-3 py-2 whitespace-nowrap">Deskripsi Layanan</th>
-                      <th className="px-3 py-2 text-center w-10 md:w-12">Qty</th>
+                      <th className="px-3 py-2 whitespace-nowrap">Deskripsi Layanan / Rincian</th>
+                      <th className="px-3 py-2 text-center w-24">Qty / Satuan</th>
                       <th className="px-3 py-2 text-right">Harga</th>
                       <th className="px-3 py-2 text-right">Total</th>
                     </tr>
@@ -249,8 +249,26 @@ export default function TabTagihan({ userEmail }: { userEmail: string }) {
                   <tbody className="divide-y divide-slate-100">
                     {selectedInvoice?.items?.map((item: any, idx: number) => (
                       <tr key={idx} className="bg-white">
-                        <td className="px-3 py-2 font-semibold text-slate-800">{item.description}</td>
-                        <td className="px-3 py-2 text-center font-medium text-slate-600">{item.quantity}</td>
+                        <td className="px-3 py-2">
+                          <p className="font-semibold text-slate-800">{item.description}</p>
+                          {item.subDescription && (
+                            <p className="text-[9px] text-slate-500 mt-0.5">{item.subDescription}</p>
+                          )}
+                          {item.points && item.points.length > 0 && (
+                            <ul className="mt-1 space-y-0.5 list-none pl-0 text-[8.5px] text-slate-600">
+                              {item.points.map((pt: string, pIdx: number) => (
+                                <li key={pIdx} className="flex items-start gap-1">
+                                  <span className="text-blue-500 font-bold">•</span>
+                                  <span>{pt}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </td>
+                        <td className="px-3 py-2 text-center font-bold text-slate-700 whitespace-nowrap">
+                          <span>{item.quantity}</span>
+                          {item.unit && <span className="ml-1 text-[9px] text-slate-500 font-medium">{item.unit}</span>}
+                        </td>
                         <td className="px-3 py-2 text-right font-medium text-slate-600 whitespace-nowrap">{formatRupiah(item.unitPrice)}</td>
                         <td className="px-3 py-2 text-right font-bold text-slate-900 whitespace-nowrap">{formatRupiah(item.total)}</td>
                       </tr>
@@ -262,6 +280,16 @@ export default function TabTagihan({ userEmail }: { userEmail: string }) {
               {/* Ringkasan Biaya */}
               <div className="flex flex-col md:flex-row justify-between items-start gap-5 md:gap-6">
                 <div className="w-full md:w-1/2">
+                   {selectedInvoice?.termsAndConditions && selectedInvoice.termsAndConditions.length > 0 && (
+                     <div className="p-2.5 md:p-3 bg-blue-50/50 rounded-lg md:rounded-xl text-[10px] md:text-xs text-slate-700 border border-blue-100 mb-3">
+                       <span className="font-bold text-blue-900 block mb-1 text-[9px] uppercase tracking-wider">Ketentuan Pembayaran:</span>
+                       <ol className="space-y-0.5 text-[9px] md:text-[10px] text-slate-600 pl-3 list-decimal leading-relaxed">
+                         {selectedInvoice.termsAndConditions.map((term: string, tIdx: number) => (
+                           <li key={tIdx}>{term}</li>
+                         ))}
+                       </ol>
+                     </div>
+                   )}
                    {selectedInvoice?.notes && (
                      <div className="p-2.5 md:p-3 bg-slate-50 rounded-lg md:rounded-xl text-[10px] md:text-xs text-slate-600 border border-slate-100 mb-3 md:mb-4">
                        <span className="font-bold text-slate-800 block mb-1">Catatan:</span>

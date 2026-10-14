@@ -225,8 +225,8 @@ Salam hangat,
                     <table className="w-full text-sm text-left border-collapse">
                       <thead>
                         <tr className="bg-slate-50 text-slate-500 text-xs font-bold uppercase tracking-wider border-b border-slate-200">
-                          <th className="px-5 py-4">Deskripsi Layanan</th>
-                          <th className="px-5 py-4 text-center w-20">Qty</th>
+                          <th className="px-5 py-4">Deskripsi Layanan / Rincian</th>
+                          <th className="px-5 py-4 text-center w-28">Qty / Satuan</th>
                           <th className="px-5 py-4 text-right w-40">Harga Satuan</th>
                           <th className="px-5 py-4 text-right w-40">Total Harga</th>
                         </tr>
@@ -235,8 +235,26 @@ Salam hangat,
                         {invoice.items && invoice.items.length > 0 ? (
                           invoice.items.map((item, idx) => (
                             <tr key={idx} className="bg-white">
-                              <td className="px-5 py-4 font-semibold text-slate-800">{item.description}</td>
-                              <td className="px-5 py-4 text-center font-medium text-slate-600">{item.quantity}</td>
+                              <td className="px-5 py-4">
+                                <p className="font-bold text-slate-900">{item.description}</p>
+                                {item.subDescription && (
+                                  <p className="text-xs text-slate-500 font-normal mt-0.5">{item.subDescription}</p>
+                                )}
+                                {item.points && item.points.length > 0 && (
+                                  <ul className="mt-1.5 space-y-1 list-none pl-0">
+                                    {item.points.map((pt, pIdx) => (
+                                      <li key={pIdx} className="text-xs text-slate-600 flex items-start gap-1.5">
+                                        <span className="text-blue-500 font-bold shrink-0">•</span>
+                                        <span>{pt}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </td>
+                              <td className="px-5 py-4 text-center font-bold text-slate-800">
+                                <span>{item.quantity}</span>
+                                {item.unit && <span className="ml-1 text-xs text-slate-500 font-medium">{item.unit}</span>}
+                              </td>
                               <td className="px-5 py-4 text-right font-medium text-slate-600">{formatRupiah(item.unitPrice)}</td>
                               <td className="px-5 py-4 text-right font-bold text-slate-900">{formatRupiah(item.total)}</td>
                             </tr>
@@ -250,6 +268,17 @@ Salam hangat,
 
                   <div className="flex flex-col lg:flex-row justify-between items-start gap-10">
                     <div className="w-full lg:w-1/2 space-y-5">
+                      {invoice.termsAndConditions && invoice.termsAndConditions.length > 0 && (
+                        <div className="p-5 bg-blue-50/50 rounded-xl text-sm border border-blue-100">
+                          <span className="font-bold text-blue-900 block mb-2 text-xs uppercase tracking-wider">Ketentuan & Syarat Pembayaran:</span>
+                          <ol className="space-y-1.5 text-xs text-slate-700 pl-4 list-decimal leading-relaxed">
+                            {invoice.termsAndConditions.map((term, tIdx) => (
+                              <li key={tIdx}>{term}</li>
+                            ))}
+                          </ol>
+                        </div>
+                      )}
+
                       {invoice.notes && (
                         <div className="p-5 bg-slate-50 rounded-xl text-sm text-slate-600 border border-slate-100">
                           <span className="font-bold text-slate-800 block mb-2">Catatan Tambahan:</span>

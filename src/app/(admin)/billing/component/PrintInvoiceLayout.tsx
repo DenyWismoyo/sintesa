@@ -200,20 +200,40 @@ export default function PrintInvoiceLayout({ invoice, accounts }: Props) {
               <table className="w-full text-xs text-left border-collapse">
                 <thead>
                   <tr className="border-b border-slate-800 text-slate-800 print-avoid-break">
-                    <th className="py-2 font-bold text-[10px] uppercase tracking-wider">Deskripsi Layanan / Produk</th>
-                    <th className="py-2 font-bold text-center w-16 text-[10px] uppercase tracking-wider">Qty</th>
+                    <th className="py-2 font-bold text-[10px] uppercase tracking-wider">Deskripsi Layanan / Rincian</th>
+                    <th className="py-2 font-bold text-center w-24 text-[10px] uppercase tracking-wider">Qty / Satuan</th>
                     <th className="py-2 font-bold text-right w-32 text-[10px] uppercase tracking-wider">Harga Satuan</th>
-                    <th className="py-2 font-bold text-right w-40 text-[10px] uppercase tracking-wider">Total</th>
+                    <th className="py-2 font-bold text-right w-36 text-[10px] uppercase tracking-wider">Total</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   {invoice.items && invoice.items.length > 0 ? (
                     invoice.items.map((item, idx) => (
                       <tr key={idx} className="group print-avoid-break">
-                        <td className="py-2.5 text-slate-800 font-semibold leading-tight">{item.description}</td>
-                        <td className="py-2.5 text-center text-slate-600 font-medium">{item.quantity}</td>
-                        <td className="py-2.5 text-right text-slate-600 font-medium">{formatRupiah(item.unitPrice)}</td>
-                        <td className="py-2.5 text-right font-black text-slate-900">{formatRupiah(item.total)}</td>
+                        <td className="py-2.5 pr-3 text-slate-800 font-semibold leading-tight">
+                          <div className="text-[11px] font-bold text-slate-900">{item.description}</div>
+                          {item.subDescription && (
+                            <div className="text-[9.5px] text-slate-500 font-normal mt-0.5 leading-snug">
+                              {item.subDescription}
+                            </div>
+                          )}
+                          {item.points && item.points.length > 0 && (
+                            <ul className="mt-1 space-y-0.5 list-none pl-0">
+                              {item.points.map((pt, pIdx) => (
+                                <li key={pIdx} className="text-[9px] text-slate-600 flex items-start gap-1.5 leading-snug">
+                                  <span className="text-slate-400 font-bold shrink-0">•</span>
+                                  <span>{pt}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </td>
+                        <td className="py-2.5 text-center text-slate-700 font-bold whitespace-nowrap">
+                          <span>{item.quantity}</span>
+                          {item.unit && <span className="ml-1 text-[9.5px] text-slate-500 font-medium">{item.unit}</span>}
+                        </td>
+                        <td className="py-2.5 text-right text-slate-600 font-medium whitespace-nowrap">{formatRupiah(item.unitPrice)}</td>
+                        <td className="py-2.5 text-right font-black text-slate-900 whitespace-nowrap">{formatRupiah(item.total)}</td>
                       </tr>
                     ))
                   ) : (
@@ -228,9 +248,9 @@ export default function PrintInvoiceLayout({ invoice, accounts }: Props) {
               <div className="w-[55%] pr-8">
                 {/* BLOK MULTI-REKENING MINIMALIS MENDAFTAR KE BAWAH */}
                 {invoice.remainingAmount > 0 && invoice.status !== 'CANCELLED' && activePaymentAccounts.length > 0 && (
-                  <div className="mb-5">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 m-0">Instruksi Pembayaran</p>
-                    <div className="flex flex-col gap-2">
+                  <div className="mb-4">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 m-0">Instruksi Pembayaran</p>
+                    <div className="flex flex-col gap-1.5">
                       {activePaymentAccounts.map((acc, idx) => (
                         <div key={idx} className="flex items-start gap-2">
                           <div className="w-1 h-1 rounded-full bg-slate-400 mt-1.5 shrink-0"></div>
@@ -238,7 +258,7 @@ export default function PrintInvoiceLayout({ invoice, accounts }: Props) {
                             <span className="font-bold text-slate-800 uppercase">{acc.bankName || 'Bank'}</span>
                             <span className="mx-1.5 text-slate-300">-</span>
                             <span className="font-mono font-black text-slate-900 text-[11px] tracking-wide">{acc.accountNumber}</span>
-                            <div className="text-slate-500 font-medium mt-0.5">a.n {acc.accountHolder}</div>
+                            <span className="text-slate-500 font-medium ml-1.5">(a.n {acc.accountHolder})</span>
                           </div>
                         </div>
                       ))}
@@ -246,10 +266,22 @@ export default function PrintInvoiceLayout({ invoice, accounts }: Props) {
                   </div>
                 )}
 
+                {/* POIN-POIN KETENTUAN PEMBAYARAN RESMI */}
+                {invoice.termsAndConditions && invoice.termsAndConditions.length > 0 && (
+                  <div className="mb-4">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Ketentuan & Syarat Pembayaran</span>
+                    <ol className="space-y-1 text-[9px] text-slate-600 font-medium pl-3 list-decimal leading-relaxed">
+                      {invoice.termsAndConditions.map((term, tIdx) => (
+                        <li key={tIdx} className="pl-0.5">{term}</li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
+
                 {invoice.notes && (
                   <div>
                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Catatan Tambahan</span>
-                    <div className="text-[10px] text-slate-600 font-medium whitespace-pre-line leading-relaxed border-l-2 border-slate-200 pl-3 py-0.5">
+                    <div className="text-[9.5px] text-slate-600 font-medium whitespace-pre-line leading-relaxed border-l-2 border-slate-200 pl-2.5 py-0.5">
                       {invoice.notes}
                     </div>
                   </div>

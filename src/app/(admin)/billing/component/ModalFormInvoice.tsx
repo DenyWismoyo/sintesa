@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus, Trash2, Loader2, Store, CalendarRange, UserCheck, AlertCircle, ShoppingCart, Copy, Hash, Edit2, CheckCircle2, Save, Landmark } from 'lucide-react';
+import { X, Plus, Trash2, Loader2, Store, CalendarRange, UserCheck, AlertCircle, ShoppingCart, Copy, Hash, Edit2, CheckCircle2, Save, Landmark, ListPlus, ChevronDown, ChevronUp, FileText, Check } from 'lucide-react';
 import { Invoice, InvoiceItem, PaymentTerm, Account } from '@/types';
 
 // Import hooks asli milik Anda
@@ -23,6 +23,13 @@ interface ModalFormInvoiceProps {
 }
 
 const ISSUER_CACHE_KEY = 'billing_invoice_issuer_cache';
+
+const DEFAULT_INVOICE_TERMS = [
+  'Pembayaran wajib diselesaikan penuh sebelum batas waktu jatuh tempo.',
+  'Bukti transfer resmi wajib diunggah melalui tautan sistem atau dikonfirmasi ke WhatsApp Layanan Keuangan BLUD STP.',
+  'Pembatalan jadwal kegiatan / sewa fasilitas H-3 dikenakan biaya administrasi 20%.',
+  'Segala bentuk kerusakan aset fisik atau kelalaian fasilitas kawasan menjadi tanggung jawab penyewa.'
+];
 
 export default function ModalFormInvoice({ onClose, onSubmit, initialData, invoices = [], accounts = [] }: ModalFormInvoiceProps) {
   const { products } = useCatalog();
@@ -46,8 +53,16 @@ export default function ModalFormInvoice({ onClose, onSubmit, initialData, invoi
   
   const [paymentConfig, setPaymentConfig] = useState({ dpAmount: 0, installmentCount: 2, subscriptionPeriod: 'Bulanan' });
   
+  // State untuk expand/collapse rincian & poin-poin per baris item
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
+
   const [items, setItems] = useState<InvoiceItem[]>(
-    initialData?.items || [{ id: Date.now().toString(), referenceType: 'CUSTOM', description: '', quantity: 1, unitPrice: 0, total: 0 }]
+    initialData?.items?.map(it => ({
+      ...it,
+      unit: it.unit || '',
+      subDescription: it.subDescription || '',
+      points: it.points || []
+    })) || [{ id: Date.now().toString(), referenceType: 'CUSTOM', description: '', subDescription: '', unit: '', points: [], quantity: 1, unitPrice: 0, total: 0 }]
   );
   
   const [formData, setFormData] = useState<Partial<Invoice>>({
@@ -59,6 +74,7 @@ export default function ModalFormInvoice({ onClose, onSubmit, initialData, invoi
     dueDate: initialData?.dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     term: initialData?.term || 'FULL_PAYMENT',
     notes: initialData?.notes || '',
+    termsAndConditions: initialData?.termsAndConditions || DEFAULT_INVOICE_TERMS,
     discountAmount: initialData?.discountAmount || 0,
     invoiceNumber: initialData?.invoiceNumber || '', 
     
@@ -160,8 +176,25 @@ export default function ModalFormInvoice({ onClose, onSubmit, initialData, invoi
     }
   }, [formData.term, totalAmount]);
 
-  const handleAddItem = () => setItems([...items, { id: Date.now().toString(), referenceType: 'CUSTOM', description: '', quantity: 1, unitPrice: 0, total: 0 }]);
-  const handleRemoveItem = (id: string) => { if (items.length > 1) setItems(items.filter(item => item.id !== id)); };
+  const toggleExpandItem = (id: string) => {
+    setExpandedItems(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handleAddItem = () => {
+    const newItemId = Date.now().toString();
+    setItems([...items, { id: newItemId, referenceType: 'CUSTOM', description: '', subDescription: '', unit: '', points: [], quantity: 1, unitPrice: 0, total: 0 }]);
+  };
+  
+  const handleRemoveItem = (id: string) => { 
+    if (items.length > 1) {
+      setItems(items.filter(item => item.id !== id));
+      setExpandedItems(prev => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+    }
+  };
 
   const handleItemChange = (id: string, field: keyof InvoiceItem, value: any) => {
     setItems(items.map(item => {
@@ -180,22 +213,112 @@ export default function ModalFormInvoice({ onClose, onSubmit, initialData, invoi
     }));
   };
 
+  const handleAddPointToItem = (itemId: string) => {
+    setItems(items.map(item => {
+      if (item.id === itemId) {
+        const currentPoints = item.points || [];
+        return { ...item, points: [...currentPoints, ''] };
+      }
+      return item;
+    }));
+    setExpandedItems(prev => ({ ...prev, [itemId]: true }));
+  };
+
+  const handleUpdatePointOfItem = (itemId: string, pointIndex: number, text: string) => {
+    setItems(items.map(item => {
+      if (item.id === itemId) {
+        const currentPoints = [...(item.points || [])];
+        currentPoints[pointIndex] = text;
+        return { ...item, points: currentPoints };
+      }
+      return item;
+    }));
+  };
+
+  const handleRemovePointFromItem = (itemId: string, pointIndex: number) => {
+    setItems(items.map(item => {
+      if (item.id === itemId) {
+        const currentPoints = (item.points || []).filter((_, idx) => idx !== pointIndex);
+        return { ...item, points: currentPoints };
+      }
+      return item;
+    }));
+  };
+
+  const handleAddTerm = () => {
+    setFormData(prev => ({
+      ...prev,
+      termsAndConditions: [...(prev.termsAndConditions || []), '']
+    }));
+  };
+
+  const handleUpdateTerm = (index: number, text: string) => {
+    setFormData(prev => {
+      const current = [...(prev.termsAndConditions || [])];
+      current[index] = text;
+      return { ...prev, termsAndConditions: current };
+    });
+  };
+
+  const handleRemoveTerm = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      termsAndConditions: (prev.termsAndConditions || []).filter((_, idx) => idx !== index)
+    }));
+  };
+
+  const handleResetTermsToDefault = () => {
+    setFormData(prev => ({
+      ...prev,
+      termsAndConditions: DEFAULT_INVOICE_TERMS
+    }));
+  };
+
   const handleSmartSelect = (itemId: string, sourceType: string, sourceId: string) => {
     if (!sourceId) return;
     setItems(items.map(item => {
       if (item.id === itemId) {
         let description = ''; let unitPrice = 0; let refType: any = 'CUSTOM';
+        let detectedUnit = 'Unit';
+        let subDescription = '';
         if (sourceType === 'ASSET') {
           const asset = rentableAssets.find(a => a.id === sourceId);
-          if (asset) { description = `Sewa Ruangan: ${asset.name}`; unitPrice = asset.priceValue || 0; refType = 'TARIFF_DAY'; }
+          if (asset) { 
+            description = `Sewa Ruangan: ${asset.name}`; 
+            unitPrice = asset.priceValue || 0; 
+            refType = 'TARIFF_DAY'; 
+            detectedUnit = asset.pricingType === 'HOURLY' ? 'Jam' : asset.pricingType === 'MONTHLY' ? 'Bulan' : 'Hari';
+            subDescription = asset.location ? `Lokasi: ${asset.location}` : '';
+          }
         } else if (sourceType === 'CATALOG') {
           const product = products.find(p => p.id === sourceId);
-          if (product) { description = product.name; unitPrice = product.price || 0; refType = 'CATALOG'; }
+          if (product) { 
+            description = product.name; 
+            unitPrice = product.price || 0; 
+            refType = 'CATALOG'; 
+            detectedUnit = 'Pcs';
+            subDescription = product.category ? `Kategori: ${product.category}` : '';
+          }
         } else if (sourceType === 'TRAINING') {
           const training = trainings.find(t => t.id === sourceId);
-          if (training) { description = `Pelatihan: ${training.title}`; unitPrice = training.price || 0; refType = 'TRAINING'; }
+          if (training) { 
+            description = `Pelatihan: ${training.title}`; 
+            unitPrice = training.price || 0; 
+            refType = 'TRAINING'; 
+            detectedUnit = 'Peserta';
+            subDescription = training.mode ? `Mode: ${training.mode}` : '';
+          }
         }
-        return { ...item, referenceType: refType, referenceId: sourceId, description, unitPrice, total: item.quantity * unitPrice };
+        return { 
+          ...item, 
+          referenceType: refType, 
+          referenceId: sourceId, 
+          description, 
+          unitPrice, 
+          unit: item.unit || detectedUnit,
+          subDescription: subDescription || item.subDescription,
+          total: item.quantity * unitPrice 
+        };
       }
       return item;
     }));
@@ -211,6 +334,7 @@ export default function ModalFormInvoice({ onClose, onSubmit, initialData, invoi
   };
 
   const getDetectedUnit = (item: InvoiceItem) => {
+    if (item.unit && item.unit.trim() !== '') return item.unit;
     if (item.referenceType === 'TARIFF_DAY' && item.referenceId) return rentableAssets.find(a => a.id === item.referenceId)?.pricingType || 'Unit';
     if (item.referenceType === 'TRAINING') return 'Peserta';
     if (item.referenceType === 'BOOKING') {
@@ -268,8 +392,21 @@ export default function ModalFormInvoice({ onClose, onSubmit, initialData, invoi
     const cleanNotes = (formData.notes || '').replace(/\[SKEMA.*?\].*\n/g, '').replace(/\[LANGGANAN.*?\].*\n/g, '');
     const isNewInvoice = !initialData || !initialData.id;
 
+    // Bersihkan poin-poin kosong
+    const cleanedItems = items.map(it => ({
+      ...it,
+      points: (it.points || []).filter(p => p.trim() !== '')
+    }));
+    const cleanedTerms = (formData.termsAndConditions || []).filter(t => t.trim() !== '');
+
     const finalData: Partial<Invoice> = { 
-      ...formData, notes: autoNotes + cleanNotes, items, subTotal, taxAmount, totalAmount,
+      ...formData, 
+      notes: autoNotes + cleanNotes, 
+      items: cleanedItems, 
+      termsAndConditions: cleanedTerms,
+      subTotal, 
+      taxAmount, 
+      totalAmount,
       ...(isNewInvoice ? { status: 'PENDING', paidAmount: 0, remainingAmount: totalAmount } : {})
     };
     
@@ -472,6 +609,7 @@ export default function ModalFormInvoice({ onClose, onSubmit, initialData, invoi
                       {items.map((item, index) => {
                         const unitLabel = getDetectedUnit(item);
                         const isAutoBooking = item.referenceType === 'BOOKING';
+                        const isExpanded = expandedItems[item.id] || (item.points && item.points.length > 0) || (item.subDescription && item.subDescription.trim() !== '');
                         
                         return (
                         <div key={item.id} className={`p-5 rounded-2xl flex flex-col gap-4 transition-colors ${isAutoBooking ? 'bg-amber-50/50 border border-amber-200' : 'bg-white border border-slate-200 shadow-sm'}`}>
@@ -499,31 +637,129 @@ export default function ModalFormInvoice({ onClose, onSubmit, initialData, invoi
                                  {trainings.length > 0 && <optgroup label="Pelatihan Edukasi">{trainings.map(t => (<option key={`TRAINING-${t.id}`} value={`TRAINING::${t.id}`}>{t.title}</option>))}</optgroup>}
                                </select>
                             </div>
+                            
+                            <button 
+                              type="button" 
+                              onClick={() => toggleExpandItem(item.id)} 
+                              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 border transition-colors ${isExpanded ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}`}
+                              title="Tambah/edit rincian sub-deskripsi dan poin-poin spesifikasi"
+                            >
+                              <ListPlus className="w-3.5 h-3.5 text-blue-600" />
+                              <span>{item.points && item.points.length > 0 ? `${item.points.length} Poin Spesifikasi` : 'Rincian & Poin'}</span>
+                              {isExpanded ? <ChevronUp className="w-3 h-3"/> : <ChevronDown className="w-3 h-3"/>}
+                            </button>
+
                             <button type="button" onClick={() => handleRemoveItem(item.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0"><Trash2 className="w-4 h-4" /></button>
                           </div>
                           
-                          <div className="flex flex-col md:flex-row gap-4 items-start pl-0 md:pl-9">
-                            <div className="flex-1 w-full">
+                          <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center pl-0 md:pl-9">
+                            <div className="md:col-span-6">
+                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Deskripsi Layanan / Produk *</label>
                               <input type="text" value={item.description} onChange={(e) => handleItemChange(item.id, 'description', e.target.value)} placeholder="Deskripsi barang/layanan..." className={inputClass} required />
                             </div>
 
-                            <div className="flex gap-4 w-full md:w-auto">
-                              <div className="w-28 shrink-0 relative">
-                                <input type="number" min="0.1" step="0.1" value={item.quantity || ''} onChange={(e) => handleItemChange(item.id, 'quantity', parseFloat(e.target.value) || 0)} className={`${inputClass} pr-10 text-center font-bold`} placeholder="Qty" required />
-                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-bold pointer-events-none">{unitLabel.slice(0, 3)}</span>
+                            <div className="md:col-span-2">
+                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Qty</label>
+                              <input type="number" min="0.1" step="0.1" value={item.quantity || ''} onChange={(e) => handleItemChange(item.id, 'quantity', parseFloat(e.target.value) || 0)} className={`${inputClass} text-center font-bold`} placeholder="1" required />
+                            </div>
+
+                            <div className="md:col-span-2">
+                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Satuan</label>
+                              <div className="relative">
+                                <input 
+                                  type="text" 
+                                  list={`unit-list-${item.id}`}
+                                  value={item.unit || ''} 
+                                  onChange={(e) => handleItemChange(item.id, 'unit', e.target.value)} 
+                                  placeholder={unitLabel} 
+                                  className={`${inputClass} text-center font-bold text-slate-700`} 
+                                />
+                                <datalist id={`unit-list-${item.id}`}>
+                                  <option value="Hari" />
+                                  <option value="Bulan" />
+                                  <option value="Jam" />
+                                  <option value="Paket" />
+                                  <option value="Pax" />
+                                  <option value="Peserta" />
+                                  <option value="Sesi" />
+                                  <option value="Kegiatan" />
+                                  <option value="Unit" />
+                                  <option value="Pcs" />
+                                </datalist>
                               </div>
-                              
-                              <div className="flex-1 md:w-40 shrink-0 relative">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-slate-400 font-bold">Rp</span>
-                                <input type="number" min="0" value={item.unitPrice || ''} onChange={(e) => handleItemChange(item.id, 'unitPrice', parseInt(e.target.value) || 0)} className={`${inputClass} pl-10 text-right font-bold`} placeholder="Harga" required />
+                            </div>
+
+                            <div className="md:col-span-2">
+                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Harga Satuan</label>
+                              <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold">Rp</span>
+                                <input type="number" min="0" value={item.unitPrice || ''} onChange={(e) => handleItemChange(item.id, 'unitPrice', parseInt(e.target.value) || 0)} className={`${inputClass} pl-8 text-right font-bold`} placeholder="0" required />
                               </div>
                             </div>
                           </div>
+
+                          {/* Expandable Area: Sub-Deskripsi & Poin Spesifikasi Item */}
+                          {isExpanded && (
+                            <div className="ml-0 md:ml-9 p-4 bg-slate-50/90 border border-slate-200 rounded-xl space-y-3 animate-in fade-in">
+                              <div>
+                                <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                                  <FileText className="w-3.5 h-3.5 text-blue-500" /> Sub-Deskripsi / Keterangan Spesifikasi Item (Opsional)
+                                </label>
+                                <input 
+                                  type="text" 
+                                  value={item.subDescription || ''} 
+                                  onChange={(e) => handleItemChange(item.id, 'subDescription', e.target.value)} 
+                                  placeholder="Cth: Gedung Hall Utama Lt. 2, Termasuk Meja & Kursi Standar" 
+                                  className="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 font-medium shadow-inner" 
+                                />
+                              </div>
+
+                              <div>
+                                <div className="flex justify-between items-center mb-1.5">
+                                  <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
+                                    Poin-Poin Fasilitas / Layanan Termasuk ({item.points?.length || 0} Poin)
+                                  </label>
+                                  <button 
+                                    type="button" 
+                                    onClick={() => handleAddPointToItem(item.id)}
+                                    className="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md"
+                                  >
+                                    <Plus className="w-3 h-3" /> Tambah Poin Rincian
+                                  </button>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                  {(item.points || []).map((pt, pIdx) => (
+                                    <div key={pIdx} className="flex items-center gap-2">
+                                      <span className="w-4 h-4 rounded-full bg-blue-100 text-blue-700 text-[10px] font-black flex items-center justify-center shrink-0">•</span>
+                                      <input 
+                                        type="text" 
+                                        value={pt} 
+                                        onChange={(e) => handleUpdatePointOfItem(item.id, pIdx, e.target.value)} 
+                                        placeholder={`Poin ${pIdx + 1}: cth. Sound system & 2 wireless mic...`} 
+                                        className="flex-1 px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-blue-500 text-slate-800" 
+                                      />
+                                      <button 
+                                        type="button" 
+                                        onClick={() => handleRemovePointFromItem(item.id, pIdx)}
+                                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    </div>
+                                  ))}
+                                  {(!item.points || item.points.length === 0) && (
+                                    <p className="text-[11px] text-slate-400 italic">Belum ada poin spesifikasi. Klik &ldquo;Tambah Poin Rincian&rdquo; untuk menambahkan detail bullet yang akan dicetak di invoice.</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
 
                           {isAutoBooking && (
                              <div className="mt-1 ml-0 md:ml-9 flex items-start gap-1.5 text-[11px] font-bold text-amber-600 bg-amber-50 p-2 rounded-lg border border-amber-100">
                                <AlertCircle className="w-4 h-4 shrink-0" />
-                               <p>Sesuaikan <strong>Durasi/Qty</strong> agar total harga sesuai dengan tarif per-jam/hari.</p>
+                               <p>Sesuaikan <strong>Durasi/Qty & Satuan</strong> agar total harga sesuai dengan tarif per-jam/hari.</p>
                              </div>
                           )}
                         </div>
@@ -566,6 +802,64 @@ export default function ModalFormInvoice({ onClose, onSubmit, initialData, invoi
                       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                         <label className={labelClass}>Catatan Tambahan di Invoice</label>
                         <textarea value={formData.notes || ''} onChange={(e) => setFormData({...formData, notes: e.target.value})} rows={5} placeholder="Tambahkan instruksi transfer spesifik atau ketentuan layanan..." className={`${inputClass} resize-none`} />
+                      </div>
+                    </div>
+
+                    {/* Modul Poin-poin Ketentuan & Syarat Pembayaran (Terms & Conditions) */}
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mt-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                        <div>
+                          <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <FileText className="w-4 h-4 text-blue-600" /> Poin-poin Ketentuan & Syarat Pembayaran (Invoice Terms)
+                          </h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5">Poin-poin instruksi, batas waktu, dan ketentuan resmi yang akan tercetak di dokumen PDF Invoice.</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={handleResetTermsToDefault}
+                            className="text-[11px] font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition-colors border border-slate-200 flex items-center gap-1"
+                          >
+                            Gunakan Standar STP
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleAddTerm}
+                            className="text-[11px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors border border-blue-200 flex items-center gap-1"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> Tambah Poin
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2.5">
+                        {(formData.termsAndConditions || []).length > 0 ? (
+                          formData.termsAndConditions?.map((term, tIdx) => (
+                            <div key={tIdx} className="flex items-center gap-2">
+                              <span className="w-6 h-6 rounded-md bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center shrink-0 border border-slate-200">
+                                {tIdx + 1}
+                              </span>
+                              <input
+                                type="text"
+                                value={term}
+                                onChange={(e) => handleUpdateTerm(tIdx, e.target.value)}
+                                placeholder={`Poin ketentuan ${tIdx + 1}...`}
+                                className="flex-1 px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all font-medium text-slate-800"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveTerm(tIdx)}
+                                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-center py-5 border border-dashed border-slate-200 rounded-xl text-slate-400 text-xs">
+                            Belum ada poin ketentuan. Klik &ldquo;Gunakan Standar STP&rdquo; atau &ldquo;Tambah Poin&rdquo;.
+                          </div>
+                        )}
                       </div>
                     </div>
 

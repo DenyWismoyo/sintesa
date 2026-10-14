@@ -157,15 +157,39 @@ export default function TenantBillingPage() {
                 {/* Items List */}
                 <div className="space-y-4 mb-8">
                   {selectedInvoice.items?.map((item, idx) => (
-                    <div key={idx} className="flex justify-between items-start text-sm font-mono">
+                    <div key={idx} className="flex justify-between items-start text-sm font-mono border-b border-slate-100 pb-3">
                       <div className="pr-4">
                         <p className="font-bold text-slate-800">{item.description}</p>
-                        <p className="text-xs text-slate-500 mt-1">{item.quantity} x {formatRupiah(item.unitPrice)}</p>
+                        {item.subDescription && (
+                          <p className="text-xs text-slate-500 font-sans mt-0.5">{item.subDescription}</p>
+                        )}
+                        {item.points && item.points.length > 0 && (
+                          <ul className="mt-1 space-y-0.5 list-none font-sans text-xs text-slate-600 pl-0">
+                            {item.points.map((pt, pIdx) => (
+                              <li key={pIdx} className="flex items-start gap-1">
+                                <span className="text-blue-500 font-bold">•</span>
+                                <span>{pt}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                        <p className="text-xs text-slate-500 mt-1">{item.quantity} {item.unit ? `${item.unit} ` : ''}x {formatRupiah(item.unitPrice)}</p>
                       </div>
                       <p className="font-bold text-slate-800 shrink-0">{formatRupiah(item.total)}</p>
                     </div>
                   ))}
                 </div>
+
+                {selectedInvoice.termsAndConditions && selectedInvoice.termsAndConditions.length > 0 && (
+                  <div className="mb-6 p-4 bg-blue-50/50 rounded-xl border border-blue-100 font-sans">
+                    <p className="text-xs font-bold text-blue-900 mb-2 uppercase tracking-wider">Ketentuan Pembayaran:</p>
+                    <ol className="space-y-1 text-xs text-slate-600 pl-4 list-decimal">
+                      {selectedInvoice.termsAndConditions.map((term, tIdx) => (
+                        <li key={tIdx}>{term}</li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
 
                 <div className="border-t-2 border-dashed border-slate-200 pt-6 space-y-3 text-sm font-mono">
                   <div className="flex justify-between text-slate-500"><span>Subtotal</span><span>{formatRupiah(selectedInvoice.subTotal)}</span></div>

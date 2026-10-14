@@ -5,6 +5,9 @@ export const InvoiceItemSchema = z.object({
   referenceId: z.string().optional(), 
   referenceType: z.enum(['CATALOG', 'TARIFF_DAY', 'TARIFF_MONTH', 'CUSTOM', 'BOOKING', 'TRAINING']).default('CUSTOM'),
   description: z.string(),
+  subDescription: z.string().optional(),
+  unit: z.string().optional(),
+  points: z.array(z.string()).optional(),
   quantity: z.number(),
   unitPrice: z.number(),
   total: z.number()
@@ -53,6 +56,7 @@ export const InvoiceSchema = z.object({
   history: z.array(PaymentHistorySchema),
   paymentUrl: z.string().optional(),
   notes: z.string().optional(),
+  termsAndConditions: z.array(z.string()).optional(),
   referralCode: z.string().optional(),
   createdAt: z.number().optional(),
   isAllocated: z.boolean().default(false).optional(),
