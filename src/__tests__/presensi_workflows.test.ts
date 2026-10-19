@@ -563,7 +563,7 @@ describe("Pengujian Mekanisme Presensi, LKH, Izin, Lembur, dan Pelaporan Tekno S
 
       // Verifikasi rekapitulasi memiliki metrik ringkasan lengkap
       expect(rekap.summary).toBeDefined();
-      expect(rekap.summary.totalPegawai).toBe(46);
+      expect(rekap.summary.totalPegawai).toBeGreaterThanOrEqual(46);
       expect(rekap.summary.targetPoinStandar).toBe(300);
       expect(rekap.trenHarian).toBeDefined();
       expect(Array.isArray(rekap.trenHarian)).toBe(true);

@@ -17,7 +17,7 @@ describe("Audit Komprehensif Arsitektur Multi-Database Presensi", () => {
     const firebaseTs = fs.readFileSync(path.join(rootDir, "src/lib/firebase.ts"), "utf-8");
     // Client SDK
     expect(firebaseTs).toContain("const presensiDb = getFirestore(app, presensiDatabaseId);");
-    expect(firebaseTs).toContain("const presensiStorage = getStorage(app, presensiBucketUrl);");
+    expect(firebaseTs).toContain("const presensiStorage = getStorage(presensiApp, presensiBucketUrl);");
 
     // Admin SDK
     const adminTs = fs.readFileSync(path.join(rootDir, "src/lib/presensi/firebase-admin.ts"), "utf-8");

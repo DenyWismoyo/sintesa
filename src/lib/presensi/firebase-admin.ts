@@ -119,8 +119,16 @@ export const adminPresensiAuth = new Proxy({} as Auth, {
 });
 
 // Export lazy Proxy untuk Admin Storage terisolasi ke bucket 'presensi-solo-technopark'
-export const adminPresensiStorageBucket = () => {
+export const adminPresensiStorageBucket = (customBucket?: string) => {
   const app = initAdminApp();
-  const bucketName = process.env.NEXT_PUBLIC_PRESENSI_STORAGE_BUCKET || "presensi-solo-technopark";
+  const bucketName = customBucket || process.env.NEXT_PUBLIC_PRESENSI_STORAGE_BUCKET || "presensi-solo-technopark";
   return getStorage(app).bucket(bucketName);
 };
+
+// Export bucket default proyek katalog-solo-technopark sebagai fallback
+export const adminDefaultStorageBucket = () => {
+  const app = initAdminApp();
+  const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "katalog-solo-technopark.firebasestorage.app";
+  return getStorage(app).bucket(bucketName);
+};
+

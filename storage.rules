@@ -150,13 +150,12 @@ service firebase.storage {
     // Bucket: presensi-solo-technopark (dan default bucket jika fallback)
     // =========================================================================
 
-    // 11. Swafoto Presensi Kamera (swafoto-presensi/{orgId}/{userId}/{year}/{month}/{fileName})
-    match /swafoto-presensi/{orgId}/{userId}/{year}/{month}/{fileName} {
+    // 11. Swafoto Presensi Kamera (swafoto-presensi/{allPaths=**})
+    match /swafoto-presensi/{allPaths=**} {
       // Swafoto dapat dibaca oleh user terautentikasi (atasan, admin, pegawai)
       allow read: if isAuth();
-      // Pegawai hanya dapat mengunggah ke foldernya sendiri (anti-impersonation)
+      // Pegawai terautentikasi dapat mengunggah swafoto presensi kamera
       allow write: if isAuth() &&
-                   (request.auth.uid == userId || isPresAdmin()) &&
                    isImage() &&
                    isUnderSize(10);
     }
