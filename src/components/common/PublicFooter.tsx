@@ -172,13 +172,18 @@ export default function PublicFooter() {
                 </Link>
               </li>
               <li>
+                <Link href="/presensi/login" className="hover:text-emerald-400 hover:translate-x-0.5 inline-flex items-center gap-1 text-slate-300 transition-all">
+                  Presensi Pegawai STP
+                </Link>
+              </li>
+              <li>
                 <Link href="/portal" className="hover:text-white hover:translate-x-0.5 inline-flex items-center gap-1 transition-all">
-                  Portal Masuk Pegawai/Tenant
+                  Portal Layanan & Pelatihan
                 </Link>
               </li>
               <li>
                 <Link href="/login" className="hover:text-white hover:translate-x-0.5 inline-flex items-center gap-1 transition-all">
-                  Login Sistem
+                  Login Sistem & Tenant
                 </Link>
               </li>
             </ul>

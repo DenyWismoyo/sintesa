@@ -338,16 +338,28 @@ export default function LoginModal() {
               <div className="h-px bg-slate-200/80 flex-1" />
             </div>
 
-            {/* Opsi Navigasi ke Halaman Penuh */}
-            <div className="text-center">
-              <Link
-                href="/login"
-                onClick={closeLoginModal}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors py-1 group"
-              >
-                <span>Buka Halaman Login Penuh</span>
-                <ExternalLink size={13} className="opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
-              </Link>
+            {/* Opsi Navigasi ke Halaman Penuh & Portal Pegawai */}
+            <div className="text-center space-y-1.5">
+              <div>
+                <Link
+                  href="/login"
+                  onClick={closeLoginModal}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors py-1 group"
+                >
+                  <span>Buka Halaman Login Penuh</span>
+                  <ExternalLink size={13} className="opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                </Link>
+              </div>
+              <div>
+                <Link
+                  href="/presensi/login"
+                  onClick={closeLoginModal}
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 hover:text-emerald-800 transition-colors py-0.5"
+                >
+                  <span>Pegawai STP? Masuk Presensi Pegawai</span>
+                  <ArrowRight size={12} />
+                </Link>
+              </div>
             </div>
           </motion.div>
         </div>

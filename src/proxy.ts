@@ -86,7 +86,6 @@ export function proxy(request: NextRequest) {
   const isPresensiPath = path === '/presensi' || path.startsWith('/presensi/');
 
   // 3. Khusus Rute Presensi Pegawai STP (Techno Sign)
-  // Pengguna umum / publik diminimalkan dan dilarang masuk ke presensi, langsung diarahkan ke beranda utama (public)
   if (isPresensiPath) {
     // A. Sudah login sebagai pegawai atau staf internal admin -> izinkan masuk
     if (role === APP_ROLES.PEGAWAI || isInternalStaff(role)) {
@@ -98,8 +97,12 @@ export function proxy(request: NextRequest) {
       return NextResponse.next();
     }
 
-    // C. Pengguna umum / publik atau pengunjung yang belum login presensi dialihkan langsung ke dashboard utama sistem (/)
-    return NextResponse.redirect(new URL('/', request.url));
+    // C. Pengguna belum memiliki sesi presensi -> arahkan ke halaman login presensi pegawai
+    const presensiLoginUrl = new URL('/presensi/login', request.url);
+    if (path !== '/presensi') {
+      presensiLoginUrl.searchParams.set('redirect', path);
+    }
+    return NextResponse.redirect(presensiLoginUrl);
   }
 
   // 4. Rute Admin / Portal Bisnis (di luar presensi) diakses tanpa sesi login

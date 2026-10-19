@@ -196,13 +196,24 @@ export default function LoginPage() {
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => { setShowTenantForm(true); setError(''); }}
-                      className="w-full flex justify-center items-center gap-2 py-3.5 px-4 rounded-2xl text-sm font-bold text-sky-600 bg-sky-50 hover:bg-sky-100 transition-colors"
-                    >
-                      <Building size={16} />
-                      Masuk sebagai Tim Tenant
-                    </button>
+                    <div className="space-y-2.5">
+                      <button
+                        type="button"
+                        onClick={() => { setShowTenantForm(true); setError(''); }}
+                        className="w-full flex justify-center items-center gap-2 py-3.5 px-4 rounded-2xl text-sm font-bold text-sky-700 bg-sky-50 hover:bg-sky-100 transition-colors"
+                      >
+                        <Building size={16} />
+                        Masuk sebagai Tim Tenant
+                      </button>
+
+                      <Link
+                        href="/presensi/login"
+                        className="w-full flex justify-center items-center gap-2 py-3.5 px-4 rounded-2xl text-sm font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 transition-colors border border-emerald-200/80"
+                      >
+                        <ClockCheck size={16} className="text-emerald-600" />
+                        Presensi Pegawai STP (Techno Sign)
+                      </Link>
+                    </div>
                   </div>
                 </motion.div>
 
