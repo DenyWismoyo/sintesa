@@ -19,11 +19,24 @@ import { getStpUserProfileByEmail } from "@/data/presensi/stpUsers";
 
 /**
  * Mengambil profil pegawai dari Firestore named database `presensi-pegawai` koleksi `users/{uid}`
+ * Mengutamakan Server Action Admin SDK agar kebal terhadap batasan Security Rules client.
  */
 export async function getUserProfileFromFirestore(
   uid: string,
   userEmail?: string | null
 ): Promise<UserProfile | null> {
+  // 1. Prioritaskan Server Action via Admin SDK (Bypass Security Rules)
+  try {
+    const { getPresensiProfileServerAction } = await import("@/actions/presensi/auth");
+    const profile = await getPresensiProfileServerAction(uid, userEmail);
+    if (profile) {
+      return profile;
+    }
+  } catch (actionErr) {
+    console.warn("[Presensi] Server Action getProfile fallback ke Client SDK:", actionErr);
+  }
+
+  // 2. Fallback: Baca langsung via Client Firestore SDK
   try {
     const userDocRef = doc(db, "users", uid);
     const snap = await getDoc(userDocRef);
@@ -31,38 +44,18 @@ export async function getUserProfileFromFirestore(
       return snap.data() as UserProfile;
     }
   } catch (error) {
-    console.warn("[Presensi] Gagal mengambil profil dari Firestore:", error);
+    console.warn("[Presensi] Gagal mengambil profil dari Client Firestore:", error);
   }
 
-  // Jika tidak ditemukan langsung via doc(uid), periksa apakah email ini sudah terdaftar
+  // 3. Fallback: Pencocokan dengan master data STP
   if (userEmail) {
-    try {
-      const { collection, query, where, getDocs, limit } = await import("firebase/firestore");
-      // 1. Cek berdasarkan googleEmail yang ditautkan
-      const qGoogle = query(collection(db, "users"), where("googleEmail", "==", userEmail), limit(1));
-      const snapGoogle = await getDocs(qGoogle);
-      if (!snapGoogle.empty) {
-        return snapGoogle.docs[0].data() as UserProfile;
-      }
-
-      // 2. Cek berdasarkan field email kedinasan
-      const qEmail = query(collection(db, "users"), where("email", "==", userEmail), limit(1));
-      const snapEmail = await getDocs(qEmail);
-      if (!snapEmail.empty) {
-        return snapEmail.docs[0].data() as UserProfile;
-      }
-    } catch (err) {
-      console.warn("[Presensi] Query pencocokan email gagal:", err);
-    }
-
-    // 3. Pencocokan dengan master data STP
     const profile = getStpUserProfileByEmail(userEmail);
     if (profile) {
       const fullProfile = { ...profile, id: uid, googleEmail: userEmail };
       try {
         await setDoc(doc(db, "users", uid), fullProfile, { merge: true });
       } catch (err) {
-        console.warn("[Presensi] Auto-provision profil STP gagal:", err);
+        console.warn("[Presensi] Client setDoc profil STP gagal (terhalang rules):", err);
       }
       return fullProfile;
     }

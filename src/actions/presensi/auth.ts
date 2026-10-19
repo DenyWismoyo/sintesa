@@ -248,6 +248,68 @@ export async function checkGoogleUserSyncStatus(
   }
 }
 
+/**
+ * Mengambil profil pegawai presensi dari database presensi-pegawai via Admin SDK.
+ * Kebal terhadap batasan Firestore Security Rules Client dan mendukung pencarian via Google Email & Email kedinasan.
+ */
+export async function getPresensiProfileServerAction(
+  uid: string,
+  userEmail?: string | null
+): Promise<UserProfile | null> {
+  try {
+    // 1. Cari berdasarkan document ID (uid) di presensi-pegawai
+    const docSnap = await adminPresensiDb.collection("users").doc(uid).get();
+    if (docSnap.exists) {
+      return docSnap.data() as UserProfile;
+    }
+
+    if (userEmail) {
+      // 2. Cari berdasarkan googleEmail yang sudah ditautkan
+      const qGoogle = await adminPresensiDb
+        .collection("users")
+        .where("googleEmail", "==", userEmail)
+        .limit(1)
+        .get();
+      if (!qGoogle.empty) {
+        return qGoogle.docs[0].data() as UserProfile;
+      }
+
+      // 3. Cari berdasarkan email kedinasan
+      const qEmail = await adminPresensiDb
+        .collection("users")
+        .where("email", "==", userEmail)
+        .limit(1)
+        .get();
+      if (!qEmail.empty) {
+        return qEmail.docs[0].data() as UserProfile;
+      }
+
+      // 4. Pencocokan dengan master data STP
+      const { getStpUserProfileByEmail } = await import("@/data/presensi/stpUsers");
+      const stpData = getStpUserProfileByEmail(userEmail);
+      if (stpData) {
+        const fullProfile: UserProfile = {
+          ...stpData,
+          id: uid,
+          googleEmail: userEmail,
+          isLinkedGoogle: true,
+          linkedGoogleUid: uid,
+          linkedGoogleEmail: userEmail,
+          linkedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+        };
+        await adminPresensiDb.collection("users").doc(uid).set(fullProfile, { merge: true });
+        return fullProfile;
+      }
+    }
+
+    return null;
+  } catch (err) {
+    console.warn("[getPresensiProfileServerAction] Gagal mengambil profil:", err);
+    return null;
+  }
+}
+
 export interface LoginPresensiResult {
   success: boolean;
   message: string;

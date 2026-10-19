@@ -36,11 +36,11 @@ service cloud.firestore {
 
     // 1. Profil Pegawai
     match /users/{userId} {
-      allow read: if isAuth() && (request.auth.uid == userId || isAtasanOrAdmin());
-      allow create: if isAuth() && request.auth.uid == userId;
+      allow read: if isAuth();
+      allow create: if isAuth() && (request.auth.uid == userId || isPresAdmin());
       allow update: if isPresAdmin() || (
         isAuth() && request.auth.uid == userId &&
-        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'orgId', 'atasanId'])
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'orgId'])
       );
       allow delete: if isPresAdmin();
     }
