@@ -247,3 +247,171 @@ export async function checkGoogleUserSyncStatus(
     return { isLinked: false };
   }
 }
+
+export interface LoginPresensiResult {
+  success: boolean;
+  message: string;
+  customToken?: string;
+  profile?: UserProfile;
+}
+
+/**
+ * Server Action: Otentikasi mandiri presensi pegawai STP menggunakan Kode Akses / NIP / Email dan Password.
+ * Menghasilkan Firebase Custom Token khusus presensi sehingga akun langsung terotentikasi di presensiAuth.
+ */
+export async function loginPresensiWithCredentials(
+  nipOrEmail: string,
+  passwordInput: string
+): Promise<LoginPresensiResult> {
+  try {
+    if (!nipOrEmail || !passwordInput) {
+      return { success: false, message: "Kode Akses / NIP dan Kata Sandi wajib diisi." };
+    }
+
+    const inputClean = nipOrEmail.trim().toLowerCase();
+    const cleanNoHyphen = inputClean.replace(/[^a-z0-9]/gi, "");
+
+    // 1. Cari pegawai di STP_CREDENTIALS_LIST
+    let found: StpCredentialItem | undefined = STP_CREDENTIALS_LIST.find((u) => {
+      const codeClean = u.accessCode.toLowerCase();
+      const codeNoHyphen = codeClean.replace(/[^a-z0-9]/gi, "");
+      const emailClean = u.email.toLowerCase();
+      return (
+        codeClean === inputClean ||
+        codeNoHyphen === cleanNoHyphen ||
+        emailClean === inputClean ||
+        emailClean.startsWith(inputClean)
+      );
+    });
+
+    // Fallback: periksa database presensi-pegawai koleksi users
+    if (!found) {
+      const usersSnap = await adminPresensiDb.collection("users").get();
+      for (const d of usersSnap.docs) {
+        const u = d.data();
+        const code = (u.accessCode || u.nip || "").toLowerCase();
+        const mail = (u.email || "").toLowerCase();
+        if (code === inputClean || code.replace(/[^a-z0-9]/gi, "") === cleanNoHyphen || mail === inputClean) {
+          found = {
+            nama: u.nama || u.name,
+            jabatan: u.jabatan || "Pegawai Solo Technopark",
+            email: u.email,
+            accessCode: u.accessCode || u.nip || "STP-99999",
+            passwordDefault: "StpUser2026!",
+            role: u.role || "pegawai",
+            rankLevel: u.rankLevel ?? 9,
+            departmentName: u.departmentName || "UPTD Solo Technopark",
+          };
+          break;
+        }
+      }
+    }
+
+    if (!found) {
+      return {
+        success: false,
+        message: "Kode Akses atau NIP tidak terdaftar di data pegawai Solo Technopark (misal: STP-50120)."
+      };
+    }
+
+    // 2. Validasi Kata Sandi Presensi
+    const defaultPassword = process.env.PRESENSI_DEFAULT_PASSWORD || "StpUser2026!";
+    let isPasswordCorrect = (passwordInput === found.passwordDefault || passwordInput === defaultPassword);
+
+    if (!isPasswordCorrect && process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
+      try {
+        const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+        const res = await fetch(
+          `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: found.email,
+              password: passwordInput,
+              returnSecureToken: false,
+            }),
+          }
+        );
+        if (res.ok) {
+          isPasswordCorrect = true;
+        }
+      } catch (err) {
+        console.warn("[Login Presensi] Verifikasi password Auth REST gagal:", err);
+      }
+    }
+
+    if (!isPasswordCorrect) {
+      return {
+        success: false,
+        message: "Kata sandi yang Anda masukkan salah. Silakan coba lagi."
+      };
+    }
+
+    // 3. Pastikan Akun Terdaftar di Firebase Auth (Auto-provision akun pegawai jika belum ada)
+    let userRecord;
+    try {
+      userRecord = await adminPresensiAuth.getUserByEmail(found.email);
+    } catch (e: any) {
+      if (e.code === "auth/user-not-found") {
+        userRecord = await adminPresensiAuth.createUser({
+          email: found.email,
+          password: passwordInput || defaultPassword,
+          displayName: found.nama,
+        });
+      } else {
+        throw e;
+      }
+    }
+
+    // 4. Set Custom Claims untuk isolasi peran presensi
+    const existingClaims = userRecord.customClaims || {};
+    await adminPresensiAuth.setCustomUserClaims(userRecord.uid, {
+      ...existingClaims,
+      presensiRole: found.role,
+      stpAccessCode: found.accessCode,
+    });
+
+    // 5. Buat Custom Token resmi
+    const customToken = await adminPresensiAuth.createCustomToken(userRecord.uid, {
+      presensiRole: found.role,
+      stpAccessCode: found.accessCode,
+    });
+
+    // 6. Pastikan dokumen profil tersimpan di Firestore presensi-pegawai
+    const profileData: UserProfile = {
+      id: userRecord.uid,
+      nip: found.accessCode,
+      accessCode: found.accessCode,
+      nama: found.nama,
+      email: found.email,
+      role: found.role,
+      jabatan: found.jabatan,
+      golongan: "Pegawai BLUD Solo Technopark",
+      instansi: "UPTD KST Solo Technopark",
+      departmentId: `dept-${found.departmentName.toLowerCase().replace(/[^a-z0-9]/g, "-")}`,
+      departmentName: found.departmentName,
+      kantorId: "kantor-stp-pusat",
+      namaKantor: "UPTD KST Solo Technopark (Pusat)",
+      orgId: "solotechnopark",
+      storageLimitBytes: 1073741824,
+      storageUsedBytes: 0,
+      createdAt: new Date().toISOString(),
+    };
+
+    await adminPresensiDb.collection("users").doc(userRecord.uid).set(profileData, { merge: true });
+
+    return {
+      success: true,
+      message: "Login berhasil",
+      customToken,
+      profile: profileData,
+    };
+  } catch (error: any) {
+    console.error("[Login Presensi Action Error]:", error);
+    return {
+      success: false,
+      message: error?.message || "Terjadi kesalahan internal saat memproses login presensi.",
+    };
+  }
+}

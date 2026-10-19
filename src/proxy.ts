@@ -74,27 +74,25 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. Baca session token terenkripsi dan cookie peran (R-036)
-  const presensiSession = request.cookies.get('techno_sign_session')?.value;
-  const sessionToken = request.cookies.get('__session')?.value || presensiSession;
-  const cookieRole = request.cookies.get('userRole')?.value;
-
-  // Utamakan peran dari token JWT terverifikasi untuk mengeliminasi risiko spoofing
-  const tokenRole = getVerifiedRoleFromToken(sessionToken);
-  const role = tokenRole || cookieRole || null;
-
   const isPresensiPath = path === '/presensi' || path.startsWith('/presensi/');
 
-  // 3. Khusus Rute Presensi Pegawai STP (Techno Sign)
+  // 2. Khusus Rute Presensi Pegawai STP (Techno Sign)
+  // Menggunakan sesi terisolasi (techno_sign_session) tanpa mencampuri sesi Admin/Katalog
   if (isPresensiPath) {
-    // A. Sudah login sebagai pegawai atau staf internal admin -> izinkan masuk
-    if (role === APP_ROLES.PEGAWAI || isInternalStaff(role)) {
+    const presensiSession = request.cookies.get('techno_sign_session')?.value;
+
+    // A. Memiliki cookie sesi presensi aktif -> izinkan masuk
+    if (presensiSession) {
       return NextResponse.next();
     }
 
-    // B. Memiliki cookie sesi presensi aktif (techno_sign_session) -> izinkan masuk
-    if (presensiSession) {
-      return NextResponse.next();
+    // B. Fallback: Admin / Super Admin utama di portal katalog yang ingin menginspeksi modul presensi
+    const adminSession = request.cookies.get('__session')?.value;
+    if (adminSession) {
+      const adminRole = getVerifiedRoleFromToken(adminSession);
+      if (adminRole === APP_ROLES.SUPER_ADMIN || adminRole === APP_ROLES.ADMIN) {
+        return NextResponse.next();
+      }
     }
 
     // C. Pengguna belum memiliki sesi presensi -> arahkan ke halaman login presensi pegawai
@@ -105,21 +103,25 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(presensiLoginUrl);
   }
 
-  // 4. Rute Admin / Portal Bisnis (di luar presensi) diakses tanpa sesi login
+  // 3. Rute Admin / Portal Bisnis (di luar presensi)
+  // Hanya membaca cookie sesi katalog (__session dan userRole), terisolasi dari sesi presensi
+  const sessionToken = request.cookies.get('__session')?.value;
+  const cookieRole = request.cookies.get('userRole')?.value;
+
+  const tokenRole = getVerifiedRoleFromToken(sessionToken);
+  const role = tokenRole || cookieRole || null;
+
+  // Rute Admin diakses tanpa sesi login katalog
   if (!role) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', path);
     return NextResponse.redirect(loginUrl);
   }
 
-  // 5. Validasi hak akses rute menggunakan Single Source of Truth dari roles.ts
+  // 4. Validasi hak akses rute menggunakan Single Source of Truth dari roles.ts
   const isAllowed = hasAccess(role, path);
 
   if (!isAllowed) {
-    // Pegawai STP murni yang mencoba membuka modul admin katalog dialihkan ke presensi
-    if (role === APP_ROLES.PEGAWAI) {
-      return NextResponse.redirect(new URL('/presensi', request.url));
-    }
     // Akun tenant dialihkan ke portal tenant mereka sendiri
     if (role === APP_ROLES.TENANT) {
       return NextResponse.redirect(new URL('/tenant/dashboard', request.url));

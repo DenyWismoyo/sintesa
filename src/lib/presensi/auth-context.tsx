@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { onAuthStateChanged, User as FirebaseUser, getIdToken } from "firebase/auth";
-import { auth, db } from "@/lib/firebase";
+import { presensiAuth as auth, presensiDb as db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { isInternalStaff } from "@/config/roles";
 import {
@@ -13,7 +13,7 @@ import {
   logoutUser,
 } from "./auth-helpers";
 import { UserProfile } from "@/types/presensi";
-import { PRESENSI_COOKIE_NAME, PRESENSI_MAX_AGE_SECONDS } from "./constants";
+import { PRESENSI_COOKIE_NAME, PRESENSI_ROLE_COOKIE_NAME, PRESENSI_MAX_AGE_SECONDS } from "./constants";
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -30,19 +30,15 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-async function persistTokenToCookie(fbUser: FirebaseUser, catalogRole?: string): Promise<void> {
+async function persistTokenToCookie(fbUser: FirebaseUser, presensiRole?: string): Promise<void> {
   try {
     const idToken = await getIdToken(fbUser, false);
     const maxAge = PRESENSI_MAX_AGE_SECONDS;
     const secure = typeof window !== "undefined" && window.location.protocol === "https:" ? "; Secure" : "";
     
-    // 1. Cookie sesi khusus aplikasi Presensi (Techno Sign)
+    // Cookie sesi khusus aplikasi Presensi (Techno Sign) - Terisolasi dari Katalog/Admin
     document.cookie = `${PRESENSI_COOKIE_NAME}=${idToken}; Path=/; SameSite=Lax; Max-Age=${maxAge}${secure}`;
-    
-    // 2. Sinkronisasi cookie sesi SSO untuk Portal Admin Katalog (Edge Proxy R-036)
-    document.cookie = `__session=${idToken}; Path=/; SameSite=Lax; Max-Age=${maxAge}${secure}`;
-    const activeRole = catalogRole || "pegawai";
-    document.cookie = `userRole=${activeRole}; Path=/; SameSite=Lax; Max-Age=${maxAge}${secure}`;
+    document.cookie = `${PRESENSI_ROLE_COOKIE_NAME}=${presensiRole || "pegawai"}; Path=/; SameSite=Lax; Max-Age=${maxAge}${secure}`;
   } catch (err) {
     console.warn("[Presensi Auth] Gagal menyimpan token cookie:", err);
   }
@@ -50,8 +46,7 @@ async function persistTokenToCookie(fbUser: FirebaseUser, catalogRole?: string):
 
 function clearTokenCookie(): void {
   document.cookie = `${PRESENSI_COOKIE_NAME}=; Path=/; Max-Age=0`;
-  document.cookie = `__session=; Path=/; Max-Age=0`;
-  document.cookie = `userRole=; Path=/; Max-Age=0`;
+  document.cookie = `${PRESENSI_ROLE_COOKIE_NAME}=; Path=/; Max-Age=0`;
 }
 
 async function enrichProfileWithCatalogAccess(fbUser: FirebaseUser, profile: UserProfile | null): Promise<UserProfile | null> {
@@ -107,7 +102,7 @@ export function PresensiAuthProvider({ children }: { children: React.ReactNode }
       const profile = await getUserProfileFromFirestore(fbUser.uid, fbUser.email);
       const enriched = await enrichProfileWithCatalogAccess(fbUser, profile);
       setUser(enriched);
-      await persistTokenToCookie(fbUser, enriched?.catalogRole);
+      await persistTokenToCookie(fbUser, enriched?.role || "pegawai");
     }
   }, []);
 
@@ -119,7 +114,7 @@ export function PresensiAuthProvider({ children }: { children: React.ReactNode }
         if (profile) {
           const enriched = await enrichProfileWithCatalogAccess(fbUser, profile);
           setUser(enriched);
-          await persistTokenToCookie(fbUser, enriched?.catalogRole);
+          await persistTokenToCookie(fbUser, enriched?.role || "pegawai");
         } else {
           setUser(null);
         }
@@ -140,7 +135,7 @@ export function PresensiAuthProvider({ children }: { children: React.ReactNode }
       setFirebaseUser(fbUser);
       const enriched = await enrichProfileWithCatalogAccess(fbUser, profile);
       setUser(enriched);
-      await persistTokenToCookie(fbUser, enriched?.catalogRole);
+      await persistTokenToCookie(fbUser, enriched?.role || "pegawai");
     } finally {
       setIsLoading(false);
     }
@@ -153,7 +148,7 @@ export function PresensiAuthProvider({ children }: { children: React.ReactNode }
       setFirebaseUser(fbUser);
       const enriched = await enrichProfileWithCatalogAccess(fbUser, profile);
       setUser(enriched);
-      await persistTokenToCookie(fbUser, enriched?.catalogRole);
+      await persistTokenToCookie(fbUser, enriched?.role || "pegawai");
       return { user: fbUser, profile: enriched };
     } finally {
       setIsLoading(false);
@@ -183,7 +178,7 @@ export function PresensiAuthProvider({ children }: { children: React.ReactNode }
     await fbUser.getIdToken(true);
     const enriched = await enrichProfileWithCatalogAccess(fbUser, result.profile);
     setUser(enriched);
-    await persistTokenToCookie(fbUser);
+    await persistTokenToCookie(fbUser, enriched?.role || "pegawai");
 
     return enriched!;
   }, []);

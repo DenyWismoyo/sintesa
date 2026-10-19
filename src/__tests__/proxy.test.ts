@@ -13,16 +13,15 @@ function createMockRequest(url: string, cookies: Record<string, string> = {}): N
   return req;
 }
 
-describe('Edge Proxy Routing & Authentication Guard', () => {
+describe('Edge Proxy Routing & Authentication Guard (Isolated Sessions)', () => {
   describe('Presensi Route Protection (/presensi)', () => {
-    it('harus mengarahkan pengguna yang belum login ke /presensi/login saat mengakses /presensi', () => {
+    it('harus mengarahkan pengguna yang belum login presensi ke /presensi/login saat mengakses /presensi', () => {
       const req = createMockRequest('http://localhost:3000/presensi');
       const res = proxy(req);
 
       expect(res.status).toBe(307);
       const location = res.headers.get('location');
       expect(location).toContain('/presensi/login');
-      // Pastikan TIDAK dilempar ke beranda utama (/)
       expect(location).not.toBe('http://localhost:3000/');
     });
 
@@ -39,14 +38,13 @@ describe('Edge Proxy Routing & Authentication Guard', () => {
       const req = createMockRequest('http://localhost:3000/presensi/login');
       const res = proxy(req);
 
-      // Status 200 atau NextResponse.next()
       expect(res.status).toBe(200);
       expect(res.headers.get('location')).toBeNull();
     });
 
-    it('harus mengizinkan pegawai dengan cookie userRole=pegawai masuk ke /presensi', () => {
+    it('harus mengizinkan pegawai dengan cookie techno_sign_session aktif masuk ke /presensi', () => {
       const req = createMockRequest('http://localhost:3000/presensi', {
-        userRole: 'pegawai'
+        techno_sign_session: 'mock-presensi-token'
       });
       const res = proxy(req);
 
@@ -54,19 +52,14 @@ describe('Edge Proxy Routing & Authentication Guard', () => {
       expect(res.headers.get('location')).toBeNull();
     });
 
-    it('harus mengizinkan pegawai dengan techno_sign_session aktif masuk ke /presensi', () => {
-      const req = createMockRequest('http://localhost:3000/presensi', {
-        techno_sign_session: 'mock-session-token'
-      });
-      const res = proxy(req);
+    it('harus mengizinkan super_admin katalog menginspeksi modul presensi via sessionToken', () => {
+      // Mock valid unexpired token payload dengan role super_admin
+      const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+      const payload = btoa(JSON.stringify({ role: 'super_admin', exp: Math.floor(Date.now() / 1000) + 3600 }));
+      const mockToken = `${header}.${payload}.signature`;
 
-      expect(res.status).toBe(200);
-      expect(res.headers.get('location')).toBeNull();
-    });
-
-    it('harus mengizinkan admin/super_admin masuk ke /presensi', () => {
       const req = createMockRequest('http://localhost:3000/presensi', {
-        userRole: 'super_admin'
+        __session: mockToken
       });
       const res = proxy(req);
 
@@ -75,7 +68,7 @@ describe('Edge Proxy Routing & Authentication Guard', () => {
     });
   });
 
-  describe('Admin and Business Module Protection', () => {
+  describe('Admin and Business Module Protection (Isolated from Presensi)', () => {
     it('harus mengarahkan pengguna belum login yang mengakses /billing ke /login?redirect=/billing', () => {
       const req = createMockRequest('http://localhost:3000/billing');
       const res = proxy(req);
@@ -85,15 +78,31 @@ describe('Edge Proxy Routing & Authentication Guard', () => {
       expect(location).toContain('/login?redirect=%2Fbilling');
     });
 
-    it('harus mengalihkan akun pegawai biasa yang mencoba membuka modul admin /billing ke /presensi', () => {
+    it('tidak boleh mengizinkan akses rute admin hanya dengan modal techno_sign_session (sesi terisolasi)', () => {
+      // Membuka /billing dengan HANYA cookie presensi (tanpa cookie katalog/admin)
       const req = createMockRequest('http://localhost:3000/billing', {
-        userRole: 'pegawai'
+        techno_sign_session: 'mock-presensi-session'
       });
       const res = proxy(req);
 
+      // Harus dialihkan ke /login katalog, bukan bocor ke billing
       expect(res.status).toBe(307);
       const location = res.headers.get('location');
-      expect(location).toBe('http://localhost:3000/presensi');
+      expect(location).toContain('/login?redirect=%2Fbilling');
+    });
+
+    it('harus mengizinkan akses admin ke /billing jika memiliki cookie katalog __session yang valid', () => {
+      const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+      const payload = btoa(JSON.stringify({ role: 'admin_keuangan', exp: Math.floor(Date.now() / 1000) + 3600 }));
+      const mockToken = `${header}.${payload}.signature`;
+
+      const req = createMockRequest('http://localhost:3000/billing', {
+        __session: mockToken
+      });
+      const res = proxy(req);
+
+      expect(res.status).toBe(200);
+      expect(res.headers.get('location')).toBeNull();
     });
   });
 });

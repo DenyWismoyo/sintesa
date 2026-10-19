@@ -40,5 +40,12 @@ const presensiDb = getFirestore(app, presensiDatabaseId);
 // Cloud Storage bucket terpisah: 'gs://presensi-solo-technopark'
 const presensiStorage = getStorage(app, presensiBucketUrl);
 
-export { app, auth, db, storage, functions, presensiDb, presensiStorage };
+// --- ISOLASI FIREBASE AUTH KHUSUS PRESENSI PEGAWAI (IndexedDB / LocalStorage Terpisah) ---
+const presensiApp = !getApps().some(a => a.name === 'presensi')
+  ? initializeApp(firebaseConfig, 'presensi')
+  : getApp('presensi');
+
+const presensiAuth = getAuth(presensiApp);
+
+export { app, auth, db, storage, functions, presensiDb, presensiStorage, presensiApp, presensiAuth };
 

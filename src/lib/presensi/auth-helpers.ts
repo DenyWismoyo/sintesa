@@ -2,6 +2,7 @@
 import {
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithCustomToken,
   GoogleAuthProvider,
   signOut,
   User as FirebaseUser,
@@ -12,7 +13,7 @@ import {
   setDoc,
   serverTimestamp,
 } from "firebase/firestore";
-import { auth, presensiDb as db } from "@/lib/firebase";
+import { presensiAuth as auth, presensiDb as db } from "@/lib/firebase";
 import { UserProfile } from "@/types/presensi";
 import { getStpUserProfileByEmail } from "@/data/presensi/stpUsers";
 
@@ -136,10 +137,31 @@ export async function loginWithNipOrEmail(
   nipOrEmail: string,
   password: string
 ): Promise<{ user: FirebaseUser; profile: UserProfile }> {
-  let email = nipOrEmail.trim();
+  // 1. Prioritaskan Server Action terverifikasi untuk auto-provisioning & isolasi claims
+  try {
+    const { loginPresensiWithCredentials } = await import("@/actions/presensi/auth");
+    const result = await loginPresensiWithCredentials(nipOrEmail, password);
 
+    if (result.success && result.customToken && result.profile) {
+      const credential = await signInWithCustomToken(auth, result.customToken);
+      return { user: credential.user, profile: result.profile };
+    }
+
+    if (!result.success) {
+      throw new Error(result.message || "Gagal melakukan autentikasi presensi.");
+    }
+  } catch (actionErr: any) {
+    const errMsg = actionErr?.message || "";
+    // Jika error adalah penolakan password atau akun tidak ditemukan, teruskan error
+    if (errMsg.includes("Kata sandi") || errMsg.includes("tidak terdaftar") || errMsg.includes("wajib diisi")) {
+      throw actionErr;
+    }
+    console.warn("[Login Presensi] Server Action fallback ke client Auth SDK:", actionErr);
+  }
+
+  // 2. Fallback: Autentikasi langsung via client SDK (presensiAuth)
+  let email = nipOrEmail.trim();
   if (!email.includes("@")) {
-    // Cari di data master kredensial STP
     const { STP_CREDENTIALS_LIST } = await import("@/data/presensi/stpUsers");
     const found = STP_CREDENTIALS_LIST.find(
       (u) => u.accessCode.toLowerCase() === email.toLowerCase() || u.accessCode.replace("-", "").toLowerCase() === email.replace("-", "").toLowerCase()
