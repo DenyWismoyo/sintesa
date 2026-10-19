@@ -306,7 +306,8 @@ export default function ModalFormInvoice({ onClose, onSubmit, initialData, invoi
             unitPrice = training.price || 0; 
             refType = 'TRAINING'; 
             detectedUnit = 'Peserta';
-            subDescription = training.mode ? `Mode: ${training.mode}` : '';
+            const trainingMode = (training as any).mode || training.type;
+            subDescription = trainingMode ? `Tipe: ${trainingMode}` : '';
           }
         }
         return { 
