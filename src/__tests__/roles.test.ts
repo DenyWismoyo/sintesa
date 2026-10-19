@@ -47,6 +47,7 @@ describe('Role-Based Access Control (RBAC) System', () => {
       expect(isInternalStaff(APP_ROLES.ADMIN_KEUANGAN)).toBe(true);
       expect(isInternalStaff(APP_ROLES.KASIR)).toBe(true);
       expect(isInternalStaff(APP_ROLES.ADMIN_ASET)).toBe(true);
+      expect(isInternalStaff(APP_ROLES.PEGAWAI)).toBe(true);
       expect(isInternalStaff(APP_ROLES.PUBLIC)).toBe(false);
       expect(isInternalStaff(APP_ROLES.TENANT)).toBe(false);
       expect(isInternalStaff(APP_ROLES.ALUMNI)).toBe(false);
@@ -54,10 +55,14 @@ describe('Role-Based Access Control (RBAC) System', () => {
   });
 
   describe('Public and Partner Access', () => {
-    it('should deny public role from accessing admin routes', () => {
+    it('should deny public role and ordinary pegawai from accessing catalog admin routes', () => {
       expect(hasAccess(APP_ROLES.PUBLIC, '/dashboard')).toBe(false);
       expect(hasAccess(APP_ROLES.PUBLIC, '/billing')).toBe(false);
       expect(hasAccess(APP_ROLES.PUBLIC, '/aset')).toBe(false);
+      expect(hasAccess(APP_ROLES.PEGAWAI, '/dashboard')).toBe(false);
+      expect(hasAccess(APP_ROLES.PEGAWAI, '/billing')).toBe(false);
+      expect(hasAccess(APP_ROLES.PEGAWAI, '/aset')).toBe(false);
+      expect(hasAccess(APP_ROLES.PEGAWAI, '/katalog')).toBe(false);
     });
 
     it('should allow partner roles to access their portal routes', () => {
@@ -124,6 +129,7 @@ describe('Role-Based Access Control (RBAC) System', () => {
   describe('Presensi Pegawai STP Route Protection (Internal Staff Only)', () => {
     it('should grant presensi access to all internal staff and admin roles', () => {
       const internalRoles = [
+        APP_ROLES.PEGAWAI,
         APP_ROLES.SUPER_ADMIN,
         APP_ROLES.ADMIN,
         APP_ROLES.ADMIN_KEUANGAN,

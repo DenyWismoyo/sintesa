@@ -33,29 +33,37 @@ export async function getUserProfileFromFirestore(
     console.warn("[Presensi] Gagal mengambil profil dari Firestore:", error);
   }
 
-  // Jika tidak ditemukan langsung via doc(uid), periksa apakah email Google ini sudah ditautkan
+  // Jika tidak ditemukan langsung via doc(uid), periksa apakah email ini sudah terdaftar
   if (userEmail) {
     try {
       const { collection, query, where, getDocs, limit } = await import("firebase/firestore");
-      const q = query(collection(db, "users"), where("googleEmail", "==", userEmail), limit(1));
-      const snap = await getDocs(q);
-      if (!snap.empty) {
-        return snap.docs[0].data() as UserProfile;
+      // 1. Cek berdasarkan googleEmail yang ditautkan
+      const qGoogle = query(collection(db, "users"), where("googleEmail", "==", userEmail), limit(1));
+      const snapGoogle = await getDocs(qGoogle);
+      if (!snapGoogle.empty) {
+        return snapGoogle.docs[0].data() as UserProfile;
       }
-    } catch {}
 
-    // Jika ini adalah login menggunakan email kedinasan mock @solotechnopark.id
-    if (userEmail.endsWith("@solotechnopark.id")) {
-      const profile = getStpUserProfileByEmail(userEmail);
-      if (profile) {
-        const fullProfile = { ...profile, id: uid };
-        try {
-          await setDoc(doc(db, "users", uid), fullProfile, { merge: true });
-        } catch (err) {
-          console.warn("[Presensi] Auto-provision profil STP gagal:", err);
-        }
-        return fullProfile;
+      // 2. Cek berdasarkan field email kedinasan
+      const qEmail = query(collection(db, "users"), where("email", "==", userEmail), limit(1));
+      const snapEmail = await getDocs(qEmail);
+      if (!snapEmail.empty) {
+        return snapEmail.docs[0].data() as UserProfile;
       }
+    } catch (err) {
+      console.warn("[Presensi] Query pencocokan email gagal:", err);
+    }
+
+    // 3. Pencocokan dengan master data STP
+    const profile = getStpUserProfileByEmail(userEmail);
+    if (profile) {
+      const fullProfile = { ...profile, id: uid, googleEmail: userEmail };
+      try {
+        await setDoc(doc(db, "users", uid), fullProfile, { merge: true });
+      } catch (err) {
+        console.warn("[Presensi] Auto-provision profil STP gagal:", err);
+      }
+      return fullProfile;
     }
   }
 

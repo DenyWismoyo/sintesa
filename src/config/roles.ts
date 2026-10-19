@@ -20,6 +20,7 @@ export const APP_ROLES = {
   PUBLIC: 'public',
   TENANT: 'tenant',
   ALUMNI: 'alumni', 
+  PEGAWAI: 'pegawai',
 
   // --- ROLE BARU UNTUK SMART HUB ---
   INVESTOR: 'investor',
@@ -41,6 +42,7 @@ export const ROLE_LABELS: Record<string, string> = {
   [APP_ROLES.OPERATOR_TENANT]: 'Operator Tenant',
   [APP_ROLES.ADMIN_PELATIHAN]: 'Admin Pelatihan (LMS)',
   [APP_ROLES.OPERATOR_PELATIHAN]: 'Operator Pelatihan',
+  [APP_ROLES.PEGAWAI]: 'Pegawai Solo Technopark',
   [APP_ROLES.PUBLIC]: 'Pengguna Umum / Instruktur',
   [APP_ROLES.TENANT]: 'Akun Tenant',
   [APP_ROLES.ALUMNI]: 'Alumni KST',
@@ -58,6 +60,7 @@ export const ROLE_ACCESS_MAP: Record<string, string[]> = {
   [APP_ROLES.KASIR_PENGELUARAN]: ['/dashboard', '/billing', '/karir'],
   [APP_ROLES.ADMIN_ASET]: ['/dashboard', '/aset', '/booking', '/manajemen-faq', '/karir'],
   [APP_ROLES.OPERATOR_ASET]: ['/dashboard', '/aset', '/booking', '/karir'],
+  [APP_ROLES.PEGAWAI]: ['/presensi', '/karir'],
   [APP_ROLES.ADMIN_TENANT]: ['/dashboard', '/tenant', '/manajemen-event', '/manajemen-krenova', '/manajemen-faq', '/manajemen-artikel', '/karir'],
   [APP_ROLES.OPERATOR_TENANT]: ['/dashboard', '/tenant', '/manajemen-event', '/karir'],
   [APP_ROLES.ADMIN_PELATIHAN]: ['/dashboard', '/pelatihan', '/lms', '/manajemen-faq', '/manajemen-artikel', '/karir'],

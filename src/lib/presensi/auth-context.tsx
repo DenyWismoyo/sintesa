@@ -41,9 +41,8 @@ async function persistTokenToCookie(fbUser: FirebaseUser, catalogRole?: string):
     
     // 2. Sinkronisasi cookie sesi SSO untuk Portal Admin Katalog (Edge Proxy R-036)
     document.cookie = `__session=${idToken}; Path=/; SameSite=Lax; Max-Age=${maxAge}${secure}`;
-    if (catalogRole) {
-      document.cookie = `userRole=${catalogRole}; Path=/; SameSite=Lax; Max-Age=${maxAge}${secure}`;
-    }
+    const activeRole = catalogRole || "pegawai";
+    document.cookie = `userRole=${activeRole}; Path=/; SameSite=Lax; Max-Age=${maxAge}${secure}`;
   } catch (err) {
     console.warn("[Presensi Auth] Gagal menyimpan token cookie:", err);
   }

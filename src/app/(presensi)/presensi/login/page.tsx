@@ -191,12 +191,12 @@ export default function PresensiLoginPage() {
 
           <div className="space-y-1.5 pb-4">
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-              {isSyncMode ? "Validasi Pegawai STP" : "Masuk Pegawai"}
+              {isSyncMode ? "Aktivasi Akun Pegawai" : "Masuk Presensi Pegawai"}
             </h2>
             <p className="text-xs text-slate-500 font-normal">
               {isSyncMode
-                ? "Tautkan akun Google Anda dengan identitas pegawai resmi Solo Technopark"
-                : "Gunakan Akun Google (Katalog) atau Kode Akses Solo Technopark"}
+                ? "Kaitkan akun Google Anda dengan data pegawai resmi Solo Technopark"
+                : "Gunakan Kode Akses Pegawai STP atau Akun Google Pegawai"}
             </p>
           </div>
 
@@ -248,14 +248,14 @@ export default function PresensiLoginPage() {
                 </div>
 
                 <div className="p-3 bg-amber-50/70 border border-amber-200/60 rounded-xl text-[11px] text-amber-800 leading-relaxed">
-                  Masukkan <strong>Kode Akses Pegawai / Username</strong> dan <strong>Kata Sandi Presensi</strong> Anda satu kali saja untuk menyatukan akun Google ini menjadi <strong>1 akun yang sama</strong> (dapat dipakai untuk operasional Katalog dan Presensi).
+                  Masukkan <strong>Kode Akses Pegawai (contoh: STP-50120)</strong> dan <strong>Kata Sandi Presensi</strong> Anda untuk mengaitkan akun Google ini dengan profil pegawai resmi Solo Technopark Anda.
                 </div>
 
                 {/* FORM VALIDASI SINKRONISASI */}
                 <form onSubmit={handleSyncSubmit} className="space-y-3.5">
                   <div className="space-y-1.5">
                     <Label htmlFor="syncCode" className="text-xs font-semibold text-slate-700">
-                      Kode Akses Pegawai / Username Presensi
+                      Kode Akses Pegawai / NIP / Email
                     </Label>
                     <Input
                       id="syncCode"
@@ -294,12 +294,12 @@ export default function PresensiLoginPage() {
                     {isSubmitting ? (
                       <span className="flex items-center gap-2">
                         <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        <span>Menyatukan Akun...</span>
+                        <span>Mengaitkan Akun...</span>
                       </span>
                     ) : (
                       <span className="flex items-center justify-center gap-1.5">
                         <UserCheck className="w-4 h-4" />
-                        <span>Validasi & Satukan Akun</span>
+                        <span>Kaitkan Akun Pegawai</span>
                       </span>
                     )}
                   </Button>
@@ -319,7 +319,7 @@ export default function PresensiLoginPage() {
             ) : (
               /* TAMPILAN UTAMA LOGIN */
               <>
-                {/* OPSI 1: LOGIN GOOGLE SSO UTAMA */}
+                {/* OPSI 1: LOGIN GOOGLE SSO */}
                 <Button
                   type="button"
                   variant="outline"
@@ -345,7 +345,7 @@ export default function PresensiLoginPage() {
                       d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                     />
                   </svg>
-                  <span>Masuk dengan Akun Google (Katalog)</span>
+                  <span>Masuk dengan Akun Google Pegawai</span>
                 </Button>
 
                 <div className="relative my-3">

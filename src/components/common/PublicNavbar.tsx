@@ -305,6 +305,28 @@ export default function PublicNavbar() {
       );
     }
 
+    if (role === APP_ROLES.PEGAWAI) {
+      return (
+        <div className="flex items-center gap-2">
+          <Link
+            href="/presensi"
+            className="px-3.5 py-1.5 h-9 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-full transition-all flex items-center gap-1.5 shadow-sm hover:-translate-y-0.5"
+            title="Presensi Pegawai STP (Techno Sign)"
+          >
+            <ClockCheck size={14} className="text-white" />
+            <span>Presensi Pegawai</span>
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="p-2 h-9 w-9 bg-white border border-slate-200 text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100 rounded-full transition-all flex items-center justify-center shadow-2xs cursor-pointer"
+            title="Keluar Akun"
+          >
+            <LogOut size={14} />
+          </button>
+        </div>
+      );
+    }
+
     if (isInternalStaff(role)) {
       return (
         <div className="flex items-center gap-2">
@@ -389,7 +411,9 @@ export default function PublicNavbar() {
       );
     }
 
-    const roleName = isInternalStaff(role)
+    const roleName = role === APP_ROLES.PEGAWAI
+      ? 'Pegawai Solo Technopark'
+      : isInternalStaff(role)
       ? 'Staff Internal / Admin'
       : role === APP_ROLES.TENANT
       ? 'Tenant Startup'
@@ -399,7 +423,7 @@ export default function PublicNavbar() {
       <div className="flex flex-col gap-2.5 w-full">
         {/* User Card Singkat */}
         <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
-          <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center shrink-0">
             <User size={18} />
           </div>
           <div className="flex-1 min-w-0">
@@ -411,7 +435,28 @@ export default function PublicNavbar() {
         </div>
 
         {/* Action Button sesuai role */}
-        {isInternalStaff(role) ? (
+        {role === APP_ROLES.PEGAWAI ? (
+          <div className="flex flex-col gap-2 w-full">
+            <Link
+              href="/presensi"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="w-full h-11 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs flex items-center justify-center gap-2 transition-all"
+            >
+              <ClockCheck size={16} className="text-white" />
+              <span>Buka Presensi Pegawai</span>
+            </Link>
+            <button
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                handleLogout();
+              }}
+              className="w-full h-10 text-xs font-bold text-slate-600 hover:text-rose-600 bg-white border border-slate-200 rounded-xl flex items-center justify-center gap-1.5 transition-all"
+            >
+              <LogOut size={14} />
+              <span>Keluar Akun</span>
+            </button>
+          </div>
+        ) : isInternalStaff(role) ? (
           <div className="flex flex-col gap-2 w-full">
             <Link
               href="/dashboard"

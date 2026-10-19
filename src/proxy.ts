@@ -38,7 +38,23 @@ function getVerifiedRoleFromToken(tokenString: string | undefined): string | nul
       return null;
     }
 
-    return payload.role || 'public';
+    // 1. Role eksplisit dari Custom Claims (admin, super_admin, kasir, dll.)
+    if (payload.role) {
+      return payload.role;
+    }
+
+    // 2. Role Presensi Pegawai dari Custom Claims
+    if (payload.presensiRole) {
+      return APP_ROLES.PEGAWAI;
+    }
+
+    // 3. Akun dengan domain email kedinasan Solo Technopark otomatis dikenali sebagai Pegawai
+    if (payload.email && typeof payload.email === 'string' && payload.email.endsWith('@solotechnopark.id')) {
+      return APP_ROLES.PEGAWAI;
+    }
+
+    // Kembalikan null agar cookieRole (seperti 'pegawai') dapat dibaca sebagai fallback
+    return null;
   } catch {
     return null;
   }
@@ -59,33 +75,47 @@ export function proxy(request: NextRequest) {
   }
 
   // 2. Baca session token terenkripsi dan cookie peran (R-036)
-  const sessionToken = request.cookies.get('__session')?.value || request.cookies.get('techno_sign_session')?.value;
+  const presensiSession = request.cookies.get('techno_sign_session')?.value;
+  const sessionToken = request.cookies.get('__session')?.value || presensiSession;
   const cookieRole = request.cookies.get('userRole')?.value;
 
   // Utamakan peran dari token JWT terverifikasi untuk mengeliminasi risiko spoofing
   const tokenRole = getVerifiedRoleFromToken(sessionToken);
-  const role = tokenRole || cookieRole;
+  const role = tokenRole || cookieRole || null;
 
-  // 3. Jika rute privat diakses tanpa cookie sesi / belum login
-  if (!role) {
-    if (path === '/presensi' || path.startsWith('/presensi/')) {
-      const presensiLoginUrl = new URL('/presensi/login', request.url);
-      presensiLoginUrl.searchParams.set('redirect', path);
-      return NextResponse.redirect(presensiLoginUrl);
+  const isPresensiPath = path === '/presensi' || path.startsWith('/presensi/');
+
+  // 3. Khusus Rute Presensi Pegawai STP (Techno Sign)
+  // Pengguna umum / publik diminimalkan dan dilarang masuk ke presensi, langsung diarahkan ke beranda utama (public)
+  if (isPresensiPath) {
+    // A. Sudah login sebagai pegawai atau staf internal admin -> izinkan masuk
+    if (role === APP_ROLES.PEGAWAI || isInternalStaff(role)) {
+      return NextResponse.next();
     }
+
+    // B. Memiliki cookie sesi presensi aktif (techno_sign_session) -> izinkan masuk
+    if (presensiSession) {
+      return NextResponse.next();
+    }
+
+    // C. Pengguna umum / publik atau pengunjung yang belum login presensi dialihkan langsung ke dashboard utama sistem (/)
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
+  // 4. Rute Admin / Portal Bisnis (di luar presensi) diakses tanpa sesi login
+  if (!role) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', path);
     return NextResponse.redirect(loginUrl);
   }
 
-  // 4. Validasi hak akses rute menggunakan Single Source of Truth dari roles.ts
+  // 5. Validasi hak akses rute menggunakan Single Source of Truth dari roles.ts
   const isAllowed = hasAccess(role, path);
 
   if (!isAllowed) {
-    // Penanganan jika akses ditolak:
-    // Pengguna publik yang mencoba mengakses presensi dialihkan ke beranda utama
-    if (path === '/presensi' || path.startsWith('/presensi/')) {
-      return NextResponse.redirect(new URL('/', request.url));
+    // Pegawai STP murni yang mencoba membuka modul admin katalog dialihkan ke presensi
+    if (role === APP_ROLES.PEGAWAI) {
+      return NextResponse.redirect(new URL('/presensi', request.url));
     }
     // Akun tenant dialihkan ke portal tenant mereka sendiri
     if (role === APP_ROLES.TENANT) {
