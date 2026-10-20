@@ -20,7 +20,7 @@ service firebase.storage {
 
     // Role untuk sistem presensi Techno Sign (JWT 'presensiRole' claim)
     function getPresRole() {
-      return isAuth() && ('presensiRole' in request.auth.token) ? request.auth.token.presensiRole : 'public';
+      return isAuth() && request.auth.token.presensiRole != null ? request.auth.token.presensiRole : 'public';
     }
 
     function isSuperAdmin() {
@@ -155,7 +155,7 @@ service firebase.storage {
       // Swafoto dapat dibaca oleh user terautentikasi (atasan, admin, pegawai)
       allow read: if isAuth();
       // Pegawai terautentikasi dapat mengunggah swafoto presensi kamera
-      allow write: if isAuth() &&
+      allow write: if (isAuth() || isPresAdmin()) &&
                    isImage() &&
                    isUnderSize(10);
     }
@@ -163,7 +163,7 @@ service firebase.storage {
     // 12. Berkas Bukti Tugas Logbook / LKH & Surat Pengajuan Izin
     match /presensi-pegawai/{allPaths=**} {
       allow read: if isAuth();
-      allow write: if isAuth() && isDoc() && isUnderSize(25);
+      allow write: if (isAuth() || isPresAdmin()) && isDoc() && isUnderSize(25);
     }
   }
 }
