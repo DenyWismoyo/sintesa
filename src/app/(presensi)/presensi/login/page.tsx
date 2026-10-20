@@ -20,7 +20,6 @@ import {
   LogOut,
   RefreshCw,
   UserCheck,
-  FileText,
 } from "lucide-react";
 import TechnoSignLogo from "@/components/presensi/TechnoSignLogo";
 
@@ -490,17 +489,8 @@ export default function PresensiLoginPage() {
             </div>
           ) : null}
 
-          {/* Tautan Unduh Panduan PDF Resmi */}
-          <div className="pt-3 border-t border-slate-100 mt-2 p-3 sm:p-4 text-center space-y-2">
-            <a
-              href="/docs/panduan-presensi-techno-sign.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 text-xs font-semibold transition-all shadow-xs cursor-pointer w-full sm:w-auto"
-            >
-              <FileText className="w-4 h-4 text-emerald-600" />
-              <span>Unduh Panduan & Direktori Akun (.PDF)</span>
-            </a>
+          {/* Bantuan Akses Akun */}
+          <div className="pt-3 border-t border-slate-100 mt-2 p-2 text-center">
             <p className="text-[11px] text-slate-400 w-full">
               Kendala akses akun? Hubungi Sub Bagian Tata Usaha / IT Solo Technopark.
             </p>
