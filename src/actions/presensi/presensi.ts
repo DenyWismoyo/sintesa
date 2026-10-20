@@ -1,6 +1,6 @@
 "use server";
 
-import { adminPresensiDb, isFirebaseAdminConfigured } from "@/lib/presensi/firebase-admin";
+import { adminPresensiDb, isFirebaseAdminConfigured, removeUndefinedFields } from "@/lib/presensi/firebase-admin";
 import { requireAuth } from "@/lib/presensi/session";
 import { getDevPresensiStore, SEED_FIREBASE_UIDS } from "@/data/presensi/seedData";
 import {
@@ -264,7 +264,8 @@ export async function recordCheckIn(
         if (snap.exists && snap.data()?.checkIn) {
           throw new Error("ALREADY_CHECKED_IN");
         }
-        transaction.set(docRef, newRecord, { merge: true });
+        const sanitizedRecord = removeUndefinedFields(newRecord);
+        transaction.set(docRef, sanitizedRecord, { merge: true });
       });
     } catch (err: any) {
       if (err?.message === "ALREADY_CHECKED_IN") {
@@ -451,7 +452,8 @@ export async function recordCheckOut(
         if (currentData.checkOut) {
           throw new Error("ALREADY_CHECKED_OUT");
         }
-        transaction.set(docRef, updatedRecord, { merge: true });
+        const sanitizedRecord = removeUndefinedFields(updatedRecord);
+        transaction.set(docRef, sanitizedRecord, { merge: true });
       });
     } catch (err: any) {
       if (err?.message === "NOT_CHECKED_IN") {

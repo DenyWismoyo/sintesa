@@ -96,16 +96,50 @@ export function getAdminApp(): App {
 
 const presensiDatabaseId = process.env.NEXT_PUBLIC_PRESENSI_DATABASE_ID || "presensi-pegawai";
 
+let configuredDb: Firestore | null = null;
+
+export const getAdminPresensiDb = (): Firestore => {
+  if (configuredDb) return configuredDb;
+  const app = initAdminApp();
+  configuredDb = getFirestore(app, presensiDatabaseId);
+  try {
+    configuredDb.settings({ ignoreUndefinedProperties: true });
+  } catch (e) {
+    // Abaikan jika settings sudah pernah dipanggil sebelumnya
+  }
+  return configuredDb;
+};
+
 // Export lazy Proxy untuk Admin Firestore agar terisolasi ke database 'presensi-pegawai'
 export const adminPresensiDb = new Proxy({} as Firestore, {
   get(_target, prop) {
-    const app = initAdminApp();
-    const db = getFirestore(app, presensiDatabaseId);
+    const db = getAdminPresensiDb();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const val = (db as any)[prop];
     return typeof val === "function" ? val.bind(db) : val;
   },
 });
+
+/**
+ * Sanitasi rekursif untuk membersihkan properti bernilai undefined
+ * agar aman 100% saat disimpan ke Firestore Document.
+ */
+export function removeUndefinedFields<T>(obj: T): T {
+  if (obj === null || obj === undefined || typeof obj !== "object") {
+    return obj;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(removeUndefinedFields) as unknown as T;
+  }
+  const cleanObj: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      cleanObj[key] = removeUndefinedFields(value);
+    }
+  }
+  return cleanObj as T;
+}
+
 
 // Export lazy Proxy untuk Admin Auth
 export const adminPresensiAuth = new Proxy({} as Auth, {
