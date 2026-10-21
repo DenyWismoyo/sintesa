@@ -31,7 +31,8 @@ import {
   Newspaper,
   Compass,
   ShoppingBag,
-  Ticket
+  Ticket,
+  ClockCheck
 } from 'lucide-react';
 import { usePublicStats } from '@/hooks/usePublicStats';
 import { useTraining } from '@/hooks/useTraining';
@@ -39,6 +40,8 @@ import { useEvents } from '@/hooks/useEvents';
 import { useArticles } from '@/hooks/useArticles';
 import { formatRupiah } from '@/utils/format';
 import { toast } from 'sonner';
+import { usePresensiSession } from '@/hooks/usePresensiSession';
+import PegawaiPresensiHighlightBanner from '@/components/presensi/PegawaiPresensiHighlightBanner';
 
 // Data untuk Section Pentahelix
 const PENTAHELIX_DATA = [
@@ -130,6 +133,7 @@ const LAYANAN_UTAMA = [
 
 export default function SmartHubLanding() {
   const { stats, isLoading: statsLoading } = usePublicStats();
+  const { isPegawaiLoggedIn } = usePresensiSession();
 
   const { trainings = [], loading: loadingTrainings } = useTraining();
   const { events = [], loading: loadingEvents } = useEvents();
@@ -189,6 +193,9 @@ export default function SmartHubLanding() {
           Menghubungkan talenta terampil bersertifikasi industri, startup inovatif, fasilitas laboratorium modern, serta katalog produk komersial terdepan untuk kemandirian teknologi nasional.
         </motion.p>
 
+        {/* --- BANNER KHUSUS PEGAWAI STP YANG SUDAH LOGIN PRESENSI (TERHIGHLIGHT) --- */}
+        <PegawaiPresensiHighlightBanner variant="hero" />
+
         {/* Action CTAs */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -196,6 +203,19 @@ export default function SmartHubLanding() {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 w-full max-w-md sm:max-w-none"
         >
+          {/* Tombol Utama Presensi Pegawai Terhighlight jika sudah login */}
+          {isPegawaiLoggedIn && (
+            <Link
+              href="/presensi"
+              className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-600 text-white font-black text-sm shadow-lg shadow-emerald-600/30 ring-2 ring-emerald-400/50 transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5 active:translate-y-0"
+              title="Akses Langsung Menu Presensi & Kinerja Techno Sign"
+            >
+              <ClockCheck size={18} className="text-white shrink-0" />
+              <span>Buka Menu Presensi</span>
+              <ArrowRight size={15} className="shrink-0" />
+            </Link>
+          )}
+
           <Link
             href="/program-pelatihan"
             className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm shadow-md shadow-amber-500/20 transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5"

@@ -44,6 +44,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import SectionContainer from '@/components/ui/SectionContainer';
+import PegawaiPresensiHighlightBanner from '@/components/presensi/PegawaiPresensiHighlightBanner';
 
 export default function PortalDashboardPage() {
   const router = useRouter();
@@ -204,6 +205,9 @@ export default function PortalDashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* --- BANNER KHUSUS PEGAWAI STP (TERHIGHLIGHT) --- */}
+        <PegawaiPresensiHighlightBanner variant="compact" />
 
         {/* --- 2. KPI METRICS CARDS (4 KOLOM) --- */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">

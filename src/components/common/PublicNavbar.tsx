@@ -39,6 +39,7 @@ import { isInternalStaff, APP_ROLES, canAccessCareer } from '@/config/roles';
 import GlobalSearchModal from './GlobalSearchModal';
 import { useLoginModal } from '@/context/LoginModalContext';
 import { authService } from '@/services/auth.service';
+import { usePresensiSession } from '@/hooks/usePresensiSession';
 
 export interface NavMenu {
   name: string;
@@ -181,6 +182,7 @@ export default function PublicNavbar() {
   const router = useRouter();
   const { user, role, loading } = useAuth();
   const { openLoginModal } = useLoginModal();
+  const { isPegawaiLoggedIn, pegawaiName, pegawaiRole } = usePresensiSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -293,6 +295,34 @@ export default function PublicNavbar() {
     }
 
     if (!user) {
+      if (isPegawaiLoggedIn) {
+        return (
+          <div className="flex items-center gap-2">
+            <Link
+              href="/presensi"
+              className="relative px-3.5 py-1.5 h-9 text-xs font-black bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-600 text-white rounded-full transition-all flex items-center gap-2 shadow-md shadow-emerald-600/25 ring-2 ring-emerald-400/40 hover:-translate-y-0.5 active:translate-y-0"
+              title="Menu Presensi Pegawai STP (Techno Sign)"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+              </span>
+              <ClockCheck size={14} className="text-white shrink-0" />
+              <span>Presensi Pegawai</span>
+            </Link>
+            <button
+              type="button"
+              onClick={() => openLoginModal()}
+              className="px-3 py-1.5 h-9 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full transition-all flex items-center gap-1 cursor-pointer"
+              title="Masuk Portal Layanan Katalog"
+            >
+              <span>Portal</span>
+              <ArrowUpRight size={13} className="opacity-70" />
+            </button>
+          </div>
+        );
+      }
+
       return (
         <button
           type="button"
@@ -310,9 +340,13 @@ export default function PublicNavbar() {
         <div className="flex items-center gap-2">
           <Link
             href="/presensi"
-            className="px-3.5 py-1.5 h-9 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-full transition-all flex items-center gap-1.5 shadow-sm hover:-translate-y-0.5"
+            className="relative px-4 py-1.5 h-9 text-xs font-black bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-600 text-white rounded-full transition-all flex items-center gap-2 shadow-md shadow-emerald-600/25 ring-2 ring-emerald-400/40 hover:-translate-y-0.5 active:translate-y-0"
             title="Presensi Pegawai STP (Techno Sign)"
           >
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+            </span>
             <ClockCheck size={14} className="text-white" />
             <span>Presensi Pegawai</span>
           </Link>
@@ -339,10 +373,14 @@ export default function PublicNavbar() {
           </Link>
           <Link
             href="/presensi"
-            className="px-3.5 py-1.5 h-9 text-xs font-bold bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 text-emerald-700 rounded-full transition-all flex items-center gap-1.5 shadow-2xs hover:-translate-y-0.5"
+            className="relative px-3.5 py-1.5 h-9 text-xs font-black bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-full transition-all flex items-center gap-1.5 shadow-md shadow-emerald-600/20 ring-2 ring-emerald-400/30 hover:-translate-y-0.5"
             title="Presensi Pegawai STP (Techno Sign)"
           >
-            <ClockCheck size={14} className="text-emerald-600" />
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+            </span>
+            <ClockCheck size={14} className="text-white" />
             <span>Presensi STP</span>
           </Link>
         </div>
@@ -396,6 +434,46 @@ export default function PublicNavbar() {
     }
 
     if (!user) {
+      if (isPegawaiLoggedIn) {
+        return (
+          <div className="flex flex-col gap-2.5 w-full">
+            {/* User Card Sesi Pegawai */}
+            <div className="flex items-center gap-3 p-3 bg-emerald-50 border border-emerald-200/80 rounded-xl">
+              <div className="w-10 h-10 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center shrink-0 shadow-2xs">
+                <ClockCheck size={18} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-black text-slate-900 truncate">
+                  {pegawaiName || 'Pegawai Solo Technopark'}
+                </p>
+                <p className="text-[10px] font-bold text-emerald-700">Sesi Presensi Aktif • Techno Sign</p>
+              </div>
+            </div>
+
+            <Link
+              href="/presensi"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="w-full h-11 text-xs font-black bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+            >
+              <ClockCheck size={16} className="text-white" />
+              <span>Buka Menu Presensi Pegawai</span>
+            </Link>
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                openLoginModal();
+              }}
+              className="w-full h-10 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-xl flex items-center justify-center gap-1.5 transition-all"
+            >
+              <span>Masuk Portal Layanan Katalog</span>
+              <ArrowUpRight size={14} className="opacity-70" />
+            </button>
+          </div>
+        );
+      }
+
       return (
         <button
           type="button"
@@ -753,6 +831,51 @@ export default function PublicNavbar() {
             {/* Body Drawer: Navigasi List dengan Custom Scrollbar Minimalis */}
             <div className="flex-1 w-full max-w-xl mx-auto overflow-y-auto custom-scrollbar px-5 py-4 flex flex-col justify-between">
               <div>
+                {/* Highlight Khusus Pegawai STP yang Sudah Login Presensi */}
+                {isPegawaiLoggedIn && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.96, y: -6 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    className="mb-5 p-4 rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 text-white shadow-xl shadow-emerald-600/25 ring-2 ring-emerald-400/50 relative overflow-hidden shrink-0"
+                  >
+                    <div className="absolute top-0 right-0 -mr-6 -mt-6 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none" />
+
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-wider">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-ping" />
+                        <span>Sesi Pegawai STP Aktif</span>
+                      </div>
+                      <span className="text-[10px] font-mono font-bold text-emerald-100">Techno Sign</span>
+                    </div>
+
+                    <p className="text-sm font-black text-white tracking-tight mb-0.5">
+                      {pegawaiName ? `Halo, ${pegawaiName}` : 'Presensi Digital Pegawai'}
+                    </p>
+                    <p className="text-[11px] text-emerald-100/90 font-medium leading-snug mb-3">
+                      Pencatatan kehadiran, swafoto scan, & logbook kinerja harian UPTD Kawasan STP.
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <Link
+                        href="/presensi"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="py-2.5 px-3 rounded-xl bg-white text-emerald-900 font-extrabold text-xs shadow-sm flex items-center justify-center gap-1.5 transition-all active:scale-95 text-center"
+                      >
+                        <ClockCheck size={15} />
+                        <span>Buka Presensi</span>
+                      </Link>
+                      <Link
+                        href="/presensi/scan"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="py-2.5 px-3 rounded-xl bg-emerald-500/40 hover:bg-emerald-500/60 border border-white/20 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 text-center"
+                      >
+                        <span>Scan Swafoto</span>
+                        <ArrowUpRight size={13} />
+                      </Link>
+                    </div>
+                  </motion.div>
+                )}
+
                 <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2 px-1">
                   Menu Utama
                 </p>

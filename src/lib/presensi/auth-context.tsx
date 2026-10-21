@@ -30,15 +30,19 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-async function persistTokenToCookie(fbUser: FirebaseUser, presensiRole?: string): Promise<void> {
+async function persistTokenToCookie(fbUser: FirebaseUser, presensiRole?: string, displayName?: string | null): Promise<void> {
   try {
     const idToken = await getIdToken(fbUser, false);
     const maxAge = PRESENSI_MAX_AGE_SECONDS;
     const secure = typeof window !== "undefined" && window.location.protocol === "https:" ? "; Secure" : "";
+    const name = displayName || fbUser.displayName || "";
     
     // Cookie sesi khusus aplikasi Presensi (Techno Sign) - Terisolasi dari Katalog/Admin
     document.cookie = `${PRESENSI_COOKIE_NAME}=${idToken}; Path=/; SameSite=Lax; Max-Age=${maxAge}${secure}`;
     document.cookie = `${PRESENSI_ROLE_COOKIE_NAME}=${presensiRole || "pegawai"}; Path=/; SameSite=Lax; Max-Age=${maxAge}${secure}`;
+    if (name) {
+      document.cookie = `techno_sign_name=${encodeURIComponent(name)}; Path=/; SameSite=Lax; Max-Age=${maxAge}${secure}`;
+    }
   } catch (err) {
     console.warn("[Presensi Auth] Gagal menyimpan token cookie:", err);
   }
@@ -47,6 +51,7 @@ async function persistTokenToCookie(fbUser: FirebaseUser, presensiRole?: string)
 function clearTokenCookie(): void {
   document.cookie = `${PRESENSI_COOKIE_NAME}=; Path=/; Max-Age=0`;
   document.cookie = `${PRESENSI_ROLE_COOKIE_NAME}=; Path=/; Max-Age=0`;
+  document.cookie = `techno_sign_name=; Path=/; Max-Age=0`;
 }
 
 async function enrichProfileWithCatalogAccess(fbUser: FirebaseUser, profile: UserProfile | null): Promise<UserProfile | null> {
@@ -102,7 +107,7 @@ export function PresensiAuthProvider({ children }: { children: React.ReactNode }
       const profile = await getUserProfileFromFirestore(fbUser.uid, fbUser.email);
       const enriched = await enrichProfileWithCatalogAccess(fbUser, profile);
       setUser(enriched);
-      await persistTokenToCookie(fbUser, enriched?.role || "pegawai");
+      await persistTokenToCookie(fbUser, enriched?.role || "pegawai", enriched?.nama || fbUser.displayName);
     }
   }, []);
 
@@ -114,7 +119,7 @@ export function PresensiAuthProvider({ children }: { children: React.ReactNode }
         if (profile) {
           const enriched = await enrichProfileWithCatalogAccess(fbUser, profile);
           setUser(enriched);
-          await persistTokenToCookie(fbUser, enriched?.role || "pegawai");
+          await persistTokenToCookie(fbUser, enriched?.role || "pegawai", enriched?.nama || fbUser.displayName);
         } else {
           setUser(null);
         }
@@ -135,7 +140,7 @@ export function PresensiAuthProvider({ children }: { children: React.ReactNode }
       setFirebaseUser(fbUser);
       const enriched = await enrichProfileWithCatalogAccess(fbUser, profile);
       setUser(enriched);
-      await persistTokenToCookie(fbUser, enriched?.role || "pegawai");
+      await persistTokenToCookie(fbUser, enriched?.role || "pegawai", enriched?.nama || fbUser.displayName);
     } finally {
       setIsLoading(false);
     }
@@ -148,7 +153,7 @@ export function PresensiAuthProvider({ children }: { children: React.ReactNode }
       setFirebaseUser(fbUser);
       const enriched = await enrichProfileWithCatalogAccess(fbUser, profile);
       setUser(enriched);
-      await persistTokenToCookie(fbUser, enriched?.role || "pegawai");
+      await persistTokenToCookie(fbUser, enriched?.role || "pegawai", enriched?.nama || fbUser.displayName);
       return { user: fbUser, profile: enriched };
     } finally {
       setIsLoading(false);
@@ -178,7 +183,7 @@ export function PresensiAuthProvider({ children }: { children: React.ReactNode }
     await fbUser.getIdToken(true);
     const enriched = await enrichProfileWithCatalogAccess(fbUser, result.profile);
     setUser(enriched);
-    await persistTokenToCookie(fbUser, enriched?.role || "pegawai");
+    await persistTokenToCookie(fbUser, enriched?.role || "pegawai", enriched?.nama || fbUser.displayName);
 
     return enriched!;
   }, []);
