@@ -2,7 +2,7 @@
 import type { NextConfig } from "next";
 import withPWAInit from "@ducanh2912/next-pwa";
 
-// --- KONFIGURASI PWA ---
+// --- KONFIGURASI PWA KATALOG (scope: /, exclude presensi) ---
 const withPWA = withPWAInit({
   dest: "public",
   cacheOnFrontEndNav: true,
@@ -12,6 +12,11 @@ const withPWA = withPWAInit({
   disable: process.env.NODE_ENV === "development",
   workboxOptions: {
     disableDevLogs: true,
+    // ─── PENTING: Exclude rute /presensi/* dari SW katalog ───────────
+    // Rute presensi ditangani oleh sw-presensi.js dengan scope sendiri
+    navigateFallbackDenylist: [/^\/presensi/],
+    // Exclude file-file presensi dari pre-caching
+    exclude: [/presensi/, /sw-presensi\.js/],
   },
 });
 

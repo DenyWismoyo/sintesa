@@ -10,6 +10,7 @@ import Header from "@/components/presensi/dashboard/Header";
 import BottomNav from "@/components/presensi/dashboard/BottomNav";
 import NetworkSentinel from "@/components/presensi/dashboard/NetworkSentinel";
 import TechnoSignLogo from "@/components/presensi/TechnoSignLogo";
+import PresensiPWARegistrar from "@/components/presensi/PresensiPWARegistrar";
 
 function PresensiShell({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = usePresensiAuth();
@@ -95,18 +96,9 @@ export default function PresensiRootLayout({
 
   return (
     <QueryClientProvider client={queryClient}>
+      {/* Daftarkan Service Worker khusus Techno Sign (scope: /presensi/) */}
+      <PresensiPWARegistrar />
       <PresensiAuthProvider>
-        <head>
-          <link rel="manifest" href="/presensi/manifest.webmanifest" />
-          <link rel="apple-touch-icon" sizes="180x180" href="/icons/presensi/apple-touch-icon.png" />
-          <link rel="icon" type="image/png" sizes="192x192" href="/icons/presensi/icon-192x192.png" />
-          <link rel="icon" type="image/png" sizes="512x512" href="/icons/presensi/icon-512x512.png" />
-          <link rel="icon" type="image/svg+xml" href="/icons/presensi/icon.svg" />
-          <meta name="theme-color" content="#059669" />
-          <meta name="apple-mobile-web-app-capable" content="yes" />
-          <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-          <meta name="apple-mobile-web-app-title" content="Techno Sign" />
-        </head>
         <PresensiShell>{children}</PresensiShell>
       </PresensiAuthProvider>
     </QueryClientProvider>
