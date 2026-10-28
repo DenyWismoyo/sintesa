@@ -6,11 +6,13 @@ import { jobService } from '@/services/job.service';
 import { JobFilterParams, JobAiMatchRequest, JobAiMatchResponse } from '@/types/job.types';
 
 export function useJobs(filters: JobFilterParams = {}, options: { enabled?: boolean } = {}) {
+  const isAdminView = Boolean(filters.includeInactive);
   return useQuery({
     queryKey: ['jobs', filters],
     queryFn: () => jobService.getJobs(filters),
-    staleTime: 1000 * 60 * 5, // 5 menit cache sesuai standar performa Sintesa
+    staleTime: isAdminView ? 0 : 1000 * 60 * 5, // Admin view selalu real-time (0ms), publik 5 menit
     gcTime: 1000 * 60 * 30, // 30 menit di memori
+    refetchOnWindowFocus: isAdminView, // Admin otomatis sync saat window fokus kembali
     enabled: options.enabled ?? true,
   });
 }

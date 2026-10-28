@@ -32,7 +32,11 @@ export const jobService = {
       if (filters.status && filters.status !== 'all') params.set('status', filters.status);
 
       try {
-        const res = await fetch(`/api/jobs?${params.toString()}`);
+        const fetchOptions: RequestInit = filters.includeInactive ? { cache: 'no-store' } : {};
+        if (filters.includeInactive) {
+          params.set('_t', String(Date.now()));
+        }
+        const res = await fetch(`/api/jobs?${params.toString()}`, fetchOptions);
         if (res.ok) {
           const json = await res.json();
           return json;
@@ -109,10 +113,10 @@ export function filterAndSortJobs(
   let result = [...allJobs];
 
   // Filter Status Aktif
-  if (filters.status && filters.status !== 'ALL' && filters.status !== 'all') {
-    if (filters.status === 'ACTIVE' || filters.status === 'active') {
+  if (filters.status && filters.status !== 'all') {
+    if (filters.status === 'active') {
       result = result.filter((job) => job.isActive);
-    } else if (filters.status === 'INACTIVE' || filters.status === 'inactive') {
+    } else if (filters.status === 'inactive') {
       result = result.filter((job) => !job.isActive);
     }
   } else if (!filters.includeInactive) {

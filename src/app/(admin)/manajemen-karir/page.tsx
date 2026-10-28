@@ -93,7 +93,7 @@ export default function AdminManajemenKarirPage() {
 
   // Metrik ringkasan
   const stpPartnerCount = jobs.filter((j) => j.isStpPartner).length;
-  const realtimeCount = jobs.filter((j) => j.source === 'jsearch_realtime').length;
+  const realtimeCount = jobs.filter((j) => !j.isStpPartner).length;
   const activeCount = jobs.filter((j) => j.isActive).length;
 
   const handleOpenAdd = () => {
@@ -120,7 +120,7 @@ export default function AdminManajemenKarirPage() {
       toast.success(
         `Lowongan "${job.title}" kini ${!job.isActive ? 'ditayangkan aktif' : 'dinonaktifkan'}.`
       );
-      refetch();
+      await refetch();
     } catch (err: any) {
       toast.error(err.message || 'Terjadi kesalahan saat memperbarui status.');
     }
@@ -140,7 +140,7 @@ export default function AdminManajemenKarirPage() {
         throw new Error(json.message || 'Gagal menghapus lowongan');
       }
       toast.success('Lowongan berhasil dihapus dari bank data.');
-      refetch();
+      await refetch();
     } catch (err: any) {
       toast.error(err.message || 'Gagal menghapus data.');
     }
@@ -160,7 +160,7 @@ export default function AdminManajemenKarirPage() {
         throw new Error(json.message || 'Gagal sinkronisasi data');
       }
       toast.success(json.message || 'Sinkronisasi lowongan berhasil diperbarui!');
-      refetch();
+      await refetch();
     } catch (err: any) {
       toast.error(err.message || 'Gagal menjalankan sinkronisasi.');
     } finally {
