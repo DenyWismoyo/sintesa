@@ -19,6 +19,7 @@ import PillTabs, { PillTabItem } from '@/components/ui/PillTabs';
 import EmptyState from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/button';
 import { useJobs } from '@/hooks/useJobs';
+import { useTraining } from '@/hooks/useTraining';
 import { JobListing } from '@/types/job.types';
 
 import JobCard from './components/JobCard';
@@ -45,6 +46,9 @@ export default function KarirClientPage() {
   const { role, loading: authLoading } = useAuth();
   const hasCareerAccess = canAccessCareer(role);
   const jobsSectionRef = useRef<HTMLDivElement>(null);
+
+  // Ambil data pelatihan STP terkini dari Firestore master cache
+  const { trainings } = useTraining();
 
   // 1. Inisialisasi State Membaca Penuh Dari URL Search Parameters
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') || '');
@@ -404,6 +408,7 @@ export default function KarirClientPage() {
           onReset={handleResetFilters}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
+          availableTrainings={trainings}
         />
 
         {/* ─── Anchor Target Scroll Pagination ─── */}

@@ -15,6 +15,7 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { TrainingProgramSelector } from './TrainingProgramSelector';
 
 interface JobFilterToolbarProps {
   workType: string;
@@ -40,20 +41,8 @@ interface JobFilterToolbarProps {
   onReset: () => void;
   searchQuery?: string;
   setSearchQuery?: (val: string) => void;
+  availableTrainings?: Array<{ id?: string; title?: string; category?: string }>;
 }
-
-const TRAINING_PROGRAM_OPTIONS = [
-  { value: '', label: 'Semua Program Pelatihan STP' },
-  { value: 'Fullstack Web', label: 'Pelatihan Fullstack Web Development' },
-  { value: 'Quality Assurance', label: 'Bootcamp Software Quality Assurance' },
-  { value: 'Artificial Intelligence', label: 'Pelatihan AI & Machine Learning' },
-  { value: 'CNC', label: 'Pelatihan Pemrograman & Mesin CNC' },
-  { value: 'Cyber Security', label: 'Pelatihan Cyber Security Defense' },
-  { value: 'Game', label: 'Bootcamp Pengembangan Game & Animasi 3D' },
-  { value: 'Welding', label: 'Pelatihan Juru Las (Welder)' },
-  { value: 'IoT', label: 'Pelatihan IoT & Smart Embedded Systems' },
-  { value: 'Digital Marketing', label: 'Pelatihan Digital Marketing & E-Commerce' },
-];
 
 const REGION_LABELS: Record<string, string> = {
   solo_raya: 'Solo Raya & Sekitarnya',
@@ -92,6 +81,7 @@ export default function JobFilterToolbar({
   onReset,
   searchQuery,
   setSearchQuery,
+  availableTrainings,
 }: JobFilterToolbarProps) {
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
 
@@ -128,18 +118,12 @@ export default function JobFilterToolbar({
           </div>
         </div>
 
-        <div className="w-full sm:w-auto min-w-[260px]">
-          <select
+        <div className="w-full sm:w-[320px] md:w-[380px] shrink-0">
+          <TrainingProgramSelector
             value={trainingProgram}
-            onChange={(e) => setTrainingProgram(e.target.value)}
-            className="w-full h-9 px-3 text-xs font-semibold rounded-xl border border-emerald-300 bg-white text-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-          >
-            {TRAINING_PROGRAM_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+            onChange={setTrainingProgram}
+            availableTrainings={availableTrainings}
+          />
         </div>
       </div>
 

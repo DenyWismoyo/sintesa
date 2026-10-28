@@ -158,12 +158,54 @@ export function filterAndSortJobs(
     result = result.filter((job) => job.experienceLevel === filters.experienceLevel);
   }
 
-  // Filter Relevan dengan Pelatihan Tertentu
+  // Filter Relevan dengan Pelatihan Tertentu (Bidirectional & Tokenized Intelligent Matching)
   if (filters.trainingProgram && filters.trainingProgram.trim()) {
     const tp = filters.trainingProgram.toLowerCase().trim();
-    result = result.filter((job) =>
-      job.relevantTrainingPrograms.some((p) => p.toLowerCase().includes(tp))
-    );
+
+    // Token kata kunci penting (mengabaikan stopwords umum)
+    const stopWords = new Set([
+      'pelatihan', 'bootcamp', 'diklat', 'sertifikasi', 'standar', 'dan', 'atau', 'dengan',
+      'untuk', 'resmi', 'operator', 'tingkat', 'level', 'program', 'ahli', 'studi', 'solo',
+      'technopark', 'stp', 'the', 'and', 'for', 'with', 'in', 'of', 'dasar', 'lanjut'
+    ]);
+
+    const tokens = tp
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .split(/\s+/)
+      .filter((tok) => tok.length >= 3 && !stopWords.has(tok));
+
+    result = result.filter((job) => {
+      // 1. Direct bidirectional matching pada relevantTrainingPrograms
+      const matchDirect = (job.relevantTrainingPrograms || []).some((p) => {
+        const pLower = p.toLowerCase();
+        return pLower.includes(tp) || tp.includes(pLower);
+      });
+      if (matchDirect) return true;
+
+      // 2. Tokenized matching pada relevantTrainingPrograms
+      if (tokens.length > 0) {
+        const matchTokensOnPrograms = (job.relevantTrainingPrograms || []).some((p) => {
+          const pLower = p.toLowerCase();
+          return tokens.some((tok) => pLower.includes(tok));
+        });
+        if (matchTokensOnPrograms) return true;
+
+        // 3. Fallback matching pada job.title, job.category, dan job.skills
+        const jobTitleLower = (job.title || '').toLowerCase();
+        const categoryLower = (job.category || '').toLowerCase();
+        const skillsLower = (job.skills || []).join(' ').toLowerCase();
+
+        const matchTokensOnJob = tokens.some(
+          (tok) =>
+            jobTitleLower.includes(tok) ||
+            categoryLower.includes(tok) ||
+            skillsLower.includes(tok)
+        );
+        if (matchTokensOnJob) return true;
+      }
+
+      return false;
+    });
   }
 
   // Filter Mitra Resmi STP
