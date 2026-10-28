@@ -29,7 +29,8 @@ import {
   Newspaper,
   Share2,
   Briefcase,
-  ClockCheck
+  ClockCheck,
+  Hammer
 } from 'lucide-react';
 
 // --- KONFIGURASI MENU ---
@@ -51,6 +52,7 @@ const MENU_GROUPS = [
     items: [
       { name: 'Manajemen Aset', href: '/aset', icon: Building2 },
       { name: 'Booking & Jadwal', href: '/booking', icon: CalendarDays },
+      { name: 'Jasa Produksi', href: '/jasa-produksi', icon: Hammer },
     ]
   },
   {

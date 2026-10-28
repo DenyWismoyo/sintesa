@@ -63,6 +63,12 @@ export const PaymentStatusEnum = z.enum([
 ]);
 export type PaymentStatus = z.infer<typeof PaymentStatusEnum>;
 
+export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, { label: string; color: string }> = {
+  UNPAID: { label: 'Belum Bayar', color: 'bg-rose-50 text-rose-700 border-rose-200' },
+  DP_PAID: { label: 'DP Terbayar', color: 'bg-amber-50 text-amber-700 border-amber-200' },
+  FULL_PAID: { label: 'Lunas', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' }
+};
+
 export const ProductionItemSchema = z.object({
   id: z.string(),
   partName: z.string().min(1, 'Nama part/komponen wajib diisi'),
