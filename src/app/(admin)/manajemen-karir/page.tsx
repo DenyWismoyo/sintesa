@@ -25,6 +25,14 @@ import {
   GraduationCap,
   Calendar,
   AlertCircle,
+  Download,
+  FileSpreadsheet,
+  CheckSquare,
+  Square,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin';
 import { Button } from '@/components/ui/button';
@@ -38,6 +46,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { canPerformAction, PERMISSIONS } from '@/config/roles';
 
 import ModalJobForm from './components/ModalJobForm';
+import ModalExportPartnership from './components/ModalExportPartnership';
 
 export default function AdminManajemenKarirPage() {
   const router = useRouter();
@@ -49,6 +58,12 @@ export default function AdminManajemenKarirPage() {
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [partnerFilter, setPartnerFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
+
+  // State Pagination & Seleksi Baris untuk Ekspor Kemitraan
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [selectedJobIds, setSelectedJobIds] = useState<string[]>([]);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedJobToEdit, setSelectedJobToEdit] = useState<JobListing | null>(null);
@@ -90,6 +105,44 @@ export default function AdminManajemenKarirPage() {
       return matchSearch && matchCategory && matchPartner && matchStatus;
     });
   }, [jobs, searchFilter, categoryFilter, partnerFilter, statusFilter]);
+
+  // Reset halaman ke 1 saat filter pencarian atau pageSize berubah
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchFilter, categoryFilter, partnerFilter, statusFilter, pageSize]);
+
+  // Kalkulasi Pagination
+  const totalPages = Math.max(1, Math.ceil(filteredJobs.length / pageSize));
+  const paginatedJobs = React.useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredJobs.slice(start, start + pageSize);
+  }, [filteredJobs, currentPage, pageSize]);
+
+  // Logika Seleksi Baris untuk Ekspor Kemitraan
+  const isAllCurrentPageSelected =
+    paginatedJobs.length > 0 &&
+    paginatedJobs.every((j) => selectedJobIds.includes(j.id));
+
+  const handleToggleSelectAllCurrentPage = () => {
+    if (isAllCurrentPageSelected) {
+      const pageIds = new Set(paginatedJobs.map((j) => j.id));
+      setSelectedJobIds((prev) => prev.filter((id) => !pageIds.has(id)));
+    } else {
+      const next = new Set(selectedJobIds);
+      paginatedJobs.forEach((j) => next.add(j.id));
+      setSelectedJobIds(Array.from(next));
+    }
+  };
+
+  const handleToggleSelectJob = (id: string) => {
+    setSelectedJobIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleClearSelection = () => {
+    setSelectedJobIds([]);
+  };
 
   // Metrik ringkasan
   const stpPartnerCount = jobs.filter((j) => j.isStpPartner).length;
@@ -179,6 +232,17 @@ export default function AdminManajemenKarirPage() {
         breadcrumbs={[{ label: 'Ekosistem' }, { label: 'Bursa Karir' }]}
         actions={
           <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsExportModalOpen(true)}
+              className="rounded-xl h-10 px-3.5 text-xs font-bold border-emerald-200 text-emerald-800 bg-emerald-50/60 hover:bg-emerald-100/70 gap-1.5 shadow-2xs"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-700" />
+              <span>Ekspor Kemitraan</span>
+            </Button>
+
             <Button
               type="button"
               variant="outline"
@@ -346,12 +410,70 @@ export default function AdminManajemenKarirPage() {
             </div>
           </div>
 
+          {/* Bar Indikator Seleksi Baris untuk Ekspor Kemitraan */}
+          {selectedJobIds.length > 0 && (
+            <div className="p-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-slate-50 border border-emerald-300 text-emerald-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs animate-in fade-in duration-200">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold">
+                  <CheckSquare className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="font-extrabold text-xs block">
+                    {selectedJobIds.length} Lowongan Terpilih
+                  </span>
+                  <span className="text-[11px] text-emerald-800">
+                    Siap diekspor untuk bahan presentasi & negosiasi kemitraan industri STP
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => setIsExportModalOpen(true)}
+                  className="h-8 px-3.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl gap-1.5 shadow-xs"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Ekspor {selectedJobIds.length} Terpilih</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClearSelection}
+                  className="h-8 px-2.5 text-xs text-slate-600 hover:text-slate-900 rounded-xl"
+                >
+                  Batal Pilih
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Tabel Lowongan Kerja */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    <th className="py-3.5 px-3 w-10 text-center">
+                      <button
+                        type="button"
+                        onClick={handleToggleSelectAllCurrentPage}
+                        title={
+                          isAllCurrentPageSelected
+                            ? 'Batal pilih semua di halaman ini'
+                            : 'Pilih semua di halaman ini'
+                        }
+                        className="p-1 rounded text-slate-400 hover:text-slate-700 transition-colors"
+                      >
+                        {isAllCurrentPageSelected ? (
+                          <CheckSquare className="w-4 h-4 text-emerald-600" />
+                        ) : (
+                          <Square className="w-4 h-4 text-slate-300" />
+                        )}
+                      </button>
+                    </th>
                     <th className="py-3.5 px-4">Lowongan & Perusahaan</th>
                     <th className="py-3.5 px-4">Kategori & Model</th>
                     <th className="py-3.5 px-4">Rentang Gaji</th>
@@ -363,7 +485,7 @@ export default function AdminManajemenKarirPage() {
                 <tbody className="divide-y divide-slate-100">
                   {isLoading ? (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-slate-400">
+                      <td colSpan={7} className="py-12 text-center text-slate-400">
                         <div className="flex flex-col items-center justify-center gap-2">
                           <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
                           <span>Memuat daftar lowongan pekerjaan...</span>
@@ -372,114 +494,236 @@ export default function AdminManajemenKarirPage() {
                     </tr>
                   ) : filteredJobs.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-slate-400">
+                      <td colSpan={7} className="py-12 text-center text-slate-400">
                         <Briefcase className="w-8 h-8 text-slate-300 mx-auto mb-2" />
                         <p className="font-semibold text-slate-600">Tidak ada lowongan yang sesuai</p>
                         <p className="text-[11px] text-slate-400">Coba sesuaikan kata kunci atau filter pencarian.</p>
                       </td>
                     </tr>
                   ) : (
-                    filteredJobs.map((job) => (
-                      <tr key={job.id} className="hover:bg-slate-50/60 transition-colors">
-                        <td className="py-3 px-4">
-                          <div className="font-bold text-slate-900 line-clamp-1 max-w-xs sm:max-w-sm">
-                            {job.title}
-                          </div>
-                          <div className="text-[11px] font-semibold text-slate-600 flex items-center gap-1.5 mt-0.5">
-                            <Building2 className="w-3 h-3 text-slate-400 shrink-0" />
-                            <span className="truncate max-w-[200px]">{job.company}</span>
-                            <span>•</span>
-                            <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                            <span className="truncate max-w-[120px]">{job.location}</span>
-                          </div>
-                        </td>
-
-                        <td className="py-3 px-4">
-                          <Badge variant="outline" className="text-[10px] font-semibold text-slate-600 border-slate-200 mb-1">
-                            {job.category}
-                          </Badge>
-                          <div className="text-[11px] text-slate-500 font-medium">
-                            {job.workType} ({job.workSetup.includes('Solo') ? 'STP' : job.workSetup})
-                          </div>
-                        </td>
-
-                        <td className="py-3 px-4 font-semibold text-slate-700">
-                          {job.salary.isDisclosed && (job.salary.min || job.salary.max) ? (
-                            <span className="text-emerald-700 font-bold">
-                              {job.salary.min ? formatSalary(job.salary.min, 'IDR') : 'N/A'} -{' '}
-                              {job.salary.max ? formatSalary(job.salary.max, 'IDR') : 'N/A'}
-                            </span>
-                          ) : (
-                            <span className="text-slate-400">Kompetitif</span>
-                          )}
-                        </td>
-
-                        <td className="py-3 px-4">
-                          {job.isStpPartner ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                              Mitra Kawasan
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
-                              API Realtime
-                            </span>
-                          )}
-                        </td>
-
-                        <td className="py-3 px-4">
-                          <button
-                            type="button"
-                            onClick={() => handleToggleActive(job)}
-                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-all ${
-                              job.isActive
-                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
-                                : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
-                            }`}
-                          >
-                            {job.isActive ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                            <span>{job.isActive ? 'Tayang Aktif' : 'Nonaktif'}</span>
-                          </button>
-                        </td>
-
-                        <td className="py-3 px-4 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <Link
-                              href={`/karir/${job.id}`}
-                              target="_blank"
-                              className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:text-emerald-600 hover:bg-slate-50"
-                              title="Buka pratinjau publik"
-                            >
-                              <ExternalLink className="w-3.5 h-3.5" />
-                            </Link>
+                    paginatedJobs.map((job) => {
+                      const isSelected = selectedJobIds.includes(job.id);
+                      return (
+                        <tr
+                          key={job.id}
+                          className={`transition-colors ${
+                            isSelected ? 'bg-emerald-50/50 hover:bg-emerald-50/80' : 'hover:bg-slate-50/60'
+                          }`}
+                        >
+                          <td className="py-3 px-3 text-center">
                             <button
                               type="button"
-                              onClick={() => handleOpenEdit(job)}
-                              className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:text-blue-600 hover:bg-slate-50"
-                              title="Edit lowongan"
+                              onClick={() => handleToggleSelectJob(job.id)}
+                              className="p-1 rounded text-slate-400 hover:text-slate-700 transition-colors"
                             >
-                              <Edit className="w-3.5 h-3.5" />
+                              {isSelected ? (
+                                <CheckSquare className="w-4 h-4 text-emerald-600" />
+                              ) : (
+                                <Square className="w-4 h-4 text-slate-300" />
+                              )}
                             </button>
+                          </td>
+
+                          <td className="py-3 px-4">
+                            <div className="font-bold text-slate-900 line-clamp-1 max-w-xs sm:max-w-sm">
+                              {job.title}
+                            </div>
+                            <div className="text-[11px] font-semibold text-slate-600 flex items-center gap-1.5 mt-0.5">
+                              <Building2 className="w-3 h-3 text-slate-400 shrink-0" />
+                              <span className="truncate max-w-[200px]">{job.company}</span>
+                              <span>•</span>
+                              <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                              <span className="truncate max-w-[120px]">{job.location}</span>
+                            </div>
+                          </td>
+
+                          <td className="py-3 px-4">
+                            <Badge variant="outline" className="text-[10px] font-semibold text-slate-600 border-slate-200 mb-1">
+                              {job.category}
+                            </Badge>
+                            <div className="text-[11px] text-slate-500 font-medium">
+                              {job.workType} ({job.workSetup.includes('Solo') ? 'STP' : job.workSetup})
+                            </div>
+                          </td>
+
+                          <td className="py-3 px-4 font-semibold text-slate-700">
+                            {job.salary.isDisclosed && (job.salary.min || job.salary.max) ? (
+                              <span className="text-emerald-700 font-bold">
+                                {job.salary.min ? formatSalary(job.salary.min, 'IDR') : 'N/A'} -{' '}
+                                {job.salary.max ? formatSalary(job.salary.max, 'IDR') : 'N/A'}
+                              </span>
+                            ) : (
+                              <span className="text-slate-400">Kompetitif</span>
+                            )}
+                          </td>
+
+                          <td className="py-3 px-4">
+                            {job.isStpPartner ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                                Mitra Kawasan
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
+                                API Realtime
+                              </span>
+                            )}
+                          </td>
+
+                          <td className="py-3 px-4">
                             <button
                               type="button"
-                              onClick={() => handleDeleteJob(job)}
-                              className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:text-rose-600 hover:bg-rose-50"
-                              title="Hapus lowongan"
+                              onClick={() => handleToggleActive(job)}
+                              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-all ${
+                                job.isActive
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                                  : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
+                              }`}
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              {job.isActive ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                              <span>{job.isActive ? 'Tayang Aktif' : 'Nonaktif'}</span>
                             </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
+                          </td>
+
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <Link
+                                href={`/karir/${job.id}`}
+                                target="_blank"
+                                className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:text-emerald-600 hover:bg-slate-50"
+                                title="Buka pratinjau publik"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </Link>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEdit(job)}
+                                className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:text-blue-600 hover:bg-slate-50"
+                                title="Edit lowongan"
+                              >
+                                <Edit className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteJob(job)}
+                                className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:text-rose-600 hover:bg-rose-50"
+                                title="Hapus lowongan"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
             </div>
 
-            <div className="p-3 bg-slate-50 border-t border-slate-100 text-[11px] text-slate-500 flex items-center justify-between">
-              <span>Menampilkan {filteredJobs.length} dari total {total} lowongan</span>
-              <span className="font-semibold text-slate-700">Bank Data Kumulatif Solo Technopark</span>
+            {/* ─── Kontrol Pagination Admin ─── */}
+            <div className="p-3.5 bg-slate-50 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
+                <span>
+                  Menampilkan{' '}
+                  <span className="font-bold text-slate-900">
+                    {filteredJobs.length === 0 ? 0 : (currentPage - 1) * pageSize + 1} -{' '}
+                    {Math.min(currentPage * pageSize, filteredJobs.length)}
+                  </span>{' '}
+                  dari <span className="font-bold text-slate-900">{filteredJobs.length}</span> lowongan
+                </span>
+
+                <div className="flex items-center gap-1.5 text-[11px]">
+                  <span className="text-slate-400">Baris:</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => setPageSize(Number(e.target.value))}
+                    className="h-7 px-2 text-xs font-bold rounded-lg border border-slate-200 bg-white text-slate-700"
+                  >
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                </div>
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:pointer-events-none"
+                    title="Halaman Pertama"
+                  >
+                    <ChevronsLeft className="w-3.5 h-3.5" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:pointer-events-none"
+                    title="Halaman Sebelumnya"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                  </button>
+
+                  <div className="flex items-center gap-1 px-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter((p) => {
+                        // Tampilkan window 5 halaman di sekitar currentPage
+                        return (
+                          p === 1 ||
+                          p === totalPages ||
+                          (p >= currentPage - 2 && p <= currentPage + 2)
+                        );
+                      })
+                      .map((pageNum, idx, arr) => {
+                        const prev = arr[idx - 1];
+                        return (
+                          <React.Fragment key={pageNum}>
+                            {prev && pageNum - prev > 1 && (
+                              <span className="px-1 text-slate-300">...</span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => setCurrentPage(pageNum)}
+                              className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${
+                                currentPage === pageNum
+                                  ? 'bg-emerald-600 text-white shadow-xs'
+                                  : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          </React.Fragment>
+                        );
+                      })}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:pointer-events-none"
+                    title="Halaman Selanjutnya"
+                  >
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:pointer-events-none"
+                    title="Halaman Terakhir"
+                  >
+                    <ChevronsRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -591,6 +835,15 @@ export default function AdminManajemenKarirPage() {
         onClose={() => setIsModalOpen(false)}
         onSuccess={() => refetch()}
         initialJob={selectedJobToEdit}
+      />
+
+      {/* ─── Modal Ekspor Data Kemitraan & Penyaluran Alumni ─── */}
+      <ModalExportPartnership
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        allJobs={jobs}
+        currentFilteredJobs={filteredJobs}
+        selectedJobIds={selectedJobIds}
       />
     </div>
   );
