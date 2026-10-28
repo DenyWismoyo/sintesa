@@ -24,6 +24,89 @@ export const PaymentHistorySchema = z.object({
 });
 export type PaymentHistory = z.infer<typeof PaymentHistorySchema>;
 
+export const InvoiceDivisionSchema = z.enum([
+  'JASA_PRODUKSI',
+  'FASILITAS_ASET',
+  'DIKLAT_PELATIHAN',
+  'INKUBASI_TENANT',
+  'KATALOG_PRODUK',
+  'UMUM'
+]);
+export type InvoiceDivision = z.infer<typeof InvoiceDivisionSchema>;
+
+export const INVOICE_DIVISION_CONFIG: Record<
+  InvoiceDivision, 
+  { 
+    label: string; 
+    shortLabel: string;
+    badgeClass: string; 
+    defaultCoaCode: string; 
+    defaultCoaName: string; 
+  }
+> = {
+  JASA_PRODUKSI: {
+    label: 'Jasa Produksi & Manufaktur',
+    shortLabel: 'Manufaktur',
+    badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    defaultCoaCode: '4.1.02',
+    defaultCoaName: 'Pendapatan Jasa Layanan Manufaktur & Fabrikasi'
+  },
+  FASILITAS_ASET: {
+    label: 'Sewa Fasilitas & Gedung',
+    shortLabel: 'Fasilitas',
+    badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    defaultCoaCode: '4.1.01',
+    defaultCoaName: 'Pendapatan Sewa Gedung, Lahan & Laboratorium'
+  },
+  DIKLAT_PELATIHAN: {
+    label: 'Diklat & Pelatihan Kerja',
+    shortLabel: 'Pelatihan',
+    badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
+    defaultCoaCode: '4.1.03',
+    defaultCoaName: 'Pendapatan Jasa Pelatihan & Sertifikasi'
+  },
+  INKUBASI_TENANT: {
+    label: 'Inkubasi Bisnis & Tenant',
+    shortLabel: 'Tenant',
+    badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
+    defaultCoaCode: '4.1.04',
+    defaultCoaName: 'Pendapatan Jasa Inkubasi Startup & Tenant'
+  },
+  KATALOG_PRODUK: {
+    label: 'Katalog Produk & Merchandise',
+    shortLabel: 'Produk',
+    badgeClass: 'bg-violet-50 text-violet-700 border-violet-200',
+    defaultCoaCode: '4.1.05',
+    defaultCoaName: 'Pendapatan Penjualan Produk & Merchandise'
+  },
+  UMUM: {
+    label: 'Layanan Umum / Lainnya',
+    shortLabel: 'Umum',
+    badgeClass: 'bg-slate-50 text-slate-700 border-slate-200',
+    defaultCoaCode: '4.1.99',
+    defaultCoaName: 'Pendapatan Jasa Layanan Umum BLUD Lainnya'
+  }
+};
+
+/**
+ * Helper untuk menentukan divisi invoice jika field division belum terisi (backward-compatibility)
+ */
+export function inferInvoiceDivision(invoice: Partial<Invoice>): InvoiceDivision {
+  if (invoice.division && invoice.division in INVOICE_DIVISION_CONFIG) {
+    return invoice.division as InvoiceDivision;
+  }
+  const firstItem = invoice.items && invoice.items.length > 0 ? invoice.items[0] : null;
+  const refType = firstItem?.referenceType;
+  const invNumber = invoice.invoiceNumber || '';
+
+  if (refType === 'PRODUCTION' || invNumber.includes('/PROD/')) return 'JASA_PRODUKSI';
+  if (refType === 'BOOKING' || refType === 'TARIFF_DAY' || refType === 'TARIFF_MONTH' || invNumber.includes('/SEWA/') || invNumber.includes('/BKG/')) return 'FASILITAS_ASET';
+  if (refType === 'TRAINING' || invNumber.includes('/TRN/') || invNumber.includes('/TRAINING/')) return 'DIKLAT_PELATIHAN';
+  if (refType === 'CATALOG' || invNumber.includes('/CAT/')) return 'KATALOG_PRODUK';
+  if (invoice.customerType === 'Tenant' || invNumber.includes('/TENANT/')) return 'INKUBASI_TENANT';
+  return 'UMUM';
+}
+
 export const InvoiceSchema = z.object({
   id: z.string().optional(),
   invoiceNumber: z.string(),
@@ -42,6 +125,9 @@ export const InvoiceSchema = z.object({
   date: z.string(),
   dueDate: z.string(),
   status: z.enum(['PAID', 'PARTIAL', 'PENDING', 'OVERDUE', 'CANCELLED']),
+  division: InvoiceDivisionSchema.default('UMUM').optional(),
+  divisionPic: z.string().optional(),
+  divisionRefNumber: z.string().optional(),
   issuerName: z.string().optional().default(''),       
   issuerRole: z.string().optional().default('Kasir'),  
   issuerNIP: z.string().optional().default(''),        

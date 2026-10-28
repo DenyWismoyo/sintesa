@@ -304,6 +304,9 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
           date: today, 
           dueDate: selectedBooking.startDate || today, 
           status: 'PENDING',
+          division: 'FASILITAS_ASET',
+          divisionPic: selectedBooking.userName || selectedBooking.agency,
+          divisionRefNumber: selectedBooking.id,
           issuerName: 'Sistem', 
           issuerRole: 'Admin', 
           issuerNIP: '', 
@@ -422,6 +425,9 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
 
       const invoicePayload: Omit<Invoice, 'id'> = {
         ...customInvoiceData, 
+        division: 'FASILITAS_ASET',
+        divisionPic: selectedBooking.userName || selectedBooking.agency,
+        divisionRefNumber: selectedBooking.id,
         status: isFree ? 'PAID' : 'PENDING', 
         paidAmount: isFree ? totalAmt : 0, 
         remainingAmount: isFree ? 0 : totalAmt, 

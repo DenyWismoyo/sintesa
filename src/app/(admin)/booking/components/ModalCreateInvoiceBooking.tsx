@@ -85,7 +85,7 @@ export default function ModalCreateInvoiceBooking({
     // Menggabungkan item utama (Ruangan) dengan item tambahan
     const itemsPayload = [
       {
-        referenceId: booking.assetId,
+        referenceId: booking.id,
         referenceType: 'BOOKING', // Penting agar Auto-Lunas berfungsi
         description: `Sewa Ruang/Fasilitas: ${booking.assetName} (${booking.startDate})`,
         quantity: 1,

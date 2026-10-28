@@ -2,10 +2,10 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { Invoice } from '@/types';
+import { Invoice, inferInvoiceDivision, INVOICE_DIVISION_CONFIG, InvoiceDivision } from '@/types';
 import { 
   Clock, AlertTriangle, MessageCircle, ChevronDown, ChevronUp, 
-  FileText, CheckCircle, Search, Filter, ShieldAlert, Phone
+  FileText, CheckCircle, Search, Filter, ShieldAlert, Phone, Package, User
 } from 'lucide-react';
 
 interface Props {
@@ -29,6 +29,7 @@ interface CustomerAging {
 
 export default function TabAgingPiutang({ invoices, onViewDetail }: Props) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [divisionFilter, setDivisionFilter] = useState<string>('ALL');
   const [expandedCustomer, setExpandedCustomer] = useState<string | null>(null);
 
   // 1. Logika Kalkulasi Umur Piutang
@@ -38,8 +39,14 @@ export default function TabAgingPiutang({ invoices, onViewDetail }: Props) {
 
     const dataMap = new Map<string, CustomerAging>();
 
-    // Filter hanya invoice yang belum lunas dan tidak dibatalkan
-    const activeInvoices = invoices.filter(inv => inv.remainingAmount > 0 && inv.status !== 'CANCELLED');
+    // Filter hanya invoice yang belum lunas, tidak dibatalkan, dan cocok filter divisi
+    let activeInvoices = invoices.filter(inv => inv.remainingAmount > 0 && inv.status !== 'CANCELLED');
+    if (divisionFilter !== 'ALL') {
+      activeInvoices = activeInvoices.filter(inv => {
+        const div = inv.division || inferInvoiceDivision(inv);
+        return div === divisionFilter;
+      });
+    }
 
     activeInvoices.forEach(inv => {
       const dueDate = new Date(inv.dueDate);
@@ -82,7 +89,7 @@ export default function TabAgingPiutang({ invoices, onViewDetail }: Props) {
     });
 
     return Array.from(dataMap.values()).sort((a, b) => b.total - a.total);
-  }, [invoices]);
+  }, [invoices, divisionFilter]);
 
   // 2. Filter Pencarian
   const filteredData = useMemo(() => {
@@ -153,18 +160,37 @@ export default function TabAgingPiutang({ invoices, onViewDetail }: Props) {
 
       {/* TOOLBAR */}
       <div className="px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white border-b border-slate-100">
-        <div className="relative w-full sm:w-[350px]">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-          <input 
-            type="text" 
-            placeholder="Cari nama pelanggan..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-          />
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <div className="relative w-full sm:w-[300px]">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+            <input 
+              type="text" 
+              placeholder="Cari nama pelanggan..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 w-full sm:w-auto">
+            <Package className="w-4 h-4 text-slate-400 shrink-0" />
+            <select 
+              value={divisionFilter} 
+              onChange={(e) => setDivisionFilter(e.target.value)} 
+              className="bg-transparent text-xs font-bold text-slate-700 outline-none cursor-pointer w-full"
+            >
+              <option value="ALL">Semua Divisi / Unit BLUD</option>
+              <option value="JASA_PRODUKSI">🔨 Jasa Produksi & Manufaktur</option>
+              <option value="FASILITAS_ASET">🏢 Sewa Fasilitas & Gedung</option>
+              <option value="DIKLAT_PELATIHAN">📚 Diklat & Pelatihan Kerja</option>
+              <option value="INKUBASI_TENANT">🌱 Inkubasi Tenant & Startup</option>
+              <option value="KATALOG_PRODUK">🛍️ Katalog Produk & Merchandise</option>
+              <option value="UMUM">📄 Layanan Umum / Kasir</option>
+            </select>
+          </div>
         </div>
         <div className="flex items-center gap-2 text-xs font-bold text-slate-500 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
-           <Filter className="w-3.5 h-3.5"/> <span>Diurutkan berdasarkan saldo terbesar</span>
+           <Filter className="w-3.5 h-3.5"/> <span>Diurutkan saldo terbesar</span>
         </div>
       </div>
 
@@ -249,6 +275,7 @@ export default function TabAgingPiutang({ invoices, onViewDetail }: Props) {
                               <thead className="text-slate-400 border-b border-slate-100">
                                 <tr>
                                   <th className="py-2">No. Invoice</th>
+                                  <th className="py-2">Divisi & PIC</th>
                                   <th className="py-2">Tanggal Terbit</th>
                                   <th className="py-2">Jatuh Tempo</th>
                                   <th className="py-2 text-right">Total Tagihan</th>
@@ -264,9 +291,24 @@ export default function TabAgingPiutang({ invoices, onViewDetail }: Props) {
                                   tdy.setHours(0,0,0,0);
                                   const isOverdue = tdy.getTime() > invDate.getTime();
 
+                                  const div = inv.division || inferInvoiceDivision(inv);
+                                  const divCfg = INVOICE_DIVISION_CONFIG[div];
+
                                   return (
                                     <tr key={inv.id} className="hover:bg-slate-50 cursor-pointer transition-colors" onClick={() => onViewDetail(inv)}>
                                       <td className="py-2.5 font-bold text-blue-600 hover:underline">{inv.invoiceNumber}</td>
+                                      <td className="py-2.5">
+                                        <div className="flex flex-col gap-0.5">
+                                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold border w-fit ${divCfg.badgeClass}`}>
+                                            {divCfg.shortLabel}
+                                          </span>
+                                          {inv.divisionPic && (
+                                            <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                                              <User className="w-2.5 h-2.5" /> {inv.divisionPic}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </td>
                                       <td className="py-2.5 text-slate-600">{inv.date}</td>
                                       <td className="py-2.5 text-slate-600 flex items-center gap-1.5">
                                         {inv.dueDate} {isOverdue && <AlertTriangle className="w-3 h-3 text-red-500" />}

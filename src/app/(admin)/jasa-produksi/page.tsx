@@ -64,8 +64,9 @@ import ModalProgressLog from './components/ModalProgressLog';
 import ModalDeliveryOrder from './components/ModalDeliveryOrder';
 import ModalInvoiceProduction from './components/ModalInvoiceProduction';
 import ModalPrintSpk from './components/ModalPrintSpk';
+import DivisionInvoiceTracker from '@/components/finance/DivisionInvoiceTracker';
 
-type FilterTab = 'ALL' | 'DRAFT_ESTIMATION' | 'WAITING_DP' | 'IN_PRODUCTION' | 'QC' | 'DELIVERY' | 'COMPLETED';
+type FilterTab = 'ALL' | 'DRAFT_ESTIMATION' | 'WAITING_DP' | 'IN_PRODUCTION' | 'QC' | 'DELIVERY' | 'COMPLETED' | 'INVOICES';
 
 export default function JasaProduksiPage() {
   const { user } = useAuth();
@@ -321,7 +322,8 @@ export default function JasaProduksiPage() {
             { id: 'IN_PRODUCTION', label: 'Pengerjaan Bengkel' },
             { id: 'QC', label: 'Uji Mutu (QC)' },
             { id: 'DELIVERY', label: 'Siap Kirim & Terkirim' },
-            { id: 'COMPLETED', label: 'Selesai Lunas' }
+            { id: 'COMPLETED', label: 'Selesai Lunas' },
+            { id: 'INVOICES', label: '💳 Monitoring Tagihan (Divisi)' }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -382,10 +384,17 @@ export default function JasaProduksiPage() {
         </div>
       </div>
 
-      {/* 4. Tabel / Daftar Pesanan */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        {loading ? (
-          <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-3">
+      {/* 4. Tabel / Daftar Pesanan ATAU Monitoring Tagihan Divisi */}
+      {activeTab === 'INVOICES' ? (
+        <DivisionInvoiceTracker
+          division="JASA_PRODUKSI"
+          title="Monitoring Tagihan & Penagihan Jasa Produksi"
+          subtitle="Pantau pembayaran DP, pelunasan akhir, verifikasi bukti transfer, dan sisa piutang pesanan bengkel manufaktur secara mandiri."
+        />
+      ) : (
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          {loading ? (
+            <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-3">
             <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
             <span className="text-xs font-medium">Memuat data pesanan jasa produksi...</span>
           </div>
@@ -646,6 +655,7 @@ export default function JasaProduksiPage() {
           </div>
         )}
       </div>
+      )}
 
       {/* 5. Detail Drawer / Dialog Preview */}
       {detailOrder && (

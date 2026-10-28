@@ -4,9 +4,10 @@ import React, { useState, useMemo } from 'react';
 import { 
   Search, Eye, Link as LinkIcon, Loader2, CheckCircle, Clock, 
   AlertCircle, Edit, Building, BookOpen, Store, Package, 
-  FileText, Calendar, Phone, Filter, ArrowDownUp, Copy, Network, Plus, Receipt
+  FileText, Calendar, Phone, Filter, ArrowDownUp, Copy, Network, Plus, Receipt,
+  Hammer
 } from 'lucide-react';
-import { Invoice } from '@/types';
+import { Invoice, inferInvoiceDivision, INVOICE_DIVISION_CONFIG, InvoiceDivision } from '@/types';
 
 interface Props {
   rawInvoices: Invoice[];
@@ -45,13 +46,8 @@ export default function TabInvoices({ rawInvoices, activeTab = 'ALL', onGenerate
 
     if (filterCategory !== 'ALL') {
       data = data.filter(invoice => {
-        if (!invoice.items || invoice.items.length === 0) return filterCategory === 'LAINNYA';
-        const type = invoice.items[0].referenceType;
-        if (filterCategory === 'FASILITAS') return ['BOOKING', 'TARIFF_DAY', 'TARIFF_MONTH'].includes(type);
-        if (filterCategory === 'PELATIHAN') return type === 'TRAINING';
-        if (filterCategory === 'PRODUK') return type === 'CATALOG';
-        if (filterCategory === 'LAINNYA') return type === 'CUSTOM';
-        return true;
+        const div = invoice.division || inferInvoiceDivision(invoice);
+        return div === filterCategory;
       });
     }
 
@@ -102,9 +98,10 @@ export default function TabInvoices({ rawInvoices, activeTab = 'ALL', onGenerate
     const moreCount = invoice.items.length - 1;
     const text = `${firstItem.description} ${moreCount > 0 ? ` (+${moreCount})` : ''}`;
 
-    if (['BOOKING', 'TARIFF_DAY', 'TARIFF_MONTH'].includes(type)) return { text, icon: <Building className="w-3.5 h-3.5"/>, color: "text-indigo-700 bg-indigo-50 border border-indigo-100" };
-    if (type === 'TRAINING') return { text, icon: <BookOpen className="w-3.5 h-3.5"/>, color: "text-blue-700 bg-blue-50 border border-blue-100" };
-    if (type === 'CATALOG') return { text, icon: <Store className="w-3.5 h-3.5"/>, color: "text-orange-700 bg-orange-50 border border-orange-100" };
+    if (type === 'PRODUCTION') return { text, icon: <Hammer className="w-3.5 h-3.5"/>, color: "text-indigo-700 bg-indigo-50 border border-indigo-200" };
+    if (['BOOKING', 'TARIFF_DAY', 'TARIFF_MONTH'].includes(type)) return { text, icon: <Building className="w-3.5 h-3.5"/>, color: "text-emerald-700 bg-emerald-50 border border-emerald-200" };
+    if (type === 'TRAINING') return { text, icon: <BookOpen className="w-3.5 h-3.5"/>, color: "text-blue-700 bg-blue-50 border border-blue-200" };
+    if (type === 'CATALOG') return { text, icon: <Store className="w-3.5 h-3.5"/>, color: "text-orange-700 bg-orange-50 border border-orange-200" };
     return { text, icon: <Package className="w-3.5 h-3.5"/>, color: "text-slate-700 bg-slate-50 border border-slate-200" };
   };
 
@@ -128,10 +125,13 @@ export default function TabInvoices({ rawInvoices, activeTab = 'ALL', onGenerate
           <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 flex-1 sm:flex-none">
             <Package className="w-4 h-4 text-slate-400 shrink-0" />
             <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className="bg-transparent text-xs font-bold text-slate-700 outline-none cursor-pointer w-full">
-              <option value="ALL">Semua Layanan</option>
-              <option value="FASILITAS">Sewa Fasilitas</option>
-              <option value="PELATIHAN">Pelatihan & Course</option>
-              <option value="PRODUK">Katalog Produk</option>
+              <option value="ALL">Semua Divisi / Layanan</option>
+              <option value="JASA_PRODUKSI">🔨 Jasa Produksi & Manufaktur</option>
+              <option value="FASILITAS_ASET">🏢 Sewa Fasilitas & Gedung</option>
+              <option value="DIKLAT_PELATIHAN">📚 Diklat & Pelatihan Kerja</option>
+              <option value="INKUBASI_TENANT">🌱 Inkubasi Tenant & Startup</option>
+              <option value="KATALOG_PRODUK">🛍️ Katalog Produk & Merchandise</option>
+              <option value="UMUM">📄 Layanan Umum / Kasir</option>
             </select>
           </div>
 
@@ -195,10 +195,18 @@ export default function TabInvoices({ rawInvoices, activeTab = 'ALL', onGenerate
                 const hasPendingProof = invoice.history?.some((h: any) => h.status === 'PENDING');
                 const hasSuccessfulPayment = invoice.history?.some((h: any) => h.status === 'SUCCESS');
 
+                const division = invoice.division || inferInvoiceDivision(invoice);
+                const divConfig = INVOICE_DIVISION_CONFIG[division];
+
                 return (
                   <tr key={invoice.id} className={`transition-colors group ${hasPendingProof ? 'bg-amber-50/30' : 'hover:bg-slate-50/80'}`}>
                     <td className="px-6 py-5 align-top">
-                      <div className="font-bold text-slate-800 text-sm mb-1.5">{invoice.invoiceNumber}</div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-bold text-slate-800 text-sm">{invoice.invoiceNumber}</span>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border ${divConfig.badgeClass}`}>
+                          {divConfig.shortLabel}
+                        </span>
+                      </div>
                       <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold ${summary.color} max-w-[250px] truncate mb-2`}>
                         {summary.icon}
                         <span className="truncate">{summary.text}</span>
@@ -292,6 +300,9 @@ export default function TabInvoices({ rawInvoices, activeTab = 'ALL', onGenerate
             const hasPendingProof = invoice.history?.some((h: any) => h.status === 'PENDING');
             const hasSuccessfulPayment = invoice.history?.some((h: any) => h.status === 'SUCCESS');
 
+            const division = invoice.division || inferInvoiceDivision(invoice);
+            const divConfig = INVOICE_DIVISION_CONFIG[division];
+
             return (
               <div 
                 key={invoice.id} 
@@ -302,9 +313,14 @@ export default function TabInvoices({ rawInvoices, activeTab = 'ALL', onGenerate
                 {/* Header: No Invoice, Layanan, Status */}
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <span className="font-mono text-xs font-bold text-slate-800">
-                      {invoice.invoiceNumber}
-                    </span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-mono text-xs font-bold text-slate-800">
+                        {invoice.invoiceNumber}
+                      </span>
+                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold border ${divConfig.badgeClass}`}>
+                        {divConfig.shortLabel}
+                      </span>
+                    </div>
                     <div className="flex items-center gap-1.5 mt-1">
                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold ${summary.color}`}>
                         {summary.icon}

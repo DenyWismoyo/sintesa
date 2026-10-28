@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { Invoice, Expense } from '@/types';
+import { Invoice, Expense, inferInvoiceDivision } from '@/types';
 import { 
   TrendingUp, TrendingDown, Building, BookOpen, Store, 
-  Package, DollarSign, PieChart, Activity, Filter, Info
+  Package, DollarSign, PieChart, Activity, Filter, Info, Hammer
 } from 'lucide-react';
 
 interface Props {
@@ -45,12 +45,11 @@ export default function TabProfitCenter({ invoices, expenses }: Props) {
       // ACCRUAL = total tagihan (termasuk yang belum dibayar)
       // CASH = hanya yang sudah benar-benar dibayar
       const amount = reportType === 'ACCRUAL' ? inv.totalAmount : inv.paidAmount;
+      const division = inv.division || inferInvoiceDivision(inv);
       
-      const type = inv.items && inv.items.length > 0 ? inv.items[0].referenceType : 'CUSTOM';
-      
-      if (['BOOKING', 'TARIFF_DAY', 'TARIFF_MONTH'].includes(type)) fasTotal += amount;
-      else if (type === 'TRAINING') pelTotal += amount;
-      else if (['CATALOG', 'PRODUCTION'].includes(type)) prodTotal += amount;
+      if (division === 'FASILITAS_ASET' || division === 'INKUBASI_TENANT') fasTotal += amount;
+      else if (division === 'DIKLAT_PELATIHAN') pelTotal += amount;
+      else if (division === 'JASA_PRODUKSI' || division === 'KATALOG_PRODUK') prodTotal += amount;
       else lainTotal += amount;
     });
 

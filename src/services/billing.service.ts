@@ -3,7 +3,7 @@ import { db } from '@/lib/firebase';
 import { getAppId } from '@/lib/appId';
 import { storageService } from '@/services/storage.service';
 import { affiliateService } from '@/services/affiliate.service';
-import { Invoice, PaymentHistory } from '@/types';
+import { Invoice, PaymentHistory, inferInvoiceDivision, INVOICE_DIVISION_CONFIG } from '@/types';
 
 export const billingService = {
   getInvoiceRef: () => collection(db, 'artifacts', getAppId(), 'public', 'data', 'invoices'),
@@ -80,8 +80,18 @@ export const billingService = {
   },
 
   createInvoice: async (data: Omit<Invoice, 'id'>) => {
+    const division = data.division || inferInvoiceDivision(data);
+    const divConfig = INVOICE_DIVISION_CONFIG[division];
+
+    const enrichedData = {
+      ...data,
+      division,
+      suggestedCoaId: data.suggestedCoaId || divConfig.defaultCoaCode,
+      allocatedCoaName: data.allocatedCoaName || (data.isAllocated ? divConfig.defaultCoaName : undefined)
+    };
+
     const cleanData = Object.fromEntries(
-      Object.entries(data).filter(([_, v]) => v !== undefined)
+      Object.entries(enrichedData).filter(([_, v]) => v !== undefined)
     );
     const docRef = await addDoc(billingService.getInvoiceRef(), { ...cleanData, createdAt: Date.now() });
     return docRef.id;
@@ -161,57 +171,78 @@ export const billingService = {
   },
 
   syncBackToOrigin: async (invoice: Invoice) => {
-    // Guard: Pastikan invoice berstatus PAID sebelum menyinkronkan status ke entitas asal
-    if (invoice.status !== 'PAID') {
-      console.warn(`[SYNC] Invoice ${invoice.id || invoice.invoiceNumber} belum PAID (status: ${invoice.status}), sync diabaikan.`);
+    // Guard: Hanya izinkan sinkronisasi jika ada pembayaran (PAID atau PARTIAL)
+    if (invoice.status !== 'PAID' && invoice.status !== 'PARTIAL') {
+      console.warn(`[SYNC] Invoice ${invoice.id || invoice.invoiceNumber} belum ada pembayaran (status: ${invoice.status}), sync diabaikan.`);
       return;
     }
 
     const batch = writeBatch(db);
     const appId = getAppId();
+    let hasUpdates = false;
 
     for (const item of invoice.items) {
       try {
         if (item.referenceType === 'BOOKING' && item.referenceId) {
           const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', item.referenceId);
-          batch.update(docRef, { status: 'completed' }); 
+          if (invoice.status === 'PAID') {
+            batch.update(docRef, { status: 'completed', paymentStatus: 'PAID', updatedAt: Date.now() });
+            hasUpdates = true;
+          } else if (invoice.status === 'PARTIAL') {
+            batch.update(docRef, { status: 'confirmed', paymentStatus: 'PARTIAL', updatedAt: Date.now() });
+            hasUpdates = true;
+          }
         } 
         else if (item.referenceType === 'CATALOG' && item.referenceId) {
-          const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', item.referenceId);
-          batch.update(docRef, { status: 'PAID' });
+          if (invoice.status === 'PAID') {
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', item.referenceId);
+            batch.update(docRef, { status: 'PAID', updatedAt: Date.now() });
+            hasUpdates = true;
+          }
         } 
         else if (item.referenceType === 'TRAINING' && item.referenceId) {
-          const parts = item.referenceId.split('::');
-          if (parts.length === 2) {
-            const [trainingId, regId] = parts;
-            const docRef = doc(db, 'trainings', trainingId, 'registrations', regId);
-            batch.update(docRef, { paymentStatus: 'PAID', status: 'CONFIRMED' });
+          if (invoice.status === 'PAID') {
+            const parts = item.referenceId.split('::');
+            if (parts.length === 2) {
+              const [trainingId, regId] = parts;
+              const docRef = doc(db, 'trainings', trainingId, 'registrations', regId);
+              batch.update(docRef, { paymentStatus: 'PAID', status: 'CONFIRMED', updatedAt: Date.now() });
+              hasUpdates = true;
+            }
           }
         }
         else if (item.referenceType === 'PRODUCTION' && item.referenceId) {
           const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'production_orders', item.referenceId);
-          const isDp = invoice.invoiceNumber.includes('/DP') || (invoice.notes && invoice.notes.toLowerCase().includes('uang muka'));
-          if (isDp) {
+          const isDp = invoice.term === 'DOWN_PAYMENT' || 
+                       invoice.invoiceNumber.includes('/DP') || 
+                       (invoice.notes && invoice.notes.toLowerCase().includes('uang muka'));
+
+          if (isDp || invoice.status === 'PARTIAL') {
             batch.update(docRef, { 
-              paymentStatus: 'DP_PAID', 
+              paymentStatus: invoice.status === 'PAID' && !isDp ? 'FULL_PAID' : 'DP_PAID', 
               status: 'IN_PRODUCTION',
               updatedAt: Date.now() 
             });
-          } else {
+            hasUpdates = true;
+          } else if (invoice.status === 'PAID') {
             batch.update(docRef, { 
               paymentStatus: 'FULL_PAID', 
               updatedAt: Date.now() 
             });
+            hasUpdates = true;
           }
         }
       } catch (error) {
         console.error(`[Sinkronisasi Gagal] pada item ${item.referenceType}:`, error);
       }
     }
-    await batch.commit();
 
-    // Auto-clear komisi afiliasi jika transaksi ini memiliki kode referral
-    if (invoice.id) {
+    if (hasUpdates) {
+      await batch.commit();
+    }
+
+    // Auto-clear komisi afiliasi jika transaksi ini memiliki kode referral dan LUNAS
+    if (invoice.id && invoice.status === 'PAID') {
       try {
         await affiliateService.clearCommissionByInvoiceId(invoice.id);
       } catch (affError) {
