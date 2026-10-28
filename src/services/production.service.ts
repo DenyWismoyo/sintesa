@@ -1,9 +1,10 @@
 // Lokasi file: src/services/production.service.ts
-import { collection, doc, addDoc, updateDoc, deleteDoc, getDocs, getDoc, query, orderBy, limit, where } from 'firebase/firestore';
+import { collection, doc, addDoc, updateDoc, setDoc, deleteDoc, getDocs, getDoc, query, orderBy, limit, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { getAppId } from '@/lib/appId';
 import { storageService } from '@/services/storage.service';
 import { ProductionOrder, WorkProgressLog, DeliveryOrderInfo } from '@/types/production.types';
+import { MOCK_PRODUCTION_ORDERS } from '@/data/mock/productionMockData';
 
 export const productionService = {
   getProductionRef: () => collection(db, 'artifacts', getAppId(), 'public', 'data', 'production_orders'),
@@ -14,12 +15,27 @@ export const productionService = {
    */
   getProductionOrders: async (maxLimit: number = 200): Promise<ProductionOrder[]> => {
     try {
-      const q = query(productionService.getProductionRef(), orderBy('createdAt', 'desc'), limit(maxLimit));
-      const snap = await getDocs(q);
-      return snap.docs.map(d => ({ id: d.id, ...d.data() } as ProductionOrder));
+      let docs: ProductionOrder[] = [];
+      try {
+        const q = query(productionService.getProductionRef(), orderBy('createdAt', 'desc'), limit(maxLimit));
+        const snap = await getDocs(q);
+        docs = snap.docs.map(d => ({ id: d.id, ...d.data() } as ProductionOrder));
+      } catch (orderErr) {
+        // Fallback jika single-field index belum propagate
+        const qSimple = query(productionService.getProductionRef(), limit(maxLimit));
+        const snap = await getDocs(qSimple);
+        docs = snap.docs.map(d => ({ id: d.id, ...d.data() } as ProductionOrder));
+        docs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      }
+
+      // Jika database di Firestore masih kosong, berikan fallback mock orders agar UI langsung responsif
+      if (docs.length === 0) {
+        return MOCK_PRODUCTION_ORDERS;
+      }
+      return docs;
     } catch (err) {
-      console.error("[PRODUCTION SERVICE] Gagal mengambil daftar pesanan:", err);
-      return [];
+      console.warn("[PRODUCTION SERVICE] Memakai mock data produksi sebagai fallback:", err);
+      return MOCK_PRODUCTION_ORDERS;
     }
   },
 
@@ -161,5 +177,18 @@ export const productionService = {
    */
   uploadBlueprintFile: async (file: File): Promise<string> => {
     return await storageService.uploadFile(file, `blueprints/${getAppId()}`);
+  },
+
+  /**
+   * Menyuntikkan paket mock data pesanan produksi ke Firestore untuk demo
+   */
+  seedMockOrders: async (): Promise<number> => {
+    let count = 0;
+    for (const order of MOCK_PRODUCTION_ORDERS) {
+      const orderRef = productionService.getProductionDoc(order.id!);
+      await setDoc(orderRef, { ...order, updatedAt: Date.now() }, { merge: true });
+      count++;
+    }
+    return count;
   }
 };

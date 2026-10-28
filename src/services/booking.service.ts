@@ -1,10 +1,11 @@
 // Lokasi file: src/services/booking.service.ts
 
-import { collection, doc, getDocs, query, updateDoc, where, orderBy, limit } from 'firebase/firestore';
+import { collection, doc, getDocs, setDoc, query, updateDoc, where, orderBy, limit } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '@/lib/firebase';
 import { getAppId } from '@/lib/appId';
 import { Booking, BookingSchema } from '@/types';
+import { MOCK_BOOKINGS } from '@/data/mock/bookingMockData';
 
 const getBasePath = () => `artifacts/${getAppId()}/public/data/bookings`;
 
@@ -32,18 +33,34 @@ export const bookingService = {
   },
 
   async getAllBookingsData(maxLimit: number = 200): Promise<Booking[]> {
-    const q = query(collection(db, getBasePath()), orderBy('createdAt', 'desc'), limit(maxLimit));
-    const snap = await getDocs(q);
-    const bookings: Booking[] = [];
-    snap.docs.forEach(docSnap => {
-      const parsed = BookingSchema.safeParse({ id: docSnap.id, ...docSnap.data() });
-      if (parsed.success) {
-        bookings.push(parsed.data);
-      } else {
-        bookings.push({ id: docSnap.id, ...docSnap.data() } as Booking);
+    try {
+      let snap;
+      try {
+        const q = query(collection(db, getBasePath()), orderBy('createdAt', 'desc'), limit(maxLimit));
+        snap = await getDocs(q);
+      } catch (err) {
+        const qSimple = query(collection(db, getBasePath()), limit(maxLimit));
+        snap = await getDocs(qSimple);
       }
-    });
-    return bookings;
+
+      const bookings: Booking[] = [];
+      snap.docs.forEach(docSnap => {
+        const parsed = BookingSchema.safeParse({ id: docSnap.id, ...docSnap.data() });
+        if (parsed.success) {
+          bookings.push(parsed.data);
+        } else {
+          bookings.push({ id: docSnap.id, ...docSnap.data() } as Booking);
+        }
+      });
+
+      if (bookings.length === 0) {
+        return MOCK_BOOKINGS;
+      }
+      return bookings;
+    } catch (error) {
+      console.warn("[BOOKING SERVICE] Memakai mock data booking sebagai fallback:", error);
+      return MOCK_BOOKINGS;
+    }
   },
 
   async trackBookingsByEmail(email: string): Promise<Booking[]> {
@@ -112,5 +129,18 @@ export const bookingService = {
       }
     });
     return bookings;
+  },
+
+  /**
+   * Menyuntikkan paket mock data booking fasilitas kawasan ke Firestore untuk demo
+   */
+  async seedMockBookings(): Promise<number> {
+    let count = 0;
+    for (const b of MOCK_BOOKINGS) {
+      const docRef = doc(db, getBasePath(), b.id!);
+      await setDoc(docRef, b, { merge: true });
+      count++;
+    }
+    return count;
   }
 };

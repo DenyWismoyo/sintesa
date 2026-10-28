@@ -48,12 +48,14 @@ import {
   Eye,
   Trash2,
   Edit,
-  Loader2
+  Loader2,
+  Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatRupiah } from '@/utils/format';
 import { buildWorkOrderPdf } from '@/lib/pdf/workOrderPdf';
 import { buildDeliveryOrderPdf } from '@/lib/pdf/deliveryOrderPdf';
+import { productionService } from '@/services/production.service';
 
 // Import Modals
 import ModalFormProductionOrder from './components/ModalFormProductionOrder';
@@ -86,6 +88,23 @@ export default function JasaProduksiPage() {
   const [selectedOrderForInvoice, setSelectedOrderForInvoice] = useState<ProductionOrder | null>(null);
 
   const [detailOrder, setDetailOrder] = useState<ProductionOrder | null>(null);
+  const [isSeeding, setIsSeeding] = useState(false);
+
+  // Handler Muat Data Demo Manufaktur
+  const handleSeedDemoData = async () => {
+    try {
+      setIsSeeding(true);
+      toast.info('Menyinkronkan paket data demo manufaktur ke database...');
+      const count = await productionService.seedMockOrders();
+      toast.success(`Berhasil memuat ${count} pesanan demo manufaktur ke Firestore!`);
+      await refetch();
+    } catch (err: any) {
+      console.error('Gagal seed mock orders:', err);
+      toast.error('Gagal memuat data demo: ' + (err.message || err));
+    } finally {
+      setIsSeeding(false);
+    }
+  };
 
   // Perhitungan Ringkasan / Stat Cards
   const stats = useMemo(() => {
@@ -202,6 +221,16 @@ export default function JasaProduksiPage() {
         }
         actions={
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSeedDemoData}
+              disabled={isSeeding || loading}
+              className="text-xs text-indigo-700 bg-indigo-50 border-indigo-200 hover:bg-indigo-100 gap-1.5"
+            >
+              {isSeeding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+              <span>{isSeeding ? 'Menyinkronkan...' : 'Muat Data Demo'}</span>
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -372,17 +401,29 @@ export default function JasaProduksiPage() {
                 : 'Mulai dengan membuat Surat Perintah Kerja (SPK) pengerjaan manufaktur baru.'}
             </p>
             {!(searchTerm || categoryFilter !== 'ALL' || activeTab !== 'ALL') && (
-              <Button
-                size="sm"
-                onClick={() => {
-                  setEditingOrder(null);
-                  setIsFormModalOpen(true);
-                }}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs gap-1.5 mt-2"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Buat SPK Produksi Pertama
-              </Button>
+              <div className="flex flex-wrap items-center justify-center gap-2.5 mt-3">
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setEditingOrder(null);
+                    setIsFormModalOpen(true);
+                  }}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Buat SPK Produksi Pertama
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSeedDemoData}
+                  disabled={isSeeding || loading}
+                  className="text-xs text-indigo-700 bg-indigo-50 border-indigo-200 hover:bg-indigo-100 gap-1.5"
+                >
+                  {isSeeding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                  <span>{isSeeding ? 'Menyinkronkan...' : 'Muat Data Demo Manufaktur'}</span>
+                </Button>
+              </div>
             )}
           </div>
         ) : (

@@ -6,6 +6,7 @@ import { useBilling } from '@/hooks/useBilling';
 import { useCatalog } from '@/hooks/useCatalog';
 import { useAssets } from '@/hooks/useAssets'; 
 import { affiliateService } from '@/services/affiliate.service'; 
+import { bookingService } from '@/services/booking.service';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { CheckCircle2, XCircle, Clock, MapPin, Loader2, FileText, AlertTriangle, Receipt, ListTodo, History, Calculator, RefreshCw, FilePlus2, Calendar as CalendarIcon, Users, LayoutTemplate, Sparkles, Image as ImageIcon, Download, ExternalLink } from 'lucide-react';
@@ -51,6 +52,22 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
 
   const [billingAmount, setBillingAmount] = useState<number>(0);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isSeedingBooking, setIsSeedingBooking] = useState(false);
+
+  const handleSeedBookingDemo = async () => {
+    try {
+      setIsSeedingBooking(true);
+      toast.info('Menyinkronkan paket data demo booking kawasan...');
+      const count = await bookingService.seedMockBookings();
+      toast.success(`Berhasil memuat ${count} data demo booking ke database!`);
+      await queryClient.invalidateQueries({ queryKey: ['bookings'] });
+    } catch (err: any) {
+      console.error('Gagal seed booking demo:', err);
+      toast.error('Gagal memuat data demo booking: ' + (err.message || err));
+    } finally {
+      setIsSeedingBooking(false);
+    }
+  };
 
   const [recommendedPrice, setRecommendedPrice] = useState<number>(0);
   const [durationInfo, setDurationInfo] = useState<string>('');
@@ -509,6 +526,16 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
         </div>
         
         <div className="hidden md:flex items-center gap-2.5">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSeedBookingDemo}
+            disabled={isSeedingBooking}
+            className="text-xs text-indigo-700 bg-indigo-50 border-indigo-200 hover:bg-indigo-100 gap-1.5 h-8 rounded-xl font-bold shadow-2xs"
+          >
+            {isSeedingBooking ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+            <span>{isSeedingBooking ? 'Menyinkronkan...' : 'Muat Demo Booking'}</span>
+          </Button>
           <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
             <RefreshCw size={11} className="animate-spin-slow" /> Auto-Sync
           </div>
@@ -524,6 +551,16 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
              <CheckCircle2 className="h-12 w-12 text-emerald-400 mx-auto mb-3 bg-emerald-50 rounded-full p-2 border border-emerald-100" />
              <h3 className="text-lg font-bold text-slate-800 tracking-tight">Antrean Bersih!</h3>
              <p className="text-xs sm:text-sm text-slate-400 mt-1">Tidak ada pengajuan peminjaman baru saat ini.</p>
+             <Button
+               variant="outline"
+               size="sm"
+               onClick={handleSeedBookingDemo}
+               disabled={isSeedingBooking}
+               className="mt-4 text-xs text-indigo-700 bg-indigo-50 border-indigo-200 hover:bg-indigo-100 gap-1.5 rounded-xl font-bold shadow-2xs"
+             >
+               {isSeedingBooking ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+               <span>{isSeedingBooking ? 'Menyinkronkan...' : 'Muat Data Demo Booking Kawasan'}</span>
+             </Button>
            </div>
         ) : (
           <div>
