@@ -6,12 +6,13 @@ import { ProductionOrder, DeliveryOrderInfo } from '@/types/production.types';
 import { productionService } from '@/services/production.service';
 import { buildDeliveryOrderPdf } from '@/lib/pdf/deliveryOrderPdf';
 import { loadStpLogo } from '@/lib/pdf/stpDocumentKit';
+import { stpEmployeeService, StpEmployeeSigner } from '@/services/stpEmployee.service';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Truck, Calendar, User, Phone, FileText, CheckCircle2, Loader2, Printer, AlertCircle } from 'lucide-react';
+import { Truck, Calendar, User, Phone, FileText, CheckCircle2, Loader2, Printer, AlertCircle, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Props {
@@ -36,8 +37,21 @@ export default function ModalDeliveryOrder({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
 
+  // Kustomisasi Penandatangan Petugas Penyerah STP
+  const [employees, setEmployees] = useState<StpEmployeeSigner[]>([]);
+  const [selectedStaffEmpId, setSelectedStaffEmpId] = useState<string>('');
+  const [handoverStaffName, setHandoverStaffName] = useState<string>('');
+  const [handoverStaffRole, setHandoverStaffRole] = useState<string>('Gudang & QC Jasa Produksi STP');
+
+  useEffect(() => {
+    if (isOpen) {
+      stpEmployeeService.getEmployees().then(setEmployees);
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     if (order) {
+      setHandoverStaffName(order.assignedTechnician || 'Gudang & QC Jasa Produksi STP');
       if (order.deliveryOrder) {
         setDeliveryDate(order.deliveryOrder.deliveryDate || new Date().toISOString().split('T')[0]);
         setDriverOrExpedition(order.deliveryOrder.driverOrExpedition || '');
@@ -113,7 +127,24 @@ export default function ModalDeliveryOrder({
           ...order, 
           deliveryOrder: activeDeliveryInfo 
         },
-        logoBase64: logo
+        logoBase64: logo,
+        signers: {
+          handoverSigner: {
+            name: handoverStaffName,
+            role: handoverStaffRole
+          },
+          driverSigner: {
+            name: driverOrExpedition,
+            role: 'Pengemudi / Ekspedisi',
+            sub: vehicleNumber ? `No. Kendaraan ${vehicleNumber}` : ''
+          },
+          recipientSigner: {
+            name: recipientName,
+            role: 'Penerima Barang (TTD & Cap)',
+            sub: order.clientName
+          },
+          signatureDate: deliveryDate
+        }
       });
       pdfDoc.save(`Surat_Jalan_${activeDeliveryInfo.deliveryOrderNumber.replace(/\//g, '_')}.pdf`);
       toast.success('Dokumen Surat Jalan PDF resmi berhasil diunduh.');
@@ -173,6 +204,57 @@ export default function ModalDeliveryOrder({
           )}
 
           <form id="delivery-form" onSubmit={handleSubmit} className="space-y-4">
+            {/* Seksi Petugas Penyerah STP (Penandatangan) */}
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2.5">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800">
+                <ShieldCheck className="w-4 h-4 text-teal-600" />
+                <span>Petugas Penyerah Barang (Gudang & QC STP)</span>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[11px] font-medium text-slate-600">Pilih dari Pegawai Presensi STP:</Label>
+                <select
+                  value={selectedStaffEmpId}
+                  onChange={(e) => {
+                    const empId = e.target.value;
+                    setSelectedStaffEmpId(empId);
+                    const found = employees.find((x) => x.id === empId);
+                    if (found) {
+                      setHandoverStaffName(found.nama);
+                      if (found.jabatan) setHandoverStaffRole(found.jabatan);
+                    }
+                  }}
+                  className="w-full text-xs h-8 px-2.5 rounded-lg border border-slate-300 bg-white"
+                >
+                  <option value="">-- Pilih Pegawai Presensi STP --</option>
+                  {employees.map((emp) => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.nama} - {emp.jabatan}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <Label className="text-[11px] font-medium text-slate-600 mb-1 block">Nama Petugas Penyerah</Label>
+                  <Input
+                    value={handoverStaffName}
+                    onChange={(e) => setHandoverStaffName(e.target.value)}
+                    placeholder="Nama Petugas Penyerah STP"
+                    className="h-8 text-xs bg-white"
+                  />
+                </div>
+                <div>
+                  <Label className="text-[11px] font-medium text-slate-600 mb-1 block">Jabatan / Bagian</Label>
+                  <Input
+                    value={handoverStaffRole}
+                    onChange={(e) => setHandoverStaffRole(e.target.value)}
+                    placeholder="Gudang & QC Jasa Produksi STP"
+                    className="h-8 text-xs bg-white"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label className="text-xs font-medium text-slate-700 flex items-center gap-1.5 mb-1.5">

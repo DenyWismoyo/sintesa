@@ -29,12 +29,22 @@ import {
   truncate
 } from './stpDocumentKit';
 
+export interface DeliveryOrderSigners {
+  handoverSigner?: { name?: string; role?: string; sub?: string };
+  driverSigner?: { name?: string; role?: string; sub?: string };
+  recipientSigner?: { name?: string; role?: string; sub?: string };
+  city?: string;
+  signatureDate?: string;
+}
+
 export interface DeliveryOrderPdfParams {
   order: ProductionOrder;
   /** DataURL logo resmi (gunakan loadStpLogo() di browser). */
   logoBase64?: string | null;
   /** Profil instansi dari Pengaturan Sistem (opsional). */
   profile?: StpInstitutionProfile | null;
+  /** Kustomisasi lengkap penandatangan 3 pihak Surat Jalan (opsional). */
+  signers?: DeliveryOrderSigners | null;
 }
 
 const CLIENT_TYPE_LABEL: Record<string, string> = {
@@ -56,7 +66,7 @@ const CONDITION_CHECKS = ['Baik dan lengkap sesuai daftar', 'Terdapat kerusakan 
 /**
  * Membangun Dokumen Vektor PDF Murni untuk Surat Jalan Resmi (Delivery Order)
  */
-export function buildDeliveryOrderPdf({ order, logoBase64, profile }: DeliveryOrderPdfParams): jsPDF {
+export function buildDeliveryOrderPdf({ order, logoBase64, profile, signers }: DeliveryOrderPdfParams): jsPDF {
   const delivery = order.deliveryOrder;
   const doNumber =
     delivery?.deliveryOrderNumber || `SJ/PROD/${new Date().toISOString().split('T')[0].replace(/-/g, '')}/XXXX`;
@@ -190,25 +200,46 @@ export function buildDeliveryOrderPdf({ order, logoBase64, profile }: DeliveryOr
   y = Math.max(ly, ry) + 10;
 
   // 5. TANDA TANGAN 3 PIHAK -------------------------------------------------
-  drawSignatureBlock(ctx, y, `${ctx.profile.city}, ${formatTanggal(deliveryDate)}`, [
+  const signCity = signers?.city || ctx.profile.city || 'Surakarta';
+  const signDateStr = signers?.signatureDate || deliveryDate;
+
+  const handoverName = signers?.handoverSigner?.name !== undefined 
+    ? signers.handoverSigner.name 
+    : (order.assignedTechnician || '');
+  const handoverRole = signers?.handoverSigner?.role || 'Gudang & QC Jasa Produksi STP';
+  const handoverSub = signers?.handoverSigner?.sub || ctx.profile.name;
+
+  const driverName = signers?.driverSigner?.name !== undefined 
+    ? signers.driverSigner.name 
+    : (delivery?.driverOrExpedition || '');
+  const driverRole = signers?.driverSigner?.role || 'Pengemudi / Ekspedisi';
+  const driverSub = signers?.driverSigner?.sub || (delivery?.vehicleNumber ? `No. Kendaraan ${delivery.vehicleNumber}` : '');
+
+  const recipientName = signers?.recipientSigner?.name !== undefined 
+    ? signers.recipientSigner.name 
+    : (delivery?.recipientName || '');
+  const recipientRole = signers?.recipientSigner?.role || 'Penerima Barang (TTD & Cap)';
+  const recipientSub = signers?.recipientSigner?.sub || order.clientName;
+
+  drawSignatureBlock(ctx, y, `${signCity}, ${formatTanggal(signDateStr)}`, [
     {
       caption: 'Yang Menyerahkan,',
-      role: 'Gudang & QC Jasa Produksi STP',
-      name: order.assignedTechnician || '',
-      sub: ctx.profile.name,
+      role: handoverRole,
+      name: handoverName,
+      sub: handoverSub,
       stampCaption: 'Jasa Produksi'
     },
     {
       caption: 'Pengantar,',
-      role: 'Pengemudi / Ekspedisi',
-      name: delivery?.driverOrExpedition || '',
-      sub: delivery?.vehicleNumber ? `No. Kendaraan ${delivery.vehicleNumber}` : ''
+      role: driverRole,
+      name: driverName,
+      sub: driverSub
     },
     {
       caption: 'Diterima oleh,',
-      role: 'Penerima Barang (TTD & Cap)',
-      name: delivery?.recipientName || '',
-      sub: order.clientName
+      role: recipientRole,
+      name: recipientName,
+      sub: recipientSub
     }
   ]);
 

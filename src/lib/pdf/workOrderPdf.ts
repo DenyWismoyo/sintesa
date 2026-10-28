@@ -39,14 +39,24 @@ import {
   truncate
 } from './stpDocumentKit';
 
+export interface WorkOrderSigners {
+  clientSigner?: { name?: string; role?: string; sub?: string };
+  technicianSigner?: { name?: string; role?: string; sub?: string };
+  issuerSigner?: { name?: string; role?: string; nip?: string; sub?: string };
+  city?: string;
+  signatureDate?: string;
+}
+
 export interface WorkOrderPdfParams {
   order: ProductionOrder;
   /** DataURL logo resmi (gunakan loadStpLogo() di browser). */
   logoBase64?: string | null;
   /** Profil instansi dari Pengaturan Sistem (opsional). */
   profile?: StpInstitutionProfile | null;
-  /** Pejabat penerbit SPK (opsional). */
+  /** Pejabat penerbit SPK (opsional, backward compatible). */
   issuer?: { name?: string; nip?: string; role?: string } | null;
+  /** Kustomisasi lengkap penandatangan 3 pihak (opsional). */
+  signers?: WorkOrderSigners | null;
 }
 
 const STATUS_TONES: Record<ProductionStatus, BadgeTone> = {
@@ -84,7 +94,7 @@ function buildTerms(order: ProductionOrder): string[] {
 /**
  * Membangun Dokumen Vektor PDF Murni untuk Surat Perintah Kerja (SPK) & Estimasi Biaya Produksi
  */
-export function buildWorkOrderPdf({ order, logoBase64, profile, issuer }: WorkOrderPdfParams): jsPDF {
+export function buildWorkOrderPdf({ order, logoBase64, profile, issuer, signers }: WorkOrderPdfParams): jsPDF {
   const ctx = createStpDocument({
     title: 'SURAT PERINTAH KERJA',
     subtitle: 'Work Order - Jasa Produksi & Manufaktur',
@@ -257,24 +267,42 @@ export function buildWorkOrderPdf({ order, logoBase64, profile, issuer }: WorkOr
   y = Math.max(ly, ry) + 10;
 
   // 5. TANDA TANGAN PARA PIHAK ----------------------------------------------
-  y = drawSignatureBlock(ctx, y, `${ctx.profile.city}, ${formatTanggal(issueDate)}`, [
+  const signCity = signers?.city || ctx.profile.city || 'Surakarta';
+  const signDateStr = signers?.signatureDate || issueDate;
+  
+  const clientName = signers?.clientSigner?.name !== undefined ? signers.clientSigner.name : (order.clientPic || '');
+  const clientRole = signers?.clientSigner?.role || 'Pemesan / Klien';
+  const clientSub = signers?.clientSigner?.sub || order.clientName;
+
+  const techName = signers?.technicianSigner?.name !== undefined ? signers.technicianSigner.name : (order.assignedTechnician || '');
+  const techRole = signers?.technicianSigner?.role || 'Penanggung Jawab Teknis';
+  const techSub = signers?.technicianSigner?.sub || 'Workshop Jasa Produksi STP';
+
+  const issuerName = signers?.issuerSigner?.name !== undefined 
+    ? signers.issuerSigner.name 
+    : (issuer?.name || '');
+  const issuerRole = signers?.issuerSigner?.role || issuer?.role || 'Kepala Divisi Layanan Manufaktur & Jasa Produksi';
+  const issuerNip = signers?.issuerSigner?.nip || issuer?.nip;
+  const issuerSub = issuerNip ? `NIP. ${issuerNip}` : (signers?.issuerSigner?.sub || ctx.profile.name);
+
+  y = drawSignatureBlock(ctx, y, `${signCity}, ${formatTanggal(signDateStr)}`, [
     {
       caption: 'Menyetujui,',
-      role: 'Pemesan / Klien',
-      name: order.clientPic || '',
-      sub: order.clientName
+      role: clientRole,
+      name: clientName,
+      sub: clientSub
     },
     {
       caption: 'Pelaksana,',
-      role: 'Penanggung Jawab Teknis',
-      name: order.assignedTechnician || '',
-      sub: 'Workshop Jasa Produksi STP'
+      role: techRole,
+      name: techName,
+      sub: techSub
     },
     {
       caption: 'Diterbitkan oleh,',
-      role: issuer?.role || 'Kepala Divisi Layanan Manufaktur & Jasa Produksi',
-      name: issuer?.name || '',
-      sub: issuer?.nip ? `NIP. ${issuer.nip}` : ctx.profile.name,
+      role: issuerRole,
+      name: issuerName,
+      sub: issuerSub,
       stampCaption: 'Jasa Produksi'
     }
   ]);

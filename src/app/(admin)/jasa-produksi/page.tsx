@@ -63,6 +63,7 @@ import ModalFormProductionOrder from './components/ModalFormProductionOrder';
 import ModalProgressLog from './components/ModalProgressLog';
 import ModalDeliveryOrder from './components/ModalDeliveryOrder';
 import ModalInvoiceProduction from './components/ModalInvoiceProduction';
+import ModalPrintSpk from './components/ModalPrintSpk';
 
 type FilterTab = 'ALL' | 'DRAFT_ESTIMATION' | 'WAITING_DP' | 'IN_PRODUCTION' | 'QC' | 'DELIVERY' | 'COMPLETED';
 
@@ -87,6 +88,9 @@ export default function JasaProduksiPage() {
 
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [selectedOrderForInvoice, setSelectedOrderForInvoice] = useState<ProductionOrder | null>(null);
+
+  const [isPrintSpkModalOpen, setIsPrintSpkModalOpen] = useState(false);
+  const [selectedOrderForSpk, setSelectedOrderForSpk] = useState<ProductionOrder | null>(null);
 
   const [detailOrder, setDetailOrder] = useState<ProductionOrder | null>(null);
   const [isSeeding, setIsSeeding] = useState(false);
@@ -179,18 +183,10 @@ export default function JasaProduksiPage() {
     }
   };
 
-  // Handler Cetak PDF SPK
-  const handlePrintSpkPdf = async (order: ProductionOrder) => {
-    try {
-      toast.info(`Mempersiapkan dokumen SPK resmi ${order.orderNumber}...`);
-      const logo = await loadStpLogo();
-      const pdfDoc = buildWorkOrderPdf({ order, logoBase64: logo });
-      pdfDoc.save(`SPK_${order.orderNumber.replace(/\//g, '_')}.pdf`);
-      toast.success('Dokumen SPK resmi berhasil diunduh.');
-    } catch (err: any) {
-      console.error('Gagal cetak SPK:', err);
-      toast.error('Gagal membuat PDF SPK: ' + err.message);
-    }
+  // Handler Cetak PDF SPK (Buka Modal Kustomisasi Penandatangan Pegawai STP)
+  const handlePrintSpkPdf = (order: ProductionOrder) => {
+    setSelectedOrderForSpk(order);
+    setIsPrintSpkModalOpen(true);
   };
 
   // Handler Hapus Order
@@ -874,6 +870,16 @@ export default function JasaProduksiPage() {
         order={selectedOrderForInvoice}
         onSuccess={() => refetch()}
         currentUserName={user?.displayName || user?.email || 'Petugas Jasa Produksi'}
+      />
+
+      {/* Modal Cetak Dokumen SPK Resmi dengan Kustomisasi Penandatangan Pegawai STP */}
+      <ModalPrintSpk
+        isOpen={isPrintSpkModalOpen}
+        onClose={() => {
+          setIsPrintSpkModalOpen(false);
+          setSelectedOrderForSpk(null);
+        }}
+        order={selectedOrderForSpk}
       />
     </div>
   );
