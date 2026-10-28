@@ -108,8 +108,8 @@ export default function ModalFormAset({ assetToEdit, onClose, onSave }: Props) {
   const labelClassName = "text-[11px] sm:text-xs font-bold text-slate-600 mb-1 block";
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-[95vw] sm:max-w-4xl max-h-[92vh] sm:max-h-[88vh] flex flex-col overflow-hidden border border-slate-200/80">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-[95vw] sm:max-w-4xl max-h-[92vh] sm:max-h-[88vh] my-auto flex flex-col overflow-hidden border border-slate-200/80">
         
         {/* HEADER */}
         <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-150 flex items-center justify-between shrink-0 bg-white">
@@ -128,7 +128,7 @@ export default function ModalFormAset({ assetToEdit, onClose, onSave }: Props) {
         </div>
 
         {/* BODY FORM */}
-        <div className="overflow-y-auto p-3.5 sm:p-6 no-scrollbar flex-1">
+        <div className="overflow-y-auto p-3.5 sm:p-6 custom-scrollbar flex-1">
           <form id="assetForm" onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             
             {/* UPLOAD FOTO */}
@@ -310,11 +310,11 @@ export default function ModalFormAset({ assetToEdit, onClose, onSave }: Props) {
         </div>
 
         {/* FOOTER ACTIONS */}
-        <div className="px-4 py-2.5 sm:px-6 sm:py-3.5 flex justify-end gap-2 bg-white border-t border-slate-150 shrink-0">
-          <button type="button" onClick={onClose} className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors">
+        <div className="px-4 py-2.5 sm:px-6 sm:py-3.5 flex flex-col-reverse sm:flex-row justify-end gap-2 bg-white border-t border-slate-150 shrink-0">
+          <button type="button" onClick={onClose} className="w-full sm:w-auto px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors">
             Batal
           </button>
-          <button type="submit" form="assetForm" disabled={isSubmitting} className="px-5 py-2 bg-blue-600 text-white font-bold rounded-xl text-xs sm:text-sm flex items-center gap-1.5 hover:bg-blue-700 shadow-xs disabled:opacity-70 transition-all">
+          <button type="submit" form="assetForm" disabled={isSubmitting} className="w-full sm:w-auto px-5 py-2 bg-blue-600 text-white font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-1.5 hover:bg-blue-700 shadow-xs disabled:opacity-70 transition-all">
             {isSubmitting ? <><Loader2 className="animate-spin h-3.5 w-3.5" /> Memproses...</> : (isEdit ? 'Simpan Perubahan' : 'Simpan Aset')}
           </button>
         </div>

@@ -712,36 +712,36 @@ export default function TabKalenderMaster({ bookings }: Props) {
 
       {/* --- 5. MODAL DETAIL JADWAL ADMIN --- */}
       {selectedEvent && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100 flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto z-50 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100 flex flex-col max-h-[92vh] sm:max-h-[88vh] my-auto">
             
             {/* Header Modal */}
-            <div className={`flex justify-between items-start px-6 py-5 text-white ${
+            <div className={`flex justify-between items-start px-4 py-3.5 sm:px-6 sm:py-5 text-white shrink-0 ${
               selectedEvent.bookingType === 'B2B_PACKAGE' 
                 ? 'bg-gradient-to-r from-indigo-700 to-violet-800' 
                 : 'bg-gradient-to-r from-slate-900 to-blue-950'
             }`}>
               <div>
-                <Badge className="bg-white/20 text-white border-0 text-[10px] font-bold uppercase tracking-wider mb-2">
+                <Badge className="bg-white/20 text-white border-0 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider mb-1.5 sm:mb-2">
                   {selectedEvent.bookingType === 'B2B_PACKAGE' ? '💼 Paket Acara Korporat & B2B' : '🏛️ Peminjaman Fasilitas Reguler'}
                 </Badge>
-                <h2 className="text-xl font-black text-white leading-tight">
+                <h2 className="text-lg sm:text-xl font-black text-white leading-tight">
                   {selectedEvent.assetName}
                 </h2>
-                <p className="text-xs text-sky-100 mt-1 flex items-center gap-1.5">
+                <p className="text-[11px] sm:text-xs text-sky-100 mt-1 flex items-center gap-1.5">
                   <Building size={12} /> Kawasan Solo Technopark
                 </p>
               </div>
               <button 
                 onClick={() => setSelectedEvent(null)} 
-                className="text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors shrink-0 cursor-pointer"
+                className="text-white/80 hover:text-white p-1.5 sm:p-2 rounded-full hover:bg-white/10 transition-colors shrink-0 cursor-pointer"
               >
-                <X size={20} />
+                <X size={18} className="sm:w-5 sm:h-5" />
               </button>
             </div>
 
             {/* Konten Scrollable */}
-            <div className="p-6 space-y-5 overflow-y-auto text-xs">
+            <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto custom-scrollbar flex-1 text-xs">
               
               {/* Box Spesifikasi Ruangan dari Master Asset jika ada */}
               {(() => {
@@ -897,7 +897,7 @@ export default function TabKalenderMaster({ bookings }: Props) {
             </div>
 
             {/* Footer Modal */}
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+            <div className="px-4 py-3 sm:px-6 sm:py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
               <Button 
                 variant="outline" 
                 onClick={() => setSelectedEvent(null)}

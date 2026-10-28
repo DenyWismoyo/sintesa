@@ -65,51 +65,53 @@ export default function ModalDetailAset({ asset, allReports, baseUrl, onClose, o
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100">
+    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto z-50 animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-5xl max-h-[92vh] sm:max-h-[88vh] my-auto flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100">
         
         {/* HEADER */}
-        <div className="flex justify-between items-center p-8 border-b border-slate-100 bg-white">
-          <div className="flex items-center gap-5">
-            <div className="h-16 w-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center border border-blue-100 shrink-0">
-              <Package size={32}/>
+        <div className="flex justify-between items-center p-4 sm:p-6 md:p-8 border-b border-slate-100 bg-white shrink-0">
+          <div className="flex items-center gap-3 sm:gap-5">
+            <div className="h-11 w-11 sm:h-14 sm:w-14 bg-blue-50 text-blue-600 rounded-xl sm:rounded-2xl flex items-center justify-center border border-blue-100 shrink-0">
+              <Package size={24} className="sm:w-7 sm:h-7" />
             </div>
             <div>
-              <h2 className="text-2xl font-black text-slate-800 tracking-tight">{asset.name}</h2>
-              <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md font-mono">{asset.inventoryNumber}</span>
-                {asset.registerNumber && <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100">REG: {asset.registerNumber}</span>}
+              <h2 className="text-lg sm:text-xl md:text-2xl font-black text-slate-800 tracking-tight leading-tight">{asset.name}</h2>
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1 sm:mt-1.5">
+                <span className="text-[10px] sm:text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md font-mono">{asset.inventoryNumber}</span>
+                {asset.registerNumber && <span className="text-[10px] sm:text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md border border-blue-100">REG: {asset.registerNumber}</span>}
               </div>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-2 rounded-full hover:bg-slate-100 transition-colors shrink-0"><X size={28} /></button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1.5 sm:p-2 rounded-full hover:bg-slate-100 transition-colors shrink-0">
+            <X size={20} className="sm:w-6 sm:h-6" />
+          </button>
         </div>
 
         {/* TABS NAVIGATION */}
-        <div className="flex border-b border-slate-100 px-8 bg-white overflow-x-auto hide-scrollbar">
-          <button onClick={() => setTab('Info')} className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${tab === 'Info' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Informasi Aset</button>
-          <button onClick={() => setTab('Galeri')} className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${tab === 'Galeri' ? 'border-purple-600 text-purple-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Galeri Foto {asset.galleryUrls?.length ? `(${asset.galleryUrls.length})` : ''}</button>
-          <button onClick={() => setTab('Laporan')} className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${tab === 'Laporan' ? 'border-red-600 text-red-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Laporan Publik {assetReports.length > 0 && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm">{assetReports.length}</span>}</button>
-          <button onClick={() => setTab('Riwayat')} className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${tab === 'Riwayat' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Riwayat Perbaikan</button>
+        <div className="flex border-b border-slate-100 px-4 sm:px-6 md:px-8 bg-white overflow-x-auto hide-scrollbar shrink-0">
+          <button onClick={() => setTab('Info')} className={`px-3.5 py-3 sm:px-5 sm:py-3.5 text-xs sm:text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${tab === 'Info' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Informasi Aset</button>
+          <button onClick={() => setTab('Galeri')} className={`px-3.5 py-3 sm:px-5 sm:py-3.5 text-xs sm:text-sm font-bold border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${tab === 'Galeri' ? 'border-purple-600 text-purple-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Galeri Foto {asset.galleryUrls?.length ? `(${asset.galleryUrls.length})` : ''}</button>
+          <button onClick={() => setTab('Laporan')} className={`px-3.5 py-3 sm:px-5 sm:py-3.5 text-xs sm:text-sm font-bold border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${tab === 'Laporan' ? 'border-red-600 text-red-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Laporan Publik {assetReports.length > 0 && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm">{assetReports.length}</span>}</button>
+          <button onClick={() => setTab('Riwayat')} className={`px-3.5 py-3 sm:px-5 sm:py-3.5 text-xs sm:text-sm font-bold border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${tab === 'Riwayat' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Riwayat Perbaikan</button>
         </div>
         
-        <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 bg-slate-50/50 custom-scrollbar">
           
           {/* KONTEN TAB INFO */}
           {tab === 'Info' && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
               {/* Foto & QR */}
-              <div className="space-y-6">
-                <div className="aspect-video bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden relative group">
-                  {asset.imageUrl ? <img src={asset.imageUrl} alt={asset.name} className="w-full h-full object-cover" /> : <div className="h-full flex flex-col items-center justify-center text-slate-300 bg-slate-50"><ImageIcon size={48}/><p className="text-xs mt-2 font-bold">Tanpa Foto Utama</p></div>}
-                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1.5 rounded-lg text-[10px] font-bold text-slate-700 shadow-sm border border-slate-100 uppercase">{asset.status}</div>
+              <div className="space-y-4 sm:space-y-6">
+                <div className="aspect-video bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-200 overflow-hidden relative group">
+                  {asset.imageUrl ? <img src={asset.imageUrl} alt={asset.name} className="w-full h-full object-cover" /> : <div className="h-full flex flex-col items-center justify-center text-slate-300 bg-slate-50"><ImageIcon size={40}/><p className="text-xs mt-2 font-bold">Tanpa Foto Utama</p></div>}
+                  <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-white/90 backdrop-blur px-2.5 py-1 rounded-lg text-[10px] font-bold text-slate-700 shadow-sm border border-slate-100 uppercase">{asset.status}</div>
                 </div>
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 flex flex-col items-center shadow-sm">
-                  <QRCodeSVG value={`${baseUrl}/lapor-aset/${asset.id}`} size={160} level="H" />
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-4">Scan QR Untuk Lapor</p>
+                <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 flex flex-col items-center shadow-sm">
+                  <QRCodeSVG value={`${baseUrl}/lapor-aset/${asset.id}`} size={140} level="H" className="sm:w-[160px] sm:h-[160px]" />
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-3 sm:mt-4">Scan QR Untuk Lapor</p>
                 </div>
-                <button onClick={handleDelete} className="w-full py-3.5 flex items-center justify-center gap-2 text-red-600 bg-white hover:bg-red-50 rounded-xl text-sm font-bold transition-colors border border-red-100 shadow-sm">
-                  <Trash2 size={18}/> Hapus Data Permanen
+                <button onClick={handleDelete} className="w-full py-3 sm:py-3.5 flex items-center justify-center gap-2 text-red-600 bg-white hover:bg-red-50 rounded-xl text-xs sm:text-sm font-bold transition-colors border border-red-100 shadow-sm">
+                  <Trash2 size={16}/> Hapus Data Permanen
                 </button>
               </div>
 

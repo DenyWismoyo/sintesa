@@ -232,7 +232,7 @@ export default function ModalAdminCreateBooking({ isOpen, onClose, prefilledSlot
           <DialogDescription className="text-xs text-slate-500 hidden sm:block mt-0.5">Buat jadwal tanpa harus melalui portal publik. Cocok untuk kegiatan dinas atau pesanan via WhatsApp.</DialogDescription>
         </DialogHeader>
 
-        <div className="overflow-y-auto p-3.5 sm:p-6 no-scrollbar bg-white flex-1">
+        <div className="overflow-y-auto p-3.5 sm:p-6 custom-scrollbar bg-white flex-1">
           <form id="admin-booking-form" onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             
             {/* TIPE PENGGUNAAN */}
@@ -461,9 +461,9 @@ export default function ModalAdminCreateBooking({ isOpen, onClose, prefilledSlot
           </form>
         </div>
 
-        <div className="px-4 py-2.5 sm:px-6 sm:py-3.5 border-t border-slate-150 bg-slate-50 flex justify-end gap-2 shrink-0">
-          <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting} className="rounded-xl h-9 text-xs sm:text-sm px-4 font-semibold text-slate-600 border-slate-200 bg-white hover:bg-slate-100">Batal</Button>
-          <Button type="submit" form="admin-booking-form" disabled={isSubmitting} className="rounded-xl h-9 text-xs sm:text-sm px-5 font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs">
+        <div className="px-4 py-2.5 sm:px-6 sm:py-3.5 border-t border-slate-150 bg-slate-50 flex flex-col-reverse sm:flex-row justify-end gap-2 shrink-0">
+          <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting} className="rounded-xl h-9 text-xs sm:text-sm px-4 font-semibold text-slate-600 border-slate-200 bg-white hover:bg-slate-100 w-full sm:w-auto">Batal</Button>
+          <Button type="submit" form="admin-booking-form" disabled={isSubmitting} className="rounded-xl h-9 text-xs sm:text-sm px-5 font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs w-full sm:w-auto">
             {isSubmitting ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin"/> : <Send className="mr-1.5 h-3.5 w-3.5"/>}
             Simpan Jadwal
           </Button>

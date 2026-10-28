@@ -113,51 +113,51 @@ export default function ModalCreateInvoiceBooking({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 sm:p-0 animate-in fade-in duration-200">
-      <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-2 sm:p-4 md:p-6 overflow-y-auto animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-4xl max-h-[92vh] sm:max-h-[88vh] my-auto flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-white">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center border border-indigo-100">
-              <Calculator size={20} />
+        <div className="flex justify-between items-center p-4 sm:p-6 border-b border-slate-100 bg-white shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="h-9 w-9 sm:h-10 sm:w-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center border border-indigo-100 shrink-0">
+              <Calculator size={18} className="sm:w-5 sm:h-5" />
             </div>
             <div>
-              <h2 className="text-xl font-black text-slate-800 tracking-tight">Buat Tagihan Rinci (Manual)</h2>
-              <p className="text-sm text-slate-500 mt-0.5">
+              <h2 className="text-base sm:text-xl font-black text-slate-800 tracking-tight leading-tight">Buat Tagihan Rinci (Manual)</h2>
+              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
                 Tambahkan biaya penunjang sewa untuk <span className="font-bold text-blue-600">{booking.userName}</span>
               </p>
             </div>
           </div>
-          <button onClick={onClose} disabled={isProcessing} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
-            <X size={20} />
+          <button onClick={onClose} disabled={isProcessing} className="p-1.5 sm:p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors shrink-0">
+            <X size={18} className="sm:w-5 sm:h-5" />
           </button>
         </div>
 
         {/* Body Form */}
-        <div className="p-6 overflow-y-auto flex-1 space-y-6 bg-slate-50/50 custom-scrollbar">
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4 sm:space-y-6 bg-slate-50/50 custom-scrollbar">
           
           {/* Info Utama */}
-          <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Item Utama (Ruangan)</h3>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 sm:mb-4">Item Utama (Ruangan)</h3>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
               <div>
-                <p className="font-bold text-slate-800 text-base">{booking.assetName}</p>
-                <p className="text-xs font-medium text-slate-500 mt-1">Sesuai kalkulasi durasi sewa sistem</p>
+                <p className="font-bold text-slate-800 text-sm sm:text-base">{booking.assetName}</p>
+                <p className="text-xs font-medium text-slate-500 mt-0.5 sm:mt-1">Sesuai kalkulasi durasi sewa sistem</p>
               </div>
-              <div className="bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 text-right">
+              <div className="bg-slate-50 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl border border-slate-100 text-left sm:text-right">
                 <span className="block text-[10px] font-bold text-slate-400 uppercase">Tarif Dasar</span>
-                <span className="font-black text-slate-800">Rp {basePrice.toLocaleString('id-ID')}</span>
+                <span className="font-black text-slate-800 text-sm sm:text-base">Rp {basePrice.toLocaleString('id-ID')}</span>
               </div>
             </div>
           </div>
 
           {/* Komponen Tambahan */}
-          <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-3 sm:space-y-4">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <div>
-                <h3 className="text-sm font-bold text-slate-800">Komponen Biaya Tambahan</h3>
-                <p className="text-xs text-slate-500 mt-0.5">Cth: Kebersihan, Sound System, Kursi, dll.</p>
+                <h3 className="text-xs sm:text-sm font-bold text-slate-800">Komponen Biaya Tambahan</h3>
+                <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">Cth: Kebersihan, Sound System, Kursi, dll.</p>
               </div>
               <button onClick={handleAddItem} type="button" className="flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 px-3 py-2 rounded-lg hover:bg-blue-100 transition-colors">
                 <Plus size={14} /> Tambah Item
@@ -165,7 +165,7 @@ export default function ModalCreateInvoiceBooking({
             </div>
 
             {additionalItems.length === 0 ? (
-              <div className="text-center p-8 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 text-slate-400 text-sm font-medium">
+              <div className="text-center p-6 sm:p-8 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 text-slate-400 text-xs sm:text-sm font-medium">
                 Tidak ada biaya tambahan.
               </div>
             ) : (
@@ -179,24 +179,24 @@ export default function ModalCreateInvoiceBooking({
                 </div>
                 
                 {additionalItems.map((item) => (
-                  <div key={item.id} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center p-4 sm:p-3 bg-white border border-slate-200 sm:border-transparent sm:bg-slate-50 sm:hover:bg-slate-100 rounded-xl transition-colors">
+                  <div key={item.id} className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 items-start sm:items-center p-3.5 sm:p-3 bg-white border border-slate-200 sm:border-transparent sm:bg-slate-50 sm:hover:bg-slate-100 rounded-xl transition-colors">
                     <div className="w-full sm:flex-1">
                       <label className="text-xs font-semibold text-slate-500 block mb-1 sm:hidden">Nama Item</label>
-                      <input type="text" placeholder="Contoh: Sewa Sound System" value={item.description} onChange={(e) => handleItemChange(item.id, 'description', e.target.value)} className="w-full text-sm h-10 border-slate-200 rounded-lg focus:ring-blue-500" />
+                      <input type="text" placeholder="Contoh: Sewa Sound System" value={item.description} onChange={(e) => handleItemChange(item.id, 'description', e.target.value)} className="w-full text-xs sm:text-sm h-9 sm:h-10 border-slate-200 rounded-lg focus:ring-blue-500" />
                     </div>
                     <div className="w-full sm:w-20">
                       <label className="text-xs font-semibold text-slate-500 block mb-1 sm:hidden">Qty</label>
-                      <input type="number" min="1" value={item.quantity || ''} onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)} className="w-full text-sm h-10 border-slate-200 rounded-lg focus:ring-blue-500 text-center" />
+                      <input type="number" min="1" value={item.quantity || ''} onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)} className="w-full text-xs sm:text-sm h-9 sm:h-10 border-slate-200 rounded-lg focus:ring-blue-500 text-center" />
                     </div>
                     <div className="w-full sm:w-40">
                       <label className="text-xs font-semibold text-slate-500 block mb-1 sm:hidden">Harga Satuan (Rp)</label>
-                      <input type="number" min="0" value={item.unitPrice || ''} onChange={(e) => handleItemChange(item.id, 'unitPrice', e.target.value)} className="w-full text-sm h-10 border-slate-200 rounded-lg focus:ring-blue-500 text-right" />
+                      <input type="number" min="0" value={item.unitPrice || ''} onChange={(e) => handleItemChange(item.id, 'unitPrice', e.target.value)} className="w-full text-xs sm:text-sm h-9 sm:h-10 border-slate-200 rounded-lg focus:ring-blue-500 text-right" />
                     </div>
-                    <div className="w-full sm:w-40 sm:text-right pt-2 sm:pt-0">
-                      <span className="text-sm font-bold text-slate-700">Rp {item.total.toLocaleString('id-ID')}</span>
+                    <div className="w-full sm:w-40 sm:text-right pt-1 sm:pt-0">
+                      <span className="text-xs sm:text-sm font-bold text-slate-700">Rp {item.total.toLocaleString('id-ID')}</span>
                     </div>
-                    <button onClick={() => handleRemoveItem(item.id)} className="w-full sm:w-auto p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-red-100 sm:border-transparent flex justify-center mt-2 sm:mt-0">
-                      <Trash2 size={16} /> <span className="sm:hidden ml-2 text-xs font-bold">Hapus</span>
+                    <button onClick={() => handleRemoveItem(item.id)} className="w-full sm:w-auto p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-red-100 sm:border-transparent flex justify-center mt-1 sm:mt-0">
+                      <Trash2 size={15} /> <span className="sm:hidden ml-1.5 text-xs font-bold">Hapus</span>
                     </button>
                   </div>
                 ))}
@@ -205,24 +205,24 @@ export default function ModalCreateInvoiceBooking({
           </div>
 
           {/* Kalkulasi Akhir (Diskon & Grand Total) */}
-          <div className="flex flex-col sm:flex-row justify-end pt-4 gap-6">
-            <div className="w-full sm:w-96 space-y-3 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-              <div className="flex justify-between text-sm font-medium text-slate-600">
+          <div className="flex flex-col sm:flex-row justify-end pt-2 sm:pt-4 gap-4 sm:gap-6">
+            <div className="w-full sm:w-96 space-y-3 bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm">
+              <div className="flex justify-between text-xs sm:text-sm font-medium text-slate-600">
                 <span>Subtotal:</span>
                 <span className="font-bold text-slate-800">Rp {subTotal.toLocaleString('id-ID')}</span>
               </div>
               
-              <div className="flex items-center justify-between gap-4 pt-3 border-t border-slate-100">
-                <span className="text-sm font-bold text-slate-700">Potongan Harga / Diskon:</span>
-                <div className="relative w-40">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">Rp</span>
-                  <input type="number" min="0" max={subTotal} value={discount || ''} onChange={(e) => setDiscount(Number(e.target.value))} className="w-full pl-8 pr-3 h-10 text-sm border-amber-200 bg-amber-50 rounded-lg focus:ring-amber-500 focus:bg-white text-right text-amber-700 font-bold" />
+              <div className="flex items-center justify-between gap-3 pt-2.5 border-t border-slate-100">
+                <span className="text-xs sm:text-sm font-bold text-slate-700">Potongan Harga / Diskon:</span>
+                <div className="relative w-36 sm:w-40">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">Rp</span>
+                  <input type="number" min="0" max={subTotal} value={discount || ''} onChange={(e) => setDiscount(Number(e.target.value))} className="w-full pl-7 sm:pl-8 pr-2.5 sm:pr-3 h-8 sm:h-10 text-xs sm:text-sm border-amber-200 bg-amber-50 rounded-lg focus:ring-amber-500 focus:bg-white text-right text-amber-700 font-bold" />
                 </div>
               </div>
 
-              <div className="flex justify-between items-end pt-4 border-t border-slate-200 mt-2">
-                <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">Grand Total</span>
-                <span className="text-2xl font-black text-blue-700 leading-none">
+              <div className="flex justify-between items-end pt-3 border-t border-slate-200 mt-1 sm:mt-2">
+                <span className="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-wider">Grand Total</span>
+                <span className="text-xl sm:text-2xl font-black text-blue-700 leading-none">
                   Rp {grandTotal.toLocaleString('id-ID')}
                 </span>
               </div>
@@ -231,12 +231,12 @@ export default function ModalCreateInvoiceBooking({
         </div>
 
         {/* Footer Actions */}
-        <div className="p-6 bg-white border-t border-slate-100 flex justify-end gap-3">
-          <button onClick={onClose} disabled={isProcessing} className="px-6 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
+        <div className="p-4 sm:p-6 bg-white border-t border-slate-100 flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 shrink-0">
+          <button onClick={onClose} disabled={isProcessing} className="w-full sm:w-auto px-5 py-2.5 text-xs sm:text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
             Batal
           </button>
-          <button onClick={handleSubmit} disabled={isProcessing} className="flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-70">
-            {isProcessing ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send size={16} />}
+          <button onClick={handleSubmit} disabled={isProcessing} className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 text-xs sm:text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-70">
+            {isProcessing ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send size={15} />}
             {isProcessing ? 'Memproses...' : 'Terbitkan Tagihan Final'}
           </button>
         </div>
