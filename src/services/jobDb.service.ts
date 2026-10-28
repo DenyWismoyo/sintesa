@@ -34,14 +34,37 @@ export interface JobSyncMetadata {
   provider: string;
 }
 
+let memoryCache: { jobs: JobListing[]; metadata?: JobSyncMetadata } | null = null;
+
 function readLocalSnapshot(): { jobs: JobListing[]; metadata?: JobSyncMetadata } | null {
+  if (memoryCache && Array.isArray(memoryCache.jobs) && memoryCache.jobs.length > 0) {
+    return memoryCache;
+  }
+  if (typeof window === 'undefined') {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const localPath = path.join(process.cwd(), 'src', 'data', 'jobs', 'syncedJobs.json');
+      if (fs.existsSync(localPath)) {
+        const parsed = JSON.parse(fs.readFileSync(localPath, 'utf8'));
+        if (parsed && Array.isArray(parsed.jobs) && parsed.jobs.length > 0) {
+          memoryCache = parsed;
+          return memoryCache;
+        }
+      }
+    } catch {
+      // Fallback diam
+    }
+  }
   if (SYNCED_SNAPSHOT && Array.isArray((SYNCED_SNAPSHOT as any).jobs)) {
-    return SYNCED_SNAPSHOT as any;
+    memoryCache = SYNCED_SNAPSHOT as any;
+    return memoryCache;
   }
   return null;
 }
 
 async function writeLocalSnapshot(jobs: JobListing[], metadata: JobSyncMetadata) {
+  memoryCache = { jobs, metadata };
   if (typeof window === 'undefined') {
     try {
       const fs = await import('fs');
@@ -113,18 +136,38 @@ export const jobDbService = {
   async getJobsFromFirestore(): Promise<JobListing[]> {
     const appId = getAppId();
 
-    // 1. Coba baca dari Firestore Master Cache (1 Read untuk ratusan loker)
+    // 1. Coba baca dari Firestore Master Cache (Mendukung Single Document & Chunked Documents)
     try {
       const cacheRef = doc(db, `artifacts/${appId}/public/data/cache_jobs`, 'master');
       const cachePromise = getDoc(cacheRef);
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Cache timeout')), 1200)
+        setTimeout(() => reject(new Error('Cache timeout')), 1800)
       );
       const cacheSnap = await Promise.race([cachePromise, timeoutPromise]);
       if (cacheSnap.exists()) {
         const cacheData = cacheSnap.data();
-        if (cacheData && Array.isArray(cacheData.data) && cacheData.data.length > 0) {
-          return cacheData.data as JobListing[];
+        if (cacheData) {
+          // Jika menggunakan chunked cache (karena >80 loker melebihi batas 1MB)
+          if (cacheData.isChunked && Array.isArray(cacheData.chunkIds) && cacheData.chunkIds.length > 0) {
+            const chunkPromises = cacheData.chunkIds.map((cid: string) =>
+              getDoc(doc(db, `artifacts/${appId}/public/data/cache_jobs`, cid))
+            );
+            const chunkSnaps = await Promise.all(chunkPromises);
+            const combined: JobListing[] = [];
+            chunkSnaps.forEach((cs) => {
+              if (cs.exists()) {
+                const cd = cs.data();
+                if (cd && Array.isArray(cd.data)) {
+                  combined.push(...cd.data);
+                }
+              }
+            });
+            if (combined.length > 0) {
+              return combined;
+            }
+          } else if (Array.isArray(cacheData.data) && cacheData.data.length > 0) {
+            return cacheData.data as JobListing[];
+          }
         }
       }
     } catch {
@@ -140,10 +183,10 @@ export const jobDbService = {
     // 3. Fallback: Query langsung dari Firestore collection 'jobs'
     try {
       const fetchPromise = getDocs(
-        query(collection(db, JOBS_COLLECTION), orderBy('postedAt', 'desc'), limit(250))
+        query(collection(db, JOBS_COLLECTION), orderBy('postedAt', 'desc'), limit(1000))
       );
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Firestore read timeout')), 1500)
+        setTimeout(() => reject(new Error('Firestore read timeout')), 2500)
       );
 
       const snap = await Promise.race([fetchPromise, timeoutPromise]);
@@ -168,19 +211,54 @@ export const jobDbService = {
 
   /**
    * Rebuild Master Cache di artifacts/{appId}/public/data/cache_jobs/master
+   * Memecah data ke beberapa chunk jika melebihi batas 1MB dokumen Firestore
    */
   async rebuildMasterCache(appId: string = getAppId(), jobsToCache?: JobListing[]): Promise<boolean> {
     try {
       const jobs = jobsToCache || (await this.getJobsFromFirestore());
       if (!jobs.length) return false;
 
-      const cacheRef = doc(db, `artifacts/${appId}/public/data/cache_jobs`, 'master');
-      await setDoc(cacheRef, {
+      const cacheColRef = collection(db, `artifacts/${appId}/public/data/cache_jobs`);
+      const masterDocRef = doc(cacheColRef, 'master');
+
+      const CHUNK_SIZE = 80;
+      if (jobs.length <= CHUNK_SIZE) {
+        await setDoc(masterDocRef, {
+          lastUpdated: Date.now(),
+          count: jobs.length,
+          isChunked: false,
+          data: jobs,
+        }, { merge: true });
+        console.log(`[jobDbService] Master Cache berhasil diperbarui di artifacts/${appId} (${jobs.length} loker)`);
+        return true;
+      }
+
+      // Chunked Cache untuk menghindari batas 1MB Firestore per dokumen
+      const totalChunks = Math.ceil(jobs.length / CHUNK_SIZE);
+      const chunkIds: string[] = [];
+
+      for (let i = 0; i < totalChunks; i++) {
+        const chunkId = `chunk_${i}`;
+        chunkIds.push(chunkId);
+        const chunkData = jobs.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+        const chunkRef = doc(cacheColRef, chunkId);
+        await setDoc(chunkRef, {
+          index: i,
+          count: chunkData.length,
+          data: chunkData,
+          lastUpdated: Date.now(),
+        }, { merge: true });
+      }
+
+      await setDoc(masterDocRef, {
         lastUpdated: Date.now(),
         count: jobs.length,
-        data: jobs,
+        isChunked: true,
+        totalChunks,
+        chunkIds,
       }, { merge: true });
-      console.log(`[jobDbService] Master Cache berhasil diperbarui di artifacts/${appId} (${jobs.length} loker)`);
+
+      console.log(`[jobDbService] Master Cache Chunked berhasil diperbarui di artifacts/${appId} (${jobs.length} loker dalam ${totalChunks} chunks)`);
       return true;
     } catch (err) {
       console.warn('[jobDbService] Gagal memperbarui Master Cache:', err);
@@ -354,26 +432,42 @@ export const jobDbService = {
       // 3. PENGGABUNGAN KUMULATIF MINGGUAN: Seluruh lowongan yang pernah tercatat sebelumnya TIDAK AKAN HILANG
       const existingJobs = await this.getJobsFromFirestore();
       const combinedMap = new Map<string, JobListing>();
+      const seenTitleCompany = new Set<string>();
 
       // Masukkan SEMUA lowongan terdahulu ke Map bank data kumulatif
       existingJobs.forEach((j) => {
-        combinedMap.set(j.id, {
-          ...j,
-          firstSeenAt: j.firstSeenAt || j.postedAt || now,
-          lastSeenAt: j.lastSeenAt || j.postedAt || now,
-          isActive: j.isActive !== false,
-        });
+        const tcKey = `${j.title.toLowerCase().trim()}|${j.company.toLowerCase().trim()}`;
+        if (!seenTitleCompany.has(tcKey)) {
+          seenTitleCompany.add(tcKey);
+          combinedMap.set(j.id, {
+            ...j,
+            firstSeenAt: j.firstSeenAt || j.postedAt || now,
+            lastSeenAt: j.lastSeenAt || j.postedAt || now,
+            isActive: j.isActive !== false,
+          });
+        }
       });
 
       // Tambahkan dan mutakhirkan lowongan baru dari sinkronisasi minggu ini
       realtimeJobs.forEach((newJob) => {
+        const tcKey = `${newJob.title.toLowerCase().trim()}|${newJob.company.toLowerCase().trim()}`;
         const prev = combinedMap.get(newJob.id);
-        combinedMap.set(newJob.id, {
-          ...newJob,
-          firstSeenAt: prev?.firstSeenAt || newJob.postedAt || now,
-          lastSeenAt: now,
-          isActive: true,
-        });
+        if (prev) {
+          combinedMap.set(newJob.id, {
+            ...newJob,
+            firstSeenAt: prev.firstSeenAt || newJob.postedAt || now,
+            lastSeenAt: now,
+            isActive: true,
+          });
+        } else if (!seenTitleCompany.has(tcKey)) {
+          seenTitleCompany.add(tcKey);
+          combinedMap.set(newJob.id, {
+            ...newJob,
+            firstSeenAt: newJob.postedAt || now,
+            lastSeenAt: now,
+            isActive: true,
+          });
+        }
       });
 
       const allJobsToSave: JobListing[] = Array.from(combinedMap.values());

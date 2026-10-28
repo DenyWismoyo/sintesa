@@ -36,6 +36,8 @@ export async function GET(request: NextRequest) {
     const locationRegion = (searchParams.get('locationRegion') as any) || 'all';
     const freshness = (searchParams.get('freshness') as any) || 'all';
     const sort = (searchParams.get('sort') as any) || 'newest';
+    const includeInactive = searchParams.get('includeInactive') === 'true';
+    const statusParam = (searchParams.get('status') as any) || undefined;
 
     // 1. Ambil data langsung dari Database (murni dari internet)
     let jobsFromDb = await jobDbService.getJobsFromFirestore();
@@ -68,6 +70,8 @@ export async function GET(request: NextRequest) {
       locationRegion,
       freshness,
       sort,
+      includeInactive,
+      status: statusParam,
     });
 
     const syncMeta = await jobDbService.getSyncMetadata();

@@ -28,6 +28,8 @@ export const jobService = {
       if (filters.locationRegion && filters.locationRegion !== 'all') params.set('locationRegion', filters.locationRegion);
       if (filters.freshness && filters.freshness !== 'all') params.set('freshness', filters.freshness);
       if (filters.sort) params.set('sort', filters.sort);
+      if (filters.includeInactive) params.set('includeInactive', 'true');
+      if (filters.status && filters.status !== 'all') params.set('status', filters.status);
 
       try {
         const res = await fetch(`/api/jobs?${params.toString()}`);
@@ -104,7 +106,19 @@ export function filterAndSortJobs(
   total: number;
   categories: { name: string; count: number }[];
 } {
-  let result = [...allJobs].filter((job) => job.isActive);
+  let result = [...allJobs];
+
+  // Filter Status Aktif
+  if (filters.status && filters.status !== 'ALL' && filters.status !== 'all') {
+    if (filters.status === 'ACTIVE' || filters.status === 'active') {
+      result = result.filter((job) => job.isActive);
+    } else if (filters.status === 'INACTIVE' || filters.status === 'inactive') {
+      result = result.filter((job) => !job.isActive);
+    }
+  } else if (!filters.includeInactive) {
+    // Default untuk publik: hanya tampilkan lowongan yang aktif
+    result = result.filter((job) => job.isActive !== false);
+  }
 
   // Filter Query Search (Title, Company, Description, Skills, Relevant Programs)
   if (filters.query && filters.query.trim()) {

@@ -54,9 +54,9 @@ export default function AdminManajemenKarirPage() {
   const [selectedJobToEdit, setSelectedJobToEdit] = useState<JobListing | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // Ambil data lowongan dari useJobs
+  // Ambil seluruh bank data lowongan (termasuk yang non-aktif) untuk panel admin
   const { data, isLoading, refetch } = useJobs({
-    // Tanpa filter limit agar admin melihat seluruh bank data lowongan
+    includeInactive: true,
   });
   const jobs = data?.jobs || [];
   const total = data?.total || 0;

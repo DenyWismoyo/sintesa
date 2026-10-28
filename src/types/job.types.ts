@@ -112,6 +112,8 @@ export interface JobFilterParams {
   freshness?: 'all' | 'week' | 'month';
   page?: number;
   limit?: number;
+  status?: 'all' | 'active' | 'inactive';
+  includeInactive?: boolean;
 }
 
 export const JobAiMatchRequestSchema = z.object({
