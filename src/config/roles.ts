@@ -54,7 +54,7 @@ export const ROLE_LABELS: Record<string, string> = {
 // 1. DAFTAR AKSES HALAMAN UMUM (ROUTE LEVEL)
 export const ROLE_ACCESS_MAP: Record<string, string[]> = {
   [APP_ROLES.SUPER_ADMIN]: ['*'], 
-  [APP_ROLES.ADMIN]: ['/dashboard', '/aset', '/booking', '/billing', '/katalog', '/afiliasi', '/tenant', '/manajemen-event', '/manajemen-krenova', '/pelatihan', '/lms', '/manajemen-faq', '/manajemen-artikel', '/karir'],
+  [APP_ROLES.ADMIN]: ['/dashboard', '/aset', '/booking', '/billing', '/katalog', '/afiliasi', '/tenant', '/manajemen-event', '/manajemen-krenova', '/pelatihan', '/lms', '/manajemen-faq', '/manajemen-artikel', '/karir', '/manajemen-karir'],
   [APP_ROLES.ADMIN_KEUANGAN]: ['/dashboard', '/billing', '/katalog', '/afiliasi', '/manajemen-faq', '/karir'], 
   [APP_ROLES.KASIR]: ['/dashboard', '/billing', '/karir'],
   [APP_ROLES.KASIR_PENGELUARAN]: ['/dashboard', '/billing', '/karir'],
@@ -63,8 +63,8 @@ export const ROLE_ACCESS_MAP: Record<string, string[]> = {
   [APP_ROLES.PEGAWAI]: ['/presensi', '/karir'],
   [APP_ROLES.ADMIN_TENANT]: ['/dashboard', '/tenant', '/manajemen-event', '/manajemen-krenova', '/manajemen-faq', '/manajemen-artikel', '/karir'],
   [APP_ROLES.OPERATOR_TENANT]: ['/dashboard', '/tenant', '/manajemen-event', '/karir'],
-  [APP_ROLES.ADMIN_PELATIHAN]: ['/dashboard', '/pelatihan', '/lms', '/manajemen-faq', '/manajemen-artikel', '/karir'],
-  [APP_ROLES.OPERATOR_PELATIHAN]: ['/dashboard', '/pelatihan', '/lms', '/karir'],
+  [APP_ROLES.ADMIN_PELATIHAN]: ['/dashboard', '/pelatihan', '/lms', '/manajemen-faq', '/manajemen-artikel', '/karir', '/manajemen-karir'],
+  [APP_ROLES.OPERATOR_PELATIHAN]: ['/dashboard', '/pelatihan', '/lms', '/karir', '/manajemen-karir'],
   [APP_ROLES.ALUMNI]: ['/lms', '/alumni-portal', '/karir'],
   [APP_ROLES.TENANT]: ['/tenant', '/lms', '/ekosistem'], // Tenant diberi akses ke ekosistem (hub)
   [APP_ROLES.INVESTOR]: ['/ekosistem', '/portfolio'],

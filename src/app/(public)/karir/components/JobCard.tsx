@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   Building2,
@@ -10,14 +11,11 @@ import {
   ShieldCheck,
   GraduationCap,
   ArrowUpRight,
-  Bookmark,
-  Share2,
 } from 'lucide-react';
 import { JobListing } from '@/types/job.types';
 import { formatSalary } from '@/utils/format';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
 import JobShareMenu from './JobShareMenu';
 
 interface JobCardProps {
@@ -43,30 +41,30 @@ export default function JobCard({
       )
     : false;
 
-  const handleNavigateDetail = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('sintesa_karir_last_viewed_id', job.id);
+    }
     if (onSelect) {
+      // Jika pengguna menekan Ctrl / Cmd / Klik tengah, biarkan browser membuka tab baru secara native
+      if (e.ctrlKey || e.metaKey || e.button === 1) {
+        return;
+      }
+      e.preventDefault();
       onSelect(job);
-    } else {
-      router.push(`/karir/${job.id}`);
     }
   };
 
   const handleNavigateAiMatch = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('sintesa_karir_last_viewed_id', job.id);
+    }
     if (onOpenAiMatch) {
       onOpenAiMatch(job);
     } else {
       router.push(`/karir/${job.id}#ai-match`);
-    }
-  };
-
-  const handleShare = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      const url = `${window.location.origin}/karir/${job.id}`;
-      navigator.clipboard.writeText(url);
-      toast.success('Tautan lowongan berhasil disalin!');
     }
   };
 
@@ -123,9 +121,11 @@ export default function JobCard({
   }, [job.salary]);
 
   return (
-    <div
-      onClick={handleNavigateDetail}
-      className={`public-card public-card-hover group flex flex-col justify-between overflow-hidden relative cursor-pointer border transition-all duration-300 ${
+    <Link
+      id={`job-card-${job.id}`}
+      href={`/karir/${job.id}`}
+      onClick={handleCardClick}
+      className={`public-card public-card-hover group flex flex-col justify-between overflow-hidden relative cursor-pointer border transition-all duration-300 no-underline text-inherit block ${
         isMatchingProgram
           ? 'border-emerald-500/80 ring-2 ring-emerald-500/20 bg-gradient-to-b from-emerald-50/20 via-white to-white'
           : 'border-slate-200/80 hover:border-emerald-300'
@@ -145,7 +145,13 @@ export default function JobCard({
             </Badge>
           </div>
 
-          <div className="flex items-center gap-1 shrink-0">
+          <div
+            className="flex items-center gap-1 shrink-0"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+          >
             <JobShareMenu job={job} variant="compact-icon" />
           </div>
         </div>
@@ -246,17 +252,12 @@ export default function JobCard({
             <span>AI Matcher</span>
           </Button>
 
-          <Button
-            type="button"
-            size="sm"
-            onClick={handleNavigateDetail}
-            className="h-8 text-xs font-bold gap-1 rounded-xl shadow-xs bg-emerald-600 hover:bg-emerald-700 text-white"
-          >
+          <div className="h-8 text-xs font-bold gap-1 rounded-xl shadow-xs bg-emerald-600 group-hover:bg-emerald-700 text-white flex items-center justify-center transition-colors px-3">
             <span>Detail & Lamar</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
-          </Button>
+            <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+          </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

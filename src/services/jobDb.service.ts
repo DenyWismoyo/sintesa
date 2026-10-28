@@ -450,4 +450,107 @@ export const jobDbService = {
       };
     }
   },
+
+  /**
+   * Menambahkan lowongan baru secara manual (oleh Mitra STP / Admin)
+   */
+  async createJob(data: Partial<JobListing>): Promise<JobListing> {
+    const now = Date.now();
+    const id = data.id || `stp-manual-${now}-${Math.random().toString(36).substring(2, 7)}`;
+    const newJob: JobListing = {
+      id,
+      title: data.title || 'Lowongan Baru',
+      company: data.company || 'Mitra Solo Technopark',
+      companyLogo: data.companyLogo,
+      companyWebsite: data.companyWebsite,
+      companyType: data.companyType || 'Mitra Industri STP',
+      category: data.category || 'IT & Rekayasa Perangkat Lunak',
+      location: data.location || 'Surakarta, Jawa Tengah',
+      city: data.city || 'Surakarta',
+      workType: data.workType || 'Full-time',
+      workSetup: data.workSetup || 'On-site (Solo Technopark)',
+      experienceLevel: data.experienceLevel || 'Fresh Graduate / Alumni Pelatihan',
+      salary: data.salary || {
+        currency: 'IDR',
+        period: 'Bulan',
+        isNegotiable: true,
+        isDisclosed: true,
+      },
+      description: data.description || '',
+      responsibilities: data.responsibilities || [],
+      requirements: data.requirements || [],
+      benefits: data.benefits || [],
+      skills: data.skills || [],
+      relevantTrainingPrograms: data.relevantTrainingPrograms || [],
+      applicationUrl: data.applicationUrl,
+      applicationEmail: data.applicationEmail,
+      applySource: data.applySource || 'Official Web',
+      source: 'stp_partner',
+      isStpPartner: data.isStpPartner !== undefined ? data.isStpPartner : true,
+      isFeatured: Boolean(data.isFeatured),
+      postedAt: now,
+      firstSeenAt: now,
+      lastSeenAt: now,
+      viewsCount: 0,
+      applicantCount: 0,
+      isActive: data.isActive !== undefined ? data.isActive : true,
+    };
+
+    const existingJobs = await this.getJobsFromFirestore();
+    const updatedJobs = [newJob, ...existingJobs.filter((j) => j.id !== id)];
+
+    const meta = await this.getSyncMetadata();
+    writeLocalSnapshot(updatedJobs, { ...meta, totalJobsInDb: updatedJobs.length });
+    await this.saveJobsToFirestore([newJob]).catch(() => {});
+    await this.rebuildMasterCache(getAppId(), updatedJobs).catch(() => {});
+
+    return newJob;
+  },
+
+  /**
+   * Memperbarui data lowongan
+   */
+  async updateJob(id: string, updates: Partial<JobListing>): Promise<boolean> {
+    const existingJobs = await this.getJobsFromFirestore();
+    const index = existingJobs.findIndex((j) => j.id === id);
+    if (index === -1) return false;
+
+    const updatedJob: JobListing = {
+      ...existingJobs[index],
+      ...updates,
+      lastSeenAt: Date.now(),
+    };
+
+    existingJobs[index] = updatedJob;
+
+    const meta = await this.getSyncMetadata();
+    writeLocalSnapshot(existingJobs, meta);
+    await this.saveJobsToFirestore([updatedJob]).catch(() => {});
+    await this.rebuildMasterCache(getAppId(), existingJobs).catch(() => {});
+
+    return true;
+  },
+
+  /**
+   * Menghapus lowongan dari database
+   */
+  async deleteJob(id: string): Promise<boolean> {
+    const existingJobs = await this.getJobsFromFirestore();
+    const filtered = existingJobs.filter((j) => j.id !== id);
+    if (filtered.length === existingJobs.length) return false;
+
+    const meta = await this.getSyncMetadata();
+    writeLocalSnapshot(filtered, { ...meta, totalJobsInDb: filtered.length });
+    await this.rebuildMasterCache(getAppId(), filtered).catch(() => {});
+
+    // Hapus dari Firestore jika online
+    try {
+      const { deleteDoc } = await import('firebase/firestore');
+      await deleteDoc(doc(db, JOBS_COLLECTION, id));
+    } catch {
+      // Abaikan jika offline
+    }
+
+    return true;
+  },
 };

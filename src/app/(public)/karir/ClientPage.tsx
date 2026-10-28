@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import {
   Briefcase,
   Sparkles,
@@ -40,27 +40,34 @@ const CATEGORY_TABS: PillTabItem[] = [
 
 export default function KarirClientPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const { role, loading: authLoading } = useAuth();
   const hasCareerAccess = canAccessCareer(role);
   const jobsSectionRef = useRef<HTMLDivElement>(null);
 
-  // Search & Filter States
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
-  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('kategori') || 'all');
-  const [workType, setWorkType] = useState('all');
-  const [workSetup, setWorkSetup] = useState('all');
-  const [experienceLevel, setExperienceLevel] = useState('all');
-  const [trainingProgram, setTrainingProgram] = useState(searchParams.get('program') || '');
-  const [isStpPartnerOnly, setIsStpPartnerOnly] = useState(false);
-  const [sourceFilter, setSourceFilter] = useState('all');
-  const [locationRegion, setLocationRegion] = useState('all');
-  const [freshness, setFreshness] = useState('all');
-  const [sort, setSort] = useState('newest');
+  // 1. Inisialisasi State Membaca Penuh Dari URL Search Parameters
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') || '');
+  const [selectedCategory, setSelectedCategory] = useState(() => searchParams.get('kategori') || 'all');
+  const [workType, setWorkType] = useState(() => searchParams.get('tipe') || 'all');
+  const [workSetup, setWorkSetup] = useState(() => searchParams.get('setup') || 'all');
+  const [experienceLevel, setExperienceLevel] = useState(() => searchParams.get('exp') || 'all');
+  const [trainingProgram, setTrainingProgram] = useState(() => searchParams.get('program') || '');
+  const [isStpPartnerOnly, setIsStpPartnerOnly] = useState(() => searchParams.get('partner') === 'true');
+  const [sourceFilter, setSourceFilter] = useState(() => searchParams.get('source') || 'all');
+  const [locationRegion, setLocationRegion] = useState(() => searchParams.get('wilayah') || 'all');
+  const [freshness, setFreshness] = useState(() => searchParams.get('periode') || 'all');
+  const [sort, setSort] = useState(() => searchParams.get('sort') || 'newest');
 
   // Pagination States
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(9);
+  const [currentPage, setCurrentPage] = useState(() => {
+    const p = parseInt(searchParams.get('p') || '1', 10);
+    return isNaN(p) || p < 1 ? 1 : p;
+  });
+  const [pageSize, setPageSize] = useState(() => {
+    const l = parseInt(searchParams.get('limit') || '9', 10);
+    return [9, 18, 27].includes(l) ? l : 9;
+  });
 
   // Query Filter Object
   const filterParams = useMemo(() => {
@@ -91,10 +98,93 @@ export default function KarirClientPage() {
     sort,
   ]);
 
-  // Reset page ke 1 setiap kali filter berubah
+  // 2. Reset Page ke 1 HANYA saat filter berubah (bukan saat first mount atau saat berpindah halaman)
+  const isFirstMountRef = useRef(true);
+  const prevFilterFingerprintRef = useRef<string>('');
+
   useEffect(() => {
-    setCurrentPage(1);
+    const currentFingerprint = JSON.stringify(filterParams) + pageSize;
+    if (isFirstMountRef.current) {
+      isFirstMountRef.current = false;
+      prevFilterFingerprintRef.current = currentFingerprint;
+      return;
+    }
+    if (prevFilterFingerprintRef.current !== currentFingerprint) {
+      prevFilterFingerprintRef.current = currentFingerprint;
+      setCurrentPage(1);
+    }
   }, [filterParams, pageSize]);
+
+  // 3. Sinkronisasi State Filter ke URL Browser (Shallow replace tanpa reload) & SessionStorage
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const params = new URLSearchParams();
+      if (searchQuery.trim()) params.set('q', searchQuery.trim());
+      if (selectedCategory && selectedCategory !== 'all') params.set('kategori', selectedCategory);
+      if (workType && workType !== 'all') params.set('tipe', workType);
+      if (workSetup && workSetup !== 'all') params.set('setup', workSetup);
+      if (experienceLevel && experienceLevel !== 'all') params.set('exp', experienceLevel);
+      if (trainingProgram.trim()) params.set('program', trainingProgram.trim());
+      if (isStpPartnerOnly) params.set('partner', 'true');
+      if (sourceFilter && sourceFilter !== 'all') params.set('source', sourceFilter);
+      if (locationRegion && locationRegion !== 'all') params.set('wilayah', locationRegion);
+      if (freshness && freshness !== 'all') params.set('periode', freshness);
+      if (sort && sort !== 'newest') params.set('sort', sort);
+      if (currentPage > 1) params.set('p', String(currentPage));
+      if (pageSize !== 9) params.set('limit', String(pageSize));
+
+      const qs = params.toString();
+      const newUrl = qs ? `${pathname}?${qs}` : pathname;
+
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('sintesa_karir_last_url', newUrl);
+        window.history.replaceState(null, '', newUrl);
+      }
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [
+    searchQuery,
+    selectedCategory,
+    workType,
+    workSetup,
+    experienceLevel,
+    trainingProgram,
+    isStpPartnerOnly,
+    sourceFilter,
+    locationRegion,
+    freshness,
+    sort,
+    currentPage,
+    pageSize,
+    pathname,
+  ]);
+
+  // 4. Listener Popstate (Ketika pengguna menekan tombol Back/Forward di browser)
+  useEffect(() => {
+    const handlePopState = () => {
+      if (typeof window === 'undefined') return;
+      const sp = new URLSearchParams(window.location.search);
+      setSearchQuery(sp.get('q') || '');
+      setSelectedCategory(sp.get('kategori') || 'all');
+      setWorkType(sp.get('tipe') || 'all');
+      setWorkSetup(sp.get('setup') || 'all');
+      setExperienceLevel(sp.get('exp') || 'all');
+      setTrainingProgram(sp.get('program') || '');
+      setIsStpPartnerOnly(sp.get('partner') === 'true');
+      setSourceFilter(sp.get('source') || 'all');
+      setLocationRegion(sp.get('wilayah') || 'all');
+      setFreshness(sp.get('periode') || 'all');
+      setSort(sp.get('sort') || 'newest');
+      const p = parseInt(sp.get('p') || '1', 10);
+      setCurrentPage(isNaN(p) || p < 1 ? 1 : p);
+      const l = parseInt(sp.get('limit') || '9', 10);
+      setPageSize([9, 18, 27].includes(l) ? l : 9);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const { data, isLoading } = useJobs(filterParams, { enabled: hasCareerAccess });
   const jobs = data?.jobs || [];
@@ -143,12 +233,41 @@ export default function KarirClientPage() {
     return Array.from(new Set(range));
   }, [currentPage, totalPages]);
 
-  // Direct Routing ke Client Page Detail
+  // 5. Scroll Restoration & Visual Focus ke kartu lowongan terakhir yang dibuka
+  const hasRestoredScrollRef = useRef(false);
+  useEffect(() => {
+    if (isLoading || jobs.length === 0 || hasRestoredScrollRef.current) return;
+    if (typeof window === 'undefined') return;
+
+    const lastJobId = sessionStorage.getItem('sintesa_karir_last_viewed_id');
+    if (lastJobId) {
+      const targetElement = document.getElementById(`job-card-${lastJobId}`);
+      if (targetElement) {
+        hasRestoredScrollRef.current = true;
+        setTimeout(() => {
+          targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          targetElement.classList.add('ring-4', 'ring-emerald-500', 'ring-offset-2', 'shadow-lg');
+          setTimeout(() => {
+            targetElement.classList.remove('ring-4', 'ring-emerald-500', 'ring-offset-2', 'shadow-lg');
+            sessionStorage.removeItem('sintesa_karir_last_viewed_id');
+          }, 2000);
+        }, 150);
+      }
+    }
+  }, [isLoading, jobs]);
+
+  // Direct Routing ke Client Page Detail dengan menyimpan ID lowongan
   const handleOpenDetail = (job: JobListing) => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('sintesa_karir_last_viewed_id', job.id);
+    }
     router.push(`/karir/${job.id}`);
   };
 
   const handleOpenAiMatch = (job: JobListing) => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('sintesa_karir_last_viewed_id', job.id);
+    }
     router.push(`/karir/${job.id}#ai-match`);
   };
 
@@ -173,6 +292,10 @@ export default function KarirClientPage() {
     setFreshness('all');
     setSort('newest');
     setCurrentPage(1);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('sintesa_karir_last_url', '/karir');
+      window.history.replaceState(null, '', '/karir');
+    }
   };
 
   // Gerbang Eksklusif: Hanya Alumni & Seluruh Admin yang bisa mengakses
@@ -279,6 +402,8 @@ export default function KarirClientPage() {
           totalFound={total}
           isLoading={isLoading}
           onReset={handleResetFilters}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
         />
 
         {/* ─── Anchor Target Scroll Pagination ─── */}

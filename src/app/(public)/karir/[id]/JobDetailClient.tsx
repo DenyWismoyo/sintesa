@@ -79,6 +79,34 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
   const [alumniExperience, setAlumniExperience] = useState('');
   const [aiMatchResult, setAiMatchResult] = useState<JobAiMatchResponse | null>(null);
 
+  // URL query parameter daftar lowongan terakhir yang disimpan pengguna
+  const [careerListUrl, setCareerListUrl] = useState('/karir');
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedUrl = sessionStorage.getItem('sintesa_karir_last_url');
+      if (savedUrl) {
+        setCareerListUrl(savedUrl);
+      }
+    }
+  }, []);
+
+  const handleBackToCareerList = () => {
+    if (typeof window !== 'undefined') {
+      // Jika pengguna menavigasi dari halaman list dalam sesi browsing aktif
+      if (window.history.length > 2) {
+        router.back();
+        return;
+      }
+      const savedUrl = sessionStorage.getItem('sintesa_karir_last_url');
+      if (savedUrl) {
+        router.push(savedUrl);
+        return;
+      }
+    }
+    router.push('/karir');
+  };
+
   const matchMutation = useJobAiMatchMutation();
 
   // Lowongan terkait (kategori yang sama)
@@ -197,7 +225,7 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
             Lowongan pekerjaan yang Anda cari mungkin sudah ditutup, kedaluwarsa, atau tautan yang Anda buka tidak valid.
           </p>
           <Button
-            onClick={() => router.push('/karir')}
+            onClick={handleBackToCareerList}
             className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -258,7 +286,7 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
             Beranda
           </Link>
           <span>/</span>
-          <Link href="/karir" className="hover:text-emerald-600 transition-colors">
+          <Link href={careerListUrl} className="hover:text-emerald-600 transition-colors">
             Bursa Karir
           </Link>
           <span>/</span>
@@ -270,7 +298,7 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => router.push('/karir')}
+          onClick={handleBackToCareerList}
           className="h-8.5 text-xs font-bold text-slate-700 hover:text-emerald-700 hover:bg-emerald-50/50 rounded-xl border-slate-200 gap-1.5"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
