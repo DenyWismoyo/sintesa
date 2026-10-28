@@ -379,8 +379,8 @@ service cloud.firestore {
       match /invoices/{invoiceId} {
         // Terbuka untuk dibaca agar verifikasi nomor tagihan dan portal bukti bayar publik berfungsi
         allow read: if true;
-        // Pembuatan dan perubahan tagihan oleh manajemen keuangan, kasir, dan seluruh admin sektoral (aset, tenant, pelatihan)
-        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan', 'kasir', 'admin_aset', 'admin_tenant', 'admin_pelatihan']);
+        // Pembuatan dan perubahan tagihan oleh manajemen keuangan, kasir, dan seluruh admin sektoral (aset, tenant, pelatihan, produksi)
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan', 'kasir', 'admin_aset', 'admin_tenant', 'admin_pelatihan', 'admin_produksi']);
       }
 
       // Pengeluaran / Expenses
@@ -390,13 +390,23 @@ service cloud.firestore {
 
       // Akuntansi & Buku Besar (Bagan Akun, Jurnal, Anggaran)
       match /accounts/{accountId} {
-        allow read, write: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan', 'admin_aset', 'admin_tenant', 'admin_pelatihan']);
+        allow read, write: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan', 'admin_aset', 'admin_tenant', 'admin_pelatihan', 'admin_produksi']);
       }
       match /journals/{journalId} {
-        allow read, write: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan', 'admin_aset', 'admin_tenant', 'admin_pelatihan']);
+        allow read, write: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan', 'admin_aset', 'admin_tenant', 'admin_pelatihan', 'admin_produksi']);
       }
       match /budgets/{budgetId} {
         allow read, write: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan']);
+      }
+
+      // Layanan Jasa Produksi & Manufaktur STP (Work Order & SPK)
+      match /production_orders/{orderId} {
+        allow read: if isAuth() && (
+          hasAnyRole(['admin', 'super_admin', 'admin_produksi', 'operator_produksi', 'admin_keuangan', 'kasir']) ||
+          resource.data.clientEmail == request.auth.token.email ||
+          resource.data.userId == request.auth.uid
+        );
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_produksi', 'operator_produksi']);
       }
 
       // Pesanan E-Katalog

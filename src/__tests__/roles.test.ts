@@ -41,12 +41,27 @@ describe('Role-Based Access Control (RBAC) System', () => {
       expect(hasAccess(APP_ROLES.ADMIN_ASET, '/billing')).toBe(false);
     });
 
+    it('should grant admin_produksi access to production orders and billing', () => {
+      expect(hasAccess(APP_ROLES.ADMIN_PRODUKSI, '/dashboard')).toBe(true);
+      expect(hasAccess(APP_ROLES.ADMIN_PRODUKSI, '/jasa-produksi')).toBe(true);
+      expect(hasAccess(APP_ROLES.ADMIN_PRODUKSI, '/billing')).toBe(true);
+      expect(hasAccess(APP_ROLES.ADMIN_PRODUKSI, '/tenant')).toBe(false);
+      expect(hasAccess(APP_ROLES.ADMIN_PRODUKSI, '/aset')).toBe(false);
+
+      expect(canPerformAction(APP_ROLES.ADMIN_PRODUKSI, PERMISSIONS.MANAGE_PRODUCTION)).toBe(true);
+      expect(canPerformAction(APP_ROLES.ADMIN_PRODUKSI, PERMISSIONS.CREATE_PRODUCTION_ORDER)).toBe(true);
+      expect(canPerformAction(APP_ROLES.ADMIN_PRODUKSI, PERMISSIONS.GENERATE_DELIVERY_ORDER)).toBe(true);
+      expect(canPerformAction(APP_ROLES.ADMIN_PRODUKSI, PERMISSIONS.CREATE_INVOICE)).toBe(true);
+    });
+
     it('should accurately identify internal staff roles', () => {
       expect(isInternalStaff(APP_ROLES.SUPER_ADMIN)).toBe(true);
       expect(isInternalStaff(APP_ROLES.ADMIN)).toBe(true);
       expect(isInternalStaff(APP_ROLES.ADMIN_KEUANGAN)).toBe(true);
       expect(isInternalStaff(APP_ROLES.KASIR)).toBe(true);
       expect(isInternalStaff(APP_ROLES.ADMIN_ASET)).toBe(true);
+      expect(isInternalStaff(APP_ROLES.ADMIN_PRODUKSI)).toBe(true);
+      expect(isInternalStaff(APP_ROLES.OPERATOR_PRODUKSI)).toBe(true);
       expect(isInternalStaff(APP_ROLES.PEGAWAI)).toBe(true);
       expect(isInternalStaff(APP_ROLES.PUBLIC)).toBe(false);
       expect(isInternalStaff(APP_ROLES.TENANT)).toBe(false);

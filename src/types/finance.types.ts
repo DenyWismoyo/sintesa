@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const InvoiceItemSchema = z.object({
   id: z.string(),
   referenceId: z.string().optional(), 
-  referenceType: z.enum(['CATALOG', 'TARIFF_DAY', 'TARIFF_MONTH', 'CUSTOM', 'BOOKING', 'TRAINING']).default('CUSTOM'),
+  referenceType: z.enum(['CATALOG', 'TARIFF_DAY', 'TARIFF_MONTH', 'CUSTOM', 'BOOKING', 'TRAINING', 'PRODUCTION']).default('CUSTOM'),
   description: z.string(),
   subDescription: z.string().optional(),
   unit: z.string().optional(),

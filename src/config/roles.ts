@@ -16,6 +16,10 @@ export const APP_ROLES = {
   
   ADMIN_PELATIHAN: 'admin_pelatihan',
   OPERATOR_PELATIHAN: 'operator_pelatihan',
+
+  // --- ROLE BARU JASA PRODUKSI & MANUFAKTUR STP ---
+  ADMIN_PRODUKSI: 'admin_produksi',
+  OPERATOR_PRODUKSI: 'operator_produksi',
   
   PUBLIC: 'public',
   TENANT: 'tenant',
@@ -42,6 +46,8 @@ export const ROLE_LABELS: Record<string, string> = {
   [APP_ROLES.OPERATOR_TENANT]: 'Operator Tenant',
   [APP_ROLES.ADMIN_PELATIHAN]: 'Admin Pelatihan (LMS)',
   [APP_ROLES.OPERATOR_PELATIHAN]: 'Operator Pelatihan',
+  [APP_ROLES.ADMIN_PRODUKSI]: 'Admin Layanan Jasa Produksi',
+  [APP_ROLES.OPERATOR_PRODUKSI]: 'Operator Bengkel & Produksi',
   [APP_ROLES.PEGAWAI]: 'Pegawai Solo Technopark',
   [APP_ROLES.PUBLIC]: 'Pengguna Umum / Instruktur',
   [APP_ROLES.TENANT]: 'Akun Tenant',
@@ -54,12 +60,14 @@ export const ROLE_LABELS: Record<string, string> = {
 // 1. DAFTAR AKSES HALAMAN UMUM (ROUTE LEVEL)
 export const ROLE_ACCESS_MAP: Record<string, string[]> = {
   [APP_ROLES.SUPER_ADMIN]: ['*'], 
-  [APP_ROLES.ADMIN]: ['/dashboard', '/aset', '/booking', '/billing', '/katalog', '/afiliasi', '/tenant', '/manajemen-event', '/manajemen-krenova', '/pelatihan', '/lms', '/manajemen-faq', '/manajemen-artikel', '/karir', '/manajemen-karir'],
+  [APP_ROLES.ADMIN]: ['/dashboard', '/aset', '/booking', '/jasa-produksi', '/billing', '/katalog', '/afiliasi', '/tenant', '/manajemen-event', '/manajemen-krenova', '/pelatihan', '/lms', '/manajemen-faq', '/manajemen-artikel', '/karir', '/manajemen-karir'],
   [APP_ROLES.ADMIN_KEUANGAN]: ['/dashboard', '/billing', '/katalog', '/afiliasi', '/manajemen-faq', '/karir'], 
   [APP_ROLES.KASIR]: ['/dashboard', '/billing', '/karir'],
   [APP_ROLES.KASIR_PENGELUARAN]: ['/dashboard', '/billing', '/karir'],
   [APP_ROLES.ADMIN_ASET]: ['/dashboard', '/aset', '/booking', '/manajemen-faq', '/karir'],
   [APP_ROLES.OPERATOR_ASET]: ['/dashboard', '/aset', '/booking', '/karir'],
+  [APP_ROLES.ADMIN_PRODUKSI]: ['/dashboard', '/jasa-produksi', '/billing', '/karir'],
+  [APP_ROLES.OPERATOR_PRODUKSI]: ['/dashboard', '/jasa-produksi', '/karir'],
   [APP_ROLES.PEGAWAI]: ['/presensi', '/karir'],
   [APP_ROLES.ADMIN_TENANT]: ['/dashboard', '/tenant', '/manajemen-event', '/manajemen-krenova', '/manajemen-faq', '/manajemen-artikel', '/karir'],
   [APP_ROLES.OPERATOR_TENANT]: ['/dashboard', '/tenant', '/manajemen-event', '/karir'],
@@ -78,6 +86,12 @@ export const PERMISSIONS = {
   VIEW_BILLING: 'view_billing', CREATE_INVOICE: 'create_invoice', DELETE_INVOICE: 'delete_invoice', CREATE_EXPENSE: 'create_expense', APPROVE_EXPENSE: 'approve_expense', MANAGE_CATALOG: 'manage_catalog', VIEW_FINANCE_REPORTS: 'view_finance_reports', MANAGE_CASH_TRANSFER: 'manage_cash_transfer', 
   VIEW_TENANT: 'view_tenant', MANAGE_TENANT: 'manage_tenant', APPROVE_TENANT: 'approve_tenant', VIEW_EVENT: 'view_event', MANAGE_EVENT: 'manage_event',
   
+  // PERMISSIONS JASA PRODUKSI & MANUFAKTUR STP
+  MANAGE_PRODUCTION: 'manage_production',
+  CREATE_PRODUCTION_ORDER: 'create_production_order',
+  APPROVE_PRODUCTION: 'approve_production',
+  GENERATE_DELIVERY_ORDER: 'generate_delivery_order',
+
   MANAGE_LMS: 'manage_lms',       
   MANAGE_ALUMNI: 'manage_alumni', 
   MANAGE_TALENT: 'manage_talent', 
@@ -101,12 +115,26 @@ const ACTION_PERMISSIONS: Record<string, Permission[]> = {
     PERMISSIONS.VIEW_ASSET, PERMISSIONS.CREATE_ASSET, PERMISSIONS.EDIT_ASSET, PERMISSIONS.DELETE_ASSET, PERMISSIONS.MANAGE_BOOKING, PERMISSIONS.APPROVE_BOOKING, 
     PERMISSIONS.VIEW_BILLING, PERMISSIONS.CREATE_INVOICE, PERMISSIONS.DELETE_INVOICE, PERMISSIONS.CREATE_EXPENSE, PERMISSIONS.APPROVE_EXPENSE, PERMISSIONS.MANAGE_CATALOG, PERMISSIONS.VIEW_FINANCE_REPORTS, PERMISSIONS.MANAGE_CASH_TRANSFER, 
     PERMISSIONS.VIEW_TENANT, PERMISSIONS.MANAGE_TENANT, PERMISSIONS.APPROVE_TENANT, PERMISSIONS.VIEW_EVENT, PERMISSIONS.MANAGE_EVENT, 
+    PERMISSIONS.MANAGE_PRODUCTION, PERMISSIONS.CREATE_PRODUCTION_ORDER, PERMISSIONS.APPROVE_PRODUCTION, PERMISSIONS.GENERATE_DELIVERY_ORDER,
     PERMISSIONS.MANAGE_LMS, PERMISSIONS.MANAGE_ALUMNI, PERMISSIONS.MANAGE_TALENT, PERMISSIONS.MANAGE_KRENOVA,
     PERMISSIONS.ACCESS_CAREER, PERMISSIONS.MANAGE_CAREER,
     PERMISSIONS.MANAGE_FAQ, PERMISSIONS.MANAGE_ARTICLE, PERMISSIONS.MANAGE_AFFILIATE
   ],
   [APP_ROLES.ADMIN_ASET]: [PERMISSIONS.VIEW_ASSET, PERMISSIONS.CREATE_ASSET, PERMISSIONS.EDIT_ASSET, PERMISSIONS.DELETE_ASSET, PERMISSIONS.MANAGE_BOOKING, PERMISSIONS.APPROVE_BOOKING, PERMISSIONS.ACCESS_CAREER, PERMISSIONS.MANAGE_FAQ],
   [APP_ROLES.OPERATOR_ASET]: [PERMISSIONS.VIEW_ASSET, PERMISSIONS.CREATE_ASSET, PERMISSIONS.EDIT_ASSET, PERMISSIONS.MANAGE_BOOKING, PERMISSIONS.ACCESS_CAREER],
+  [APP_ROLES.ADMIN_PRODUKSI]: [
+    PERMISSIONS.MANAGE_PRODUCTION, 
+    PERMISSIONS.CREATE_PRODUCTION_ORDER, 
+    PERMISSIONS.APPROVE_PRODUCTION, 
+    PERMISSIONS.GENERATE_DELIVERY_ORDER, 
+    PERMISSIONS.VIEW_BILLING, 
+    PERMISSIONS.CREATE_INVOICE, 
+    PERMISSIONS.ACCESS_CAREER
+  ],
+  [APP_ROLES.OPERATOR_PRODUKSI]: [
+    PERMISSIONS.MANAGE_PRODUCTION, 
+    PERMISSIONS.ACCESS_CAREER
+  ],
   [APP_ROLES.ADMIN_KEUANGAN]: [PERMISSIONS.VIEW_BILLING, PERMISSIONS.CREATE_INVOICE, PERMISSIONS.DELETE_INVOICE, PERMISSIONS.CREATE_EXPENSE, PERMISSIONS.APPROVE_EXPENSE, PERMISSIONS.MANAGE_CATALOG, PERMISSIONS.VIEW_FINANCE_REPORTS, PERMISSIONS.MANAGE_CASH_TRANSFER, PERMISSIONS.ACCESS_CAREER, PERMISSIONS.MANAGE_FAQ, PERMISSIONS.MANAGE_AFFILIATE],
   [APP_ROLES.KASIR]: [PERMISSIONS.VIEW_BILLING, PERMISSIONS.CREATE_INVOICE, PERMISSIONS.ACCESS_CAREER],
   [APP_ROLES.KASIR_PENGELUARAN]: [PERMISSIONS.VIEW_BILLING, PERMISSIONS.CREATE_EXPENSE, PERMISSIONS.ACCESS_CAREER],

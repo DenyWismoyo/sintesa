@@ -45,3 +45,6 @@ export * from './partnership.types';
 
 // 14. Technical Facilities & Operational Add-ons
 export * from './facilityAddon.types';
+
+// 15. Manufacturing & Production Services (Jasa Produksi STP)
+export * from './production.types';
