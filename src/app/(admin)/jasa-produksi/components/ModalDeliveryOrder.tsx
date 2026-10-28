@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { ProductionOrder, DeliveryOrderInfo } from '@/types/production.types';
 import { productionService } from '@/services/production.service';
 import { buildDeliveryOrderPdf } from '@/lib/pdf/deliveryOrderPdf';
+import { loadStpLogo } from '@/lib/pdf/stpDocumentKit';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -106,11 +107,13 @@ export default function ModalDeliveryOrder({
         deliveryNotes
       };
 
+      const logo = await loadStpLogo();
       const pdfDoc = buildDeliveryOrderPdf({ 
         order: { 
           ...order, 
           deliveryOrder: activeDeliveryInfo 
-        } 
+        },
+        logoBase64: logo
       });
       pdfDoc.save(`Surat_Jalan_${activeDeliveryInfo.deliveryOrderNumber.replace(/\//g, '_')}.pdf`);
       toast.success('Dokumen Surat Jalan PDF resmi berhasil diunduh.');

@@ -186,15 +186,23 @@ const sampleDoOrder: ProductionOrder = {
 async function main() {
   console.log('📄 Menghasilkan Dokumen PDF Murni Vektor Resmi Solo Technopark...');
 
+  // Muat Logo Solo Technopark dari public/logo.png
+  const logoPath = path.join(__dirname, '..', 'public', 'logo.png');
+  let logoBase64: string | undefined = undefined;
+  if (fs.existsSync(logoPath)) {
+    logoBase64 = `data:image/png;base64,${fs.readFileSync(logoPath).toString('base64')}`;
+    console.log(`  ✓ Logo resmi dimuat dari: ${logoPath}`);
+  }
+
   // 1. Generate SPK Produksi PDF
-  const spkPdf = buildWorkOrderPdf({ order: sampleSpkOrder });
+  const spkPdf = buildWorkOrderPdf({ order: sampleSpkOrder, logoBase64 });
   const spkBuffer = Buffer.from(spkPdf.output('arraybuffer'));
   const spkPath = path.join(samplesDir, 'SPK_Manufaktur_Resmi_STP.pdf');
   fs.writeFileSync(spkPath, spkBuffer);
   console.log(`  ✓ SPK Resmi berhasil disimpan ke: ${spkPath} (${spkBuffer.length} bytes)`);
 
   // 2. Generate Surat Jalan (Delivery Order) PDF
-  const doPdf = buildDeliveryOrderPdf({ order: sampleDoOrder });
+  const doPdf = buildDeliveryOrderPdf({ order: sampleDoOrder, logoBase64 });
   const doBuffer = Buffer.from(doPdf.output('arraybuffer'));
   const doPath = path.join(samplesDir, 'Surat_Jalan_Resmi_STP.pdf');
   fs.writeFileSync(doPath, doBuffer);

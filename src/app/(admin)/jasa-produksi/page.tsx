@@ -55,6 +55,7 @@ import { toast } from 'sonner';
 import { formatRupiah } from '@/utils/format';
 import { buildWorkOrderPdf } from '@/lib/pdf/workOrderPdf';
 import { buildDeliveryOrderPdf } from '@/lib/pdf/deliveryOrderPdf';
+import { loadStpLogo } from '@/lib/pdf/stpDocumentKit';
 import { productionService } from '@/services/production.service';
 
 // Import Modals
@@ -182,7 +183,8 @@ export default function JasaProduksiPage() {
   const handlePrintSpkPdf = async (order: ProductionOrder) => {
     try {
       toast.info(`Mempersiapkan dokumen SPK resmi ${order.orderNumber}...`);
-      const pdfDoc = buildWorkOrderPdf({ order });
+      const logo = await loadStpLogo();
+      const pdfDoc = buildWorkOrderPdf({ order, logoBase64: logo });
       pdfDoc.save(`SPK_${order.orderNumber.replace(/\//g, '_')}.pdf`);
       toast.success('Dokumen SPK resmi berhasil diunduh.');
     } catch (err: any) {
