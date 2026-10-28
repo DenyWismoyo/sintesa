@@ -14,7 +14,7 @@ export type ProductionCategory = z.infer<typeof ProductionCategoryEnum>;
 export const PRODUCTION_CATEGORY_LABELS: Record<ProductionCategory, string> = {
   CNC_MACHINING: 'CNC & Presisi Machining',
   FABRIKASI_LAS: 'Fabrikasi & Pengelasan Logam',
-  3D_PRINTING: '3D Printing & Additive Mfg',
+  '3D_PRINTING': '3D Printing & Additive Mfg',
   ELECTRONICS_IOT: 'Elektronika & Perakitan IoT',
   CAD_DESIGN: 'Desain CAD / Modeling 3D',
   LAINNYA: 'Layanan Manufaktur Khusus'

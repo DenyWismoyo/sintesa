@@ -50,7 +50,7 @@ export default function TabProfitCenter({ invoices, expenses }: Props) {
       
       if (['BOOKING', 'TARIFF_DAY', 'TARIFF_MONTH'].includes(type)) fasTotal += amount;
       else if (type === 'TRAINING') pelTotal += amount;
-      else if (type === 'CATALOG') prodTotal += amount;
+      else if (['CATALOG', 'PRODUCTION'].includes(type)) prodTotal += amount;
       else lainTotal += amount;
     });
 

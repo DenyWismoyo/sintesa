@@ -188,6 +188,22 @@ export const billingService = {
             batch.update(docRef, { paymentStatus: 'PAID', status: 'CONFIRMED' });
           }
         }
+        else if (item.referenceType === 'PRODUCTION' && item.referenceId) {
+          const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'production_orders', item.referenceId);
+          const isDp = invoice.invoiceNumber.includes('/DP') || (invoice.notes && invoice.notes.toLowerCase().includes('uang muka'));
+          if (isDp) {
+            batch.update(docRef, { 
+              paymentStatus: 'DP_PAID', 
+              status: 'IN_PRODUCTION',
+              updatedAt: Date.now() 
+            });
+          } else {
+            batch.update(docRef, { 
+              paymentStatus: 'FULL_PAID', 
+              updatedAt: Date.now() 
+            });
+          }
+        }
       } catch (error) {
         console.error(`[Sinkronisasi Gagal] pada item ${item.referenceType}:`, error);
       }
