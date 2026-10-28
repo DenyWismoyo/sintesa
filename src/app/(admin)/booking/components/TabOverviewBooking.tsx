@@ -6,8 +6,9 @@ import { useBilling } from '@/hooks/useBilling';
 import { useCatalog } from '@/hooks/useCatalog';
 import { useAssets } from '@/hooks/useAssets'; 
 import { affiliateService } from '@/services/affiliate.service'; 
+import { useQueryClient } from '@tanstack/react-query';
 
-import { CheckCircle2, XCircle, Clock, MapPin, Loader2, FileText, AlertTriangle, Receipt, ListTodo, History, Calculator, RefreshCw, FilePlus2, Calendar as CalendarIcon, Users, LayoutTemplate, Sparkles, Image as ImageIcon, Download } from 'lucide-react';
+import { CheckCircle2, XCircle, Clock, MapPin, Loader2, FileText, AlertTriangle, Receipt, ListTodo, History, Calculator, RefreshCw, FilePlus2, Calendar as CalendarIcon, Users, LayoutTemplate, Sparkles, Image as ImageIcon, Download, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -35,6 +36,7 @@ interface Props {
 }
 
 export default function TabOverviewBooking({ bookings, appId }: Props) {
+  const queryClient = useQueryClient();
   const { createNewInvoice, invoices } = useBilling();
   const { products } = useCatalog();
   const { publicRooms, allRooms } = useAssets(); 
@@ -260,10 +262,10 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
         
         const invoicePayload: Omit<Invoice, 'id'> = {
           invoiceNumber: invNumber,
-          customerName: selectedBooking.userName,
+          customerName: selectedBooking.userName || 'Penyewa',
           customerType: 'Umum',
-          customerEmail: selectedBooking.userEmail,
-          customerPhone: selectedBooking.userPhone,
+          customerEmail: selectedBooking.userEmail || '',
+          customerPhone: selectedBooking.userPhone || '',
           items: [{
             id: Date.now().toString(),
             referenceId: selectedBooking.id, 
@@ -275,12 +277,26 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
             unitPrice: billingAmount,
             total: billingAmount
           }],
-          subTotal: billingAmount, taxAmount: 0, discountAmount: 0, totalAmount: billingAmount, paidAmount: 0, remainingAmount: billingAmount,
-          term: 'FULL_PAYMENT', date: today, dueDate: selectedBooking.startDate, status: 'PENDING',
-          issuerName: 'Sistem', issuerRole: 'Admin', issuerNIP: '', history: [],
-          notes: `Instansi: ${selectedBooking.agency || '-'} | PIC: ${selectedBooking.userName} (${selectedBooking.userPhone}) | Agenda: ${selectedBooking.purpose}`,
-          referralCode: selectedBooking.referralCode || undefined
+          subTotal: billingAmount, 
+          taxAmount: 0, 
+          discountAmount: 0, 
+          totalAmount: billingAmount, 
+          paidAmount: 0, 
+          remainingAmount: billingAmount,
+          term: 'FULL_PAYMENT', 
+          date: today, 
+          dueDate: selectedBooking.startDate || today, 
+          status: 'PENDING',
+          issuerName: 'Sistem', 
+          issuerRole: 'Admin', 
+          issuerNIP: '', 
+          history: [],
+          notes: `Instansi: ${selectedBooking.agency || '-'} | PIC: ${selectedBooking.userName || '-'} (${selectedBooking.userPhone || '-'}) | Agenda: ${selectedBooking.purpose || '-'}`
         };
+
+        if (selectedBooking.referralCode) {
+          invoicePayload.referralCode = selectedBooking.referralCode;
+        }
 
         const res = await createNewInvoice(invoicePayload);
         if (res.success && res.id) {
@@ -312,24 +328,36 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
               console.warn("Gagal mencatat komisi afiliasi sewa fasilitas:", affErr);
             }
           }
+        } else {
+          throw new Error(res.error || "Gagal membuat Invoice tagihan.");
         }
-        else throw new Error("Gagal membuat Invoice tagihan.");
       }
 
       const bookingRef = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', selectedBooking.id);
       const finalStatus = billingAmount > 0 ? 'approved' : 'completed';
       
-      await updateDoc(bookingRef, { status: finalStatus, invoiceId: invoiceId || null });
+      await updateDoc(bookingRef, { 
+        status: finalStatus, 
+        invoiceId: invoiceId || null,
+        updatedAt: Date.now()
+      });
+
+      // Segarkan cache TanStack Query agar antrean dan invoice seketika ter-update
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['bookings'] }),
+        queryClient.invalidateQueries({ queryKey: ['invoices'] })
+      ]);
 
       toast.success("Pengajuan Disetujui!", {
-        description: billingAmount > 0 ? "Tagihan otomatis dikirim ke Penyewa." : "Disetujui secara gratis tanpa tagihan."
+        description: billingAmount > 0 ? "Tagihan otomatis diterbitkan dan dikirim ke Penyewa." : "Disetujui secara gratis tanpa tagihan."
       });
       
       setIsApproveModalOpen(false);
       setSelectedBooking(null);
       setBillingAmount(0);
     } catch (error: any) {
-      toast.error("Terjadi Kesalahan", { description: error.message });
+      console.error("Gagal validasi peminjaman:", error);
+      toast.error("Terjadi Kesalahan", { description: error.message || "Gagal memproses validasi." });
     } finally {
       setIsProcessing(false);
     }
@@ -389,7 +417,12 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
       const bookingRef = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', selectedBooking.id);
       const finalStatus = isFree ? 'completed' : 'approved';
       
-      await updateDoc(bookingRef, { status: finalStatus, invoiceId: res.id || null });
+      await updateDoc(bookingRef, { status: finalStatus, invoiceId: res.id || null, updatedAt: Date.now() });
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['bookings'] }),
+        queryClient.invalidateQueries({ queryKey: ['invoices'] })
+      ]);
 
       toast.success(isFree ? "Disetujui Gratis (Kuitansi Tercetak)" : "Tagihan Komprehensif Diterbitkan!");
       setIsAdvancedInvoiceModalOpen(false); setIsApproveModalOpen(false); setSelectedBooking(null); setBillingAmount(0);
@@ -415,6 +448,8 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
       const res = await createNewInvoice(invoicePayload);
       if (!res.success) throw new Error(res.error || "Gagal menerbitkan Invoice.");
 
+      await queryClient.invalidateQueries({ queryKey: ['invoices'] });
+
       toast.success(isFree ? "Kuitansi Gratis Diterbitkan!" : "Tagihan Mandiri Diterbitkan!");
       setIsIndependentInvoiceModalOpen(false);
     } catch (error: any) {
@@ -426,7 +461,8 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
     if (!confirm("Yakin ingin menolak pengajuan sewa ini?")) return;
     try {
       const bookingRef = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id);
-      await updateDoc(bookingRef, { status: 'rejected' });
+      await updateDoc(bookingRef, { status: 'rejected', updatedAt: Date.now() });
+      await queryClient.invalidateQueries({ queryKey: ['bookings'] });
       toast.success("Pengajuan Ditolak.");
     } catch (error) { toast.error("Gagal menolak pengajuan."); }
   };
@@ -819,14 +855,14 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
       )}
 
       <Dialog open={isApproveModalOpen} onOpenChange={setIsApproveModalOpen}>
-        <DialogContent className="sm:max-w-[500px] rounded-[24px] p-0 border border-slate-100 shadow-2xl overflow-hidden bg-white">
-          <DialogHeader className="p-6 pb-4 border-b border-slate-100 bg-white/50 backdrop-blur-sm">
-            <DialogTitle className="text-xl font-black text-slate-800 tracking-tight">Validasi Peminjaman</DialogTitle>
-            <DialogDescription className="text-slate-500 mt-1">Konfirmasi nominal untuk menerbitkan tagihan secara instan.</DialogDescription>
+        <DialogContent className="w-[96vw] sm:max-w-xl md:max-w-2xl max-h-[92vh] sm:max-h-[88vh] my-auto rounded-2xl sm:rounded-3xl p-0 border border-slate-100 shadow-2xl overflow-hidden bg-white flex flex-col focus:outline-none">
+          <DialogHeader className="px-4 py-3.5 sm:px-6 sm:py-4 border-b border-slate-100 bg-white/80 backdrop-blur-sm shrink-0">
+            <DialogTitle className="text-lg sm:text-xl font-black text-slate-800 tracking-tight">Validasi Peminjaman</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm text-slate-500 mt-0.5">Konfirmasi nominal untuk menerbitkan tagihan secara instan.</DialogDescription>
           </DialogHeader>
           {selectedBooking && (
-            <form onSubmit={handleApproveWithBilling} className="flex flex-col">
-              <div className="p-6 space-y-5">
+            <form onSubmit={handleApproveWithBilling} className="flex flex-col flex-1 overflow-hidden min-h-0">
+              <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto custom-scrollbar flex-1 min-h-0">
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-sm space-y-2.5">
                   <div className="flex justify-between items-center"><span className="text-slate-500">Fasilitas:</span><span className="font-bold text-slate-800">{selectedBooking.assetName}</span></div>
                   <div className="flex justify-between items-center"><span className="text-slate-500">Penyewa:</span><span className="font-bold text-slate-800">{selectedBooking.userName}</span></div>
@@ -945,12 +981,30 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
                     </div>
 
                     {matchedSpecs.length > 0 && (
-                      <div className="pt-1.5 flex flex-wrap gap-1">
-                        {matchedSpecs.map((spec: any, i: number) => (
-                          <span key={i} className="text-[10px] bg-white text-slate-600 px-2 py-0.5 rounded-md border border-slate-200 flex items-center gap-1">
-                            <CheckCircle2 size={10} className="text-emerald-500" /> {spec.value || spec.label}
-                          </span>
-                        ))}
+                      <div className="pt-1.5 flex flex-wrap gap-1.5">
+                        {matchedSpecs.map((spec: any, i: number) => {
+                          const val = String(spec.value || spec.label || '');
+                          const isUrl = val.startsWith('http://') || val.startsWith('https://');
+                          return (
+                            <span key={i} className="text-[10px] bg-white text-slate-600 px-2.5 py-1 rounded-md border border-slate-200 flex items-center gap-1 max-w-full">
+                              <CheckCircle2 size={10} className="text-emerald-500 shrink-0" />
+                              {isUrl ? (
+                                <a 
+                                  href={val} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  className="text-blue-600 hover:underline inline-flex items-center gap-1 truncate max-w-[200px] sm:max-w-[280px]"
+                                  title={val}
+                                >
+                                  <span className="truncate">{val}</span>
+                                  <ExternalLink size={10} className="shrink-0" />
+                                </a>
+                              ) : (
+                                <span className="truncate max-w-[260px] sm:max-w-[340px]">{val}</span>
+                              )}
+                            </span>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -991,8 +1045,8 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
                 </div>
               </div>
 
-              <div className="px-6 py-4 bg-blue-50/50 border-t border-blue-100 flex flex-col sm:flex-row justify-between items-center gap-3">
-                <div className="text-xs text-blue-800/80 font-medium leading-relaxed">
+              <div className="px-4 py-3 sm:px-6 sm:py-3.5 bg-blue-50/60 border-t border-blue-100 flex flex-col sm:flex-row justify-between items-center gap-2.5 shrink-0">
+                <div className="text-xs text-blue-800/80 font-medium leading-relaxed text-center sm:text-left">
                   Perlu tambah layanan ekstra, cicilan, <br className="hidden sm:block"/>atau pilih rekening bank tujuan?
                 </div>
                 <Button 
@@ -1000,15 +1054,15 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
                   variant="outline" 
                   size="sm"
                   onClick={() => setIsAdvancedInvoiceModalOpen(true)}
-                  className="w-full sm:w-auto bg-white border-blue-200 text-blue-700 hover:bg-blue-100 font-bold rounded-lg shadow-sm"
+                  className="w-full sm:w-auto bg-white border-blue-200 text-blue-700 hover:bg-blue-100 font-bold rounded-lg shadow-xs"
                 >
                   <FilePlus2 className="w-4 h-4 mr-2" /> Buka Pembuat Tagihan Lanjut
                 </Button>
               </div>
 
-              <DialogFooter className="p-6 bg-slate-50/80 border-t border-slate-100 sm:justify-end gap-2">
+              <DialogFooter className="px-4 py-3 sm:px-6 sm:py-4 bg-slate-50/90 border-t border-slate-100 flex flex-row justify-end items-center gap-2 shrink-0">
                 <Button type="button" variant="outline" onClick={() => setIsApproveModalOpen(false)} className="rounded-xl border-slate-200 bg-white hover:bg-slate-50 text-slate-600">Batal</Button>
-                <Button type="submit" disabled={isProcessing} className="bg-blue-600 hover:bg-blue-700 rounded-xl text-white font-bold shadow-sm shadow-blue-200 px-6">
+                <Button type="submit" disabled={isProcessing} className="bg-blue-600 hover:bg-blue-700 rounded-xl text-white font-bold shadow-xs shadow-blue-200 px-5 sm:px-6">
                   {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <FileText className="mr-2 h-4 w-4"/>}
                   {billingAmount > 0 ? 'Setujui & Terbitkan Cepat' : 'Setujui Gratis'}
                 </Button>

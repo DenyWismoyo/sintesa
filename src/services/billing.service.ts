@@ -80,12 +80,18 @@ export const billingService = {
   },
 
   createInvoice: async (data: Omit<Invoice, 'id'>) => {
-    const docRef = await addDoc(billingService.getInvoiceRef(), { ...data, createdAt: Date.now() });
+    const cleanData = Object.fromEntries(
+      Object.entries(data).filter(([_, v]) => v !== undefined)
+    );
+    const docRef = await addDoc(billingService.getInvoiceRef(), { ...cleanData, createdAt: Date.now() });
     return docRef.id;
   },
 
   updateInvoice: async (id: string, data: Partial<Invoice>) => {
-    await updateDoc(billingService.getInvoiceDoc(id), { ...data, updatedAt: Date.now() });
+    const cleanData = Object.fromEntries(
+      Object.entries(data).filter(([_, v]) => v !== undefined)
+    );
+    await updateDoc(billingService.getInvoiceDoc(id), { ...cleanData, updatedAt: Date.now() });
   },
 
   // Fitur Hapus Invoice (Jika sewaktu-waktu admin butuh menghapus data sampah)

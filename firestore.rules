@@ -379,8 +379,8 @@ service cloud.firestore {
       match /invoices/{invoiceId} {
         // Terbuka untuk dibaca agar verifikasi nomor tagihan dan portal bukti bayar publik berfungsi
         allow read: if true;
-        // Pembuatan dan perubahan tagihan hanya oleh manajemen keuangan
-        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan', 'kasir']);
+        // Pembuatan dan perubahan tagihan oleh manajemen keuangan & admin aset (validasi sewa)
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan', 'kasir', 'admin_aset']);
       }
 
       // Pengeluaran / Expenses
@@ -390,10 +390,10 @@ service cloud.firestore {
 
       // Akuntansi & Buku Besar (Bagan Akun, Jurnal, Anggaran)
       match /accounts/{accountId} {
-        allow read, write: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan']);
+        allow read, write: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan', 'admin_aset']);
       }
       match /journals/{journalId} {
-        allow read, write: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan']);
+        allow read, write: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan', 'admin_aset']);
       }
       match /budgets/{budgetId} {
         allow read, write: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan']);
