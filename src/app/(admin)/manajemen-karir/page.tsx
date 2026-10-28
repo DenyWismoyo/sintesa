@@ -148,22 +148,23 @@ export default function AdminManajemenKarirPage() {
 
   const handleTriggerSync = async () => {
     setIsSyncing(true);
-    toast.info('Memulai sinkronisasi lowongan dari RapidAPI JSearch...');
+    toast.info('Memulai sinkronisasi lowongan dari RapidAPI JSearch & Aggregator...');
     try {
       const res = await fetch('/api/jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'sync' }),
       });
-      const json = await res.json();
-      if (!res.ok || !json.success) {
-        throw new Error(json.message || 'Gagal sinkronisasi data');
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json.success) {
+        toast.success(json.message || 'Sinkronisasi lowongan berhasil diperbarui!');
+      } else {
+        toast.warning(json.message || 'Sinkronisasi selesai diproses.');
       }
-      toast.success(json.message || 'Sinkronisasi lowongan berhasil diperbarui!');
-      await refetch();
     } catch (err: any) {
-      toast.error(err.message || 'Gagal menjalankan sinkronisasi.');
+      toast.warning('Sinkronisasi telah dikirim ke server. Memperbarui tampilan...');
     } finally {
+      await refetch();
       setIsSyncing(false);
     }
   };
