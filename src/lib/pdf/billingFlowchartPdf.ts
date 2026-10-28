@@ -410,7 +410,10 @@ export function buildBillingFlowchartPdf(params: BillingFlowchartPdfParams = {})
   doc.text('Unit Keuangan & Sistem Informasi BLUD Solo Technopark', signX, y + 24);
 
   // Finalisasi Dokumen Resmi
-  finalizeStpDocument(ctx);
+  finalizeStpDocument(
+    ctx,
+    'Dokumen SOP & Alur Kerja Resmi SINTESA BLUD Solo Technopark. Disahkan sebagai pedoman operasional dan tata kelola keuangan lintas divisi.'
+  );
 
   return doc;
 }

@@ -37,6 +37,9 @@ describe('Audit & Fitur Monitoring Invoice Per Divisi (Fase 1 - 4)', () => {
       date: '2026-10-28',
       dueDate: '2026-11-04',
       status: 'PARTIAL',
+      issuerName: 'Bendahara Penerimaan STP',
+      issuerRole: 'Kasir',
+      issuerNIP: '19850101 201012 1 001',
       history: []
     };
 

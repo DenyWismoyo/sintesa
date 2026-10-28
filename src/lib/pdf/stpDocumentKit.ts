@@ -846,7 +846,10 @@ export function drawSignatureBlock(ctx: StpDocContext, y: number, placeDate: str
 // ---------------------------------------------------------------------------
 // 11. Footer Semua Halaman
 // ---------------------------------------------------------------------------
-export function finalizeStpDocument(ctx: StpDocContext, legalNote: string) {
+export function finalizeStpDocument(
+  ctx: StpDocContext,
+  legalNote: string = 'Dokumen elektronik ini diterbitkan secara sah melalui Sistem Informasi Manajemen SINTESA BLUD Solo Technopark.'
+) {
   const { doc } = ctx;
   const total = doc.getNumberOfPages();
   const printedAt = `${new Date().toLocaleString('id-ID', {
