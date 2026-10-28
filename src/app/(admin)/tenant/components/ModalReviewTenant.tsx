@@ -34,6 +34,7 @@ const DataBlock = ({ label, value, isList = false }: { label: string, value: any
 export default function ModalReviewTenant({ isOpen, onClose, tenant, onSaveDecision }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'AI' | 'Data'>('AI');
+  const [mobilePane, setMobilePane] = useState<'DATA' | 'DECISION'>('DATA');
   
   // State Form Keputusan
   const [decision, setDecision] = useState<'Aktif' | 'Ditolak' | null>(null);
@@ -90,16 +91,43 @@ export default function ModalReviewTenant({ isOpen, onClose, tenant, onSaveDecis
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-7xl h-[92vh] flex flex-col md:flex-row overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-7xl max-h-[92vh] sm:max-h-[90vh] my-auto flex flex-col md:flex-row overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-200">
         
+        {/* MOBILE SEGMENTED CONTROL HEADER (Layar < md) */}
+        <div className="md:hidden flex items-center justify-between p-3 bg-white border-b border-slate-200 shrink-0">
+          <div className="flex bg-slate-100 p-1 rounded-xl flex-1 mr-2">
+            <button
+              type="button"
+              onClick={() => setMobilePane('DATA')}
+              className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                mobilePane === 'DATA' ? 'bg-white text-indigo-700 shadow-2xs' : 'text-slate-500'
+              }`}
+            >
+              📋 Review & AI
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobilePane('DECISION')}
+              className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                mobilePane === 'DECISION' ? 'bg-indigo-600 text-white shadow-2xs' : 'text-slate-500'
+              }`}
+            >
+              ⚖️ Form Keputusan
+            </button>
+          </div>
+          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-lg shrink-0">
+            <X size={18} />
+          </button>
+        </div>
+
         {/* ========================================================= */}
         {/* PANEL KIRI: DATA ROOM & AI CO-PILOT (READ-ONLY) */}
         {/* ========================================================= */}
-        <div className="w-full md:w-[60%] bg-slate-50 border-r border-slate-200 flex flex-col h-full overflow-hidden shrink-0">
+        <div className={`w-full md:w-[60%] bg-slate-50 border-r border-slate-200 flex-col h-full overflow-hidden shrink-0 ${mobilePane === 'DATA' ? 'flex' : 'hidden md:flex'}`}>
           
           {/* Header Data Room */}
-          <div className="p-6 bg-white border-b border-slate-200 shrink-0">
+          <div className="p-4 sm:p-6 bg-white border-b border-slate-200 shrink-0">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-200 overflow-hidden shrink-0">
                 {tenant.logoUrl ? <img src={tenant.logoUrl} className="w-full h-full object-contain" /> : <Building className="w-6 h-6 text-slate-400" />}
@@ -293,17 +321,39 @@ export default function ModalReviewTenant({ isOpen, onClose, tenant, onSaveDecis
               </div>
             )}
           </div>
+          {/* Mobile Bottom Action: Lanjut ke Form Keputusan */}
+          <div className="md:hidden p-3 bg-white border-t border-slate-200 shrink-0">
+            <button
+              type="button"
+              onClick={() => setMobilePane('DECISION')}
+              className="w-full py-2.5 bg-indigo-600 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
+            >
+              Lanjut ke Form Keputusan Komite (⚖️) →
+            </button>
+          </div>
         </div>
 
         {/* ========================================================= */}
         {/* PANEL KANAN: FORM KEPUTUSAN KOMITE & OVERRIDE */}
         {/* ========================================================= */}
-        <div className="w-full md:w-[40%] flex flex-col h-full bg-white relative">
-          <button onClick={onClose} className="absolute top-4 right-4 p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors z-10"><X size={20}/></button>
+        <div className={`w-full md:w-[40%] flex-col h-full bg-white relative ${mobilePane === 'DECISION' ? 'flex' : 'hidden md:flex'}`}>
+          <button onClick={onClose} className="hidden md:flex absolute top-4 right-4 p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors z-10"><X size={20}/></button>
           
-          <div className="p-6 md:p-8 pt-12 flex-1 overflow-y-auto custom-scrollbar">
-            <h2 className="text-2xl font-black text-slate-800 tracking-tight mb-2">Validasi Akhir</h2>
-            <p className="text-sm text-slate-500 mb-6 border-b border-slate-100 pb-4">Tinjau ulang data, koreksi skor AI jika perlu, dan putuskan status tenant.</p>
+          {/* Mobile Back Button to Data Review */}
+          <div className="md:hidden p-2.5 bg-slate-50 border-b border-slate-100 shrink-0 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => setMobilePane('DATA')}
+              className="text-xs font-bold text-indigo-600 flex items-center gap-1 hover:underline"
+            >
+              ← Kembali ke Review Data
+            </button>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Step 2: Putuskan</span>
+          </div>
+
+          <div className="p-4 sm:p-6 md:p-8 pt-4 sm:pt-6 md:pt-12 flex-1 overflow-y-auto custom-scrollbar">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight mb-1 sm:mb-2">Validasi Akhir</h2>
+            <p className="text-xs sm:text-sm text-slate-500 mb-4 sm:mb-6 border-b border-slate-100 pb-3 sm:pb-4">Tinjau ulang data, koreksi skor AI jika perlu, dan putuskan status tenant.</p>
 
             <div className="space-y-6">
               
@@ -387,9 +437,9 @@ export default function ModalReviewTenant({ isOpen, onClose, tenant, onSaveDecis
           </div>
 
           {/* Footer Actions */}
-          <div className="p-6 bg-white border-t border-slate-100 flex justify-end gap-3 shrink-0">
-            <button onClick={onClose} disabled={isSubmitting} className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 rounded-xl transition-colors">Batal</button>
-            <button onClick={handleSubmit} disabled={isSubmitting || !decision} className={`px-8 py-3 font-bold rounded-xl text-sm flex items-center gap-2 shadow-lg disabled:opacity-50 transition-all ${decision === 'Ditolak' ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-200 text-white' : 'bg-slate-900 hover:bg-slate-800 shadow-slate-300 text-white'}`}>
+          <div className="p-4 sm:p-6 bg-white border-t border-slate-100 flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 shrink-0">
+            <button onClick={onClose} disabled={isSubmitting} className="w-full sm:w-auto px-5 py-2.5 text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors text-center">Batal</button>
+            <button onClick={handleSubmit} disabled={isSubmitting || !decision} className={`w-full sm:w-auto px-6 py-2.5 font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md disabled:opacity-50 transition-all ${decision === 'Ditolak' ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-200 text-white' : 'bg-slate-900 hover:bg-slate-800 shadow-slate-300 text-white'}`}>
               {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin"/> : <UserCheck className="w-4 h-4" />} Eksekusi Keputusan
             </button>
           </div>

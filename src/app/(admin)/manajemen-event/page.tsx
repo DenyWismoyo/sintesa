@@ -343,39 +343,39 @@ export default function ManajemenEventPage() {
         )}
       />
 
-      {/* MODAL FORM BUILDER (WIZARD) - Redesigned Mobile Compact */}
+      {/* MODAL FORM BUILDER (WIZARD) - Responsif & Scrollable */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/40 backdrop-blur-xs overflow-hidden animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-5xl h-[92vh] sm:h-[88vh] flex flex-col border border-slate-200/80 animate-in zoom-in-95 duration-200 overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-5xl max-h-[92vh] sm:max-h-[88vh] my-auto flex flex-col border border-slate-200/80 animate-in zoom-in-95 duration-200 overflow-hidden">
             
             {/* Modal Header */}
             <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-150 flex items-center justify-between bg-white shrink-0">
-              <div>
-                <h3 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">{editingId ? 'Edit Event Setup' : 'Event Builder Baru'}</h3>
-                <p className="text-[11px] text-slate-400 hidden sm:block mt-0.5">Konfigurasi jadwal, konten, dan tiket acara.</p>
+              <div className="min-w-0 pr-2">
+                <h3 className="text-sm sm:text-base font-black text-slate-800 tracking-tight truncate">{editingId ? 'Edit Event Setup' : 'Event Builder Baru'}</h3>
+                <p className="text-[11px] text-slate-400 hidden sm:block mt-0.5 truncate">Konfigurasi jadwal, konten, dan tiket acara.</p>
               </div>
-              <button onClick={handleCloseModal} className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 p-1.5 rounded-lg transition-colors"><XCircle size={18} /></button>
+              <button onClick={handleCloseModal} className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 p-1.5 rounded-lg transition-colors shrink-0"><XCircle size={18} /></button>
             </div>
             
             <div className="flex flex-col md:flex-row flex-1 overflow-hidden bg-slate-50/50">
               {/* Sidebar Navigation */}
-              <div className="w-full md:w-56 bg-white border-b md:border-b-0 md:border-r border-slate-150 p-2 sm:p-4 shrink-0 flex flex-row md:flex-col gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar">
-                <button type="button" onClick={() => setActiveTab('BASIC')} className={`flex items-center gap-1.5 sm:gap-2.5 px-3 py-1.5 sm:py-2.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'BASIC' ? 'bg-blue-50 text-blue-700 font-bold shadow-2xs' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>
+              <div className="w-full md:w-52 bg-white border-b md:border-b-0 md:border-r border-slate-150 p-2 sm:p-3 shrink-0 flex flex-row md:flex-col gap-1 sm:gap-1.5 overflow-x-auto hide-scrollbar">
+                <button type="button" onClick={() => setActiveTab('BASIC')} className={`flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'BASIC' ? 'bg-blue-50 text-blue-700 font-bold shadow-2xs' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>
                   <AlignLeft size={14} /> Basic Info
                 </button>
-                <button type="button" onClick={() => setActiveTab('CONTENT')} className={`flex items-center gap-1.5 sm:gap-2.5 px-3 py-1.5 sm:py-2.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'CONTENT' ? 'bg-blue-50 text-blue-700 font-bold shadow-2xs' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>
+                <button type="button" onClick={() => setActiveTab('CONTENT')} className={`flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'CONTENT' ? 'bg-blue-50 text-blue-700 font-bold shadow-2xs' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>
                   <Users size={14} /> Konten & Acara
                 </button>
-                <button type="button" onClick={() => setActiveTab('TICKETING')} className={`flex items-center gap-1.5 sm:gap-2.5 px-3 py-1.5 sm:py-2.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'TICKETING' ? 'bg-blue-50 text-blue-700 font-bold shadow-2xs' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>
+                <button type="button" onClick={() => setActiveTab('TICKETING')} className={`flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'TICKETING' ? 'bg-blue-50 text-blue-700 font-bold shadow-2xs' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>
                   <Ticket size={14} /> Tiket & Form
                 </button>
-                <button type="button" onClick={() => setActiveTab('SETTINGS')} className={`flex items-center gap-1.5 sm:gap-2.5 px-3 py-1.5 sm:py-2.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'SETTINGS' ? 'bg-blue-50 text-blue-700 font-bold shadow-2xs' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>
+                <button type="button" onClick={() => setActiveTab('SETTINGS')} className={`flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'SETTINGS' ? 'bg-blue-50 text-blue-700 font-bold shadow-2xs' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>
                   <Settings size={14} /> Pengaturan
                 </button>
               </div>
 
               {/* Main Content Area */}
-              <form id="eventForm" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-3.5 sm:p-6 no-scrollbar">
+              <form id="eventForm" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-3.5 sm:p-6 custom-scrollbar">
                 
                 {/* TAB 1: BASIC INFO */}
                 {activeTab === 'BASIC' && (
@@ -632,11 +632,11 @@ export default function ManajemenEventPage() {
             </div>
 
             {/* Modal Footer (Sticky) */}
-            <div className="px-4 sm:px-8 py-3.5 sm:py-5 border-t border-slate-100 bg-white flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 shrink-0 rounded-b-[24px]">
+            <div className="px-4 py-3 sm:px-6 sm:py-3.5 border-t border-slate-150 bg-slate-50/80 flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-2.5 shrink-0 rounded-b-2xl sm:rounded-b-3xl">
               <button 
                 type="button" 
                 onClick={handleCloseModal} 
-                className="w-full sm:w-auto min-h-[44px] px-6 py-2.5 text-sm font-bold text-slate-600 border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors text-center"
+                className="w-full sm:w-auto px-5 py-2 text-xs sm:text-sm font-semibold text-slate-600 border border-slate-200 hover:bg-slate-100 rounded-xl transition-colors text-center"
               >
                 Batalkan
               </button>
@@ -644,9 +644,9 @@ export default function ManajemenEventPage() {
                 type="submit" 
                 form="eventForm" 
                 disabled={isSubmitting} 
-                className="w-full sm:w-auto min-h-[44px] flex items-center justify-center gap-2 px-6 sm:px-8 py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all disabled:opacity-50"
+                className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-6 py-2 bg-blue-600 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs hover:bg-blue-700 transition-all disabled:opacity-50"
               >
-                {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18} />} 
+                {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />} 
                 {isSubmitting ? 'Menyimpan...' : 'Simpan Konfigurasi Event'}
               </button>
             </div>

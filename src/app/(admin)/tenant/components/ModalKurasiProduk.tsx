@@ -96,19 +96,25 @@ export default function ModalKurasiProduk({ isOpen, onClose, tenant }: Props) {
   if (!isOpen || !tenant) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-5xl h-[90vh] flex overflow-hidden border border-slate-100 animate-in zoom-in-95">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-5xl max-h-[92vh] sm:max-h-[88vh] my-auto flex flex-col md:flex-row overflow-hidden border border-slate-200 animate-in zoom-in-95">
         
-        {/* PANEL KIRI: Daftar Produk Tenant */}
-        <div className="w-1/3 bg-slate-50 border-r border-slate-200 flex flex-col shrink-0">
-          <div className="p-6 border-b border-slate-200 bg-white">
-            <h2 className="text-lg font-black text-slate-800">Kurasi Produk UKM</h2>
-            <p className="text-xs font-medium text-slate-500 mt-1">Tenant: <span className="text-emerald-600 font-bold">{tenant.name}</span></p>
+        {/* PANEL KIRI: Daftar Produk Tenant (Responsif Master-Detail di Mobile) */}
+        <div className={`w-full md:w-80 bg-slate-50 border-b md:border-b-0 md:border-r border-slate-200 flex-col shrink-0 ${selectedProductId ? 'hidden md:flex' : 'flex'}`}>
+          <div className="p-4 sm:p-5 border-b border-slate-200 bg-white flex items-center justify-between shrink-0">
+            <div>
+              <h2 className="text-base sm:text-lg font-black text-slate-800 leading-tight">Kurasi Produk UKM</h2>
+              <p className="text-xs font-medium text-slate-500 mt-0.5">Tenant: <span className="text-emerald-600 font-bold">{tenant.name}</span></p>
+            </div>
+            <button onClick={onClose} className="md:hidden p-1.5 text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-lg">
+              <X size={18} />
+            </button>
           </div>
-          <div className="p-4 flex-1 overflow-y-auto space-y-3 custom-scrollbar">
+          <div className="p-3 sm:p-4 flex-1 overflow-y-auto space-y-2.5 custom-scrollbar">
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1 px-1">Pilih Produk ({products.length}):</p>
             {products.map(product => (
-              <button key={product.id} onClick={() => setSelectedProductId(product.id!)} className={`w-full text-left p-4 rounded-xl border transition-all ${selectedProductId === product.id ? 'bg-emerald-50 border-emerald-500 shadow-sm' : 'bg-white border-slate-200 hover:border-emerald-300'}`}>
-                <p className={`font-bold truncate ${selectedProductId === product.id ? 'text-emerald-800' : 'text-slate-700'}`}>{product.name}</p>
+              <button key={product.id} onClick={() => setSelectedProductId(product.id!)} className={`w-full text-left p-3.5 rounded-xl border transition-all ${selectedProductId === product.id ? 'bg-emerald-50 border-emerald-500 shadow-xs' : 'bg-white border-slate-200 hover:border-emerald-300'}`}>
+                <p className={`font-bold text-sm truncate ${selectedProductId === product.id ? 'text-emerald-800' : 'text-slate-700'}`}>{product.name}</p>
                 <div className="flex items-center gap-2 mt-2">
                   {product.isCurated ? <span className="text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">Skor: {product.curation?.totalScore || 0}</span> : <span className="text-[9px] font-black uppercase tracking-wider bg-slate-200 text-slate-500 px-2 py-0.5 rounded">Belum Dikurasi</span>}
                   {product.aiInsights && <span title="AI Insight Tersedia" className="flex items-center"><Sparkles size={12} className="text-amber-500" /></span>}
@@ -119,29 +125,44 @@ export default function ModalKurasiProduk({ isOpen, onClose, tenant }: Props) {
         </div>
 
         {/* PANEL KANAN: Form Engine Kurasi */}
-        <div className="flex-1 flex flex-col bg-white relative">
-          <button onClick={onClose} className="absolute top-4 right-4 p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors z-10"><X size={20}/></button>
+        <div className={`flex-1 flex-col bg-white relative ${selectedProductId ? 'flex' : 'hidden md:flex'}`}>
+          {/* Mobile Back Button */}
+          <div className="md:hidden p-2.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between shrink-0">
+            <button
+              type="button"
+              onClick={() => setSelectedProductId(null)}
+              className="text-xs font-bold text-emerald-700 flex items-center gap-1 hover:underline"
+            >
+              ← Kembali ke Daftar Produk
+            </button>
+            <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-600 rounded">
+              <X size={18} />
+            </button>
+          </div>
+
+          <button onClick={onClose} className="hidden md:flex absolute top-4 right-4 p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors z-10"><X size={20}/></button>
           
           {!selectedProduct ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
+            <div className="flex-1 flex flex-col items-center justify-center text-slate-400 p-8 text-center">
               <Target className="w-16 h-16 mb-4 opacity-20" />
-              <p className="font-semibold text-lg">Pilih Produk untuk Dikurasi</p>
+              <p className="font-bold text-base sm:text-lg text-slate-600">Pilih Produk untuk Dikurasi</p>
+              <p className="text-xs text-slate-400 mt-1 max-w-xs">Pilih salah satu item di panel kiri untuk mulai penilaian kurasi produk UKM.</p>
             </div>
           ) : (
             <>
               {/* Header Info Produk */}
-              <div className="p-6 pb-4 border-b border-slate-100 flex gap-4">
-                 <div className="w-16 h-16 bg-slate-100 rounded-xl overflow-hidden shrink-0">
-                    {selectedProduct.images?.[0] ? <img src={selectedProduct.images[0]} className="w-full h-full object-cover" /> : <Package className="w-8 h-8 m-4 text-slate-300" />}
+              <div className="p-4 sm:p-6 pb-3 sm:pb-4 border-b border-slate-100 flex gap-3 sm:gap-4 shrink-0">
+                 <div className="w-14 h-14 sm:w-16 sm:h-16 bg-slate-100 rounded-xl overflow-hidden shrink-0 border border-slate-200">
+                    {selectedProduct.images?.[0] ? <img src={selectedProduct.images[0]} className="w-full h-full object-cover" /> : <Package className="w-7 h-7 sm:w-8 sm:h-8 m-3.5 sm:m-4 text-slate-300" />}
                  </div>
-                 <div>
-                   <h3 className="text-xl font-black text-slate-800 tracking-tight leading-none mb-1">{selectedProduct.name}</h3>
-                   <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed pr-10">{selectedProduct.description}</p>
+                 <div className="min-w-0 pr-8">
+                   <h3 className="text-base sm:text-xl font-black text-slate-800 tracking-tight leading-tight mb-1 truncate">{selectedProduct.name}</h3>
+                   <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{selectedProduct.description}</p>
                  </div>
               </div>
 
               {/* Engine Slider Area */}
-              <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-slate-50/50">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar bg-slate-50/50">
                 
                 {/* Result & AI Card */}
                 <div className="bg-slate-900 rounded-2xl p-6 text-white mb-6 shadow-xl flex items-center justify-between sticky top-0 z-10">

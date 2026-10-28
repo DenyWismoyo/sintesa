@@ -717,82 +717,82 @@ export default function AlumniTab() {
       {/* --- MODAL IMPORT EXCEL --- */}
       <AnimatePresence>
         {isImportModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto bg-slate-900/50 backdrop-blur-xs">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
+              className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] my-auto"
             >
-              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <div className="p-4 sm:p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 shrink-0">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">Import Master Data Excel Pintar</h3>
-                  <p className="text-sm text-slate-500">Unggah file .xlsx/.xls. Sistem akan otomatis update data duplikat.</p>
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900">Import Master Data Excel Pintar</h3>
+                  <p className="text-xs sm:text-sm text-slate-500">Unggah file .xlsx/.xls. Sistem akan otomatis update data duplikat.</p>
                 </div>
-                <button onClick={() => setIsImportModalOpen(false)} className="text-slate-400 hover:bg-slate-200 p-2 rounded-full transition-colors">
-                  <X size={20} />
+                <button onClick={() => setIsImportModalOpen(false)} className="text-slate-400 hover:bg-slate-200 p-1.5 sm:p-2 rounded-full transition-colors">
+                  <X size={18} className="sm:w-5 sm:h-5" />
                 </button>
               </div>
               
-              <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
+              <div className="p-4 sm:p-6 overflow-y-auto flex-1 custom-scrollbar">
                 {!importData.length ? (
-                  <div className="space-y-6">
-                    <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl flex items-start gap-4">
-                      <div className="mt-1 w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
-                        <Download size={20} />
+                  <div className="space-y-4 sm:space-y-6">
+                    <div className="bg-emerald-50 border border-emerald-200 p-3.5 sm:p-4 rounded-xl flex items-start gap-3 sm:gap-4">
+                      <div className="mt-1 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+                        <Download size={18} className="sm:w-5 sm:h-5" />
                       </div>
                       <div>
-                        <h4 className="font-bold text-emerald-900 text-sm">Gunakan Template Resmi</h4>
-                        <p className="text-xs text-emerald-700 mt-1 mb-3">Untuk menghindari kesalahan pembacaan baris, sangat disarankan menggunakan template Excel yang telah disesuaikan dengan sistem kami.</p>
+                        <h4 className="font-bold text-emerald-900 text-xs sm:text-sm">Gunakan Template Resmi</h4>
+                        <p className="text-[11px] sm:text-xs text-emerald-700 mt-1 mb-2.5 sm:mb-3">Untuk menghindari kesalahan pembacaan baris, sangat disarankan menggunakan template Excel yang telah disesuaikan dengan sistem kami.</p>
                         <Button size="sm" onClick={downloadTemplate} className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold h-8">
                           Unduh Template .xlsx
                         </Button>
                       </div>
                     </div>
 
-                    <div className="border-2 border-dashed border-slate-200 rounded-2xl p-10 text-center hover:bg-slate-50 transition-colors">
-                      <FileSpreadsheet className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                      <h4 className="text-sm font-bold text-slate-700 mb-1">Pilih / Seret file Excel Anda</h4>
-                      <p className="text-xs text-slate-500 mb-4">Mendukung format .xlsx dan .xls</p>
+                    <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 sm:p-10 text-center hover:bg-slate-50 transition-colors">
+                      <FileSpreadsheet className="w-10 h-10 sm:w-12 sm:h-12 text-slate-300 mx-auto mb-3 sm:mb-4" />
+                      <h4 className="text-xs sm:text-sm font-bold text-slate-700 mb-1">Pilih / Seret file Excel Anda</h4>
+                      <p className="text-[11px] sm:text-xs text-slate-500 mb-3 sm:mb-4">Mendukung format .xlsx dan .xls</p>
                       <input 
                         type="file" 
                         accept=".xlsx, .xls" 
                         ref={fileInputRef}
                         onChange={handleExcelUpload}
-                        className="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer mx-auto max-w-xs"
+                        className="block w-full text-xs sm:text-sm text-slate-500 file:mr-3 sm:file:mr-4 file:py-2 sm:file:py-2.5 file:px-4 sm:file:px-6 file:rounded-full file:border-0 file:text-xs sm:file:text-sm file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer mx-auto max-w-xs"
                       />
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 p-4 rounded-xl">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-emerald-50 border border-emerald-200 p-3.5 sm:p-4 rounded-xl">
                       <div className="flex items-center gap-3">
-                        <CheckCircle2 className="text-emerald-500" size={24} />
+                        <CheckCircle2 className="text-emerald-500 shrink-0" size={22} />
                         <div>
-                          <h4 className="text-sm font-bold text-emerald-800">Excel Berhasil Dibaca</h4>
-                          <p className="text-xs text-emerald-600">Ditemukan {importData.length} baris data siap diproses.</p>
+                          <h4 className="text-xs sm:text-sm font-bold text-emerald-800">Excel Berhasil Dibaca</h4>
+                          <p className="text-[11px] sm:text-xs text-emerald-600">Ditemukan {importData.length} baris data siap diproses.</p>
                         </div>
                       </div>
-                      <Button variant="outline" size="sm" onClick={() => setImportData([])} className="h-8 text-xs font-bold border-emerald-200 text-emerald-700 hover:bg-emerald-100">
+                      <Button variant="outline" size="sm" onClick={() => setImportData([])} className="h-8 text-xs font-bold border-emerald-200 text-emerald-700 hover:bg-emerald-100 self-start sm:self-auto">
                         Batal / Ganti File
                       </Button>
                     </div>
 
                     <div className="bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
-                      <div className="p-3 border-b border-slate-200 bg-slate-100 text-xs font-bold text-slate-500 uppercase tracking-wider">Pratinjau 3 Data Pertama</div>
+                      <div className="p-2.5 sm:p-3 border-b border-slate-200 bg-slate-100 text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Pratinjau 3 Data Pertama</div>
                       <div className="p-0">
                         {importData.slice(0, 3).map((row, idx) => (
-                          <div key={idx} className="p-3 border-b border-slate-100 last:border-0 text-sm flex flex-col gap-1">
+                          <div key={idx} className="p-2.5 sm:p-3 border-b border-slate-100 last:border-0 text-xs sm:text-sm flex flex-col gap-1">
                             <span className="font-bold text-slate-800">{row.name_of_participants || 'Tanpa Nama'}</span>
-                            <span className="text-xs text-slate-500">Program: {row.program || '-'} | Tahun: {row.tahun_pelatihan || row.training_year || '-'}</span>
+                            <span className="text-[11px] sm:text-xs text-slate-500">Program: {row.program || '-'} | Tahun: {row.tahun_pelatihan || row.training_year || '-'}</span>
                           </div>
                         ))}
                       </div>
                     </div>
                     
-                    <div className="bg-blue-50 p-4 rounded-xl flex items-start gap-3">
-                      <AlertCircle className="text-blue-500 shrink-0 mt-0.5" size={18} />
-                      <p className="text-xs text-blue-700 leading-relaxed">
+                    <div className="bg-blue-50 p-3.5 sm:p-4 rounded-xl flex items-start gap-2.5 sm:gap-3">
+                      <AlertCircle className="text-blue-500 shrink-0 mt-0.5" size={17} />
+                      <p className="text-[11px] sm:text-xs text-blue-700 leading-relaxed">
                         <b>Mode Pintar Aktif:</b> Jika sistem mendeteksi nama dan program yang sama sudah ada, sistem akan <b>memperbarui</b> rekod tersebut agar tidak ganda.
                       </p>
                     </div>
@@ -800,12 +800,12 @@ export default function AlumniTab() {
                 )}
               </div>
 
-              <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3">
-                <Button variant="ghost" onClick={() => setIsImportModalOpen(false)} className="rounded-xl font-bold text-slate-600">Batal</Button>
+              <div className="p-4 sm:p-6 border-t border-slate-100 bg-slate-50/50 flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 shrink-0">
+                <Button variant="ghost" onClick={() => setIsImportModalOpen(false)} className="rounded-xl font-bold text-slate-600 w-full sm:w-auto">Batal</Button>
                 <Button 
                   onClick={processImport} 
                   disabled={importData.length === 0 || importLoading}
-                  className="rounded-xl bg-slate-900 text-white font-bold px-8 shadow-md"
+                  className="rounded-xl bg-slate-900 text-white font-bold px-6 sm:px-8 shadow-md w-full sm:w-auto"
                 >
                   {importLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <UploadCloud className="w-4 h-4 mr-2" />}
                   {importLoading ? 'Memproses...' : 'Mulai Import Data'}
@@ -819,100 +819,100 @@ export default function AlumniTab() {
       {/* --- MODAL TAMBAH / EDIT MANUAL --- */}
       <AnimatePresence>
         {isManualModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 bg-slate-900/50 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto bg-slate-900/50 backdrop-blur-xs">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-3xl w-full max-w-4xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden"
+              className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-4xl shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] my-auto overflow-hidden"
             >
               {/* HEADER (Fixed di atas) */}
-              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 shrink-0">
+              <div className="p-4 sm:p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 shrink-0">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900">
                     {editingId ? 'Edit Data Alumni' : 'Tambah Data Alumni Baru'}
                   </h3>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-xs sm:text-sm text-slate-500">
                     {editingId ? 'Edit dan perbarui detail alumni yang dipilih.' : 'Isi data alumni secara manual. Sistem akan membuat kode klaim otomatis.'}
                   </p>
                 </div>
-                <button type="button" onClick={() => setIsManualModalOpen(false)} className="text-slate-400 hover:bg-slate-200 p-2 rounded-full transition-colors">
-                  <X size={20} />
+                <button type="button" onClick={() => setIsManualModalOpen(false)} className="text-slate-400 hover:bg-slate-200 p-1.5 sm:p-2 rounded-full transition-colors">
+                  <X size={18} className="sm:w-5 sm:h-5" />
                 </button>
               </div>
               
               <form onSubmit={handleSaveManual} className="flex flex-col flex-1 overflow-hidden">
                 {/* BODY (Area Form yang bisa di-scroll) */}
-                <div className="p-6 space-y-8 overflow-y-auto custom-scrollbar flex-1 bg-white">
+                <div className="p-4 sm:p-6 space-y-6 sm:space-y-8 overflow-y-auto custom-scrollbar flex-1 bg-white">
                   
                   {/* Blok Identitas */}
                   <div>
-                    <h4 className="font-bold text-slate-800 border-b border-slate-100 pb-2 mb-4">Identitas Peserta</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <h4 className="font-bold text-slate-800 border-b border-slate-100 pb-2 mb-3 sm:mb-4 text-sm sm:text-base">Identitas Peserta</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                       <div className="space-y-1.5">
                         <Label className="text-xs font-bold text-slate-500">Nama Lengkap <span className="text-red-500">*</span></Label>
-                        <Input required value={manualForm.name} onChange={e=>setManualForm({...manualForm, name: e.target.value})} className="h-10 rounded-xl" placeholder="Sesuai sertifikat"/>
+                        <Input required value={manualForm.name} onChange={e=>setManualForm({...manualForm, name: e.target.value})} className="h-10 rounded-xl text-sm" placeholder="Sesuai sertifikat"/>
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs font-bold text-slate-500">Tempat, Tanggal Lahir</Label>
-                        <Input value={manualForm.birthInfo} onChange={e=>setManualForm({...manualForm, birthInfo: e.target.value})} className="h-10 rounded-xl" placeholder="Contoh: Surakarta, 12 Mei 2000"/>
+                        <Input value={manualForm.birthInfo} onChange={e=>setManualForm({...manualForm, birthInfo: e.target.value})} className="h-10 rounded-xl text-sm" placeholder="Contoh: Surakarta, 12 Mei 2000"/>
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs font-bold text-slate-500">Email (Opsional)</Label>
-                        <Input type="email" value={manualForm.email} onChange={e=>setManualForm({...manualForm, email: e.target.value})} className="h-10 rounded-xl" placeholder="Email aktif"/>
+                        <Input type="email" value={manualForm.email} onChange={e=>setManualForm({...manualForm, email: e.target.value})} className="h-10 rounded-xl text-sm" placeholder="Email aktif"/>
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs font-bold text-slate-500">Nomor Telepon / WA</Label>
-                        <Input value={manualForm.phone} onChange={e=>setManualForm({...manualForm, phone: e.target.value})} className="h-10 rounded-xl" placeholder="08..."/>
+                        <Input value={manualForm.phone} onChange={e=>setManualForm({...manualForm, phone: e.target.value})} className="h-10 rounded-xl text-sm" placeholder="08..."/>
                       </div>
                       <div className="space-y-1.5 sm:col-span-2">
                         <Label className="text-xs font-bold text-slate-500">Alamat Rumah Lengkap</Label>
-                        <Input value={manualForm.address} onChange={e=>setManualForm({...manualForm, address: e.target.value})} className="h-10 rounded-xl" placeholder="Alamat asal/domisili"/>
+                        <Input value={manualForm.address} onChange={e=>setManualForm({...manualForm, address: e.target.value})} className="h-10 rounded-xl text-sm" placeholder="Alamat asal/domisili"/>
                       </div>
                     </div>
                   </div>
 
                   {/* Blok Pelatihan */}
                   <div>
-                    <h4 className="font-bold text-slate-800 border-b border-slate-100 pb-2 mb-4">Rekam Pelatihan STP</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-5">
+                    <h4 className="font-bold text-slate-800 border-b border-slate-100 pb-2 mb-3 sm:mb-4 text-sm sm:text-base">Rekam Pelatihan STP</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 mb-4 sm:mb-5">
                       <div className="space-y-1.5">
                         <Label className="text-xs font-bold text-slate-500">Program / Kelas <span className="text-red-500">*</span></Label>
-                        <Input required value={manualForm.programTaken} onChange={e=>setManualForm({...manualForm, programTaken: e.target.value})} className="h-10 rounded-xl" placeholder="Contoh: Welding Under Water"/>
+                        <Input required value={manualForm.programTaken} onChange={e=>setManualForm({...manualForm, programTaken: e.target.value})} className="h-10 rounded-xl text-sm" placeholder="Contoh: Welding Under Water"/>
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs font-bold text-slate-500">Tahun Pelatihan <span className="text-red-500">*</span></Label>
                         <div className="relative">
                           <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                          <Input required type="number" value={manualForm.trainingYear} onChange={e=>setManualForm({...manualForm, trainingYear: e.target.value})} className="pl-9 h-10 rounded-xl" placeholder="Contoh: 2024"/>
+                          <Input required type="number" value={manualForm.trainingYear} onChange={e=>setManualForm({...manualForm, trainingYear: e.target.value})} className="pl-9 h-10 rounded-xl text-sm" placeholder="Contoh: 2024"/>
                         </div>
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs font-bold text-slate-500">Angkatan / Batch</Label>
-                        <Input value={manualForm.batch} onChange={e=>setManualForm({...manualForm, batch: e.target.value})} className="h-10 rounded-xl" placeholder="Contoh: 74 / Intensif"/>
+                        <Input value={manualForm.batch} onChange={e=>setManualForm({...manualForm, batch: e.target.value})} className="h-10 rounded-xl text-sm" placeholder="Contoh: 74 / Intensif"/>
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                       <div className="space-y-1.5">
                         <Label className="text-xs font-bold text-slate-500">Tanggal Mulai</Label>
-                        <Input type="date" value={manualForm.courseStartDate} onChange={e=>setManualForm({...manualForm, courseStartDate: e.target.value})} className="h-10 rounded-xl"/>
+                        <Input type="date" value={manualForm.courseStartDate} onChange={e=>setManualForm({...manualForm, courseStartDate: e.target.value})} className="h-10 rounded-xl text-sm"/>
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs font-bold text-slate-500">Tanggal Selesai</Label>
-                        <Input type="date" value={manualForm.courseEndDate} onChange={e=>setManualForm({...manualForm, courseEndDate: e.target.value})} className="h-10 rounded-xl"/>
+                        <Input type="date" value={manualForm.courseEndDate} onChange={e=>setManualForm({...manualForm, courseEndDate: e.target.value})} className="h-10 rounded-xl text-sm"/>
                       </div>
                       <div className="space-y-1.5 sm:col-span-2">
                         <Label className="text-xs font-bold text-slate-500">Hasil Sertifikasi</Label>
-                        <Input value={manualForm.certificationResult} onChange={e=>setManualForm({...manualForm, certificationResult: e.target.value})} className="h-10 rounded-xl" placeholder="Contoh: Kompetensi BNSP / Internal Lulus"/>
+                        <Input value={manualForm.certificationResult} onChange={e=>setManualForm({...manualForm, certificationResult: e.target.value})} className="h-10 rounded-xl text-sm" placeholder="Contoh: Kompetensi BNSP / Internal Lulus"/>
                       </div>
                     </div>
                   </div>
 
                   {/* Blok Tracer Study */}
-                  <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                    <h4 className="font-bold text-slate-800 border-b border-slate-200 pb-2 mb-4">Tracer Study (Opsional)</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                  <div className="bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-100">
+                    <h4 className="font-bold text-slate-800 border-b border-slate-200 pb-2 mb-3 sm:mb-4 text-sm sm:text-base">Tracer Study (Opsional)</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
                       <div className="space-y-1.5">
                         <Label className="text-xs font-bold text-slate-500">Status Pekerjaan</Label>
                         <select 
@@ -931,20 +931,20 @@ export default function AlumniTab() {
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs font-bold text-slate-500">Perusahaan Saat Ini</Label>
-                        <Input value={manualForm.company} onChange={e=>setManualForm({...manualForm, company: e.target.value})} className="h-10 rounded-xl bg-white" placeholder="Nama Perusahaan"/>
+                        <Input value={manualForm.company} onChange={e=>setManualForm({...manualForm, company: e.target.value})} className="h-10 rounded-xl bg-white text-sm" placeholder="Nama Perusahaan"/>
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs font-bold text-slate-500">Posisi / Jabatan</Label>
-                        <Input value={manualForm.currentJob} onChange={e=>setManualForm({...manualForm, currentJob: e.target.value})} className="h-10 rounded-xl bg-white" placeholder="Contoh: Welder / Staf"/>
+                        <Input value={manualForm.currentJob} onChange={e=>setManualForm({...manualForm, currentJob: e.target.value})} className="h-10 rounded-xl bg-white text-sm" placeholder="Contoh: Welder / Staf"/>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* FOOTER (Fixed di bawah) */}
-                <div className="p-5 flex justify-end gap-3 border-t border-slate-100 bg-slate-50/50 shrink-0">
-                  <Button type="button" variant="ghost" onClick={() => setIsManualModalOpen(false)} className="rounded-xl font-bold text-slate-600">Batal</Button>
-                  <Button type="submit" disabled={isSavingManual} className="rounded-xl bg-slate-900 text-white font-bold px-8 shadow-md">
+                <div className="p-3.5 sm:p-5 flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 border-t border-slate-100 bg-slate-50/50 shrink-0">
+                  <Button type="button" variant="ghost" onClick={() => setIsManualModalOpen(false)} className="rounded-xl font-bold text-slate-600 w-full sm:w-auto">Batal</Button>
+                  <Button type="submit" disabled={isSavingManual} className="rounded-xl bg-slate-900 text-white font-bold px-6 sm:px-8 shadow-md w-full sm:w-auto">
                     {isSavingManual ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
                     Simpan Data
                   </Button>
@@ -959,41 +959,41 @@ export default function AlumniTab() {
       {/* --- MODAL WHATSAPP OPTIONS --- */}
       <AnimatePresence>
         {waPopupAlumni && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto bg-slate-900/50 backdrop-blur-xs">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col"
+              className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[92vh] my-auto"
             >
-              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-emerald-50/50">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-emerald-100 text-emerald-600 rounded-xl"><MessageCircle size={20} /></div>
+              <div className="p-4 sm:p-6 border-b border-slate-100 flex justify-between items-center bg-emerald-50/50 shrink-0">
+                <div className="flex items-center gap-2.5 sm:gap-3">
+                  <div className="p-1.5 sm:p-2 bg-emerald-100 text-emerald-600 rounded-lg sm:rounded-xl"><MessageCircle size={18} className="sm:w-5 sm:h-5" /></div>
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900">Hubungi Alumni</h3>
-                    <p className="text-sm text-slate-500">{waPopupAlumni.name}</p>
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900">Hubungi Alumni</h3>
+                    <p className="text-xs sm:text-sm text-slate-500">{waPopupAlumni.name}</p>
                   </div>
                 </div>
-                <button onClick={() => setWaPopupAlumni(null)} className="text-slate-400 hover:bg-slate-200 p-2 rounded-full transition-colors">
-                  <X size={20} />
+                <button onClick={() => setWaPopupAlumni(null)} className="text-slate-400 hover:bg-slate-200 p-1.5 sm:p-2 rounded-full transition-colors">
+                  <X size={18} className="sm:w-5 sm:h-5" />
                 </button>
               </div>
               
-              <div className="p-6 space-y-4 bg-slate-50/30">
+              <div className="p-4 sm:p-6 space-y-3 sm:space-y-4 bg-slate-50/30 overflow-y-auto custom-scrollbar">
                 <button 
                   onClick={() => {
                     const waNumber = formatWhatsAppNumber(waPopupAlumni.phone);
                     window.open(`https://wa.me/${waNumber}`, '_blank');
                     setWaPopupAlumni(null);
                   }}
-                  className="w-full flex items-start gap-4 p-4 bg-white border border-slate-200 rounded-2xl hover:border-emerald-300 hover:shadow-md transition-all group text-left"
+                  className="w-full flex items-start gap-3 sm:gap-4 p-3.5 sm:p-4 bg-white border border-slate-200 rounded-xl sm:rounded-2xl hover:border-emerald-300 hover:shadow-md transition-all group text-left"
                 >
-                  <div className="p-3 bg-slate-50 text-slate-500 group-hover:bg-emerald-50 group-hover:text-emerald-600 rounded-xl transition-colors shrink-0">
-                    <MessageCircle size={24} />
+                  <div className="p-2 sm:p-3 bg-slate-50 text-slate-500 group-hover:bg-emerald-50 group-hover:text-emerald-600 rounded-lg sm:rounded-xl transition-colors shrink-0">
+                    <MessageCircle size={20} className="sm:w-6 sm:h-6" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-800 group-hover:text-emerald-700">Kirim Pesan Biasa</h4>
-                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">Buka WhatsApp untuk mengobrol atau bertanya seperti biasa tanpa pesan otomatis.</p>
+                    <h4 className="font-bold text-sm sm:text-base text-slate-800 group-hover:text-emerald-700">Kirim Pesan Biasa</h4>
+                    <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 leading-relaxed">Buka WhatsApp untuk mengobrol atau bertanya seperti biasa tanpa pesan otomatis.</p>
                   </div>
                 </button>
 
@@ -1004,14 +1004,14 @@ export default function AlumniTab() {
                     window.open(`https://wa.me/${waNumber}?text=${message}`, '_blank');
                     setWaPopupAlumni(null);
                   }}
-                  className="w-full flex items-start gap-4 p-4 bg-white border border-slate-200 rounded-2xl hover:border-blue-300 hover:shadow-md transition-all group text-left"
+                  className="w-full flex items-start gap-3 sm:gap-4 p-3.5 sm:p-4 bg-white border border-slate-200 rounded-xl sm:rounded-2xl hover:border-blue-300 hover:shadow-md transition-all group text-left"
                 >
-                  <div className="p-3 bg-slate-50 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600 rounded-xl transition-colors shrink-0">
-                    <Key size={24} />
+                  <div className="p-2 sm:p-3 bg-slate-50 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600 rounded-lg sm:rounded-xl transition-colors shrink-0">
+                    <Key size={20} className="sm:w-6 sm:h-6" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-800 group-hover:text-blue-700">Kirim Instruksi Klaim Akun</h4>
-                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">Kirimkan langkah-langkah klaim akun dan <strong className="text-slate-700">Kode Registrasi</strong> secara otomatis agar alumni dapat melengkapi profilnya.</p>
+                    <h4 className="font-bold text-sm sm:text-base text-slate-800 group-hover:text-blue-700">Kirim Instruksi Klaim Akun</h4>
+                    <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 leading-relaxed">Kirimkan langkah-langkah klaim akun dan <strong className="text-slate-700">Kode Registrasi</strong> secara otomatis agar alumni dapat melengkapi profilnya.</p>
                   </div>
                 </button>
               </div>
