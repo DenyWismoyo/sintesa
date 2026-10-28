@@ -449,29 +449,29 @@ export default function ModalFormInvoice({ onClose, onSubmit, initialData, invoi
             className="fixed inset-y-0 right-0 z-[75] w-full max-w-[1300px] h-full bg-white shadow-2xl flex flex-col overflow-hidden border-l border-slate-200"
           >
             
-            <div className="px-8 py-5 flex items-center justify-between bg-white border-b border-slate-100 shrink-0">
-              <div className="flex items-center gap-4">
-                 <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shadow-inner">
-                   {initialData && !initialData.id ? <Copy className="w-6 h-6" /> : <ShoppingCart className="w-6 h-6" />}
+            <div className="px-4 py-3 sm:px-6 sm:py-4 md:px-8 md:py-5 flex items-center justify-between bg-white border-b border-slate-100 shrink-0">
+              <div className="flex items-center gap-3 sm:gap-4">
+                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shadow-inner shrink-0">
+                   {initialData && !initialData.id ? <Copy className="w-5 h-5 sm:w-6 sm:h-6" /> : <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />}
                  </div>
                  <div>
-                   <h2 className="text-xl font-black text-slate-800 tracking-tight">
+                   <h2 className="text-base sm:text-lg md:text-xl font-black text-slate-800 tracking-tight leading-tight">
                      {initialData ? (initialData.id ? `Revisi Tagihan` : `Duplikat Tagihan Baru`) : 'Penerbitan Tagihan (Invoice)'}
                    </h2>
-                   <p className="text-sm text-slate-500 font-medium mt-0.5">
+                   <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5 line-clamp-1">
                      {initialData ? (initialData.id ? `Ref ID: ${initialData.invoiceNumber}` : `Menyalin kerangka dari tagihan sebelumnya.`) : 'Lengkapi detail penagihan di bawah ini untuk dikirim.'}
                    </p>
                  </div>
               </div>
-              <button type="button" onClick={handleClose} className="p-2.5 bg-slate-50 hover:bg-slate-100 text-slate-500 rounded-full transition-colors">
-                <X className="w-5 h-5" />
+              <button type="button" onClick={handleClose} className="p-1.5 sm:p-2 bg-slate-50 hover:bg-slate-100 text-slate-500 rounded-full transition-colors shrink-0">
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
 
             <div className="flex flex-col lg:flex-row flex-1 overflow-hidden bg-slate-50/50">
               
-              <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
-                <form id="invoice-form" onSubmit={handleSubmit} className="space-y-6 max-w-4xl mx-auto">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 custom-scrollbar">
+                <form id="invoice-form" onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 max-w-4xl mx-auto">
                   
                   <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full md:w-auto">
@@ -927,55 +927,55 @@ export default function ModalFormInvoice({ onClose, onSubmit, initialData, invoi
                 </form>
               </div>
 
-              <div className="w-full lg:w-[400px] bg-white border-l border-slate-200 flex flex-col shrink-0 relative z-10 shadow-xl">
+              <div className="w-full lg:w-[400px] bg-white border-t lg:border-t-0 lg:border-l border-slate-200 flex flex-col shrink-0 relative z-10 shadow-xl">
                 
-                <div className="p-8 flex-1 flex flex-col bg-slate-50/30">
-                  <h3 className="text-sm font-black text-slate-800 tracking-tight border-b border-slate-200 pb-4 mb-6">Ringkasan Kalkulasi</h3>
+                <div className="p-4 sm:p-6 lg:p-8 flex-1 flex flex-col bg-slate-50/30">
+                  <h3 className="text-xs sm:text-sm font-black text-slate-800 tracking-tight border-b border-slate-200 pb-3 sm:pb-4 mb-4 sm:mb-6">Ringkasan Kalkulasi</h3>
                   
-                  <div className="space-y-5">
-                    <div className="flex justify-between items-center text-sm font-bold text-slate-500">
+                  <div className="space-y-4 sm:space-y-5">
+                    <div className="flex justify-between items-center text-xs sm:text-sm font-bold text-slate-500">
                       <span>Subtotal Biaya</span>
-                      <span className="font-black text-slate-800 text-base">Rp {subTotal.toLocaleString('id-ID')}</span>
+                      <span className="font-black text-slate-800 text-sm sm:text-base">Rp {subTotal.toLocaleString('id-ID')}</span>
                     </div>
 
-                    <div className="flex flex-col gap-2 pt-4 border-t border-slate-200">
+                    <div className="flex flex-col gap-1.5 sm:gap-2 pt-3 sm:pt-4 border-t border-slate-200">
                       <label className="text-xs font-bold text-slate-700">Potongan Harga (Diskon)</label>
                       <div className="relative">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">Rp</span>
-                        <input type="number" min="0" value={formData.discountAmount || ''} onChange={(e) => setFormData({...formData, discountAmount: parseInt(e.target.value) || 0})} className="w-full pl-10 pr-4 py-3 text-base font-bold bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-800 text-right transition-all shadow-sm" placeholder="0" />
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs sm:text-sm font-bold">Rp</span>
+                        <input type="number" min="0" value={formData.discountAmount || ''} onChange={(e) => setFormData({...formData, discountAmount: parseInt(e.target.value) || 0})} className="w-full pl-9 pr-3.5 py-2 sm:py-2.5 text-sm sm:text-base font-bold bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-800 text-right transition-all shadow-sm" placeholder="0" />
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-auto pt-8 border-t border-slate-200">
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Grand Total Tagihan</p>
-                    <p className="text-4xl font-black text-blue-700 tracking-tighter truncate" title={`Rp ${totalAmount.toLocaleString('id-ID')}`}>
+                  <div className="mt-4 sm:mt-auto pt-4 sm:pt-6 border-t border-slate-200">
+                    <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest mb-1 sm:mb-2">Grand Total Tagihan</p>
+                    <p className="text-2xl sm:text-3xl lg:text-4xl font-black text-blue-700 tracking-tighter truncate" title={`Rp ${totalAmount.toLocaleString('id-ID')}`}>
                       Rp {totalAmount.toLocaleString('id-ID')}
                     </p>
                     
                     {formData.term === 'DOWN_PAYMENT' && (
-                      <div className="mt-6 p-4 bg-indigo-50 rounded-xl border border-indigo-100 flex justify-between items-center shadow-sm">
-                        <span className="text-xs text-indigo-700 font-bold uppercase tracking-wider">Tagihan DP Pertama</span>
-                        <span className="text-lg font-black text-indigo-900">Rp {paymentConfig.dpAmount.toLocaleString('id-ID')}</span>
+                      <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-indigo-50 rounded-xl border border-indigo-100 flex justify-between items-center shadow-sm">
+                        <span className="text-[10px] sm:text-xs text-indigo-700 font-bold uppercase tracking-wider">Tagihan DP Pertama</span>
+                        <span className="text-base sm:text-lg font-black text-indigo-900">Rp {paymentConfig.dpAmount.toLocaleString('id-ID')}</span>
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div className="p-6 bg-white border-t border-slate-200 shrink-0 space-y-3">
+                <div className="p-4 sm:p-6 bg-white border-t border-slate-200 shrink-0 space-y-2 sm:space-y-3">
                   <button 
                     type="submit" 
                     form="invoice-form" 
                     disabled={loading || !!invoiceNumberError} 
-                    className="w-full py-4 bg-blue-600 text-white font-bold text-sm rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-70 flex justify-center items-center gap-2 shadow-lg shadow-blue-200"
+                    className="w-full py-3 sm:py-3.5 bg-blue-600 text-white font-bold text-xs sm:text-sm rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-70 flex justify-center items-center gap-2 shadow-lg shadow-blue-200"
                   >
-                    {loading ? <><Loader2 className="animate-spin w-5 h-5"/> Memproses Data...</> : (initialData && initialData.id ? 'Simpan Perubahan' : 'Terbitkan Dokumen Resmi')}
+                    {loading ? <><Loader2 className="animate-spin w-4 h-4 sm:w-5 sm:h-5"/> Memproses Data...</> : (initialData && initialData.id ? 'Simpan Perubahan' : 'Terbitkan Dokumen Resmi')}
                   </button>
                   <button 
                     type="button" 
                     onClick={handleClose} 
                     disabled={loading}
-                    className="w-full py-3.5 bg-white border border-slate-200 text-slate-700 font-bold text-sm rounded-xl hover:bg-slate-50 transition-colors"
+                    className="w-full py-2.5 sm:py-3 bg-white border border-slate-200 text-slate-700 font-bold text-xs sm:text-sm rounded-xl hover:bg-slate-50 transition-colors"
                   >
                     Batalkan
                   </button>

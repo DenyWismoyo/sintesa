@@ -170,42 +170,42 @@ Salam hangat,
             className="fixed inset-y-0 right-0 z-[75] w-full max-w-[1300px] h-full bg-slate-50 shadow-2xl flex flex-col md:flex-row overflow-hidden border-l border-slate-200 print:hidden"
           >
             
-            <div className="flex-1 overflow-y-auto p-4 md:p-10 custom-scrollbar flex justify-center items-start bg-slate-100/50">
-              <div className="bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-slate-200 relative w-full max-w-3xl min-h-full overflow-hidden">
+            <div className="flex-1 overflow-y-auto p-2 sm:p-4 md:p-10 custom-scrollbar flex justify-center items-start bg-slate-100/50">
+              <div className="bg-white p-4 sm:p-6 md:p-10 rounded-2xl shadow-sm border border-slate-200 relative w-full max-w-3xl min-h-full overflow-hidden">
                 
                 {invoice.status === 'PAID' && (
                   <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none z-0">
-                    <span className="text-[120px] font-black text-emerald-900 transform -rotate-45 tracking-widest">LUNAS</span>
+                    <span className="text-[80px] sm:text-[120px] font-black text-emerald-900 transform -rotate-45 tracking-widest">LUNAS</span>
                   </div>
                 )}
                 {invoice.status === 'CANCELLED' && (
                   <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none z-0">
-                    <span className="text-[100px] font-black text-red-900 transform -rotate-45 tracking-widest">BATAL</span>
+                    <span className="text-[70px] sm:text-[100px] font-black text-red-900 transform -rotate-45 tracking-widest">BATAL</span>
                   </div>
                 )}
 
                 <div className="relative z-10">
-                  <div className="flex justify-between items-start border-b border-slate-100 pb-8 mb-8">
-                    <div className="flex items-center gap-5">
-                      <img src="/image/LogoInvoice.png" alt="Logo" className="w-16 h-16 object-contain shrink-0" />
+                  <div className="flex flex-col sm:flex-row justify-between items-start border-b border-slate-100 pb-5 sm:pb-8 mb-5 sm:mb-8 gap-4 sm:gap-0">
+                    <div className="flex items-center gap-3 sm:gap-5">
+                      <img src="/image/LogoInvoice.png" alt="Logo" className="w-12 h-12 sm:w-16 sm:h-16 object-contain shrink-0" />
                       <div>
-                        <h1 className="text-2xl font-black text-slate-900 tracking-tight">SOLO TECHNOPARK</h1>
-                        <p className="text-sm text-slate-500 font-bold mt-1">Badan Layanan Umum Daerah (BLUD)</p>
-                        <p className="text-[11px] text-slate-400 mt-1.5 font-medium">Jl. Ki Hajar Dewantara No.19, Surakarta</p>
+                        <h1 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">SOLO TECHNOPARK</h1>
+                        <p className="text-xs sm:text-sm text-slate-500 font-bold mt-0.5 sm:mt-1">Badan Layanan Umum Daerah (BLUD)</p>
+                        <p className="text-[10px] sm:text-[11px] text-slate-400 mt-1 font-medium">Jl. Ki Hajar Dewantara No.19, Surakarta</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase">Invoice</h2>
-                      <p className="font-mono text-slate-500 text-sm font-bold mt-2 bg-slate-50 px-3 py-1 rounded-lg inline-block border border-slate-100">{invoice.invoiceNumber}</p>
+                    <div className="text-left sm:text-right">
+                      <h2 className="text-xl sm:text-3xl font-black text-slate-800 tracking-tight uppercase">Invoice</h2>
+                      <p className="font-mono text-slate-500 text-xs sm:text-sm font-bold mt-1 sm:mt-2 bg-slate-50 px-2.5 py-1 rounded-lg inline-block border border-slate-100">{invoice.invoiceNumber}</p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-8 mb-10">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 mb-6 sm:mb-10">
                     <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Ditagihkan Kepada:</p>
-                      <p className="font-black text-xl text-slate-900 leading-tight">{invoice.customerName}</p>
-                      <p className="text-xs font-bold text-blue-600 bg-blue-50 border border-blue-100 inline-block px-2.5 py-1 rounded-md mt-2">{invoice.customerType}</p>
-                      <div className="mt-3 space-y-1 text-sm font-medium text-slate-500">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 sm:mb-2">Ditagihkan Kepada:</p>
+                      <p className="font-black text-base sm:text-xl text-slate-900 leading-tight">{invoice.customerName}</p>
+                      <p className="text-[10px] sm:text-xs font-bold text-blue-600 bg-blue-50 border border-blue-100 inline-block px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md mt-1.5 sm:mt-2">{invoice.customerType}</p>
+                      <div className="mt-2 sm:mt-3 space-y-0.5 sm:space-y-1 text-xs sm:text-sm font-medium text-slate-500">
                         {invoice.customerEmail && <p>{invoice.customerEmail}</p>}
                         {invoice.customerPhone && <p>{invoice.customerPhone}</p>}
                       </div>

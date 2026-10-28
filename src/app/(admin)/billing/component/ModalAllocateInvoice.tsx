@@ -96,21 +96,21 @@ export default function ModalAllocateInvoice({ invoice, accounts, onClose, onAll
   };
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col border border-slate-100 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col border border-slate-100 max-h-[92vh] sm:max-h-[90vh] my-auto">
         
-        <div className="bg-gradient-to-r from-slate-800 to-slate-900 px-6 py-5 flex items-center justify-between text-white sticky top-0 z-10">
+        <div className="bg-gradient-to-r from-slate-800 to-slate-900 px-4 py-3 sm:px-6 sm:py-4 flex items-center justify-between text-white shrink-0 z-10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center"><Network className="w-5 h-5" /></div>
+            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-white/10 rounded-xl flex items-center justify-center shrink-0"><Network className="w-5 h-5" /></div>
             <div>
-              <h2 className="text-base font-black">Alokasi Rincian BAS</h2>
+              <h2 className="text-sm sm:text-base font-black">Alokasi Rincian BAS</h2>
               <p className="text-[10px] font-medium text-slate-300 uppercase tracking-widest mt-0.5">Validasi Back-Office</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-full transition-colors"><X size={18} /></button>
+          <button onClick={onClose} className="text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-full transition-colors cursor-pointer"><X size={18} /></button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto custom-scrollbar flex-1">
           <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl flex justify-between items-center">
             <div>
               <p className="text-[10px] font-bold text-slate-500 uppercase">Referensi Tagihan</p>

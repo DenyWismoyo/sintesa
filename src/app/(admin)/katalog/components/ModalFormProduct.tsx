@@ -274,7 +274,7 @@ export default function ModalFormProduct({ isOpen, onClose, onSubmit, initialDat
         </div>
 
         <form id="katalog-form" onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-          <div className="flex-1 overflow-y-auto p-3.5 sm:p-5 space-y-3.5 sm:space-y-4 no-scrollbar">
+          <div className="flex-1 overflow-y-auto p-3.5 sm:p-5 space-y-3.5 sm:space-y-4 custom-scrollbar">
             
             {/* --- TAB 1: INFO UTAMA (GRID 2 KOLOM DI DESKTOP) --- */}
             <div className={activeTab === 'info' ? 'block animate-in fade-in duration-200' : 'hidden'}>
