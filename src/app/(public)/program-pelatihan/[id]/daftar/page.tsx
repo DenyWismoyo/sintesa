@@ -241,7 +241,7 @@ export default function PendaftaranKelasPage() {
           date: today,
           dueDate: dueDate,
           status: 'PENDING' as const,
-          division: 'DIKLAT_PELATIHAN',
+          division: 'DIKLAT_PELATIHAN' as const,
           divisionPic: (training as any).instructor || 'Divisi Diklat STP',
           divisionRefNumber: regRes.registrationId || (training.id as string),
           referralCode: refCode || undefined,

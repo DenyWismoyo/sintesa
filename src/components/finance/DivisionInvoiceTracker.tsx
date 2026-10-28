@@ -3,6 +3,8 @@
 
 import React, { useState, useMemo } from 'react';
 import { useBilling } from '@/hooks/useBilling';
+import { useFinance } from '@/hooks/useFinance';
+import { useQueryClient } from '@tanstack/react-query';
 import { Invoice, InvoiceDivision, inferInvoiceDivision, INVOICE_DIVISION_CONFIG } from '@/types';
 import { formatRupiah } from '@/utils/format';
 import { 
@@ -13,7 +15,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import ModalInvoiceDetail from '@/app/(admin)/billing/component/ModalInvoiceDetail';
-import PrintKwitansiLayout, { downloadKwitansiPDF } from '@/app/(admin)/billing/component/PrintKwitansiLayout';
 import Link from 'next/link';
 
 interface Props {
@@ -31,7 +32,9 @@ export default function DivisionInvoiceTracker({
   refFilter,
   compact = false
 }: Props) {
-  const { invoices, loading, refetch } = useBilling();
+  const { invoices, loading } = useBilling();
+  const { accounts } = useFinance();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   
@@ -141,7 +144,10 @@ export default function DivisionInvoiceTracker({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => refetch()}
+              onClick={() => {
+                queryClient.invalidateQueries({ queryKey: ['invoices'] });
+                toast.success('Data tagihan berhasil disegarkan');
+              }}
               disabled={loading}
               className="text-xs h-8 gap-1.5"
             >
@@ -334,10 +340,7 @@ export default function DivisionInvoiceTracker({
             setSelectedInvoice(null);
           }}
           invoice={selectedInvoice}
-          onEdit={() => {}}
-          onDelete={() => {}}
-          onRecordPayment={() => {}}
-          onAllocateBAS={() => {}}
+          accounts={accounts || []}
         />
       )}
     </div>
