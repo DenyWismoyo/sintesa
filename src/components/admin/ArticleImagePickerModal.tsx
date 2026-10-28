@@ -119,29 +119,29 @@ export default function ArticleImagePickerModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="relative w-full max-w-4xl max-h-[90vh] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-slate-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="relative w-full max-w-4xl max-h-[92vh] sm:max-h-[88vh] my-auto bg-white rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-slate-200">
         
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-5 sm:p-6 border-b border-slate-100 bg-slate-50/50">
+        <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-100 bg-slate-50/50 shrink-0">
           <div>
-            <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 bg-amber-100/80 px-2.5 py-0.5 rounded-full mb-1">
-              <Sparkles size={12} className="text-amber-600" />
+            <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-amber-800 bg-amber-100/80 px-2 sm:px-2.5 py-0.5 rounded-full mb-0.5 sm:mb-1">
+              <Sparkles size={11} className="text-amber-600" />
               Integrasi Gambar Master Data
             </div>
-            <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
-              Pilih Gambar dari Pelatihan, Katalog, atau Fasilitas
+            <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+              Pilih Gambar dari Master Data
             </h3>
-            <p className="text-xs text-slate-500">
+            <p className="text-[11px] sm:text-xs text-slate-500">
               Pilih gambar yang sudah ada di sistem agar konten artikel serasi dan relevan.
             </p>
           </div>
           <button 
             onClick={onClose}
             aria-label="Tutup"
-            className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer shrink-0"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
 

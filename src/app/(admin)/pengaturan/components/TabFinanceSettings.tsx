@@ -700,24 +700,24 @@ function ModalFormAccount({ onClose, onSubmit, initialData, allAccounts, prefill
   const labelClass = "text-xs font-bold text-slate-700 mb-2 block uppercase tracking-wider";
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden flex flex-col border border-slate-100 max-h-[95vh]">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-xl max-h-[92vh] sm:max-h-[88vh] my-auto overflow-hidden flex flex-col border border-slate-100">
         
-        <div className="bg-white border-b border-slate-100 px-6 py-5 flex items-center justify-between z-10 shrink-0">
+        <div className="bg-white border-b border-slate-100 px-4 py-3 sm:px-6 sm:py-4 flex items-center justify-between z-10 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center"><Landmark className="w-5 h-5" /></div>
+            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0"><Landmark className="w-5 h-5" /></div>
             <div>
-              <h2 className="text-base font-black text-slate-800">
+              <h2 className="text-sm sm:text-base font-black text-slate-800">
                 {isEditing ? 'Edit Kode Rekening' : (prefilledParentId ? 'Tambah Sub-Kegiatan Cepat' : 'Tambah Rekening Baru')}
               </h2>
               <p className="text-[10px] font-bold text-slate-500 uppercase">Manajemen Hierarki BAS</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 bg-slate-50 hover:bg-slate-100 p-2 rounded-full transition-colors"><X size={18} /></button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 bg-slate-50 hover:bg-slate-100 p-2 rounded-full transition-colors cursor-pointer"><X size={18} /></button>
         </div>
 
-        <div className="overflow-y-auto custom-scrollbar">
-          <form id="accountForm" onSubmit={handleSubmit} className="p-6 space-y-6">
+        <div className="overflow-y-auto custom-scrollbar flex-1">
+          <form id="accountForm" onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
             
             {initialData?.isSystem && (
               <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2.5 text-amber-700">
@@ -812,8 +812,8 @@ function ModalFormAccount({ onClose, onSubmit, initialData, allAccounts, prefill
           </form>
         </div>
 
-        <div className="p-6 bg-white border-t border-slate-100 shrink-0">
-          <button type="submit" form="accountForm" disabled={loading} className="w-full flex items-center justify-center gap-2 py-4 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-70">
+        <div className="p-4 sm:p-6 bg-white border-t border-slate-100 shrink-0">
+          <button type="submit" form="accountForm" disabled={loading} className="w-full flex items-center justify-center gap-2 py-3 sm:py-3.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-70 cursor-pointer">
             {loading ? <Loader2 className="animate-spin w-5 h-5"/> : 'Simpan Data'}
           </button>
         </div>

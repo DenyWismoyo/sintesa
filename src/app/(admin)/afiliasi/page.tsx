@@ -412,21 +412,21 @@ export default function AfiliasPage() {
 
       {/* Modal: Setujui Mitra */}
       {approveModal?.open && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-            <h3 className="font-black text-slate-900 mb-1">Setujui Mitra Afiliasi</h3>
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 w-full max-w-md max-h-[92vh] sm:max-h-[88vh] my-auto shadow-2xl overflow-y-auto custom-scrollbar border border-slate-100 flex flex-col">
+            <h3 className="text-base sm:text-lg font-black text-slate-900 mb-1">Setujui Mitra Afiliasi</h3>
             <p className="text-xs text-slate-500 mb-4">Mitra: <strong>{approveModal.partner.fullName}</strong></p>
             <p className="text-xs text-slate-500 mb-1">Kode referral otomatis: <code className="font-mono text-indigo-600">{approveModal.partner.referralCode}</code></p>
             <label className="block text-xs font-bold text-slate-700 mt-3 mb-1">Kode Kustom (opsional)</label>
             <input value={customCode} onChange={e => setCustomCode(e.target.value.toUpperCase())}
               placeholder={`e.g. STP-${approveModal.partner.fullName.split(' ')[0].toUpperCase()}`}
               className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/20 mb-4" />
-            <div className="flex gap-3">
+            <div className="flex gap-2.5 sm:gap-3 mt-auto">
               <button onClick={handleApprove} disabled={affSubmitting}
-                className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-bold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2">
+                className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-bold py-2.5 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer">
                 {affSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Setujui
               </button>
-              <button onClick={() => setApproveModal(null)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-sm">Batal</button>
+              <button onClick={() => setApproveModal(null)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs sm:text-sm cursor-pointer">Batal</button>
             </div>
           </div>
         </div>
@@ -434,20 +434,20 @@ export default function AfiliasPage() {
 
       {/* Modal: Tolak Mitra */}
       {rejectModal?.open && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-            <h3 className="font-black text-slate-900 mb-1">Tolak Pendaftaran</h3>
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 w-full max-w-md max-h-[92vh] sm:max-h-[88vh] my-auto shadow-2xl overflow-y-auto custom-scrollbar border border-slate-100 flex flex-col">
+            <h3 className="text-base sm:text-lg font-black text-slate-900 mb-1">Tolak Pendaftaran</h3>
             <p className="text-xs text-slate-500 mb-4">Mitra: <strong>{rejectModal.name}</strong></p>
             <label className="block text-xs font-bold text-slate-700 mb-1">Alasan Penolakan *</label>
             <textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)} rows={3}
               placeholder="Jelaskan alasan penolakan kepada calon mitra..." 
               className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 mb-4 resize-none" />
-            <div className="flex gap-3">
+            <div className="flex gap-2.5 sm:gap-3 mt-auto">
               <button onClick={handleReject} disabled={affSubmitting || !rejectReason.trim()}
-                className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-bold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2">
+                className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-bold py-2.5 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer">
                 {affSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />} Tolak
               </button>
-              <button onClick={() => setRejectModal(null)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-sm">Batal</button>
+              <button onClick={() => setRejectModal(null)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs sm:text-sm cursor-pointer">Batal</button>
             </div>
           </div>
         </div>
@@ -455,9 +455,9 @@ export default function AfiliasPage() {
 
       {/* Modal: Konfirmasi Pencairan */}
       {payoutModal?.open && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-            <h3 className="font-black text-slate-900 mb-1">Konfirmasi Transfer</h3>
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 w-full max-w-md max-h-[92vh] sm:max-h-[88vh] my-auto shadow-2xl overflow-y-auto custom-scrollbar border border-slate-100 flex flex-col">
+            <h3 className="text-base sm:text-lg font-black text-slate-900 mb-1">Konfirmasi Transfer</h3>
             <p className="text-xs text-slate-500 mb-4">
               {formatRupiah(payoutModal.payout.amount)} ke <strong>{payoutModal.payout.accountHolderName}</strong><br />
               {payoutModal.payout.bankName} · {payoutModal.payout.accountNumber}
@@ -479,12 +479,12 @@ export default function AfiliasPage() {
             <input value={adminNotes} onChange={e => setAdminNotes(e.target.value)}
               placeholder="e.g. Transfer via BCA 14:30"
               className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 mb-4" />
-            <div className="flex gap-3">
+            <div className="flex gap-2.5 sm:gap-3 mt-auto">
               <button onClick={handleProcessPayout} disabled={isUploading || !proofFile}
-                className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-bold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2">
+                className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-bold py-2.5 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer">
                 {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Konfirmasi
               </button>
-              <button onClick={() => setPayoutModal(null)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-sm">Batal</button>
+              <button onClick={() => setPayoutModal(null)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs sm:text-sm cursor-pointer">Batal</button>
             </div>
           </div>
         </div>

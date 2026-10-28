@@ -308,17 +308,17 @@ export default function TabKeamanan() {
 
       {/* OVERLAY MODAL KONFIRMASI CERDAS */}
       {confirmDialog && confirmDialog.isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col border border-slate-100">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-md max-h-[92vh] sm:max-h-[88vh] my-auto overflow-hidden flex flex-col border border-slate-100">
             
             {/* Header Modal Dinamis (Cerdas) */}
-            <div className={`px-6 py-5 flex items-center justify-between border-b ${
+            <div className={`px-4 py-3 sm:px-6 sm:py-4 flex items-center justify-between border-b shrink-0 ${
               confirmDialog.newRole === APP_ROLES.SUPER_ADMIN ? 'bg-red-50 border-red-100' : 
               confirmDialog.newRole === APP_ROLES.PUBLIC ? 'bg-amber-50 border-amber-100' : 
               'bg-blue-50 border-blue-100'
             }`}>
               <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 ${
                   confirmDialog.newRole === APP_ROLES.SUPER_ADMIN ? 'bg-red-100 text-red-600' : 
                   confirmDialog.newRole === APP_ROLES.PUBLIC ? 'bg-amber-100 text-amber-600' : 
                   'bg-blue-100 text-blue-600'
@@ -346,18 +346,18 @@ export default function TabKeamanan() {
             </div>
 
             {/* Isi Konten Pesan */}
-            <div className="p-6 space-y-4 text-sm text-slate-600">
+            <div className="p-4 sm:p-6 space-y-4 text-xs sm:text-sm text-slate-600 overflow-y-auto custom-scrollbar flex-1">
               <p>Anda akan mengubah wewenang (Role) untuk akun berikut:</p>
               
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+              <div className="p-3.5 sm:p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
                 <div className="flex justify-between items-center border-b border-slate-200 pb-2">
                   <span className="font-bold text-slate-400 text-xs">Nama Staf</span>
                   <span className="font-black text-slate-800">{confirmDialog.userName}</span>
                 </div>
                 <div className="flex justify-between items-center pt-1 gap-4">
-                  <span className="font-semibold text-slate-500 flex-1 line-through">{ROLE_LABELS[confirmDialog.currentRole] || 'Pengguna Umum'}</span>
+                  <span className="font-semibold text-slate-500 flex-1 line-through text-xs">{ROLE_LABELS[confirmDialog.currentRole] || 'Pengguna Umum'}</span>
                   <div className="flex-shrink-0 bg-blue-100 px-2 py-0.5 rounded text-blue-600 font-bold text-xs">Menjadi</div>
-                  <span className="font-black text-slate-900 flex-1 text-right">{ROLE_LABELS[confirmDialog.newRole]}</span>
+                  <span className="font-black text-slate-900 flex-1 text-right text-xs">{ROLE_LABELS[confirmDialog.newRole]}</span>
                 </div>
               </div>
 
@@ -381,16 +381,16 @@ export default function TabKeamanan() {
             </div>
 
             {/* Tombol Aksi Bawah */}
-            <div className="p-5 bg-slate-50 border-t border-slate-100 flex gap-3">
+            <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-100 flex gap-2.5 sm:gap-3 shrink-0">
               <button 
                 onClick={() => setConfirmDialog(null)} 
-                className="flex-1 px-4 py-2.5 bg-white border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-100 transition-colors"
+                className="flex-1 px-4 py-2.5 bg-white border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-100 transition-colors text-xs sm:text-sm cursor-pointer"
               >
                 Batal
               </button>
               <button 
                 onClick={executeRoleChange} 
-                className={`flex-1 px-4 py-2.5 font-bold rounded-xl text-white transition-all shadow-sm ${
+                className={`flex-1 px-4 py-2.5 font-bold rounded-xl text-white transition-all shadow-sm text-xs sm:text-sm cursor-pointer ${
                   confirmDialog.newRole === APP_ROLES.SUPER_ADMIN ? 'bg-red-600 hover:bg-red-700 shadow-red-200' : 
                   confirmDialog.newRole === APP_ROLES.PUBLIC ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-200' : 
                   'bg-blue-600 hover:bg-blue-700 shadow-blue-200'

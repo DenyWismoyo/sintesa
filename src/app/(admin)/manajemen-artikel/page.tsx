@@ -666,33 +666,33 @@ export default function ManajemenArtikelPage() {
 
       {/* 5. MODAL FORM EDITOR ARTIKEL & SMART CTA */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="w-full sm:max-w-[850px] p-0 overflow-hidden bg-white sm:rounded-3xl border-0 shadow-2xl max-h-[92vh] flex flex-col focus:outline-none">
+        <DialogContent className="w-[96vw] sm:max-w-[850px] p-0 overflow-hidden bg-white rounded-2xl sm:rounded-3xl border-0 shadow-2xl max-h-[92vh] sm:max-h-[90vh] flex flex-col focus:outline-none">
           <DialogTitle className="sr-only">Editor Artikel Solo Technopark</DialogTitle>
           
           {/* Header Dialog */}
-          <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
+          <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
             <div className="flex items-center gap-2.5">
-              <span className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+              <span className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
                 <Newspaper size={18} />
               </span>
               <div>
-                <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+                <h2 className="text-sm sm:text-lg font-black text-slate-900 tracking-tight">
                   {editingId ? 'Edit Artikel' : 'Tulis Artikel & Warta Baru'}
                 </h2>
-                <p className="text-xs text-slate-500 font-normal">Buat artikel edukatif dan tautkan Smart CTA ke layanan Anda.</p>
+                <p className="text-[11px] sm:text-xs text-slate-500 font-normal">Buat artikel edukatif dan tautkan Smart CTA ke layanan Anda.</p>
               </div>
             </div>
 
             <button 
               onClick={() => setIsModalOpen(false)}
-              className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors"
+              className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors cursor-pointer"
             >
               <X size={16} />
             </button>
           </div>
 
           {/* Form Scrollable Body */}
-          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6 no-scrollbar">
+          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6 custom-scrollbar">
             
             {/* Bagian 1: Judul & Slug */}
             <div className="space-y-4">
@@ -1128,19 +1128,19 @@ export default function ManajemenArtikelPage() {
             </div>
 
             {/* Tombol Simpan Footer */}
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+            <div className="pt-3 sm:pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5 shrink-0">
               <Button 
                 type="button" 
                 variant="outline" 
                 onClick={() => setIsModalOpen(false)}
-                className="rounded-full px-5 h-11 text-xs font-bold"
+                className="rounded-full px-4 sm:px-5 h-10 sm:h-11 text-xs font-bold cursor-pointer"
               >
                 Batal
               </Button>
               <Button 
                 type="submit" 
                 disabled={isSubmitting}
-                className="rounded-full px-7 h-11 text-xs font-bold bg-slate-900 hover:bg-amber-500 hover:shadow-amber-500/25 text-white transition-all shadow-sm"
+                className="rounded-full px-5 sm:px-7 h-10 sm:h-11 text-xs font-bold bg-slate-900 hover:bg-amber-500 hover:shadow-amber-500/25 text-white transition-all shadow-sm cursor-pointer"
               >
                 {isSubmitting ? 'Menyimpan...' : (editingId ? 'Simpan Perubahan' : 'Terbitkan Artikel')}
               </Button>
@@ -1153,11 +1153,11 @@ export default function ManajemenArtikelPage() {
       {/* 6. MODAL KONFIRMASI HAPUS */}
       {deleteConfirmId && (
         <Dialog open={Boolean(deleteConfirmId)} onOpenChange={() => setDeleteConfirmId(null)}>
-          <DialogContent className="max-w-md p-6 bg-white rounded-3xl border-0 shadow-2xl">
-            <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
-              <AlertCircle size={24} />
+          <DialogContent className="w-[92vw] sm:max-w-md p-5 sm:p-6 bg-white rounded-2xl sm:rounded-3xl border-0 shadow-2xl">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mb-3 sm:mb-4">
+              <AlertCircle size={22} />
             </div>
-            <DialogTitle className="text-lg font-black text-slate-900 mb-2">Hapus Artikel Ini?</DialogTitle>
+            <DialogTitle className="text-base sm:text-lg font-black text-slate-900 mb-2">Hapus Artikel Ini?</DialogTitle>
             <p className="text-xs text-slate-500 leading-relaxed mb-6 font-normal">
               Artikel yang telah dihapus tidak dapat dipulihkan. Apakah Anda yakin ingin melanjutkan?
             </p>

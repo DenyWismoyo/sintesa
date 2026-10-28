@@ -266,19 +266,19 @@ export default function ManajemenFAQPage() {
 
       {/* MODAL FORM DINAMIS */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/40 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
-          <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-3xl overflow-hidden my-auto max-h-[92vh] sm:max-h-[90vh] flex flex-col border border-slate-100 animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden my-auto max-h-[92vh] sm:max-h-[88vh] flex flex-col border border-slate-100 animate-in zoom-in-95 duration-200">
             
-            <div className="px-4 sm:px-8 py-4 sm:py-6 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-md shrink-0">
+            <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-md shrink-0">
               <div>
-                <h3 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight">{editingId ? 'Edit Data FAQ' : 'Tambah FAQ Baru'}</h3>
-                <p className="text-xs sm:text-sm font-medium text-slate-500 mt-0.5">Isi pertanyaan dan jawaban yang jelas untuk pengguna.</p>
+                <h3 className="text-base sm:text-lg font-black text-slate-800 tracking-tight">{editingId ? 'Edit Data FAQ' : 'Tambah FAQ Baru'}</h3>
+                <p className="text-xs font-medium text-slate-500 mt-0.5">Isi pertanyaan dan jawaban yang jelas untuk pengguna.</p>
               </div>
-              <button onClick={handleCloseModal} className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 p-2 sm:p-2.5 rounded-full transition-colors"><XCircle size={22} /></button>
+              <button onClick={handleCloseModal} className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 p-2 rounded-full transition-colors cursor-pointer"><XCircle size={20} /></button>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-4 sm:p-8 overflow-y-auto custom-scrollbar bg-slate-50/50 flex-1">
-              <div className="space-y-6">
+            <form onSubmit={handleSubmit} className="p-4 sm:p-6 overflow-y-auto custom-scrollbar bg-slate-50/50 flex-1">
+              <div className="space-y-4 sm:space-y-5">
                 
                 {/* Switcher Pin */}
                 <div className="flex items-center justify-between p-5 bg-amber-50 border border-amber-200 rounded-2xl shadow-sm">
