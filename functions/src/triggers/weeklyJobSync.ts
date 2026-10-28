@@ -160,7 +160,7 @@ export const weeklyJobSyncScheduler = onSchedule(
 
     // Auto-rebuild Master Cache dokumen artifacts/blud-app-dev/public/data/cache_jobs/master
     try {
-      const snapAll = await db.collection("jobs").orderBy("postedAt", "desc").limit(250).get();
+      const snapAll = await db.collection("jobs").orderBy("postedAt", "desc").limit(1000).get();
       const compressedJobs: any[] = [];
       snapAll.forEach((docSnap) => {
         const d = docSnap.data();
@@ -176,7 +176,7 @@ export const weeklyJobSyncScheduler = onSchedule(
           workType: d.workType || "Full-time",
           workSetup: d.workSetup || "On-site",
           experienceLevel: d.experienceLevel || "Fresh Graduate / Alumni Pelatihan",
-          description: d.description ? d.description.substring(0, 1500) : "",
+          description: d.description ? d.description.substring(0, 800) : "",
           skills: Array.isArray(d.skills) ? d.skills : [],
           relevantTrainingPrograms: Array.isArray(d.relevantTrainingPrograms) ? d.relevantTrainingPrograms : [],
           applicationUrl: d.applicationUrl || null,
@@ -188,13 +188,45 @@ export const weeklyJobSyncScheduler = onSchedule(
         });
       });
 
-      await db.collection("artifacts/blud-app-dev/public/data/cache_jobs").doc("master").set({
-        lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
-        count: compressedJobs.length,
-        lastSyncedAt: now,
-        nextSyncAt,
-        data: compressedJobs,
-      });
+      const CHUNK_SIZE = 80;
+      const cacheColRef = db.collection("artifacts/blud-app-dev/public/data/cache_jobs");
+      const masterDocRef = cacheColRef.doc("master");
+
+      if (compressedJobs.length <= CHUNK_SIZE) {
+        await masterDocRef.set({
+          lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+          count: compressedJobs.length,
+          lastSyncedAt: now,
+          nextSyncAt,
+          isChunked: false,
+          data: compressedJobs,
+        }, { merge: true });
+      } else {
+        const totalChunks = Math.ceil(compressedJobs.length / CHUNK_SIZE);
+        const chunkIds: string[] = [];
+
+        for (let i = 0; i < totalChunks; i++) {
+          const chunkId = `chunk_${i}`;
+          chunkIds.push(chunkId);
+          const chunkData = compressedJobs.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+          await cacheColRef.doc(chunkId).set({
+            index: i,
+            count: chunkData.length,
+            data: chunkData,
+            lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+          }, { merge: true });
+        }
+
+        await masterDocRef.set({
+          lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+          count: compressedJobs.length,
+          lastSyncedAt: now,
+          nextSyncAt,
+          isChunked: true,
+          totalChunks,
+          chunkIds,
+        }, { merge: true });
+      }
 
       console.log(`[Weekly Job Sync] Master Cache berhasil diperbarui otomatis (${compressedJobs.length} lowongan).`);
     } catch (cacheErr) {

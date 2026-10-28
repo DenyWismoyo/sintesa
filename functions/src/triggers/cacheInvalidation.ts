@@ -297,3 +297,91 @@ export const onAlumniWrittenInvalidateCache = onDocumentWritten("alumnis/{alumni
     return false;
   }
 });
+
+/**
+ * P17: Trigger otomatis saat ada dokumen lowongan kerja dibuat, diubah, atau dihapus di root 'jobs/{jobId}'.
+ * Menjamin master cache bursa karir (/cache_jobs/master) selalu sinkron dengan chunked caching otomatis.
+ */
+export const onJobWrittenInvalidateCache = onDocumentWritten("jobs/{jobId}", async (event) => {
+  try {
+    const snapshot = await db.collection('jobs').orderBy('postedAt', 'desc').limit(1000).get();
+    const compressedJobs: any[] = [];
+
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      compressedJobs.push({
+        id: docSnap.id,
+        slug: data.slug || docSnap.id,
+        title: data.title || '',
+        company: data.company || '',
+        companyLogo: data.companyLogo || null,
+        companyWebsite: data.companyWebsite || null,
+        companyType: data.companyType || 'Startup / Industri',
+        category: data.category || 'IT & Rekayasa Perangkat Lunak',
+        location: data.location || 'Indonesia',
+        city: data.city || '',
+        workType: data.workType || 'Full-time',
+        workSetup: data.workSetup || 'On-site',
+        experienceLevel: data.experienceLevel || 'Fresh Graduate / Alumni Pelatihan',
+        salary: data.salary || { currency: 'IDR', period: 'Bulan', isNegotiable: true, isDisclosed: false },
+        description: data.description ? data.description.substring(0, 800) : '',
+        responsibilities: Array.isArray(data.responsibilities) ? data.responsibilities.slice(0, 3) : [],
+        skills: Array.isArray(data.skills) ? data.skills : [],
+        relevantTrainingPrograms: Array.isArray(data.relevantTrainingPrograms) ? data.relevantTrainingPrograms : [],
+        applicationUrl: data.applicationUrl || null,
+        applicationEmail: data.applicationEmail || null,
+        applySource: data.applySource || 'STP Career Portal',
+        source: data.source || 'jsearch_realtime',
+        isStpPartner: Boolean(data.isStpPartner),
+        isFeatured: Boolean(data.isFeatured),
+        postedAt: data.postedAt || Date.now(),
+        deadlineAt: data.deadlineAt || (Date.now() + 30 * 24 * 60 * 60 * 1000),
+        firstSeenAt: data.firstSeenAt || data.postedAt || Date.now(),
+        lastSeenAt: data.lastSeenAt || Date.now(),
+        isActive: data.isActive !== false,
+      });
+    });
+
+    const CHUNK_SIZE = 80;
+    const cacheColRef = db.collection(`artifacts/${DEFAULT_APP_ID}/public/data/cache_jobs`);
+    const masterDocRef = cacheColRef.doc('master');
+
+    if (compressedJobs.length <= CHUNK_SIZE) {
+      await masterDocRef.set({
+        lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+        count: compressedJobs.length,
+        isChunked: false,
+        data: compressedJobs,
+      }, { merge: true });
+    } else {
+      const totalChunks = Math.ceil(compressedJobs.length / CHUNK_SIZE);
+      const chunkIds: string[] = [];
+
+      for (let i = 0; i < totalChunks; i++) {
+        const chunkId = `chunk_${i}`;
+        chunkIds.push(chunkId);
+        const chunkData = compressedJobs.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+        await cacheColRef.doc(chunkId).set({
+          index: i,
+          count: chunkData.length,
+          data: chunkData,
+          lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+        }, { merge: true });
+      }
+
+      await masterDocRef.set({
+        lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+        count: compressedJobs.length,
+        isChunked: true,
+        totalChunks,
+        chunkIds,
+      }, { merge: true });
+    }
+
+    console.log(`[AUTO CACHE JOBS] Master cache lowongan karir berhasil di-update secara otomatis (${compressedJobs.length} loker).`);
+    return true;
+  } catch (error) {
+    console.error("[AUTO CACHE JOBS ERROR]", error);
+    return false;
+  }
+});

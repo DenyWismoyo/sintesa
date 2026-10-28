@@ -7,8 +7,8 @@ const db = admin.firestore();
 
 /**
  * Callable Function: Rebuild Master Cache untuk Bursa Karir.
- * Menyimpan seluruh lowongan aktif & terarsip ke dalam 1 dokumen tunggal:
- * `artifacts/{appId}/public/data/cache_jobs` doc `master`
+ * Mendukung arsitektur Chunked Cache untuk menghindari batas 1MB Firestore per dokumen.
+ * Path: `artifacts/{appId}/public/data/cache_jobs` doc `master` & `chunk_X`
  * Mengikuti aturan keamanan R-006 & R-009 (Role: super_admin / admin / internal_staff).
  */
 export const rebuildJobMasterCache = onCall(async (request) => {
@@ -23,7 +23,7 @@ export const rebuildJobMasterCache = onCall(async (request) => {
   const appId = request.data?.appId || 'blud-app-dev';
 
   try {
-    const snapshot = await db.collection('jobs').orderBy('postedAt', 'desc').limit(250).get();
+    const snapshot = await db.collection('jobs').orderBy('postedAt', 'desc').limit(1000).get();
     const compressedJobs: any[] = [];
 
     snapshot.forEach((docSnap) => {
@@ -43,9 +43,8 @@ export const rebuildJobMasterCache = onCall(async (request) => {
         workSetup: data.workSetup || 'On-site',
         experienceLevel: data.experienceLevel || 'Fresh Graduate / Alumni Pelatihan',
         salary: data.salary || { currency: 'IDR', period: 'Bulan', isNegotiable: true, isDisclosed: false },
-        description: data.description ? data.description.substring(0, 1500) : '',
-        responsibilities: Array.isArray(data.responsibilities) ? data.responsibilities.slice(0, 5) : [],
-        qualifications: Array.isArray(data.qualifications) ? data.qualifications.slice(0, 6) : [],
+        description: data.description ? data.description.substring(0, 800) : '',
+        responsibilities: Array.isArray(data.responsibilities) ? data.responsibilities.slice(0, 3) : [],
         skills: Array.isArray(data.skills) ? data.skills : [],
         relevantTrainingPrograms: Array.isArray(data.relevantTrainingPrograms) ? data.relevantTrainingPrograms : [],
         applicationUrl: data.applicationUrl || null,
@@ -62,21 +61,48 @@ export const rebuildJobMasterCache = onCall(async (request) => {
       });
     });
 
-    const cachePayload = {
-      lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
-      count: compressedJobs.length,
-      data: compressedJobs,
-    };
+    const CHUNK_SIZE = 80;
+    const cacheColRef = db.collection(`artifacts/${appId}/public/data/cache_jobs`);
+    const masterDocRef = cacheColRef.doc('master');
 
-    const sizeKB = Buffer.byteLength(JSON.stringify(cachePayload), 'utf8') / 1024;
-    if (sizeKB > 850) {
-      console.warn(`[JOB CACHE WARNING] Ukuran cache ${sizeKB.toFixed(1)} KB mendekati batas 1MB Firestore.`);
+    if (compressedJobs.length <= CHUNK_SIZE) {
+      const cachePayload = {
+        lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+        count: compressedJobs.length,
+        isChunked: false,
+        data: compressedJobs,
+      };
+      await masterDocRef.set(cachePayload, { merge: true });
+      console.log(`[JOB CACHE] Single master cache tersimpan (${compressedJobs.length} lowongan).`);
+      return { success: true, count: compressedJobs.length, isChunked: false, chunks: 1 };
     }
 
-    await db.collection(`artifacts/${appId}/public/data/cache_jobs`).doc('master').set(cachePayload);
+    // Chunked Cache (>80 lowongan untuk keamanan mutlak di bawah batas 1MB per dokumen)
+    const totalChunks = Math.ceil(compressedJobs.length / CHUNK_SIZE);
+    const chunkIds: string[] = [];
 
-    console.log(`[JOB CACHE] Berhasil kompresi & rebuild ${compressedJobs.length} lowongan (${sizeKB.toFixed(1)} KB) di artifacts/${appId}.`);
-    return { success: true, count: compressedJobs.length, sizeKB: sizeKB.toFixed(1) };
+    for (let i = 0; i < totalChunks; i++) {
+      const chunkId = `chunk_${i}`;
+      chunkIds.push(chunkId);
+      const chunkData = compressedJobs.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+      await cacheColRef.doc(chunkId).set({
+        index: i,
+        count: chunkData.length,
+        data: chunkData,
+        lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+      }, { merge: true });
+    }
+
+    await masterDocRef.set({
+      lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+      count: compressedJobs.length,
+      isChunked: true,
+      totalChunks,
+      chunkIds,
+    }, { merge: true });
+
+    console.log(`[JOB CACHE] Chunked master cache berhasil di-update (${compressedJobs.length} lowongan dalam ${totalChunks} chunks).`);
+    return { success: true, count: compressedJobs.length, isChunked: true, chunks: totalChunks };
 
   } catch (error: any) {
     console.error("[JOB CACHE ERROR]", error);
