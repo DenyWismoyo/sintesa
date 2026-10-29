@@ -28,3 +28,4 @@ Direktori ini berisi seluruh panduan operasional sistem **Sintesa (Solo Technopa
 ### 📖 Rujukan Desain & Arsitektur
 Blueprint lengkap mengenai audit sistem, matriks permissions RBAC, serta roadmap pengerjaan sprint dapat dipelajari di:  
 👉 [`public/docs/blueprint-audit-dan-roadmap-panduan-role.md`](../docs/blueprint-audit-dan-roadmap-panduan-role.md)
+

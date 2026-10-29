@@ -172,11 +172,11 @@ flowchart LR
 ### 🏁 SPRINT 1: Fondasi Peta Akses & Panduan Pimpinan Eksekutif
 **Fokus Utama:** Menyiapkan navigasi induk panduan dan panduan operasional pimpinan tertinggi BLUD.
 
-- [ ] **Tugas 1.1 — Indeks Peta Panduan (`00-INDEX-PANDUAN-SISTEM-SINTESA.md`):**
+- [x] **Tugas 1.1 — Indeks Peta Panduan (`00-INDEX-PANDUAN-SISTEM-SINTESA.md`):**
   - Matriks perbandingan hak akses 20 role secara tabular.
   - Peta arsitektur rute web dan single-sign-on (SSO).
   - Tautan navigasi langsung ke masing-masing berkas panduan.
-- [ ] **Tugas 1.2 — Panduan Super Administrator & Pimpinan (`01-PANDUAN-SUPER-ADMIN-DAN-PIMPINAN.md`):**
+- [x] **Tugas 1.2 — Panduan Super Administrator & Pimpinan (`01-PANDUAN-SUPER-ADMIN-DAN-PIMPINAN.md`):**
   - Panduan tata kelola pengguna & RBAC role di `/pengaturan` (Tab Keamanan).
   - Panduan konfigurasi global di `/pengaturan` (Tab Sistem: Pengumuman Bar, Jam Operasional, Helpdesk).
   - Panduan pemantauan Dashboard Eksekutif (`/dashboard`: okupansi aset, pendapatan BLUD, serapan alumni, traksi tenant).
@@ -187,16 +187,16 @@ flowchart LR
 ### 💳 SPRINT 2: Panduan Operasional Finansial & Fasilitas Fisik
 **Fokus Utama:** Mendokumentasikan SOP alur komersial pendapatan BLUD, kas operasional, dan utilisasi fasilitas.
 
-- [ ] **Tugas 2.1 — Panduan Keuangan, Billing, & Meja Kasir (`02-PANDUAN-KEUANGAN-BILLING-KASIR.md`):**
+- [x] **Tugas 2.1 — Panduan Keuangan, Billing, & Meja Kasir (`02-PANDUAN-KEUANGAN-BILLING-KASIR.md`):**
   - SOP Kasir POS: Verifikasi bukti transfer dengan asistensi AI OCR (`/billing` -> Tab Konfirmasi).
   - SOP Penerbitan Invoice: Skema Full Payment, DP, Termin, dan Langganan.
   - SOP Kasir Pengeluaran (AP): Pencatatan beban belanja dan penatausahaan nota kas kecil.
   - SOP Admin Keuangan: Pengelolaan Bagan Akun Standar (BAS), jurnal umum, mutasi kas, dan ekspor laporan neraca / laba-rugi BLUD.
-- [ ] **Tugas 2.2 — Panduan Aset & Jadwal Reservasi (`03-PANDUAN-ASET-DAN-RESERVASI.md`):**
+- [x] **Tugas 2.2 — Panduan Aset & Jadwal Reservasi (`03-PANDUAN-ASET-DAN-RESERVASI.md`):**
   - SOP Admin Aset: Pendaftaran aset gedung, coworking, dan mesin lab di `/aset`, setting tarif per jam/hari/bulan.
   - SOP Approval Booking: Verifikasi bentrok jadwal di `/booking`, approval sewa yang otomatis men-generate invoice ke modul keuangan.
   - SOP Operator Lapangan: Cek fisik kesiapan sarana, checklist inventaris sebelum dan sesudah acara.
-- [ ] **Tugas 2.3 — Panduan Jasa Produksi & Manufaktur (`04-PANDUAN-JASA-PRODUKSI-MANUFAKTUR.md`):**
+- [x] **Tugas 2.3 — Panduan Jasa Produksi & Manufaktur (`04-PANDUAN-JASA-PRODUKSI-MANUFAKTUR.md`):**
   - SOP Admin Produksi: Penerimaan order manufaktur di `/jasa-produksi`, kalkulasi RAB pesanan, dan koordinasi penerbitan Surat Jalan (DO).
   - SOP Operator Bengkel: Update tahapan pengerjaan (Bahan -> Bubut/Milling -> QC -> Siap Ambil), pencatatan jam kerja mesin CNC.
 
@@ -205,16 +205,16 @@ flowchart LR
 ### 🎓 SPRINT 3: Panduan Ekosistem Inkubasi, Diklat Vokasi, & Kepegawaian
 **Fokus Utama:** Mendokumentasikan manajemen program inkubasi startup, pelatihan kerja, dan kedisiplinan pegawai.
 
-- [ ] **Tugas 3.1 — Panduan Inkubasi Tenant & Inovasi Krenova (`05-PANDUAN-INKUBASI-TENANT-KRENOVA.md`):**
+- [x] **Tugas 3.1 — Panduan Inkubasi Tenant & Inovasi Krenova (`05-PANDUAN-INKUBASI-TENANT-KRENOVA.md`):**
   - SOP Penerimaan & Kurasi Calon Tenant di `/tenant`.
   - SOP Monitoring Cap Table, Virtual Data Room (VDR), dan tahapan pendanaan (*Funding Rounds*).
   - SOP Penilaian Lomba Krenova Surakarta di `/manajemen-krenova`.
   - SOP Penyelenggaraan Demo Day & Expo Startup di `/manajemen-event`.
-- [ ] **Tugas 3.2 — Panduan Pelatihan, LMS, & Tracer Study (`06-PANDUAN-PELATIHAN-LMS-TRACER-STUDY.md`):**
+- [x] **Tugas 3.2 — Panduan Pelatihan, LMS, & Tracer Study (`06-PANDUAN-PELATIHAN-LMS-TRACER-STUDY.md`):**
   - SOP Admin Pelatihan: Pembuatan program diklat di `/pelatihan`, pembukaan batch kuota, dan seleksi administrasi.
   - SOP Kelulusan & Sertifikasi: Uji kompetensi, generate sertifikat resmi ber-nomor register (`STP-CERT/...`), ekspor buku induk alumni.
   - SOP Monitoring Serapan Kerja: Pembacaan analitik serapan kerja gabungan, STP Vokasi, dan RSKB Surakarta di `/manajemen-karir`.
-- [ ] **Tugas 3.3 — Panduan Pegawai & Presensi Techno Sign (`07-PANDUAN-PEGAWAI-PRESENSI-TECHNO-SIGN.md`):**
+- [x] **Tugas 3.3 — Panduan Pegawai & Presensi Techno Sign (`07-PANDUAN-PEGAWAI-PRESENSI-TECHNO-SIGN.md`):**
   - SOP Presensi Harian: Check-in & check-out berbasis GPS geofencing dan swafoto biometrik anti-spoofing AI.
   - SOP Pelaporan Kinerja: Pengisian Lembar Kerja Harian (LKH) harian berbasis 152 Master Aktivitas baku.
   - SOP Pengajuan Hak Pegawai: Pengajuan izin, cuti tahunan, surat dokter, dan penugasan lembur.
@@ -225,12 +225,12 @@ flowchart LR
 ### 🚀 SPRINT 4: Panduan Pengguna Binaan & Lulusan Talenta
 **Fokus Utama:** Memberikan pedoman bagi entitas binaan kawasan untuk memaksimalkan fasilitas dan karir.
 
-- [ ] **Tugas 4.1 — Panduan Tenant Startup Binaan (`08-PANDUAN-TENANT-STARTUP-BINAAN.md`):**
+- [x] **Tugas 4.1 — Panduan Tenant Startup Binaan (`08-PANDUAN-TENANT-STARTUP-BINAAN.md`):**
   - Navigasi Dashboard Mandiri Tenant (`/tenant/dashboard` & `/tenant/incubation`).
   - Cara pelaporan traksi bulanan (pendapatan, jumlah karyawan, pencapaian produk).
   - Pengelolaan Virtual Data Room (VDR: legalitas PT/CV, HKI, proposal investasi) untuk menarik investor.
   - Pembayaran tagihan sewa ruangan / utilitas di `/tenant/billing`.
-- [ ] **Tugas 4.2 — Panduan Alumni & Pencari Kerja (`09-PANDUAN-ALUMNI-DAN-BURSA-KARIR.md`):**
+- [x] **Tugas 4.2 — Panduan Alumni & Pencari Kerja (`09-PANDUAN-ALUMNI-DAN-BURSA-KARIR.md`):**
   - Prosedur aktivasi dan klaim kode alumni (`AL-YYYY-XXXXXX`) di `/alumni-portal`.
   - Eksplorasi Bursa Karir STP: Melamar pekerjaan dengan profil kompetensi terverifikasi di `/karir`.
   - Pemanfaatan Kanal Forum Alumni: Diskusi teknis di Zona A & konsultasi industri di Zona B.
@@ -242,16 +242,16 @@ flowchart LR
 ### 🤝 SPRINT 5: Panduan Mitra Industri, Investor, Kampus, & Publik
 **Fokus Utama:** Mendokumentasikan titik interaksi mitra luar kawasan, investor modal ventura, kampus, dan pelanggan umum.
 
-- [ ] **Tugas 5.1 — Panduan Mitra Industri & Mini-ATS Rekrutmen (`10-PANDUAN-MITRA-INDUSTRI-DAN-ATS.md`):**
+- [x] **Tugas 5.1 — Panduan Mitra Industri & Mini-ATS Rekrutmen (`10-PANDUAN-MITRA-INDUSTRI-DAN-ATS.md`):**
   - Pendaftaran akun mitra industri di `/kemitraan` & verifikasi profil perusahaan.
   - Dashboard Mitra (`/mitra/dashboard`): Memasang lowongan kerja terverifikasi Solo Technopark.
   - Penggunaan Pipeline Mini-ATS: Mengelola status kandidat pelamar (*Reviewing -> Interviewing -> Hired/Rejected*).
   - Direktori Talenta: Mencari profil lulusan diklat terbaik dan mengirim *Direct Talent Invitation*.
-- [ ] **Tugas 5.2 — Panduan Mitra Investor & Kampus Riset (`11-PANDUAN-INVESTOR-DAN-KAMPUS.md`):**
+- [x] **Tugas 5.2 — Panduan Mitra Investor & Kampus Riset (`11-PANDUAN-INVESTOR-DAN-KAMPUS.md`):**
   - Akses Smart Hub Ekosistem di `/ekosistem` & penelusuran portofolio startup binaan.
   - Menghubungi founder startup untuk investasi tahap awal (*Pre-Seed, Seed, Series A*).
   - Pengajuan kolaborasi riset, magang industri MBKM, dan pemanfaatan laboratorium bersama oleh pihak kampus.
-- [ ] **Tugas 5.3 — Panduan Pengguna Umum & Portal Layanan (`12-PANDUAN-PENGGUNA-UMUM-DAN-PORTAL.md`):**
+- [x] **Tugas 5.3 — Panduan Pengguna Umum & Portal Layanan (`12-PANDUAN-PENGGUNA-UMUM-DAN-PORTAL.md`):**
   - Alur pendaftaran akun umum di `/daftar` dan verifikasi email.
   - Penggunaan Portal Layanan Mandiri di `/portal` (Onboarding Checklist 4 Langkah).
   - Tata cara pemesanan fasilitas kawasan di `/fasilitas` & reservasi tanggal.
@@ -278,3 +278,4 @@ Panduan dapat dieksekusi secara bertahap mulai dari **Sprint 1** hingga **Sprint
 Untuk memulai sesi eksekusi, cukup berikan prompt:
 
 > *"Mari kita kerjakan Sprint 1 pembuatan panduan role: buatkan `00-INDEX-PANDUAN-SISTEM-SINTESA.md` dan `01-PANDUAN-SUPER-ADMIN-DAN-PIMPINAN.md` di folder `public/panduan/` sesuai standar template pada blueprint."*
+
