@@ -12,7 +12,15 @@ const db = admin.firestore();
 const getBookingCollectionPath = (appId: string) => `artifacts/${appId}/public/data/bookings`;
 
 export const submitBooking = onCall(async (request) => {
-  const data = request.data;
+  // KEAMANAN (VULN-04): Wajibkan autentikasi pengguna untuk mencegah pemesanan spam anonim
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Anda harus login terlebih dahulu untuk mengajukan peminjaman ruangan.');
+  }
+
+  const authUid = request.auth.uid;
+  const authEmail = request.auth.token?.email || '';
+
+  const data = request.data || {};
   const appId = data.appId || 'blud-app-dev'; 
 
   const { assetId, startDate, endDate, startTime, endTime } = data;
@@ -65,9 +73,25 @@ export const submitBooking = onCall(async (request) => {
 
       // 4. Jika aman (tidak bentrok), buat referensi ID dokumen baru
       const newBookingRef = bookingCollectionRef.doc();
+      
+      // Sanitasi atribut peminjaman untuk mencegah injeksi field berlebih
       const newBookingData = {
-        ...data,
         id: newBookingRef.id,
+        appId,
+        assetId: String(assetId),
+        assetName: typeof data.assetName === 'string' ? data.assetName : '',
+        userId: authUid,
+        userEmail: authEmail || (typeof data.userEmail === 'string' ? data.userEmail : ''),
+        userName: typeof data.userName === 'string' ? data.userName : '',
+        userPhone: typeof data.userPhone === 'string' ? data.userPhone : '',
+        organization: typeof data.organization === 'string' ? data.organization : '',
+        startDate: String(startDate),
+        endDate: String(endDate),
+        startTime: String(startTime),
+        endTime: String(endTime),
+        purpose: typeof data.purpose === 'string' ? data.purpose : '',
+        notes: typeof data.notes === 'string' ? data.notes : '',
+        totalPrice: typeof data.totalPrice === 'number' ? data.totalPrice : 0,
         status: 'pending', // Status pengajuan awal harus selalu pending
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       };
@@ -84,7 +108,7 @@ export const submitBooking = onCall(async (request) => {
     console.error("Booking Transaction Failed:", error);
     
     // Jika error ini adalah buatan kita sendiri (Ruangan Penuh / Data Kurang), teruskan pesannya ke Klien
-    if (error.code === 'already-exists' || error.code === 'invalid-argument') {
+    if (error.code === 'already-exists' || error.code === 'invalid-argument' || error.code === 'unauthenticated') {
         throw error;
     }
     

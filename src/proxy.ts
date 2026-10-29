@@ -19,6 +19,8 @@ const PROTECTED_PREFIXES = [
   '/manajemen-artikel',
   '/pengaturan',
   '/presensi',
+  '/jasa-produksi',
+  '/afiliasi',
 ];
 
 /**
@@ -106,12 +108,11 @@ export function proxy(request: NextRequest) {
   }
 
   // 3. Rute Admin / Portal Bisnis (di luar presensi)
-  // Hanya membaca cookie sesi katalog (__session dan userRole), terisolasi dari sesi presensi
+  // Hanya membaca cookie sesi katalog (__session), terisolasi dari sesi presensi
+  // KEAMANAN (VULN-02): Role WAJIB diekstrak dari JWT token bertanda tangan valid (tokenRole).
+  // Jangan gunakan cookieRole mentah dari browser sebagai fallback untuk mencegah cookie role spoofing.
   const sessionToken = request.cookies.get('__session')?.value;
-  const cookieRole = request.cookies.get('userRole')?.value;
-
-  const tokenRole = getVerifiedRoleFromToken(sessionToken);
-  const role = tokenRole || cookieRole || null;
+  const role = getVerifiedRoleFromToken(sessionToken);
 
   // Rute Admin diakses tanpa sesi login katalog
   if (!role) {

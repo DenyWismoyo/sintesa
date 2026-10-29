@@ -5,8 +5,22 @@ import { logger } from '@/lib/logger';
 import { z } from 'zod';
 
 // Skema validasi request OCR Nota/Kuitansi
+// KEAMANAN (VULN-05): Batasi URL hanya dari Firebase Storage resmi atau Data URI Base64 untuk mencegah SSRF
 const OcrRequestSchema = z.object({
-  imageUrl: z.string().min(1, 'URL atau Base64 gambar wajib dilampirkan'),
+  imageUrl: z
+    .string()
+    .min(1, 'URL atau Base64 gambar wajib dilampirkan')
+    .refine(
+      (url) => {
+        const isFirebaseStorage = url.startsWith('https://firebasestorage.googleapis.com/');
+        const isBase64Image = /^data:image\/(png|jpeg|jpg|webp|gif);base64,/.test(url);
+        return isFirebaseStorage || isBase64Image;
+      },
+      {
+        message:
+          'imageUrl tidak aman atau tidak valid. Hanya URL resmi Firebase Storage (https://firebasestorage.googleapis.com/...) atau Data URI base64 gambar yang diizinkan.',
+      }
+    ),
 });
 
 const OCR_PROMPT = `

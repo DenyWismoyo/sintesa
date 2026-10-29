@@ -136,9 +136,9 @@ service cloud.firestore {
     match /tenants/{tenantId} {
       // Terbuka untuk umum atau user login untuk direktori profil ekosistem
       allow read: if true;
-      // Admin tenant & Super Admin memiliki hak create, serta pendaftar kurasi baru berstatus 'Menunggu Review'
+      // Admin tenant & Super Admin memiliki hak create, serta pendaftar kurasi terautentikasi berstatus 'Menunggu Review'
       allow create: if hasAnyRole(['admin', 'super_admin', 'admin_tenant']) || 
-                      (request.resource.data.status == 'Menunggu Review');
+                      (isAuth() && request.resource.data.status == 'Menunggu Review');
       // Update dapat dilakukan oleh admin, atau tenant yang bersangkutan
       allow update: if hasAnyRole(['admin', 'super_admin', 'admin_tenant', 'operator_tenant']) || isOwnTenant(tenantId);
       // Hapus hanya oleh admin tenant atau super admin
@@ -523,8 +523,17 @@ service cloud.firestore {
       match /invoices/{invoiceId} {
         // Terbuka untuk dibaca agar verifikasi nomor tagihan dan portal bukti bayar publik berfungsi
         allow read: if true;
-        // Pembuatan dan perubahan tagihan oleh manajemen keuangan, kasir, dan seluruh admin sektoral (aset, tenant, pelatihan, produksi)
-        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan', 'kasir', 'admin_aset', 'admin_tenant', 'admin_pelatihan', 'admin_produksi']);
+        // Pembuatan dan penghapusan tagihan oleh manajemen keuangan, kasir, dan seluruh admin sektoral (aset, tenant, pelatihan, produksi)
+        allow create, delete: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan', 'kasir', 'admin_aset', 'admin_tenant', 'admin_pelatihan', 'admin_produksi']);
+        allow update: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan', 'kasir', 'admin_aset', 'admin_tenant', 'admin_pelatihan', 'admin_produksi']) ||
+          (
+            // Pengguna publik hanya boleh melampirkan bukti transfer: hanya boleh mengubah atribut bukti bayar,
+            // status wajib WAITING_VERIFICATION, dan total tagihan (totalAmount) dilarang dimodifikasi
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['history', 'paymentStatus', 'paymentProofUrl', 'paymentProofMeta']) &&
+            request.resource.data.paymentStatus == 'WAITING_VERIFICATION' &&
+            request.resource.data.totalAmount == resource.data.totalAmount &&
+            resource.data.status != 'PAID'
+          );
       }
 
       // Pengeluaran / Expenses
@@ -839,11 +848,10 @@ service cloud.firestore {
       allow write: if isPresAdmin(); // Admin presensi atau catalog admin
     }
 
-    // 19. Audit Log Forensik Anti-Fraud (Immutable)
+    // 19. Audit Log Forensik Anti-Fraud (Immutable — Hanya ditulis via Admin SDK di Server)
     match /auditLogs/{logId} {
       allow read: if isAdmin();
-      allow create: if isAuth();
-      allow update, delete: if false;
+      allow create, update, delete: if false;
     }
 
     // =========================================================================

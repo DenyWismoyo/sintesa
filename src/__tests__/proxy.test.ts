@@ -91,6 +91,19 @@ describe('Edge Proxy Routing & Authentication Guard (Isolated Sessions)', () => 
       expect(location).toContain('/login?redirect=%2Fbilling');
     });
 
+    it('harus menolak akses admin jika penyerang hanya memalsukan cookie userRole=super_admin tanpa __session valid (VULN-02)', () => {
+      // Penyerang mencoba menyetel userRole mentah di browser tanpa token __session
+      const req = createMockRequest('http://localhost:3000/billing', {
+        userRole: 'super_admin',
+      });
+      const res = proxy(req);
+
+      // Harus ditolak dan dialihkan ke login, bukan diloloskan ke rute admin
+      expect(res.status).toBe(307);
+      const location = res.headers.get('location');
+      expect(location).toContain('/login?redirect=%2Fbilling');
+    });
+
     it('harus mengizinkan akses admin ke /billing jika memiliki cookie katalog __session yang valid', () => {
       const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
       const payload = btoa(JSON.stringify({ role: 'admin_keuangan', exp: Math.floor(Date.now() / 1000) + 3600 }));
