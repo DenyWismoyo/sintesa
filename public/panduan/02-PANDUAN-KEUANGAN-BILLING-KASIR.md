@@ -132,3 +132,4 @@ sequenceDiagram
 - [ ] Merekonsiliasi total penerimaan kasir harian dengan rekening koran bank.
 - [ ] Menyetujui atau meninjau pengajuan beban operasional harian.
 - [ ] Mengontrol jatuh tempo invoice sewa gedung yang mendekati H-1.
+

@@ -111,3 +111,4 @@ flowchart TD
 - [ ] Memproses seluruh permohonan booking baru yang masuk maksimal 1x24 jam kerja.
 - [ ] Berkoordinasi dengan petugas kebersihan (*cleaning service*) dan teknisi kelistrikan untuk ruangan acara H-1.
 - [ ] Memastikan AC dan lampu dimatikan di seluruh gedung yang telah selesai digunakan.
+

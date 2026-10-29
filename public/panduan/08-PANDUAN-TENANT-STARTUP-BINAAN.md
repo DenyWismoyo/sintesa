@@ -125,3 +125,4 @@ flowchart LR
 - [ ] Memeriksa dan melunasi tagihan utilitas/sewa ruangan di `/tenant/billing`.
 - [ ] Memperbarui slide Pitch Deck jika ada pencapaian produk baru.
 - [ ] Mengecek lamaran talenta alumni yang masuk pada menu `/tenant/talent`.
+

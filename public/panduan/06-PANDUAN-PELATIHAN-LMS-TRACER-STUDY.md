@@ -131,3 +131,4 @@ sequenceDiagram
 - [ ] Memproses pendaftaran calon siswa baru yang masuk di tab registrasi program.
 - [ ] Berkoordinasi dengan instruktur terkait jadwal ujian praktik bengkel/laboratorium.
 - [ ] Memperbarui laporan keterserapan alumni (*Tracer Study*) mingguan.
+

@@ -141,3 +141,4 @@ sequenceDiagram
 - [ ] Memeriksa ketersediaan tanggal gedung di `/fasilitas` sebelum mengajukan permohonan.
 - [ ] Melakukan pembayaran transfer bank sesuai nominal pas yang tercantum pada invoice.
 - [ ] Menyimpan file PDF kuitansi resmi sebagai bukti sah saat serah terima ruangan di lokasi.
+

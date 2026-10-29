@@ -120,3 +120,4 @@ sequenceDiagram
 - [ ] Memeriksa ketersediaan oli pendingin (*coolant*) dan pelumas mesin CNC sebelum saklar utama dihidupkan.
 - [ ] Memperbarui status seluruh Work Order yang sedang dikerjakan sebelum pergantian shift kerja.
 - [ ] Membersihkan serbuk logam (*scrap/chips*) dari meja mesin dan mengunci panel kelistrikan di akhir hari.
+

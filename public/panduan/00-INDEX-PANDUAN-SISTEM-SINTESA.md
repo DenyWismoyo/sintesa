@@ -89,3 +89,4 @@ Pengguna Membuka Web
 
 > [!NOTE]  
 > Setiap peran memiliki masa aktif token autentikasi yang diawasi secara ketat. Jika terjadi perubahan hak akses oleh Super Admin di menu Pengaturan, pengguna terkait disarankan melakukan *logout* dan *login* ulang agar token claims ter-refresh secara instan.
+

@@ -118,3 +118,4 @@ flowchart TD
 - [ ] Mengingatkan tenant binaan untuk mengupdate laporan omzet dan penambahan karyawan di awal bulan.
 - [ ] Memastikan tidak ada kendala fasilitas ruangan atau Wi-Fi bagi tenant yang berkantor di gedung inkubator.
 - [ ] Menyiapkan materi dan absensi digital untuk agenda workshop mentoring mingguan.
+

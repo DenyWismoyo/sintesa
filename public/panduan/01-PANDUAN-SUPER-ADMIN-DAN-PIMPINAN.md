@@ -105,3 +105,4 @@ flowchart TD
 - [ ] Memastikan tidak ada pengaduan fasilitas atau aset yang terbengkalai pada `/booking`.
 - [ ] Meninjau kelengkapan laporan serapan kerja alumni di `/manajemen-karir`.
 - [ ] Mengontrol keaktifan pita pengumuman publik jika ada agenda nasional/daerah di kawasan.
+

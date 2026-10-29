@@ -117,3 +117,4 @@ flowchart TD
 - [ ] Menyicil pencatatan aktivitas kerja di `/presensi/laporan` setelah menyelesaikan tugas penting.
 - [ ] Memastikan total akumulasi poin LKH mencapai minimal 300 poin sebelum dikirim.
 - [ ] Melakukan submit LKH harian dan melakukan presensi pulang setelah pukul 17.00 WIB.
+

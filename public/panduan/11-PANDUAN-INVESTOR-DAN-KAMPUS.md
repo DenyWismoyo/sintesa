@@ -104,3 +104,4 @@ flowchart TD
 - [ ] Memeriksa daftar startup baru yang sedang membuka putaran dana (*isRaising*) di `/ekosistem`.
 - [ ] Menyampaikan tanggapan proposal kerjasama riset dalam 3 hari kerja.
 - [ ] Berkoordinasi dengan Tim Manajemen Kawasan sebelum kunjungan fisik delegasi ke Solo Technopark.
+

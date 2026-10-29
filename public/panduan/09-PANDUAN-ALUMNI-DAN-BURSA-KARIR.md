@@ -128,3 +128,4 @@ flowchart LR
 - [ ] Melengkapi profil data diri, CV, nomor WhatsApp, dan link portofolio di `/profil`.
 - [ ] Memeriksa bursa karir `/karir` minimal 2 kali seminggu untuk lowongan terbaru.
 - [ ] Mengupdate status kebekerjaan di tab *Data Alumni* saat sudah diterima bekerja.
+

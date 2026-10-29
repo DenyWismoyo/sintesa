@@ -123,3 +123,4 @@ stateDiagram-v2
 - [ ] Memperbarui tahapan status pelamar menjadi *Interviewing* atau *Hired/Rejected* agar pelamar mendapat kepastian.
 - [ ] Menutup iklan lowongan pekerjaan jika kuota posisi telah terpenuhi.
 - [ ] Memastikan status *Hired* dicatat di sistem saat ada alumni STP yang resmi bergabung.
+
