@@ -95,6 +95,12 @@ export const JobListingSchema = z.object({
   viewsCount: z.number().default(0),
   applicantCount: z.number().default(0),
   isActive: z.boolean().default(true),
+  partnerId: z.string().optional(),
+  tenantId: z.string().optional(),
+  submittedByUid: z.string().optional(),
+  approvalStatus: z.enum(['APPROVED', 'PENDING_APPROVAL', 'REJECTED']).optional(),
+  rejectionReason: z.string().optional(),
+  linkedForumThreadId: z.string().optional(),
 });
 export type JobListing = z.infer<typeof JobListingSchema>;
 
@@ -114,6 +120,9 @@ export interface JobFilterParams {
   limit?: number;
   status?: 'all' | 'active' | 'inactive';
   includeInactive?: boolean;
+  approvalStatus?: 'all' | 'APPROVED' | 'PENDING_APPROVAL' | 'REJECTED';
+  partnerId?: string;
+  tenantId?: string;
 }
 
 export const JobAiMatchRequestSchema = z.object({

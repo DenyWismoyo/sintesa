@@ -1,27 +1,32 @@
 // src/app/api/jobs/sync/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { jobDbService } from '@/services/jobDb.service';
+import { verifyApiRequestAuth } from '@/lib/firebaseAdmin';
+import { canPerformAction, PERMISSIONS } from '@/config/roles';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization');
-    const secret = process.env.CRON_SECRET || process.env.NEXTAUTH_SECRET || 'blud-cron-secret';
+    const secret = process.env.CRON_SECRET || process.env.NEXTAUTH_SECRET;
+    const isCronAuthorized = Boolean(
+      secret && authHeader && authHeader === `Bearer ${secret}`
+    );
 
-    // Simple security bearer token check
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.substring(7);
-      if (token !== secret && process.env.NODE_ENV === 'production') {
+    if (!isCronAuthorized) {
+      const authUser = await verifyApiRequestAuth(request);
+      if (!authUser || !canPerformAction(authUser.role, PERMISSIONS.MANAGE_CAREER)) {
         return NextResponse.json(
-          { success: false, message: 'Akses tidak diizinkan.' },
-          { status: 401 }
+          { success: false, message: 'Akses ditolak: Hanya Administrator Karir atau Cron Resmi yang diizinkan.' },
+          { status: 403 }
         );
       }
     }
 
+    const { searchParams } = new URL(request.url);
     const body = await request.json().catch(() => ({}));
-    const force = Boolean(body.force);
+    const force = Boolean(body.force || searchParams.get('force') === 'true');
 
     console.log(`[API /api/jobs/sync] Memicu sinkronisasi mingguan kumulatif (force: ${force})...`);
     const result = await jobDbService.syncWeeklyJobs({ force });

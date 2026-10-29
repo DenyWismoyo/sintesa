@@ -30,6 +30,7 @@ import {
   FileText,
   PhoneCall,
   Check,
+  MessageSquare,
 } from 'lucide-react';
 import { SectionContainer } from '@/components/ui/SectionContainer';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,9 @@ import JobShareMenu from '../components/JobShareMenu';
 import CareerExclusiveGate from '@/components/career/CareerExclusiveGate';
 import { useAuth } from '@/lib/AuthContext';
 import { canAccessCareer } from '@/config/roles';
+import { alumniService } from '@/services/alumni.service';
+import { Alumni } from '@/types/ecosystem.types';
+import JobQuickApplyModal from '@/components/career/JobQuickApplyModal';
 
 interface JobDetailClientProps {
   idOrSlug: string;
@@ -65,12 +69,16 @@ const COMMON_STP_PROGRAMS = [
 
 export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
   const router = useRouter();
-  const { role, loading: authLoading } = useAuth();
+  const { user, role, loading: authLoading } = useAuth();
   const hasCareerAccess = canAccessCareer(role);
   const { data: job, isLoading, isError } = useJobDetail(idOrSlug, { enabled: hasCareerAccess });
 
   const [imgError, setImgError] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [hasLoadedAlumniProfile, setHasLoadedAlumniProfile] = useState(false);
+  const [customAlumniProgram, setCustomAlumniProgram] = useState<string | null>(null);
+  const [loadedAlumniProfile, setLoadedAlumniProfile] = useState<Alumni | null>(null);
+  const [isQuickApplyOpen, setIsQuickApplyOpen] = useState(false);
 
   // State untuk form AI Matcher di halaman
   const [alumniName, setAlumniName] = useState('');
@@ -119,17 +127,56 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
     return relatedData.jobs.filter((j) => j.id !== job.id).slice(0, 3);
   }, [relatedData, job]);
 
-  // Set default skills & program dari data job ketika selesai load
+  // Auto-isi profil alumni yang sedang login agar AI Matcher langsung membaca data nyata alumni
   React.useEffect(() => {
-    if (job) {
+    if (!user?.uid || !hasCareerAccess) return;
+    let active = true;
+    alumniService
+      .getAlumniByUserId(user.uid)
+      .then((profile) => {
+        if (!active || !profile) return;
+        setHasLoadedAlumniProfile(true);
+        setLoadedAlumniProfile(profile);
+        if (profile.name) setAlumniName(profile.name);
+        if (profile.programTaken) {
+          setSelectedProgram(profile.programTaken);
+          if (!COMMON_STP_PROGRAMS.includes(profile.programTaken)) {
+            setCustomAlumniProgram(profile.programTaken);
+          }
+        }
+        const combinedSkills = [...(profile.skills || []), ...(profile.tools || [])].filter(Boolean);
+        if (combinedSkills.length > 0) {
+          setAlumniSkillsInput(Array.from(new Set(combinedSkills)).join(', '));
+        }
+        const projectSummary = (profile.projects || [])
+          .map((p) => `${p.title}${p.description ? `: ${p.description}` : ''}`)
+          .join('; ');
+        const expText = [profile.bio, projectSummary, profile.certificationResult]
+          .filter(Boolean)
+          .join(' | ');
+        if (expText) {
+          setAlumniExperience(expText);
+        }
+      })
+      .catch(() => {
+        // Fallback ke default job
+      });
+    return () => {
+      active = false;
+    };
+  }, [user?.uid, hasCareerAccess]);
+
+  // Set default skills & program dari data job ketika selesai load (hanya jika belum terisi dari profil alumni)
+  React.useEffect(() => {
+    if (job && !hasLoadedAlumniProfile) {
       if (job.relevantTrainingPrograms.length > 0) {
         setSelectedProgram(job.relevantTrainingPrograms[0]);
       } else {
         setSelectedProgram(COMMON_STP_PROGRAMS[0]);
       }
-      setAlumniSkillsInput(job.skills.slice(0, 4).join(', '));
+      setAlumniSkillsInput((prev) => prev || job.skills.slice(0, 4).join(', '));
     }
-  }, [job]);
+  }, [job, hasLoadedAlumniProfile]);
 
   const handleShare = () => {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
@@ -594,6 +641,11 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
                     onChange={(e) => setSelectedProgram(e.target.value)}
                     className="w-full h-10 px-3 text-xs sm:text-sm rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                   >
+                    {customAlumniProgram && (
+                      <option value={customAlumniProgram}>
+                        {customAlumniProgram} (Profil Alumni Anda)
+                      </option>
+                    )}
                     {COMMON_STP_PROGRAMS.map((prog) => (
                       <option key={prog} value={prog}>
                         {prog}
@@ -824,6 +876,30 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
             </div>
 
             <div className="space-y-2.5 pt-2">
+              {user && (
+                <Button
+                  type="button"
+                  onClick={() => setIsQuickApplyOpen(true)}
+                  className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm rounded-2xl gap-2 shadow-md shadow-emerald-200"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Lamar 1-Klik Profil STP / RSKB</span>
+                </Button>
+              )}
+
+              <Link
+                href={`/alumni-portal?channel=sapa-industri-dan-rekrutmen`}
+                className="block w-full"
+              >
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-10 border-teal-200 text-teal-800 hover:bg-teal-50 font-bold text-xs rounded-2xl gap-1.5"
+                >
+                  <MessageSquare className="w-3.5 h-3.5 text-teal-600" />
+                  <span>Diskusi & Tanya HRD di Forum</span>
+                </Button>
+              </Link>
               {job.applicationUrl ? (
                 <a
                   href={job.applicationUrl}
@@ -951,6 +1027,18 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
           </div>
         </div>
       </div>
+
+      {user && (
+        <JobQuickApplyModal
+          isOpen={isQuickApplyOpen}
+          onClose={() => setIsQuickApplyOpen(false)}
+          job={job}
+          applicantUid={user.uid}
+          applicantEmailDefault={user.email || ''}
+          alumniProfile={loadedAlumniProfile}
+          aiMatchScore={aiMatchResult?.matchScore}
+        />
+      )}
     </SectionContainer>
   );
 }

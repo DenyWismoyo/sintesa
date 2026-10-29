@@ -10,14 +10,16 @@ import TabRiwayat from './components/TabRiwayat';
 import TabTagihan from './components/TabTagihan';
 import TabAlumni from './components/TabAlumni';
 import TabAfiliasi from './components/TabAfiliasi';
+import AlumniInvitationsBox from '@/components/career/AlumniInvitationsBox';
 import { auth } from '@/lib/firebase';
 import { toast } from 'sonner';
 import { alumniService } from '@/services/alumni.service';
-import { Alumni } from '@/types';
+import { Alumni, ALUMNI_ORIGIN_LABELS } from '@/types';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 
 export default function ProfilPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, refreshAuth } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'data-diri' | 'riwayat' | 'tagihan' | 'alumni' | 'afiliasi'>('data-diri');
   
@@ -70,9 +72,12 @@ export default function ProfilPage() {
     
     setIsClaiming(true);
     try {
-      const result = await alumniService.claimAlumni(claimCode.trim(), user.uid);
+      const result = await alumniService.claimAlumni(claimCode.trim().toUpperCase(), user.uid);
       if (result.success) {
-        toast.success("Klaim Berhasil!", { description: "Selamat datang di jaringan alumni." });
+        await refreshAuth();
+        toast.success("Klaim Status Alumni Berhasil!", {
+          description: "Akses Bursa Karir Eksklusif & Portofolio Talenta Anda kini telah aktif.",
+        });
         const refreshed = await alumniService.getAlumniByUserId(user.uid);
         setAlumniData(refreshed as Alumni);
         setActiveTab('alumni');
@@ -140,9 +145,22 @@ export default function ProfilPage() {
             </div>
 
             {!isCheckingAlumni && alumniData && (
-              <div className="mt-4 flex items-center gap-2 bg-emerald-50/80 text-emerald-700 px-3 py-1.5 rounded-xl">
-                <Sparkles size={13} className="text-emerald-500 shrink-0" /> 
-                <span className="text-[10px] font-black uppercase tracking-widest truncate">Alumni Terverifikasi</span>
+              <div className="mt-4 space-y-2">
+                <div className="flex items-center gap-2 bg-emerald-50/80 text-emerald-700 px-3 py-1.5 rounded-xl">
+                  <Sparkles size={13} className="text-emerald-500 shrink-0" /> 
+                  <span className="text-[10px] font-black uppercase tracking-widest truncate">
+                    {alumniData.originSource && ALUMNI_ORIGIN_LABELS[alumniData.originSource]
+                      ? ALUMNI_ORIGIN_LABELS[alumniData.originSource]
+                      : 'Alumni Terverifikasi STP'}
+                  </span>
+                </div>
+                <Link
+                  href="/karir"
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-slate-900 hover:bg-emerald-700 text-white text-xs font-bold transition-colors"
+                >
+                  <span>Buka Bursa Karir Eksklusif</span>
+                  <ArrowRight size={14} />
+                </Link>
               </div>
             )}
           </div>
@@ -195,11 +213,11 @@ export default function ProfilPage() {
                 <Key size={14}/> Klaim Status Alumni
               </h3>
               <p className="text-[11px] text-emerald-700/80 mb-4 font-medium leading-relaxed relative z-10">
-                Masukkan kode registrasi dari Admin untuk membuka akses direktori alumni.
+                Masukkan kode registrasi resmi dari Admin STP atau RSKB Surakarta untuk membuka akses Bursa Karir & Katalog Talenta.
               </p>
               <form onSubmit={handleClaimCode} className="flex gap-2 relative z-10">
                 <input 
-                  value={claimCode} onChange={(e) => setClaimCode(e.target.value)} placeholder="ALM-XXXXXX"
+                  value={claimCode} onChange={(e) => setClaimCode(e.target.value)} placeholder="AL-2026-XXXXXX / RSKB-..."
                   className="flex-1 w-full bg-white text-emerald-900 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-emerald-500/20 placeholder:text-emerald-300 font-mono uppercase shadow-xs"
                 />
                 <button disabled={isClaiming || !claimCode.trim()} type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white w-10 rounded-xl flex items-center justify-center transition-all shadow-sm hover:shadow-md disabled:opacity-50">
@@ -225,7 +243,12 @@ export default function ProfilPage() {
               {activeTab === 'data-diri' && <TabDataDiri user={user} />}
               {activeTab === 'riwayat' && <TabRiwayat userEmail={user.email!} userName={user.displayName || ''} />}
               {activeTab === 'tagihan' && <TabTagihan userEmail={user.email!} />}
-              {activeTab === 'alumni' && alumniData && <TabAlumni initialData={alumniData} />}
+              {activeTab === 'alumni' && alumniData && (
+                <>
+                  <AlumniInvitationsBox alumniId={alumniData.id} />
+                  <TabAlumni initialData={alumniData} />
+                </>
+              )}
               {activeTab === 'afiliasi' && <TabAfiliasi user={user} />}
             </motion.div>
           </AnimatePresence>

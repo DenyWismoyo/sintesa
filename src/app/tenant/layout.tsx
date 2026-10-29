@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, UserCircle, Package, TrendingUp, 
   BookOpen, LifeBuoy, Receipt, LogOut, Menu, X, 
-  ShieldCheck, Lock
+  ShieldCheck, Lock, GraduationCap
 } from 'lucide-react';
 
 import { useTenants } from '@/hooks/useTenants'; 
@@ -19,6 +19,7 @@ const MENU_ITEMS = [
   { name: 'Profil Publik', path: '/tenant/profile', icon: UserCircle },
   { name: 'Katalog Produk', path: '/tenant/products', icon: Package },
   { name: 'Traction & Tim', path: '/tenant/traction', icon: TrendingUp },
+  { name: 'Rekrut Talenta Alumni', path: '/tenant/talent', icon: GraduationCap },
   { name: 'Ruang Inkubasi', path: '/tenant/incubation', icon: BookOpen },
   { name: 'Helpdesk', path: '/tenant/tickets', icon: LifeBuoy },
   { name: 'Keuangan & Tagihan', path: '/tenant/billing', icon: Receipt },

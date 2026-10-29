@@ -143,6 +143,23 @@ export const ProjectSchema = z.object({
 });
 export type Project = z.infer<typeof ProjectSchema>;
 
+export const AlumniOriginSourceEnum = z.enum([
+  'STP_VOKASI',
+  'RSKB_SURAKARTA',
+  'OPD_PEMKOT',
+  'CSR_INDUSTRI',
+  'INKUBASI_WIRAUSAHA',
+]);
+export type AlumniOriginSource = z.infer<typeof AlumniOriginSourceEnum>;
+
+export const ALUMNI_ORIGIN_LABELS: Record<AlumniOriginSource, string> = {
+  STP_VOKASI: 'Diklat Vokasi Solo Technopark',
+  RSKB_SURAKARTA: 'RSKB Kota Surakarta',
+  OPD_PEMKOT: 'Program OPD Pemkot Surakarta',
+  CSR_INDUSTRI: 'Program Kemitraan / CSR Industri',
+  INKUBASI_WIRAUSAHA: 'Inkubasi Wirausaha Mandiri',
+};
+
 export const AlumniSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, "Nama wajib diisi"),
@@ -152,7 +169,10 @@ export const AlumniSchema = z.object({
   birthPlace: z.string().optional(), 
   birthDate: z.string().optional(),
   address: z.string().optional(),
+  district: z.string().optional(),
   postCode: z.string().optional(), 
+  originSource: AlumniOriginSourceEnum.default('STP_VOKASI').optional(),
+  originInstitution: z.string().optional(),
   batch: z.string().optional(), 
   programTaken: z.string().optional(), 
   courseStartDate: z.string().optional(), 
@@ -188,8 +208,11 @@ export const AlumniSchema = z.object({
   resumeFileUrl: z.string().optional().or(z.literal('')), 
   certifications: z.array(z.string()).optional(), 
   projects: z.array(ProjectSchema).optional(), 
-  internalStatus: z.enum(['AVAILABLE', 'INTERVIEWING', 'HIRED']).optional(),
+  internalStatus: z.enum(['AVAILABLE', 'INTERVIEWING', 'HIRED', 'ENTREPRENEUR']).optional(),
   isVerified: z.boolean().optional(),
+  forumReputationScore: z.number().default(0).optional(),
+  acceptedSolutionsCount: z.number().default(0).optional(),
+  endorsedSkills: z.array(z.string()).optional(),
 });
 export type Alumni = z.infer<typeof AlumniSchema>;
 

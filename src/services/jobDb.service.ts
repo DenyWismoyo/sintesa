@@ -588,6 +588,11 @@ export const jobDbService = {
       viewsCount: 0,
       applicantCount: 0,
       isActive: data.isActive !== undefined ? data.isActive : true,
+      partnerId: data.partnerId,
+      tenantId: data.tenantId,
+      submittedByUid: data.submittedByUid,
+      approvalStatus: data.approvalStatus || 'APPROVED',
+      rejectionReason: data.rejectionReason,
     };
 
     const existingJobs = await this.getJobsFromFirestore();

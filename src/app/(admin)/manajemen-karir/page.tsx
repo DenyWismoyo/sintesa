@@ -33,6 +33,7 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  MessageSquare,
 } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin';
 import { Button } from '@/components/ui/button';
@@ -43,17 +44,21 @@ import { useJobs } from '@/hooks/useJobs';
 import { JobListing } from '@/types/job.types';
 import { formatSalary } from '@/utils/format';
 import { useAuth } from '@/lib/AuthContext';
+import { auth } from '@/lib/firebase';
 import { canPerformAction, PERMISSIONS } from '@/config/roles';
+import { usePartnershipInquiries } from '@/hooks/usePartners';
 
 import ModalJobForm from './components/ModalJobForm';
 import ModalExportPartnership from './components/ModalExportPartnership';
+import TabPartnerOnboarding from './components/TabPartnerOnboarding';
+import TabForumModerationAnalytics from './components/TabForumModerationAnalytics';
 
 export default function AdminManajemenKarirPage() {
   const router = useRouter();
   const { role, loading: authLoading } = useAuth();
   const canManageCareer = canPerformAction(role, PERMISSIONS.MANAGE_CAREER);
 
-  const [activeTab, setActiveTab] = useState<'LIST' | 'SYNC' | 'TALENT'>('LIST');
+  const [activeTab, setActiveTab] = useState<'LIST' | 'MITRA' | 'FORUM' | 'SYNC' | 'TALENT'>('LIST');
   const [searchFilter, setSearchFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [partnerFilter, setPartnerFilter] = useState('ALL');
@@ -98,6 +103,8 @@ export default function AdminManajemenKarirPage() {
       const matchStatus =
         statusFilter === 'ALL'
           ? true
+          : statusFilter === 'PENDING_APPROVAL'
+          ? job.approvalStatus === 'PENDING_APPROVAL'
           : statusFilter === 'ACTIVE'
           ? job.isActive
           : !job.isActive;
@@ -148,6 +155,18 @@ export default function AdminManajemenKarirPage() {
   const stpPartnerCount = jobs.filter((j) => j.isStpPartner).length;
   const realtimeCount = jobs.filter((j) => !j.isStpPartner).length;
   const activeCount = jobs.filter((j) => j.isActive).length;
+  const pendingApprovalJobs = jobs.filter((j) => j.approvalStatus === 'PENDING_APPROVAL');
+  const { data: allInquiries = [] } = usePartnershipInquiries(canManageCareer);
+  const unconvertedLeadsCount = allInquiries.filter((i) => !i.convertedPartnerId).length;
+  const mitraBadgeCount = pendingApprovalJobs.length + unconvertedLeadsCount;
+
+  const getAdminHeaders = async () => {
+    const idToken = await auth.currentUser?.getIdToken().catch(() => null);
+    return {
+      'Content-Type': 'application/json',
+      ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+    };
+  };
 
   const handleOpenAdd = () => {
     setSelectedJobToEdit(null);
@@ -161,17 +180,22 @@ export default function AdminManajemenKarirPage() {
 
   const handleToggleActive = async (job: JobListing) => {
     try {
+      const nextActive = !job.isActive;
       const res = await fetch('/api/jobs', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: job.id, isActive: !job.isActive }),
+        headers: await getAdminHeaders(),
+        body: JSON.stringify({
+          id: job.id,
+          isActive: nextActive,
+          ...(nextActive ? { approvalStatus: 'APPROVED' } : {}),
+        }),
       });
       const json = await res.json();
       if (!res.ok || !json.success) {
         throw new Error(json.message || 'Gagal mengubah status');
       }
       toast.success(
-        `Lowongan "${job.title}" kini ${!job.isActive ? 'ditayangkan aktif' : 'dinonaktifkan'}.`
+        `Lowongan "${job.title}" kini ${nextActive ? 'disetujui & ditayangkan aktif' : 'dinonaktifkan'}.`
       );
       await refetch();
     } catch (err: any) {
@@ -187,6 +211,7 @@ export default function AdminManajemenKarirPage() {
     try {
       const res = await fetch(`/api/jobs?id=${encodeURIComponent(job.id)}`, {
         method: 'DELETE',
+        headers: await getAdminHeaders(),
       });
       const json = await res.json();
       if (!res.ok || !json.success) {
@@ -205,7 +230,7 @@ export default function AdminManajemenKarirPage() {
     try {
       const res = await fetch('/api/jobs', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await getAdminHeaders(),
         body: JSON.stringify({ action: 'sync' }),
       });
       const json = await res.json().catch(() => ({}));
@@ -282,6 +307,37 @@ export default function AdminManajemenKarirPage() {
           >
             <Briefcase className="w-4 h-4" />
             <span>Master Lowongan ({total})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('MITRA')}
+            className={`flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
+              activeTab === 'MITRA'
+                ? 'bg-white text-emerald-700 shadow-xs'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+            }`}
+          >
+            <Building2 className="w-4 h-4" />
+            <span>Mitra & Antrean Loker</span>
+            {mitraBadgeCount > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-black">
+                {mitraBadgeCount}
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('FORUM')}
+            className={`flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
+              activeTab === 'FORUM'
+                ? 'bg-white text-emerald-700 shadow-xs'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+            }`}
+          >
+            <MessageSquare className="w-4 h-4" />
+            <span>Moderasi Forum & Analitik</span>
           </button>
 
           <button
@@ -396,6 +452,7 @@ export default function AdminManajemenKarirPage() {
               >
                 <option value="ALL">Semua Status</option>
                 <option value="ACTIVE">Tayang Aktif</option>
+                <option value="PENDING_APPROVAL">Menunggu Kurasi Mitra ({pendingApprovalJobs.length})</option>
                 <option value="INACTIVE">Nonaktif / Ditutup</option>
               </select>
 
@@ -571,18 +628,30 @@ export default function AdminManajemenKarirPage() {
                           </td>
 
                           <td className="py-3 px-4">
-                            <button
-                              type="button"
-                              onClick={() => handleToggleActive(job)}
-                              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-all ${
-                                job.isActive
-                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
-                                  : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
-                              }`}
-                            >
-                              {job.isActive ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                              <span>{job.isActive ? 'Tayang Aktif' : 'Nonaktif'}</span>
-                            </button>
+                            {job.approvalStatus === 'PENDING_APPROVAL' ? (
+                              <button
+                                type="button"
+                                onClick={() => handleToggleActive(job)}
+                                title="Klik untuk langsung menyetujui & menayangkan"
+                                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-300 hover:bg-emerald-100 hover:text-emerald-800 transition-all"
+                              >
+                                <Clock className="w-3 h-3" />
+                                <span>Setujui Draft</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleToggleActive(job)}
+                                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-all ${
+                                  job.isActive
+                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                                    : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
+                                }`}
+                              >
+                                {job.isActive ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                                <span>{job.isActive ? 'Tayang Aktif' : 'Nonaktif'}</span>
+                              </button>
+                            )}
                           </td>
 
                           <td className="py-3 px-4 text-right">
@@ -785,6 +854,22 @@ export default function AdminManajemenKarirPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ─── TAB MITRA & ONBOARDING REKRUTMEN ─── */}
+      {activeTab === 'MITRA' && (
+        <TabPartnerOnboarding
+          pendingJobs={pendingApprovalJobs}
+          onRefreshJobs={() => refetch()}
+        />
+      )}
+
+      {/* ─── TAB MODERASI FORUM & ANALITIK EKSEKUTIF ─── */}
+      {activeTab === 'FORUM' && (
+        <TabForumModerationAnalytics
+          activeJobsCount={activeCount}
+          onRefreshJobs={() => refetch()}
+        />
       )}
 
       {/* ─── TAB 3: PENYALURAN TALENTA ALUMNI ─── */}

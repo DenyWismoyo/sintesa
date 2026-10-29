@@ -18,6 +18,8 @@ export * from './callables/tenantCache';
 export * from './callables/catalogCache';
 export * from './callables/assetCache';
 export * from './callables/jobCache';
+export * from './callables/alumniClaim';
+export * from './callables/partnerOnboarding';
 
 export * from './triggers/tenantAuth';
 export * from './triggers/purchaseAutomation';
@@ -27,3 +29,4 @@ export * from './triggers/tenantAggregation';
 export * from './triggers/cacheInvalidation';
 export * from './triggers/weeklyJobSync';
 export * from './triggers/mailAutomation';
+export * from './triggers/forumTriggers';

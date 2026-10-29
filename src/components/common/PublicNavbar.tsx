@@ -35,7 +35,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { auth } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
 import { toast } from 'sonner';
-import { isInternalStaff, APP_ROLES, canAccessCareer } from '@/config/roles';
+import { isInternalStaff, APP_ROLES, canAccessCareer, canAccessAlumniForum } from '@/config/roles';
 import GlobalSearchModal from './GlobalSearchModal';
 import { useLoginModal } from '@/context/LoginModalContext';
 import { authService } from '@/services/auth.service';
@@ -103,6 +103,14 @@ export const PUBLIC_NAV_GROUPS: NavGroup[] = [
         description: 'Penyaluran kerja mitra industri pilihan',
         icon: Briefcase,
         badge: 'Eksklusif',
+        isExclusive: true,
+      },
+      {
+        name: 'Forum Alumni & RSKB',
+        path: '/alumni-portal',
+        description: 'Komunitas eksklusif alumni STP, RSKB & mitra industri',
+        icon: Users,
+        badge: '2 Zona',
         isExclusive: true,
       },
     ],
@@ -234,6 +242,9 @@ export default function PublicNavbar() {
       items: group.items.filter((item) => {
         if (item.path === '/karir') {
           return canAccessCareer(role);
+        }
+        if (item.path === '/alumni-portal') {
+          return canAccessAlumniForum(role);
         }
         return true;
       }),
@@ -384,6 +395,18 @@ export default function PublicNavbar() {
             <span>Presensi STP</span>
           </Link>
         </div>
+      );
+    }
+
+    if (role === APP_ROLES.INDUSTRI) {
+      return (
+        <Link
+          href="/mitra/dashboard"
+          className="px-4 py-2 h-9 text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white rounded-full transition-all shadow-xs flex items-center gap-1.5 hover:-translate-y-0.5"
+        >
+          <Handshake size={15} />
+          <span>Dashboard Mitra</span>
+        </Link>
       );
     }
 
@@ -553,6 +576,15 @@ export default function PublicNavbar() {
               <span>Presensi Pegawai STP</span>
             </Link>
           </div>
+        ) : role === APP_ROLES.INDUSTRI ? (
+          <Link
+            href="/mitra/dashboard"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="w-full h-11 text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-xl shadow-xs flex items-center justify-center gap-2"
+          >
+            <Handshake size={16} />
+            <span>Buka Dashboard Mitra</span>
+          </Link>
         ) : role === APP_ROLES.TENANT ? (
           <Link
             href="/tenant/dashboard"

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Alumni } from '@/types';
+import { Alumni, ALUMNI_ORIGIN_LABELS, AlumniOriginSource } from '@/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Users, UploadCloud, Plus, Search, FileText, 
@@ -37,7 +37,7 @@ const generateWaMessage = (alumni: any) => {
   const text = `Halo *${alumni.name || 'Alumni'}*,
 
 Kami dari Admin Karier Solo Technopark.
-Saat ini histori pelatihan Anda (Program: ${alumni.programTaken || '-'}) telah tercatat di sistem kami.
+Saat ini histori pelatihan Anda pada jalur *${alumni.originSource === 'RSKB_SURAKARTA' ? 'Rumah Siap Kerja Bersama (RSKB) Kota Surakarta × Solo Technopark' : (ALUMNI_ORIGIN_LABELS[alumni.originSource as AlumniOriginSource] || 'Solo Technopark')}* (Program: ${alumni.programTaken || '-'}) telah tercatat resmi di ekosistem kami.
 
 Untuk memudahkan penyaluran kerja dan agar portofolio keahlian Anda dapat dilihat oleh mitra industri, silakan lengkapi profil Anda dengan mengklaim status Alumni di Portal Solo Technopark.
 
@@ -73,6 +73,7 @@ export default function AlumniTab() {
   const [filterYear, setFilterYear] = useState('ALL');
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [filterEmployment, setFilterEmployment] = useState('ALL');
+  const [filterOrigin, setFilterOrigin] = useState('ALL');
   
   // State Paginasi Klien
   const [displayLimit, setDisplayLimit] = useState(25);
@@ -98,7 +99,8 @@ export default function AlumniTab() {
   const initialManualForm: AlumniFormState = {
     name: '', email: '', phone: '', batch: '', programTaken: '', trainingYear: '',
     courseStartDate: '', courseEndDate: '', birthInfo: '', address: '', 
-    certificationResult: '', employmentStatus: 'Proses Verifikasi', company: '', currentJob: ''
+    certificationResult: '', employmentStatus: 'Proses Verifikasi', company: '', currentJob: '',
+    originSource: 'STP_VOKASI', originInstitution: '', district: ''
   };
   const [manualForm, setManualForm] = useState<AlumniFormState>(initialManualForm);
 
@@ -106,7 +108,7 @@ export default function AlumniTab() {
   useEffect(() => {
     setDisplayLimit(25);
     setSelectedIds([]); // Reset pilihan saat pencarian/filter berubah
-  }, [search, filterProgram, filterYear, filterStatus, filterEmployment]);
+  }, [search, filterProgram, filterYear, filterStatus, filterEmployment, filterOrigin]);
 
   // --- LOGIK EKSTRAKSI OPSI FILTER UNIK ---
   const filterOptions = useMemo(() => {
@@ -158,9 +160,11 @@ export default function AlumniTab() {
         : a.employmentStatus;
       const matchesEmployment = filterEmployment === 'ALL' || mappedStatus === filterEmployment;
 
-      return matchesSearch && matchesProgram && matchesYear && matchesStatus && matchesEmployment;
+      const itemOrigin = a.originSource || 'STP_VOKASI';
+      const matchesOrigin = filterOrigin === 'ALL' || itemOrigin === filterOrigin;
+      return matchesSearch && matchesProgram && matchesYear && matchesStatus && matchesEmployment && matchesOrigin;
     });
-  }, [allAlumnis, search, filterProgram, filterYear, filterStatus, filterEmployment]);
+  }, [allAlumnis, search, filterProgram, filterYear, filterStatus, filterEmployment, filterOrigin]);
 
   // Batasi data yang tampil menggunakan paginasi klien
   const displayedAlumni = filteredAlumni.slice(0, displayLimit);
@@ -240,6 +244,9 @@ export default function AlumniTab() {
       "Tahun Pelatihan": "2024",
       "Batch": "74",
       "Total of Participants": "1",
+      "Jalur Program": "RSKB_SURAKARTA",
+      "Instansi Penyelenggara": "RSKB / Disnaker Kota Surakarta",
+      "Kecamatan": "Jebres",
       "Program": "Mekanik Manufaktur",
       "Course Start Date": "2024-01-15",
       "Course End Date": "2024-03-15",
@@ -273,6 +280,9 @@ export default function AlumniTab() {
       "Tahun Pelatihan": a.trainingYear || a.graduationYear || "",
       "Batch": a.batch || "",
       "Total of Participants": "1",
+      "Jalur Program": ALUMNI_ORIGIN_LABELS[(a.originSource || 'STP_VOKASI') as AlumniOriginSource] || a.originSource || "STP_VOKASI",
+      "Instansi Penyelenggara": a.originInstitution || "Solo Technopark",
+      "Kecamatan": a.district || "",
       "Program": a.programTaken || "",
       "Course Start Date": a.courseStartDate || "",
       "Course End Date": a.courseEndDate || "",
@@ -463,7 +473,22 @@ export default function AlumniTab() {
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden bg-slate-50/50 border-b border-slate-100"
             >
-              <div className="p-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
+              <div className="p-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Jalur Asal Alumni</Label>
+                  <select
+                    value={filterOrigin}
+                    onChange={e => setFilterOrigin(e.target.value)}
+                    className="w-full h-10 px-3 border border-slate-200 rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-amber-500"
+                  >
+                    <option value="ALL">Semua Jalur (STP & RSKB)</option>
+                    <option value="STP_VOKASI">Diklat Vokasi STP</option>
+                    <option value="RSKB_SURAKARTA">RSKB Kota Surakarta</option>
+                    <option value="OPD_PEMKOT">Program OPD Pemkot</option>
+                    <option value="CSR_INDUSTRI">Kemitraan / CSR Industri</option>
+                    <option value="INKUBASI_WIRAUSAHA">Inkubasi Wirausaha</option>
+                  </select>
+                </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Program Pelatihan</Label>
                   <select 
@@ -512,13 +537,13 @@ export default function AlumniTab() {
               </div>
               
               {/* Reset Filter Button */}
-              {(filterProgram !== 'ALL' || filterYear !== 'ALL' || filterStatus !== 'ALL' || filterEmployment !== 'ALL') && (
+              {(filterProgram !== 'ALL' || filterYear !== 'ALL' || filterStatus !== 'ALL' || filterEmployment !== 'ALL' || filterOrigin !== 'ALL') && (
                 <div className="px-5 pb-5 flex justify-end">
                   <Button 
                     variant="ghost" 
                     size="sm" 
                     onClick={() => {
-                      setFilterProgram('ALL'); setFilterYear('ALL'); setFilterStatus('ALL'); setFilterEmployment('ALL');
+                      setFilterProgram('ALL'); setFilterYear('ALL'); setFilterStatus('ALL'); setFilterEmployment('ALL'); setFilterOrigin('ALL');
                     }} 
                     className="text-red-500 hover:text-red-600 hover:bg-red-50 text-xs font-bold"
                   >
@@ -638,7 +663,18 @@ export default function AlumniTab() {
                       </td>
                       <td className="p-4">
                         <div className="font-black text-slate-900">{alumni.name}</div>
-                        <div className="text-xs font-medium text-slate-500 mt-0.5">{alumni.phone || alumni.email || 'Tidak Ada Kontak'}</div>
+                        <div className="text-xs font-medium text-slate-500 mt-0.5">{alumni.phone || alumni.email || 'Tidak Ada Kontak'}{alumni.district ? ` • Kec. ${alumni.district}` : ''}</div>
+                        <div className="mt-1">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border ${
+                            alumni.originSource === 'RSKB_SURAKARTA'
+                              ? 'bg-teal-50 text-teal-800 border-teal-200'
+                              : alumni.originSource === 'OPD_PEMKOT'
+                              ? 'bg-sky-50 text-sky-800 border-sky-200'
+                              : 'bg-indigo-50/70 text-indigo-700 border-indigo-200/70'
+                          }`}>
+                            {ALUMNI_ORIGIN_LABELS[(alumni.originSource || 'STP_VOKASI') as AlumniOriginSource] || 'Diklat Vokasi STP'}
+                          </span>
+                        </div>
                       </td>
                       <td className="p-4">
                         <div className="font-bold text-slate-700">{alumni.programTaken || '-'}</div>
@@ -869,12 +905,52 @@ export default function AlumniTab() {
                         <Label className="text-xs font-bold text-slate-500">Alamat Rumah Lengkap</Label>
                         <Input value={manualForm.address} onChange={e=>setManualForm({...manualForm, address: e.target.value})} className="h-10 rounded-xl text-sm" placeholder="Alamat asal/domisili"/>
                       </div>
+                      <div className="space-y-1.5 sm:col-span-2">
+                        <Label className="text-xs font-bold text-slate-500">Kecamatan Domisili (Khusus Surakarta / RSKB)</Label>
+                        <select
+                          value={manualForm.district || ''}
+                          onChange={e => setManualForm({ ...manualForm, district: e.target.value })}
+                          className="w-full h-10 px-3 border border-slate-200 rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-amber-500"
+                        >
+                          <option value="">-- Luar Surakarta / Pilih Kecamatan --</option>
+                          <option value="Jebres">Kecamatan Jebres</option>
+                          <option value="Banjarsari">Kecamatan Banjarsari</option>
+                          <option value="Laweyan">Kecamatan Laweyan</option>
+                          <option value="Pasar Kliwon">Kecamatan Pasar Kliwon</option>
+                          <option value="Serengan">Kecamatan Serengan</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
 
                   {/* Blok Pelatihan */}
                   <div>
-                    <h4 className="font-bold text-slate-800 border-b border-slate-100 pb-2 mb-3 sm:mb-4 text-sm sm:text-base">Rekam Pelatihan STP</h4>
+                    <h4 className="font-bold text-slate-800 border-b border-slate-100 pb-2 mb-3 sm:mb-4 text-sm sm:text-base">Rekam Pelatihan STP & Jejaring RSKB Kota Surakarta</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mb-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-slate-500">Jalur Asal Program <span className="text-red-500">*</span></Label>
+                        <select
+                          value={manualForm.originSource || 'STP_VOKASI'}
+                          onChange={e => setManualForm({ ...manualForm, originSource: e.target.value as AlumniOriginSource })}
+                          className="w-full h-10 px-3 border border-slate-200 rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-amber-500"
+                        >
+                          <option value="STP_VOKASI">Diklat Vokasi Solo Technopark (Kode AL-...)</option>
+                          <option value="RSKB_SURAKARTA">Rumah Siap Kerja Bersama / RSKB Surakarta (Kode RSKB-...)</option>
+                          <option value="OPD_PEMKOT">Program OPD Pemerintah Kota Surakarta</option>
+                          <option value="CSR_INDUSTRI">Program Kemitraan / CSR Industri</option>
+                          <option value="INKUBASI_WIRAUSAHA">Inkubasi Wirausaha Mandiri</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-slate-500">Instansi Penyelenggara / OPD Pengampu</Label>
+                        <Input
+                          value={manualForm.originInstitution || ''}
+                          onChange={e => setManualForm({ ...manualForm, originInstitution: e.target.value })}
+                          className="h-10 rounded-xl text-sm"
+                          placeholder="Contoh: BLUD Solo Technopark / Disnaker Surakarta"
+                        />
+                      </div>
+                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 mb-4 sm:mb-5">
                       <div className="space-y-1.5">
                         <Label className="text-xs font-bold text-slate-500">Program / Kelas <span className="text-red-500">*</span></Label>

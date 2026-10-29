@@ -20,6 +20,9 @@ const PENTAHELIX_PREVIEW = [
 export default function LoginPage() {
   // Toggle antara Login Utama (Google) dan Login Tenant (Kode Akses)
   const [showTenantForm, setShowTenantForm] = useState(false);
+  const [showPartnerForm, setShowPartnerForm] = useState(false);
+  const [partnerEmail, setPartnerEmail] = useState('');
+  const [partnerPassword, setPartnerPassword] = useState('');
   
   // State for Tenant Login
   const [accessCode, setAccessCode] = useState('');
@@ -34,9 +37,10 @@ export default function LoginPage() {
     setIsGoogleLoading(true);
 
     try {
-      await authService.loginWithGoogle();
+      const loginRes = await authService.loginWithGoogle();
+      window.location.href = loginRes.role === 'industri' ? '/mitra/dashboard' : '/';
       // Apapun rolenya, arahkan ke Homepage
-      window.location.href = '/'; 
+      // Redirect sudah ditangani di atas
     } catch (err: any) {
       console.error(err);
       if (err.code === 'auth/popup-closed-by-user') {
@@ -57,6 +61,32 @@ export default function LoginPage() {
 
     try {
       await authService.loginWithTenantAccessCode(accessCode);
+      window.location.href = '/tenant/dashboard';
+    } catch (err: any) {
+      console.error("Login Error:", err);
+      setError(err.message || 'Gagal memproses otentikasi. Silakan periksa kembali kode akses Anda.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePartnerLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
+    try {
+      await authService.loginWithPartnerCredentials(partnerEmail, partnerPassword);
+      window.location.href = '/mitra/dashboard';
+    } catch {
+      setError('Email atau kata sandi Mitra tidak sesuai.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Placeholder tertutup rapi
+  const _noop = () => {
+    try {
       window.location.href = '/tenant/dashboard';
     } catch (err: any) {
       console.error("Login Error:", err);
@@ -149,7 +179,7 @@ export default function LoginPage() {
 
             <AnimatePresence mode="wait">
               {/* VIEW 1: GOOGLE LOGIN */}
-              {!showTenantForm ? (
+              {!showTenantForm && !showPartnerForm ? (
                 <motion.div 
                   key="google-login"
                   initial={{ opacity: 0, x: -20 }}
@@ -203,7 +233,14 @@ export default function LoginPage() {
                         className="w-full flex justify-center items-center gap-2 py-3.5 px-4 rounded-2xl text-sm font-bold text-sky-700 bg-sky-50 hover:bg-sky-100 transition-colors"
                       >
                         <Building size={16} />
-                        Masuk sebagai Tim Tenant
+                        Masuk sebagai Tim Tenant</button>
+                      <button
+                        type="button"
+                        onClick={() => { setShowPartnerForm(true); setShowTenantForm(false); setError(''); }}
+                        className="w-full flex justify-center items-center gap-2 py-3.5 px-4 rounded-2xl text-sm font-bold text-teal-800 bg-teal-50 hover:bg-teal-100 transition-colors border border-teal-200/70"
+                      >
+                        <Briefcase size={16} className="text-teal-600" />
+                        Masuk sebagai Mitra Industri Resmi
                       </button>
 
                       <Link
@@ -217,6 +254,54 @@ export default function LoginPage() {
                   </div>
                 </motion.div>
 
+              ) : showPartnerForm ? (
+                <motion.div
+                  key="partner-login"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="space-y-5"
+                >
+                  <button
+                    type="button"
+                    onClick={() => { setShowPartnerForm(false); setError(''); }}
+                    className="flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-emerald-600 transition-colors mb-2 group"
+                  >
+                    <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Kembali
+                  </button>
+                  <div>
+                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">Portal Mitra Resmi</h2>
+                    <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                      Masuk menggunakan Email PIC & Kata Sandi Mitra yang dikirimkan oleh Tim Karir Solo Technopark.
+                    </p>
+                  </div>
+                  <form onSubmit={handlePartnerLogin} className="space-y-4">
+                    <input
+                      type="email"
+                      required
+                      value={partnerEmail}
+                      onChange={(e) => setPartnerEmail(e.target.value)}
+                      className="block w-full px-4 py-3.5 border-2 border-slate-200 rounded-2xl focus:border-emerald-500 text-sm font-semibold outline-none bg-slate-50 focus:bg-white"
+                      placeholder="Email PIC Perusahaan"
+                    />
+                    <input
+                      type="password"
+                      required
+                      value={partnerPassword}
+                      onChange={(e) => setPartnerPassword(e.target.value)}
+                      className="block w-full px-4 py-3.5 border-2 border-slate-200 rounded-2xl focus:border-emerald-500 text-sm font-semibold outline-none bg-slate-50 focus:bg-white"
+                      placeholder="Kata Sandi Portal Mitra"
+                    />
+                    <button
+                      type="submit"
+                      disabled={isLoading || !partnerEmail.trim() || !partnerPassword}
+                      className="w-full flex justify-center items-center py-4 px-4 rounded-2xl text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-600/20 transition-all disabled:opacity-70"
+                    >
+                      {isLoading ? 'Memverifikasi Akses Mitra...' : 'Masuk ke Portal Mitra (/mitra)'}
+                    </button>
+                  </form>
+                </motion.div>
               ) : (
                 
                 /* VIEW 2: KODE AKSES TENANT */

@@ -31,10 +31,18 @@ export const syncUserRoleToClaims = onDocumentWritten("users/{userId}", async (e
     const currentClaims = userRecord.customClaims || {};
 
     // Jika rolenya berbeda dengan klaim saat ini, perbarui klaimnya
-    if (currentClaims.role !== newRole) {
+    if (
+      currentClaims.role !== newRole ||
+      (userData?.partnerId && currentClaims.partnerId !== userData.partnerId) ||
+      (userData?.tenantId && currentClaims.tenantId !== userData.tenantId) ||
+      (userData?.alumniId && currentClaims.alumniId !== userData.alumniId)
+    ) {
       await admin.auth().setCustomUserClaims(userId, {
         ...currentClaims,
-        role: newRole
+        role: newRole,
+        ...(userData?.partnerId ? { partnerId: userData.partnerId } : {}),
+        ...(userData?.tenantId ? { tenantId: userData.tenantId } : {}),
+        ...(userData?.alumniId ? { alumniId: userData.alumniId, isAlumni: true } : {}),
       });
       console.log(`[CUSTOM CLAIMS] Role untuk UID ${userId} berhasil diupdate menjadi: ${newRole}`);
     }

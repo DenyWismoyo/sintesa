@@ -1,45 +1,20 @@
 // src/app/(public)/karir/components/AlumniQuickMatchBanner.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import {
   GraduationCap,
   Sparkles,
-  Building2,
   ArrowRight,
   ShieldCheck,
   CheckCircle2,
-  RefreshCw,
   Database,
+  MessageSquare,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
 
 export default function AlumniQuickMatchBanner() {
-  const [isSyncing, setIsSyncing] = useState(false);
-
-  const handleManualSync = async () => {
-    setIsSyncing(true);
-    try {
-      const res = await fetch('/api/jobs/sync?force=true', { method: 'POST' });
-      const json = await res.json();
-      if (res.ok && json.success) {
-        toast.success(json.message || 'Database lowongan berhasil disinkronkan!');
-        // Refresh halaman agar data terbaru langsung tampil
-        setTimeout(() => {
-          window.location.reload();
-        }, 1200);
-      } else {
-        toast.error(json.message || 'Gagal menyinkronkan database lowongan.');
-      }
-    } catch (err: any) {
-      toast.error('Gagal menghubungi endpoint sinkronisasi: ' + err.message);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
   return (
     <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900 text-white p-5 sm:p-8 shadow-xl border border-emerald-800/40">
       {/* Background Ambient Glow */}
@@ -51,27 +26,27 @@ export default function AlumniQuickMatchBanner() {
           <div className="flex flex-wrap items-center gap-2">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 text-xs font-semibold">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Penyaluran Kerja Terverifikasi Solo Technopark</span>
+              <span>Bursa Eksklusif Alumni STP & Jejaring RSKB Surakarta</span>
             </div>
 
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/20 border border-sky-400/30 text-sky-200 text-xs font-medium">
               <Database className="w-3.5 h-3.5 text-sky-400" />
-              <span>Tersimpan di Cloud Firestore • Update Seminggu Sekali</span>
+              <span>Kurasi Mitra Resmi & Sinkronisasi Otomatis Mingguan</span>
             </div>
           </div>
 
           <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight leading-tight">
-            Jembatan Karir Resmi Antara <span className="text-emerald-300">Alumni Pelatihan</span> & <span className="text-teal-300">Mitra Industri Kawasan</span>
+            Jembatan Karir Resmi Antara <span className="text-emerald-300">Alumni Terverifikasi</span> & <span className="text-teal-300">Mitra Industri Kawasan</span>
           </h2>
 
           <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-            Seluruh data lowongan disimpan persisten di Cloud Firestore dan diperbarui otomatis setiap seminggu sekali dari agregator industri (RapidAPI JSearch) serta dikurasi khusus agar selaras dengan kompetensi silabus pelatihan Solo Technopark.
+            Pastikan status <strong className="text-emerald-300">Open to Work</strong> dan portofolio proyek pada profil alumni Anda aktif agar Mitra Industri Resmi serta Startup Tenant Solo Technopark dapat mengirimkan undangan wawancara langsung.
           </p>
 
           <div className="flex flex-wrap items-center gap-4 text-xs text-slate-300 pt-1">
             <span className="flex items-center gap-1.5 font-medium">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              Prioritas Wawancara untuk Pemegang Sertifikat STP
+              Prioritas Rekrutmen Alumni STP & RSKB Kota Surakarta
             </span>
             <span className="flex items-center gap-1.5 font-medium">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
@@ -81,19 +56,18 @@ export default function AlumniQuickMatchBanner() {
         </div>
 
         <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 w-full lg:w-auto shrink-0">
-          <Button
-            onClick={handleManualSync}
-            disabled={isSyncing}
-            className="w-full h-11 bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-xs rounded-xl shadow-md gap-2"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-            <span>{isSyncing ? 'Menyinkronkan Database...' : 'Sinkronkan Database Sekarang'}</span>
-          </Button>
+          <Link href="/alumni-portal" className="w-full">
+            <Button className="w-full h-11 bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs rounded-xl shadow-md gap-2">
+              <MessageSquare className="w-4 h-4" />
+              <span>Buka Forum Eksklusif Alumni & RSKB</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Button>
+          </Link>
 
           <Link href="/profil" className="w-full">
             <Button className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-md gap-2">
-              <GraduationCap className="w-4 h-4" />
-              <span>Klaim Profil Alumni STP (Kode AL-...)</span>
+              <Sparkles className="w-4 h-4" />
+              <span>Perbarui Portofolio & Status Open to Work</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Button>
           </Link>
@@ -103,7 +77,8 @@ export default function AlumniQuickMatchBanner() {
               variant="outline"
               className="w-full h-11 bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs font-bold rounded-xl gap-2"
             >
-              <span>Lihat Katalog Pelatihan</span>
+              <GraduationCap className="w-4 h-4" />
+              <span>Tingkatkan Skill di Katalog Diklat</span>
             </Button>
           </Link>
         </div>

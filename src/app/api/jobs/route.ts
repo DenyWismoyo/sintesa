@@ -3,6 +3,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { filterAndSortJobs } from '@/services/job.service';
 import { jobDbService } from '@/services/jobDb.service';
 import { JobListing } from '@/types/job.types';
+import { verifyApiRequestAuth, getAdminDefaultDb } from '@/lib/firebaseAdmin';
+import { canPerformAction, PERMISSIONS } from '@/config/roles';
+import { removeUndefinedFields } from '@/lib/presensi/firebase-admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,6 +41,9 @@ export async function GET(request: NextRequest) {
     const sort = (searchParams.get('sort') as any) || 'newest';
     const includeInactive = searchParams.get('includeInactive') === 'true';
     const statusParam = (searchParams.get('status') as any) || undefined;
+    const approvalStatus = (searchParams.get('approvalStatus') as any) || undefined;
+    const partnerId = searchParams.get('partnerId') || undefined;
+    const tenantId = searchParams.get('tenantId') || undefined;
 
     // 1. Ambil data langsung dari Database (murni dari internet)
     let jobsFromDb = await jobDbService.getJobsFromFirestore();
@@ -72,6 +78,9 @@ export async function GET(request: NextRequest) {
       sort,
       includeInactive,
       status: statusParam,
+      approvalStatus,
+      partnerId,
+      tenantId,
     });
 
     const syncMeta = await jobDbService.getSyncMetadata();
@@ -109,10 +118,26 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const authUser = await verifyApiRequestAuth(request);
+    if (!authUser) {
+      return NextResponse.json(
+        { success: false, message: 'Autentikasi diperlukan untuk mengelola lowongan kerja.' },
+        { status: 401 }
+      );
+    }
 
-    // 1. Aksi Force Sync API
+    const body = await request.json();
+    const isCareerAdmin = canPerformAction(authUser.role, PERMISSIONS.MANAGE_CAREER);
+    const canSubmitDraft = canPerformAction(authUser.role, PERMISSIONS.SUBMIT_PARTNER_JOB);
+
+    // 1. Aksi Force Sync API (Khusus Admin Bursa Karir)
     if (body.action === 'sync') {
+      if (!isCareerAdmin) {
+        return NextResponse.json(
+          { success: false, message: 'Hanya Administrator Karir yang dapat memicu sinkronisasi.' },
+          { status: 403 }
+        );
+      }
       const syncResult = await jobDbService.syncWeeklyJobs({ force: true });
       return NextResponse.json({
         success: syncResult.success,
@@ -122,12 +147,52 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // 2. Aksi Tambah Lowongan Baru Manual
-    const newJob = await jobDbService.createJob(body);
+    if (!isCareerAdmin && !canSubmitDraft) {
+      return NextResponse.json(
+        { success: false, message: 'Anda tidak memiliki izin untuk mempublikasikan lowongan.' },
+        { status: 403 }
+      );
+    }
+
+    // 2. Aksi Tambah Lowongan Baru (Admin langsung APPROVED; Mitra/Tenant masuk antrean PENDING_APPROVAL)
+    const sanitizedPayload: Partial<JobListing> = isCareerAdmin
+      ? {
+          ...body,
+          submittedByUid: authUser.uid,
+          approvalStatus: body.approvalStatus || 'APPROVED',
+          isActive: body.isActive !== undefined ? body.isActive : true,
+        }
+      : {
+          ...body,
+          source: 'stp_partner',
+          isStpPartner: true,
+          isFeatured: false,
+          isActive: false,
+          approvalStatus: 'PENDING_APPROVAL',
+          submittedByUid: authUser.uid,
+          partnerId: authUser.partnerId || body.partnerId,
+          tenantId: authUser.tenantId || body.tenantId,
+          companyType: authUser.role === 'tenant' ? 'Tenant Inkubasi Startup STP' : 'Mitra Industri STP',
+        };
+
+    const newJob = await jobDbService.createJob(sanitizedPayload);
+
+    // Pastikan tersimpan persisten via Firebase Admin SDK (bypass client rules di server runtime)
+    try {
+      await getAdminDefaultDb()
+        .collection('jobs')
+        .doc(newJob.id)
+        .set(removeUndefinedFields(newJob), { merge: true });
+    } catch (adminErr) {
+      console.warn('[API /api/jobs POST] Fallback local snapshot digunakan:', adminErr);
+    }
+
     return NextResponse.json({
       success: true,
       job: newJob,
-      message: 'Lowongan pekerjaan berhasil ditambahkan.',
+      message: isCareerAdmin
+        ? 'Lowongan pekerjaan berhasil ditambahkan dan ditayangkan.'
+        : 'Draf lowongan berhasil dikirim dan menunggu persetujuan Admin Karir STP.',
     });
   } catch (error: any) {
     console.error('[API /api/jobs POST] Error:', error);
@@ -140,6 +205,17 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const authUser = await verifyApiRequestAuth(request);
+    if (!authUser) {
+      return NextResponse.json(
+        { success: false, message: 'Autentikasi diperlukan.' },
+        { status: 401 }
+      );
+    }
+
+    const isCareerAdmin = canPerformAction(authUser.role, PERMISSIONS.MANAGE_CAREER);
+    const canSubmitDraft = canPerformAction(authUser.role, PERMISSIONS.SUBMIT_PARTNER_JOB);
+
     const body = await request.json();
     const { id, ...updates } = body;
 
@@ -150,12 +226,45 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const success = await jobDbService.updateJob(id, updates);
+    let safeUpdates: Partial<JobListing> = updates;
+
+    if (!isCareerAdmin) {
+      if (!canSubmitDraft) {
+        return NextResponse.json(
+          { success: false, message: 'Hak akses tidak mencukupi.' },
+          { status: 403 }
+        );
+      }
+      const existing = await jobDbService.getJobById(id);
+      if (!existing || existing.submittedByUid !== authUser.uid) {
+        return NextResponse.json(
+          { success: false, message: 'Anda hanya dapat mengubah draf lowongan milik instansi Anda.' },
+          { status: 403 }
+        );
+      }
+      safeUpdates = {
+        ...updates,
+        approvalStatus: 'PENDING_APPROVAL',
+        isActive: false,
+        isFeatured: false,
+      };
+    }
+
+    const success = await jobDbService.updateJob(id, safeUpdates);
     if (!success) {
       return NextResponse.json(
         { success: false, message: 'Lowongan tidak ditemukan atau gagal diperbarui.' },
         { status: 404 }
       );
+    }
+
+    try {
+      await getAdminDefaultDb()
+        .collection('jobs')
+        .doc(id)
+        .set(removeUndefinedFields({ ...safeUpdates, lastSeenAt: Date.now() }), { merge: true });
+    } catch (adminErr) {
+      console.warn('[API /api/jobs PUT] Admin Firestore sync dilewati:', adminErr);
     }
 
     return NextResponse.json({
@@ -173,6 +282,14 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const authUser = await verifyApiRequestAuth(request);
+    if (!authUser || !canPerformAction(authUser.role, PERMISSIONS.MANAGE_CAREER)) {
+      return NextResponse.json(
+        { success: false, message: 'Hanya Administrator Karir yang diizinkan menghapus lowongan.' },
+        { status: 403 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
@@ -189,6 +306,12 @@ export async function DELETE(request: NextRequest) {
         { success: false, message: 'Lowongan tidak ditemukan atau gagal dihapus.' },
         { status: 404 }
       );
+    }
+
+    try {
+      await getAdminDefaultDb().collection('jobs').doc(id).delete();
+    } catch {
+      // Abaikan jika dokumen tidak ada di Firestore
     }
 
     return NextResponse.json({

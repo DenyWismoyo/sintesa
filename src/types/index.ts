@@ -48,3 +48,6 @@ export * from './facilityAddon.types';
 
 // 15. Manufacturing & Production Services (Jasa Produksi STP)
 export * from './production.types';
+
+// 16. Exclusive Dual-Zone Alumni & Partner Forum + Job Application Tracker
+export * from './alumniForum.types';

@@ -18,6 +18,7 @@ import {
   Briefcase,
   Layers,
   Award,
+  Key,
 } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { ROLE_LABELS, APP_ROLES } from '@/config/roles';
@@ -52,7 +53,7 @@ export default function CareerExclusiveGate({ jobTitle, companyName }: CareerExc
 
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-100/80 border border-emerald-300 text-emerald-800 text-xs font-black uppercase tracking-wider mb-3">
             <Award className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Fitur Eksklusif Talenta & Alumni STP</span>
+            <span>Eksklusif Alumni STP & RSKB Kota Surakarta</span>
           </div>
 
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight leading-tight">
@@ -141,21 +142,29 @@ export default function CareerExclusiveGate({ jobTitle, companyName }: CareerExc
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto shrink-0">
                 <Link
-                  href="/program-pelatihan"
+                  href="/profil"
                   className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2"
                 >
+                  <Key className="w-4 h-4" />
+                  <span>Klaim Kode Alumni (AL / RSKB)</span>
+                </Link>
+
+                <Link
+                  href="/program-pelatihan"
+                  className="px-3.5 py-2.5 rounded-xl border border-emerald-200 bg-emerald-50/70 hover:bg-emerald-100 text-emerald-800 font-bold text-xs transition-all flex items-center justify-center gap-1.5"
+                >
                   <GraduationCap className="w-4 h-4" />
-                  <span>Daftar Pelatihan STP</span>
+                  <span>Daftar Pelatihan</span>
                 </Link>
 
                 <a
                   href="https://wa.me/6281226065555?text=Halo%20Admin%20Solo%20Technopark,%20saya%20ingin%20verifikasi%20status%20alumni%20untuk%20akses%20Bursa%20Karir"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-3.5 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold text-xs transition-all flex items-center justify-center gap-1.5"
+                  className="px-3 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold text-xs transition-all flex items-center justify-center gap-1.5"
                 >
-                  <HelpCircle className="w-4 h-4 text-slate-500" />
-                  <span>Klaim Status Alumni</span>
+                  <HelpCircle className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Bantuan Kode</span>
                   <ExternalLink className="w-3 h-3 opacity-60" />
                 </a>
 

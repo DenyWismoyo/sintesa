@@ -257,6 +257,7 @@ export const onAlumniWrittenInvalidateCache = onDocumentWritten("alumnis/{alumni
   try {
     const snapshot = await db.collection('alumnis').orderBy('createdAt', 'desc').get();
     const compressedAlumnis: any[] = [];
+    const sanitizedTalentPool: any[] = [];
 
     snapshot.forEach(doc => {
       const data = doc.data();
@@ -275,9 +276,49 @@ export const onAlumniWrittenInvalidateCache = onDocumentWritten("alumnis/{alumni
         currentJob: data.currentJob || '',
         birthInfo: data.birthInfo || '',
         address: data.address || '',
+        district: data.district || '',
+        originSource: data.originSource || 'STP_VOKASI',
+        originInstitution: data.originInstitution || '',
+        isVerified: Boolean(data.isVerified),
+        isLookingForJob: Boolean(data.isLookingForJob),
+        internalStatus: data.internalStatus || 'AVAILABLE',
+        skills: Array.isArray(data.skills) ? data.skills : [],
         certificationResult: data.certificationResult || '',
         createdAt: data.createdAt || 0
       });
+
+      // Cache khusus Talent Pool terverifikasi (TANPA PII sensitif seperti alamat rumah, NIK, atau kode registrasi)
+      if (data.status === 'CLAIMED' && data.isLookingForJob === true) {
+        sanitizedTalentPool.push({
+          id: doc.id,
+          name: data.name || '',
+          photoUrl: data.photoUrl || '',
+          originSource: data.originSource || 'STP_VOKASI',
+          originInstitution: data.originInstitution || '',
+          district: data.district || '',
+          programTaken: data.programTaken || '',
+          batch: data.batch || '',
+          trainingYear: data.trainingYear || data.graduationYear || '',
+          bio: data.bio || '',
+          skills: Array.isArray(data.skills) ? data.skills : [],
+          tools: Array.isArray(data.tools) ? data.tools : [],
+          certifications: Array.isArray(data.certifications) ? data.certifications : [],
+          projects: Array.isArray(data.projects) ? data.projects.slice(0, 4) : [],
+          experienceLevel: data.experienceLevel || 'Fresh Graduate / Alumni Pelatihan',
+          workSetup: data.workSetup || 'Fleksibel',
+          education: data.education || '',
+          major: data.major || '',
+          portfolioUrl: data.portfolioUrl || '',
+          linkedinUrl: data.linkedinUrl || '',
+          githubUrl: data.githubUrl || '',
+          internalStatus: data.internalStatus || 'AVAILABLE',
+          forumReputationScore: Number(data.forumReputationScore) || 0,
+          acceptedSolutionsCount: Number(data.acceptedSolutionsCount) || 0,
+          isLookingForJob: true,
+          isVerified: true,
+          createdAt: data.createdAt || 0,
+        });
+      }
     });
 
     const cachePayload = {
@@ -289,6 +330,14 @@ export const onAlumniWrittenInvalidateCache = onDocumentWritten("alumnis/{alumni
     guardDocumentSize('cache_alumnis/master', cachePayload);
 
     await db.collection(`artifacts/${DEFAULT_APP_ID}/public/data/cache_alumnis`).doc('master').set(cachePayload);
+
+    const talentPayload = {
+      lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+      count: sanitizedTalentPool.length,
+      data: sanitizedTalentPool,
+    };
+    guardDocumentSize('cache_talent_pool/master', talentPayload);
+    await db.collection(`artifacts/${DEFAULT_APP_ID}/public/data/cache_talent_pool`).doc('master').set(talentPayload);
 
     console.log(`[AUTO CACHE ALUMNI] Master cache alumni berhasil di-update secara otomatis (${compressedAlumnis.length} alumni).`);
     return true;
@@ -339,6 +388,12 @@ export const onJobWrittenInvalidateCache = onDocumentWritten("jobs/{jobId}", asy
         firstSeenAt: data.firstSeenAt || data.postedAt || Date.now(),
         lastSeenAt: data.lastSeenAt || Date.now(),
         isActive: data.isActive !== false,
+        partnerId: data.partnerId || undefined,
+        tenantId: data.tenantId || undefined,
+        submittedByUid: data.submittedByUid || undefined,
+        approvalStatus: data.approvalStatus || 'APPROVED',
+        rejectionReason: data.rejectionReason || undefined,
+        linkedForumThreadId: data.linkedForumThreadId || undefined,
       });
     });
 

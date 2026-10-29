@@ -10,7 +10,9 @@ const PROTECTED_PREFIXES = [
   '/billing',
   '/katalog',
   '/tenant',
+  '/mitra',
   '/pelatihan',
+  '/manajemen-karir',
   '/manajemen-event',
   '/manajemen-krenova',
   '/manajemen-faq',
@@ -125,6 +127,10 @@ export function proxy(request: NextRequest) {
     // Akun tenant dialihkan ke portal tenant mereka sendiri
     if (role === APP_ROLES.TENANT) {
       return NextResponse.redirect(new URL('/tenant/dashboard', request.url));
+    }
+    // Akun mitra industri dialihkan ke portal mitra resmi
+    if (role === APP_ROLES.INDUSTRI) {
+      return NextResponse.redirect(new URL('/mitra/dashboard', request.url));
     }
     // Staf internal berizin terbatas dialihkan ke dashboard mereka
     if (isInternalStaff(role)) {

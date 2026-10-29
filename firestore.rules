@@ -65,20 +65,68 @@ service cloud.firestore {
       );
     }
 
+    function isOwnPartner(partnerId) {
+      return isAuth() && partnerId != null && partnerId != '' && (
+        (request.auth.token.partnerId != null && request.auth.token.partnerId == partnerId) ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('partnerId', '') == partnerId)
+      );
+    }
+
+    // Seluruh peran staf internal Solo Technopark
+    function isInternalStaffRole() {
+      return hasAnyRole([
+        'super_admin',
+        'admin',
+        'admin_pelatihan',
+        'operator_pelatihan',
+        'admin_tenant',
+        'operator_tenant',
+        'admin_aset',
+        'operator_aset',
+        'admin_keuangan',
+        'kasir',
+        'kasir_pengeluaran',
+        'admin_produksi',
+        'operator_produksi',
+        'pegawai'
+      ]);
+    }
+
+    // Hak akses umum ekosistem forum alumni & jembatan industri
+    function canAccessForum() {
+      return hasAnyRole(['alumni', 'industri', 'tenant']) || isInternalStaffRole();
+    }
+
+    // Isolasi Mutlak Dua Zona Forum:
+    // - ZONE_A_ALUMNI_ONLY: HANYA 'alumni' dan staf internal (MENOLAK KERAS 'industri' & 'tenant')
+    // - ZONE_B_INDUSTRY_BRIDGE: Terbuka bagi 'alumni', 'industri', 'tenant', dan staf internal
+    function canAccessForumZone(zone) {
+      return (zone == 'ZONE_A_ALUMNI_ONLY' && (hasAnyRole(['alumni']) || isInternalStaffRole())) ||
+             (zone == 'ZONE_B_INDUSTRY_BRIDGE' && (hasAnyRole(['alumni', 'industri', 'tenant']) || isInternalStaffRole()));
+    }
+
     // =========================================================================
     // ROOT COLLECTIONS (MASTER DATA)
     // =========================================================================
 
     // 1. Data User & Akun
     match /users/{userId} {
-      // User dapat membaca profilnya sendiri, atau admin dapat melihat semua user
-      allow read: if isAuth() && (request.auth.uid == userId || isAdmin());
-      // User yang login diizinkan membuat dokumen profil awalnya sendiri
-      allow create: if isAuth() && request.auth.uid == userId;
-      // Admin dapat mengupdate profil siapa saja, user biasa hanya profil miliknya tanpa mengubah role
+      // User dapat membaca profilnya sendiri, atau tim admin terkait dapat meninjau akun user
+      allow read: if isAuth() && (
+        request.auth.uid == userId ||
+        hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'admin_tenant'])
+      );
+      // User yang login diizinkan membuat dokumen profil awalnya sendiri tanpa klaim privilese admin/mitra/alumni
+      allow create: if isAdmin() || (
+        isAuth() && request.auth.uid == userId &&
+        (!('role' in request.resource.data) || request.resource.data.role in ['public', 'tenant', 'pegawai']) &&
+        !request.resource.data.keys().hasAny(['partnerId', 'alumniId', 'isAlumni', 'isInstructor'])
+      );
+      // Admin dapat mengupdate profil siapa saja, user biasa hanya profil miliknya tanpa eskalasi role/relasi
       allow update: if isAdmin() || (
-        isAuth() && request.auth.uid == userId && 
-        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'tenantId', 'isInstructor'])
+        isAuth() && request.auth.uid == userId &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'tenantId', 'partnerId', 'alumniId', 'isAlumni', 'isInstructor'])
       );
       // Hanya Super Admin yang dapat menghapus akun
       allow delete: if isSuperAdmin();
@@ -150,24 +198,34 @@ service cloud.firestore {
       allow update, delete: if hasAnyRole(['admin', 'super_admin', 'admin_aset', 'operator_aset']);
     }
 
-    // 5. Program Pelatihan (LMS & Training)
+    // 5. Program Pelatihan (Diklat, LMS & Training)
     match /trainings/{trainingId} {
       allow read: if true;
       allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']);
 
-      // Sub-koleksi pendaftaran pelatihan
+      // Sub-koleksi 4 Batch Kuartalan
+      match /batches/{batchId} {
+        allow read: if true;
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']);
+      }
+
+      // Sub-koleksi pendaftaran pelatihan (Online, Offline, Walk-in, Kemitraan)
       match /registrations/{regId} {
-        allow create: if true; // Publik/peserta mendaftar
+        allow create: if true; // Mendukung pendaftaran publik online, walk-in, gratis maupun berbayar
         allow read: if isAuth() && (
           hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']) ||
           resource.data.email == request.auth.token.email ||
           resource.data.userId == request.auth.uid ||
-          (request.auth.uid in get(/databases/$(database)/documents/trainings/$(trainingId)).data.authorizedInstructorIds)
+          (request.auth.uid in get(/databases/$(database)/documents/trainings/$(trainingId)).data.get('authorizedInstructorIds', []))
         );
         allow update: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']) || (
-          isAuth() && 
+          isAuth() &&
           (resource.data.email == request.auth.token.email || resource.data.userId == request.auth.uid) &&
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['completedLessons', 'lastAccessedAt', 'updatedAt'])
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['completedLessons', 'lastAccessedAt', 'updatedAt', 'progress', 'status', 'invoiceId'])
+        ) || (
+          isAuth() &&
+          (request.auth.uid in get(/databases/$(database)/documents/trainings/$(trainingId)).data.get('authorizedInstructorIds', [])) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['completedLessons', 'updatedAt'])
         );
         allow delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']);
 
@@ -176,15 +234,31 @@ service cloud.firestore {
           allow read: if isAuth() && (
             hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']) ||
             get(/databases/$(database)/documents/trainings/$(trainingId)/registrations/$(regId)).data.email == request.auth.token.email ||
-            (request.auth.uid in get(/databases/$(database)/documents/trainings/$(trainingId)).data.authorizedInstructorIds)
+            get(/databases/$(database)/documents/trainings/$(trainingId)/registrations/$(regId)).data.userId == request.auth.uid ||
+            (request.auth.uid in get(/databases/$(database)/documents/trainings/$(trainingId)).data.get('authorizedInstructorIds', []))
           );
           allow create, update: if isAuth();
           allow delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan']);
         }
       }
 
-      // Sub-koleksi materi & silabus
-      match /{trainingSub}/{docId} {
+      // Sub-koleksi eksplisit kurikulum, modul, materi & silabus (mencegah kebocoran registrations via wildcard)
+      match /modules/{docId} {
+        allow read: if isAuth();
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']);
+      }
+
+      match /lessons/{docId} {
+        allow read: if isAuth();
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']);
+      }
+
+      match /syllabus/{docId} {
+        allow read: if isAuth();
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']);
+      }
+
+      match /materials/{docId} {
         allow read: if isAuth();
         allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']);
       }
@@ -196,10 +270,19 @@ service cloud.firestore {
       allow write: if hasAnyRole(['admin', 'super_admin', 'admin_tenant', 'operator_tenant']);
     }
 
-    // 7. Data Alumni Pelatihan
+    // 7. Data Master Alumni Pelatihan & Talent Pool
     match /alumnis/{alumniId} {
-      allow read: if true;
-      allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']);
+      // Proteksi ketat PII & registrationCode: hanya admin terkait, alumni pemilik klaim, atau mitra industri/tenant khusus pencari kerja aktif
+      allow read: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan', 'admin_tenant']) ||
+        (isAuth() && resource.data.claimedByUserId == request.auth.uid) ||
+        (hasAnyRole(['industri', 'tenant']) && resource.data.status == 'CLAIMED' && resource.data.isLookingForJob == true);
+      // Klaim akun (DORMANT -> CLAIMED) ditangani eksklusif di server via Cloud Function claimAlumniAccount (Admin SDK)
+      allow create, delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']);
+      allow update: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']) || (
+        isAuth() &&
+        resource.data.claimedByUserId == request.auth.uid &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['registrationCode', 'claimedByUserId', 'status', 'isVerified'])
+      );
     }
 
     // 8. Event & Agenda Publik
@@ -256,23 +339,57 @@ service cloud.firestore {
 
     // 13. Bursa Lowongan Pekerjaan & Karir Alumni Solo Technopark
     match /jobs/{jobId} {
-      // Publik & alumni dapat melihat seluruh informasi lowongan kerja
+      // Publik & SSR/API membaca daftar lowongan aktif (draft mitra berstatus isActive: false)
       allow read: if true;
-      // Pengelolaan lowongan hanya oleh admin sistem, pengelola pelatihan atau divisi tenant/industri
-      allow create, update, delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'admin_tenant']);
+      // Pembuatan lowongan oleh admin karir/pelatihan/tenant, atau draft oleh mitra industri/tenant
+      allow create: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan', 'admin_tenant']) || (
+        hasAnyRole(['industri', 'tenant']) &&
+        request.resource.data.approvalStatus == 'PENDING_APPROVAL' &&
+        request.resource.data.isActive == false &&
+        request.resource.data.submittedByUid == request.auth.uid
+      );
+      // Pembaruan penuh oleh admin karir/pelatihan/tenant, atau revisi draft oleh mitra pengaju sebelum disetujui
+      allow update: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan', 'admin_tenant']) || (
+        hasAnyRole(['industri', 'tenant']) &&
+        resource.data.submittedByUid == request.auth.uid &&
+        resource.data.approvalStatus == 'PENDING_APPROVAL' &&
+        request.resource.data.approvalStatus == 'PENDING_APPROVAL' &&
+        request.resource.data.isActive == false &&
+        request.resource.data.submittedByUid == request.auth.uid
+      );
+      // Penghapusan lowongan hanya oleh admin karir/pelatihan/tenant
+      allow delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'admin_tenant']);
 
       // Sub-koleksi Lamaran Pekerjaan (Job Applications)
       match /applications/{appId} {
-        // Pelamar membaca lamarannya sendiri; Tim pengelola karir dapat meninjau semua berkas
+        // Pelamar membaca lamarannya sendiri; Tim pengelola karir & mitra/tenant pemilik lowongan dapat meninjau berkas
         allow read: if isAuth() && (
           resource.data.applicantId == request.auth.uid ||
           resource.data.applicantEmail == request.auth.token.email ||
-          hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'admin_tenant'])
+          hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan', 'admin_tenant']) ||
+          (hasAnyRole(['industri', 'tenant']) &&
+           exists(/databases/$(database)/documents/jobs/$(jobId)) && (
+             get(/databases/$(database)/documents/jobs/$(jobId)).data.get('submittedByUid', '') == request.auth.uid ||
+             (get(/databases/$(database)/documents/jobs/$(jobId)).data.get('partnerId', '') != '' &&
+              isOwnPartner(get(/databases/$(database)/documents/jobs/$(jobId)).data.partnerId)) ||
+             (get(/databases/$(database)/documents/jobs/$(jobId)).data.get('tenantId', '') != '' &&
+              isOwnTenant(get(/databases/$(database)/documents/jobs/$(jobId)).data.tenantId))
+           ))
         );
         // Pelamar terautentikasi dapat mengirimkan berkas lamaran
         allow create: if isAuth();
-        // Pembaruan status seleksi (Ditinjau, Wawancara, Diterima) oleh tim pengelola
-        allow update, delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'admin_tenant']);
+        // Pembaruan status seleksi oleh tim pengelola karir atau mitra/tenant pemilik lowongan
+        allow update: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan', 'admin_tenant']) || (
+          hasAnyRole(['industri', 'tenant']) &&
+          exists(/databases/$(database)/documents/jobs/$(jobId)) && (
+            get(/databases/$(database)/documents/jobs/$(jobId)).data.get('submittedByUid', '') == request.auth.uid ||
+            (get(/databases/$(database)/documents/jobs/$(jobId)).data.get('partnerId', '') != '' &&
+             isOwnPartner(get(/databases/$(database)/documents/jobs/$(jobId)).data.partnerId)) ||
+            (get(/databases/$(database)/documents/jobs/$(jobId)).data.get('tenantId', '') != '' &&
+             isOwnTenant(get(/databases/$(database)/documents/jobs/$(jobId)).data.tenantId))
+          )
+        );
+        allow delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'admin_tenant']);
       }
     }
 
@@ -314,10 +431,25 @@ service cloud.firestore {
       allow update, delete: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan']);
     }
 
-    // Konfigurasi Sistem Afiliasi & Pengaturan Umum
+    // Konfigurasi Sistem Afiliasi, Sinkronisasi Lowongan & Pengaturan Umum
     match /app_settings/{docId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan']);
+    }
+
+    // 15. Mitra Resmi Industri & Ekosistem (Official Partners)
+    match /partners/{partnerId} {
+      allow read: if isAuth() && (
+        isOwnPartner(partnerId) ||
+        resource.data.picUserId == request.auth.uid ||
+        hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan', 'admin_tenant', 'admin_aset', 'alumni'])
+      );
+      allow create, delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'admin_tenant', 'admin_aset']);
+      allow update: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'admin_tenant', 'admin_aset']) || (
+        isAuth() &&
+        (isOwnPartner(partnerId) || resource.data.picUserId == request.auth.uid) &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['tier', 'isVerified', 'status', 'picUserId', 'inquiryId'])
+      );
     }
 
     // =========================================================================
@@ -343,8 +475,20 @@ service cloud.firestore {
       }
 
       match /cache_alumnis/{docId} {
+        // Dibatasi khusus tim admin untuk melindungi PII (phone, address, birthInfo, registrationCode)
+        allow read: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan', 'admin_tenant']);
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']);
+      }
+
+      match /cache_talent_pool/{docId} {
+        // Cache talenta pencari kerja yang telah disanitasi dari PII sensitif
+        allow read: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan', 'admin_tenant', 'industri', 'tenant', 'alumni']);
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']);
+      }
+
+      match /cache_trainings/{docId} {
         allow read: if true;
-        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan']);
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']);
       }
 
       match /cache_jobs/{docId} {
@@ -432,8 +576,138 @@ service cloud.firestore {
       match /partnership_inquiries/{inquiryId} {
         // Publik / calon mitra industri dapat mengajukan permohonan kerjasama
         allow create: if true;
-        // Akses peninjauan dan pembaruan status hanya oleh tim admin & kemitraan
-        allow read, update, delete: if hasAnyRole(['admin', 'super_admin', 'admin_tenant', 'admin_aset']);
+        // Akses peninjauan dan pembaruan status oleh tim admin, tenant, aset & pelatihan
+        allow read, update, delete: if hasAnyRole(['admin', 'super_admin', 'admin_tenant', 'admin_aset', 'admin_pelatihan']);
+      }
+
+      // Undangan Rekrutmen Talenta Alumni oleh Mitra Industri / Tenant
+      match /talent_invitations/{invitationId} {
+        allow create: if hasAnyRole(['industri', 'tenant', 'admin', 'super_admin', 'admin_pelatihan', 'admin_tenant']) &&
+          request.resource.data.senderUid == request.auth.uid;
+        allow read: if isAuth() && (
+          resource.data.senderUid == request.auth.uid ||
+          hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan', 'admin_tenant']) ||
+          (request.auth.token.alumniId != null && resource.data.alumniId == request.auth.token.alumniId) ||
+          (exists(/databases/$(database)/documents/alumnis/$(resource.data.alumniId)) &&
+           get(/databases/$(database)/documents/alumnis/$(resource.data.alumniId)).data.claimedByUserId == request.auth.uid)
+        );
+        allow update: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'admin_tenant']) || (
+          isAuth() &&
+          ((request.auth.token.alumniId != null && resource.data.alumniId == request.auth.token.alumniId) ||
+           (exists(/databases/$(database)/documents/alumnis/$(resource.data.alumniId)) &&
+            get(/databases/$(database)/documents/alumnis/$(resource.data.alumniId)).data.claimedByUserId == request.auth.uid)) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt', 'respondedAt'])
+        );
+        allow delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan']);
+      }
+
+      // Kanal Ekosistem Forum Eksklusif 2 Zona (Sprint 3)
+      match /alumni_forum_channels/{channelId} {
+        allow read: if canAccessForum();
+        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'admin_tenant']);
+      }
+
+      // Thread Diskusi Forum Eksklusif dengan Isolasi Mutlak Dua Zona (Sprint 3)
+      match /alumni_forum_threads/{threadId} {
+        // ZONE_A_ALUMNI_ONLY tertutup mutlak dari 'industri' & 'tenant'; ZONE_B_INDUSTRY_BRIDGE terbuka bagi kolaborasi mitra/tenant
+        allow read: if isAuth() && (
+          hasAnyRole(['alumni']) ||
+          isInternalStaffRole() ||
+          resource.data.authorUid == request.auth.uid ||
+          (resource.data.zone == 'ZONE_B_INDUSTRY_BRIDGE' && hasAnyRole(['industri', 'tenant']))
+        );
+        allow create: if isAuth() &&
+          request.resource.data.authorUid == request.auth.uid &&
+          canAccessForumZone(request.resource.data.zone);
+        allow update: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan', 'admin_tenant']) || (
+          isAuth() &&
+          resource.data.authorUid == request.auth.uid &&
+          request.resource.data.zone == resource.data.zone &&
+          request.resource.data.authorUid == resource.data.authorUid
+        ) || (
+          canAccessForumZone(resource.data.zone) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'upvotedByUids',
+            'upvoteCount',
+            'replyCount',
+            'microProjectBrief',
+            'eventAmaEmbed',
+            'reportedCount',
+            'acceptedReplyId',
+            'updatedAt'
+          ])
+        );
+        allow delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'admin_tenant']) || (
+          isAuth() && resource.data.authorUid == request.auth.uid
+        );
+      }
+
+      // Balasan Diskusi Forum dengan Isolasi Mutlak Dua Zona (Sprint 3)
+      match /alumni_forum_replies/{replyId} {
+        allow read: if isAuth() && (
+          hasAnyRole(['alumni']) ||
+          isInternalStaffRole() ||
+          resource.data.authorUid == request.auth.uid ||
+          (resource.data.zone == 'ZONE_B_INDUSTRY_BRIDGE' && hasAnyRole(['industri', 'tenant']))
+        );
+        allow create: if isAuth() &&
+          request.resource.data.authorUid == request.auth.uid &&
+          canAccessForumZone(request.resource.data.zone);
+        allow update: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan', 'admin_tenant']) || (
+          isAuth() &&
+          resource.data.authorUid == request.auth.uid &&
+          request.resource.data.zone == resource.data.zone &&
+          request.resource.data.authorUid == resource.data.authorUid &&
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['endorsedByMentor'])
+        ) || (
+          canAccessForumZone(resource.data.zone) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'upvotedByUids',
+            'upvoteCount',
+            'isAcceptedSolution',
+            'reportedCount',
+            'updatedAt'
+          ])
+        );
+        allow delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'admin_tenant']) || (
+          isAuth() && resource.data.authorUid == request.auth.uid
+        );
+      }
+
+      // Pelacakan Lamaran Kerja Closed-Loop (Sprint 4)
+      match /job_applications/{applicationId} {
+        allow create: if isAuth() && request.resource.data.applicantUid == request.auth.uid;
+        allow read: if isAuth() && (
+          resource.data.applicantUid == request.auth.uid ||
+          hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan', 'admin_tenant']) ||
+          ('partnerId' in resource.data && resource.data.partnerId != null && resource.data.partnerId != '' && isOwnPartner(resource.data.partnerId)) ||
+          ('tenantId' in resource.data && resource.data.tenantId != null && resource.data.tenantId != '' && isOwnTenant(resource.data.tenantId))
+        );
+        allow update: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan', 'admin_tenant']) || (
+          (('partnerId' in resource.data && resource.data.partnerId != null && resource.data.partnerId != '' && isOwnPartner(resource.data.partnerId)) ||
+           ('tenantId' in resource.data && resource.data.tenantId != null && resource.data.tenantId != '' && isOwnTenant(resource.data.tenantId))) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'statusNote', 'updatedAt'])
+        );
+        allow delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'admin_tenant']);
+      }
+
+      // Notifikasi Komunitas, Karir & Moderasi Ekosistem (Sprint 5)
+      match /ecosystem_notifications/{notifId} {
+        allow read: if isAuth() && (
+          resource.data.recipientUid == request.auth.uid ||
+          (resource.data.recipientUid == 'BROADCAST_ALUMNI' && (hasAnyRole(['alumni']) || isInternalStaffRole())) ||
+          (resource.data.recipientUid == 'ADMIN_DESK' && hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan', 'admin_tenant'])) ||
+          hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'admin_tenant'])
+        );
+        allow create: if isAuth() && (hasAnyRole(['alumni', 'industri', 'tenant']) || isInternalStaffRole());
+        allow update: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'admin_tenant']) || (
+          isAuth() &&
+          (resource.data.recipientUid == request.auth.uid ||
+           (resource.data.recipientUid == 'BROADCAST_ALUMNI' && (hasAnyRole(['alumni']) || isInternalStaffRole())) ||
+           (resource.data.recipientUid == 'ADMIN_DESK' && hasAnyRole(['operator_pelatihan']))) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readByUids', 'isRead', 'updatedAt'])
+        );
+        allow delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan']);
       }
 
       // Pengaturan Umum Instansi
@@ -572,70 +846,20 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // 20. Bursa Karir & Lowongan Pekerjaan Realtime (Publik)
-    match /jobs/{jobId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
+    // =========================================================================
+    // COLLECTION GROUP QUERIES
+    // =========================================================================
 
-    // 21. Metadata Pengaturan & Sinkronisasi
-    match /app_settings/{docId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // 22. Program Pelatihan Diklat & LMS Solo Technopark
-    match /trainings/{trainingId} {
-      allow read: if true;
-      allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan']);
-
-      // Subkoleksi 4 Batch Kuartalan
-      match /batches/{batchId} {
-        allow read: if true;
-        allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan']);
-      }
-
-      // Subkoleksi Pendaftaran Peserta (Online, Offline, Walk-in, Kemitraan)
-      match /registrations/{registrationId} {
-        allow read: if isAuth() && (
-          resource.data.email == request.auth.token.email ||
-          resource.data.userId == request.auth.uid ||
-          hasAnyRole(['admin', 'super_admin', 'admin_pelatihan'])
-        );
-        allow create: if isAuth() || 
-          request.resource.data.paymentStatus in ['FREE', 'PAID', 'PENDING'] ||
-          request.resource.data.registrationSource in ['PARTNER_DINAS', 'PARTNER_SMK', 'PARTNER_CSR', 'OFFLINE_WALKIN', 'CATALOG_ONLINE'];
-        allow update: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan']) || 
-          (isAuth() && resource.data.email == request.auth.token.email);
-        allow delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan']);
-
-        // Subkoleksi Pengumpulan Tugas & Submissions
-        match /submissions/{submissionId} {
-          allow read: if isAuth();
-          allow write: if isAuth();
-        }
-      }
-    }
-
-    // 23. Database Master Alumni Solo Technopark
-    match /alumnis/{alumniId} {
-      allow read: if true;
-      allow create: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan']);
-      allow update: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan']) ||
-        (isAuth() && (
-          resource.data.claimedByUserId == request.auth.uid ||
-          (resource.data.status == 'DORMANT' && request.resource.data.status == 'CLAIMED')
-        ));
-      allow delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan']);
-    }
-
-    // Query CollectionGroup Registrations untuk halaman profil peserta
+    // Query CollectionGroup Registrations untuk halaman profil peserta & riwayat kursus
     match /{path=**}/registrations/{registrationId} {
       allow read: if isAuth() && (
         resource.data.email == request.auth.token.email ||
         resource.data.userId == request.auth.uid ||
-        hasAnyRole(['admin', 'super_admin', 'admin_pelatihan'])
+        hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan'])
       );
     }
+
+    // Default Deny: Seluruh path koleksi/dokumen lain yang tidak didefinisikan secara eksplisit otomatis ditolak.
   }
 }
+

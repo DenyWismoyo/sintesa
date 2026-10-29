@@ -30,10 +30,14 @@ export const jobService = {
       if (filters.sort) params.set('sort', filters.sort);
       if (filters.includeInactive) params.set('includeInactive', 'true');
       if (filters.status && filters.status !== 'all') params.set('status', filters.status);
+      if (filters.approvalStatus && filters.approvalStatus !== 'all') params.set('approvalStatus', filters.approvalStatus);
+      if (filters.partnerId) params.set('partnerId', filters.partnerId);
+      if (filters.tenantId) params.set('tenantId', filters.tenantId);
 
       try {
-        const fetchOptions: RequestInit = filters.includeInactive ? { cache: 'no-store' } : {};
-        if (filters.includeInactive) {
+        const needsFresh = Boolean(filters.includeInactive || filters.partnerId || filters.tenantId || filters.approvalStatus);
+        const fetchOptions: RequestInit = needsFresh ? { cache: 'no-store' } : {};
+        if (needsFresh) {
           params.set('_t', String(Date.now()));
         }
         const res = await fetch(`/api/jobs?${params.toString()}`, fetchOptions);
@@ -112,6 +116,22 @@ export function filterAndSortJobs(
 } {
   let result = [...allJobs];
 
+  // Filter kepemilikan Mitra Industri / Startup Tenant (untuk Portal Mitra & Tenant)
+  if (filters.partnerId) {
+    result = result.filter((job) => job.partnerId === filters.partnerId);
+  }
+  if (filters.tenantId) {
+    result = result.filter((job) => job.tenantId === filters.tenantId);
+  }
+
+  // Filter Status Persetujuan Kurasi Admin
+  if (filters.approvalStatus && filters.approvalStatus !== 'all') {
+    result = result.filter((job) => (job.approvalStatus || 'APPROVED') === filters.approvalStatus);
+  } else if (!filters.includeInactive && !filters.partnerId && !filters.tenantId) {
+    // Bursa Karir Alumni hanya menampilkan lowongan yang sudah disetujui
+    result = result.filter((job) => (job.approvalStatus || 'APPROVED') === 'APPROVED');
+  }
+
   // Filter Status Aktif
   if (filters.status && filters.status !== 'all') {
     if (filters.status === 'active') {
@@ -119,7 +139,7 @@ export function filterAndSortJobs(
     } else if (filters.status === 'inactive') {
       result = result.filter((job) => !job.isActive);
     }
-  } else if (!filters.includeInactive) {
+  } else if (!filters.includeInactive && !filters.partnerId && !filters.tenantId) {
     // Default untuk publik: hanya tampilkan lowongan yang aktif
     result = result.filter((job) => job.isActive !== false);
   }

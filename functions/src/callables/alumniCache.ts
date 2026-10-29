@@ -14,7 +14,7 @@ export const rebuildAlumniMasterCache = onCall(async (request) => {
   }
 
   const role = request.auth.token?.role as string | undefined;
-  const allowedRoles = ['super_admin', 'admin_pelatihan'];
+  const allowedRoles = ['super_admin', 'admin', 'admin_pelatihan', 'operator_pelatihan'];
   if (!role || !allowedRoles.includes(role)) {
     throw new HttpsError('permission-denied', 'Akses Ditolak: Hak akses tidak mencukupi untuk memperbarui cache alumni.');
   }
@@ -47,6 +47,13 @@ export const rebuildAlumniMasterCache = onCall(async (request) => {
         birthInfo: data.birthInfo || '',
         address: data.address || '',
         certificationResult: data.certificationResult || '',
+        originSource: data.originSource || 'STP_VOKASI',
+        originInstitution: data.originInstitution || '',
+        district: data.district || '',
+        isVerified: Boolean(data.isVerified),
+        isLookingForJob: Boolean(data.isLookingForJob),
+        internalStatus: data.internalStatus || 'AVAILABLE',
+        skills: Array.isArray(data.skills) ? data.skills : [],
         createdAt: data.createdAt || 0
       });
     });

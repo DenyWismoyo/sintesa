@@ -3,7 +3,8 @@ import {
   query, where, orderBy, limit, startAfter, writeBatch,
   DocumentData, QueryDocumentSnapshot
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db, functions } from '@/lib/firebase';
+import { httpsCallable } from 'firebase/functions';
 import { getAppId } from '@/lib/appId';
 import { Alumni } from '@/types';
 
@@ -81,11 +82,13 @@ export const alumniService = {
   addAlumni: async (data: Omit<Alumni, 'id' | 'createdAt' | 'registrationCode'>) => {
     try {
       const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
-      const registrationCode = `AL-${data.graduationYear || new Date().getFullYear()}-${randomCode}`;
+      const prefix = data.originSource === 'RSKB_SURAKARTA' ? 'RSKB' : 'AL';
+      const registrationCode = `${prefix}-${data.graduationYear || data.trainingYear || new Date().getFullYear()}-${randomCode}`;
       
       const payload = {
         ...data,
         registrationCode,
+        originSource: data.originSource || 'STP_VOKASI',
         status: data.status || 'DORMANT',
         internalStatus: 'AVAILABLE',
         createdAt: Date.now()
@@ -135,6 +138,9 @@ export const alumniService = {
             address: row.home_adddress || row.home_address || existingAlumni.address || '',
             postCode: row.post_code || existingAlumni.postCode || '',
             certificationResult: row.certification_results || row.certificate || existingAlumni.certificationResult || '',
+            originSource: row.jalur_program || row.origin_source || existingAlumni.originSource || 'STP_VOKASI',
+            originInstitution: row.instansi_penyelenggara || row.origin_institution || existingAlumni.originInstitution || '',
+            district: row.kecamatan || row.district || existingAlumni.district || '',
             updatedAt: Date.now()
           };
 
@@ -154,7 +160,18 @@ export const alumniService = {
           const id = doc(collection(db, COLLECTION_NAME)).id;
           const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
           const yearTag = row.tahun_pelatihan || row.training_year || new Date().getFullYear().toString();
-          const regCode = `AL-${yearTag}-${randomCode}`;
+          const rawOrigin = String(row.jalur_program || row.origin_source || '').toUpperCase().trim();
+          const normalizedOrigin = rawOrigin.includes('RSKB')
+            ? 'RSKB_SURAKARTA'
+            : rawOrigin.includes('OPD') || rawOrigin.includes('PEMKOT') || rawOrigin.includes('DINAS')
+            ? 'OPD_PEMKOT'
+            : rawOrigin.includes('CSR')
+            ? 'CSR_INDUSTRI'
+            : rawOrigin.includes('INKUBASI') || rawOrigin.includes('WIRAUSAHA')
+            ? 'INKUBASI_WIRAUSAHA'
+            : 'STP_VOKASI';
+          const codePrefix = normalizedOrigin === 'RSKB_SURAKARTA' ? 'RSKB' : 'AL';
+          const regCode = `${codePrefix}-${yearTag}-${randomCode}`;
 
           const newAlumni: any = {
             id,
@@ -176,6 +193,9 @@ export const alumniService = {
             company: row.current_company || '',
             currentJob: row.current_position___division || row['current_position_/_division'] || '',
             registrationCode: regCode,
+            originSource: normalizedOrigin,
+            originInstitution: row.instansi_penyelenggara || row.origin_institution || '',
+            district: row.kecamatan || row.district || '',
             status: 'DORMANT',
             internalStatus: 'AVAILABLE',
             createdAt: Date.now()
@@ -219,6 +239,15 @@ export const alumniService = {
 
   claimAlumni: async (registrationCode: string, userId: string) => {
     try {
+      const cleanCode = registrationCode.trim().toUpperCase();
+      const claimFn = httpsCallable(functions, 'claimAlumniAccount');
+      const callableRes: any = await claimFn({ registrationCode: cleanCode, appId: getAppId() });
+      if (callableRes?.data?.success) {
+        return { success: true, data: callableRes.data };
+      }
+      if (cleanCode.length > 0) {
+        return { success: false, error: callableRes?.data?.message || 'Kode registrasi tidak ditemukan.' };
+      }
       const q = query(
         collection(db, COLLECTION_NAME), 
         where('registrationCode', '==', registrationCode),
@@ -242,7 +271,12 @@ export const alumniService = {
       return { success: true, data: { id: alumniDoc.id, ...alumniDoc.data() } };
     } catch (error: any) {
       console.error("Error claiming alumni:", error);
-      throw new Error("Terjadi kesalahan sistem saat mencoba klaim profil.");
+      return {
+        success: false,
+        error:
+          error?.message?.replace(/^FirebaseError:\s*/i, '') ||
+          'Kode Registrasi tidak ditemukan atau telah diklaim oleh akun lain.',
+      };
     }
   },
 
@@ -267,7 +301,11 @@ export const alumniService = {
           programTaken: data.programTaken || '',
           trainingYear: data.trainingYear || data.graduationYear || '',
           batch: data.batch || '',
-          status: data.status || 'DORMANT',
+          originSource: data.originSource || 'STP_VOKASI',
+          originInstitution: data.originInstitution || '',
+          district: data.district || '',
+          isVerified: Boolean(data.isVerified),
+        status: data.status || 'DORMANT',
           registrationCode: data.registrationCode || '',
           employmentStatus: (!data.employmentStatus || data.employmentStatus === 'Belum Bekerja') ? 'Proses Verifikasi' : data.employmentStatus,
           company: data.company || '',

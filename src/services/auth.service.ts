@@ -4,6 +4,7 @@ import {
   GoogleAuthProvider, 
   signOut as firebaseSignOut, 
   signInAnonymously,
+  signInWithEmailAndPassword,
   User 
 } from 'firebase/auth';
 import { 
@@ -161,6 +162,31 @@ export const authService = {
     document.cookie = `__session=${idTokenResult.token}; path=/; max-age=3600; SameSite=Strict`;
 
     return { user, role: 'tenant', tenantName: tenantData.name || 'Tenant' };
+  },
+
+  /**
+   * Login khusus PIC Mitra Resmi Industri (/mitra) menggunakan Email & Password onboarding.
+   */
+  async loginWithPartnerCredentials(email: string, password: string): Promise<{ user: User; role: string }> {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !password) {
+      throw new Error('Email dan kata sandi Mitra wajib diisi.');
+    }
+
+    const cred = await signInWithEmailAndPassword(auth, cleanEmail, password);
+    const user = cred.user;
+    const idTokenResult = await user.getIdTokenResult(true);
+
+    let role = (idTokenResult.claims?.role as string) || '';
+    if (!role) {
+      const userSnap = await getDoc(doc(db, 'users', user.uid));
+      role = userSnap.exists() ? (userSnap.data()?.role || 'public') : 'public';
+    }
+
+    document.cookie = `userRole=${role}; path=/; max-age=86400; SameSite=Strict`;
+    document.cookie = `__session=${idTokenResult.token}; path=/; max-age=3600; SameSite=Strict`;
+
+    return { user, role };
   },
 
   /**

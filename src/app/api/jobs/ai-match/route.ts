@@ -3,11 +3,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { callClarioChat, CLARIO_MODELS } from '@/lib/clario';
 import { jobDbService } from '@/services/jobDb.service';
 import { JobAiMatchRequestSchema, JobAiMatchResponse } from '@/types/job.types';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate Limiting proteksi kuota Clario AI (12 req / menit per IP - R-037)
+    const clientIp = getClientIp(request);
+    const rateCheck = checkRateLimit(`ai-match:${clientIp}`, 12, 60);
+    if (!rateCheck.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Terlalu banyak permintaan analisis AI. Silakan coba lagi dalam ${rateCheck.resetInSeconds} detik.`,
+        },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const parseResult = JobAiMatchRequestSchema.safeParse(body);
 

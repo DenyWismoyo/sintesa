@@ -20,6 +20,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { auth } from '@/lib/firebase';
 import { toast } from 'sonner';
 
 interface ModalJobFormProps {
@@ -210,14 +211,19 @@ export default function ModalJobForm({
       isStpPartner,
       isFeatured,
       isActive,
+      ...(isActive ? { approvalStatus: 'APPROVED' as const } : {}),
     };
 
     try {
       const url = '/api/jobs';
       const method = initialJob ? 'PUT' : 'POST';
+      const idToken = await auth.currentUser?.getIdToken().catch(() => null);
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+        },
         body: JSON.stringify(payload),
       });
 
