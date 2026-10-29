@@ -108,7 +108,7 @@ export default function ModalFormAset({ assetToEdit, onClose, onSave }: Props) {
   const labelClassName = "text-[11px] sm:text-xs font-bold text-slate-600 mb-1 block";
 
   return (
-    <div className="workspace-page-container animate-in fade-in duration-200">
+    <div className="workspace-page-container workspace-page-narrow max-w-3xl animate-in fade-in duration-200">
       <div className="workspace-card w-full flex flex-col">
         
         {/* HEADER */}
@@ -118,7 +118,7 @@ export default function ModalFormAset({ assetToEdit, onClose, onSave }: Props) {
               <Info className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div>
-              <h2 className="text-sm sm:text-base font-black text-slate-800">{isEdit ? 'Edit Data Aset' : 'Registrasi Aset Baru'}</h2>
+              <h2 className="text-sm sm:text-base font-bold text-slate-900">{isEdit ? 'Edit Data Aset' : 'Registrasi Aset Baru'}</h2>
               <p className="text-[11px] font-medium text-slate-400 hidden sm:block">Lengkapi informasi inventaris di bawah ini</p>
             </div>
           </div>

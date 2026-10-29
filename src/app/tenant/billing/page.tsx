@@ -156,31 +156,28 @@ export default function TenantBillingPage() {
               className="w-full max-w-md bg-[#FDFDFD] rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl relative z-10 flex flex-col max-h-[90vh] sm:max-h-[85vh] overflow-hidden"
             >
               {/* Header Receipt */}
-              <div className="px-8 py-6 bg-white border-b-2 border-dashed border-slate-200 flex items-center justify-between shrink-0 relative">
-                <div className="absolute left-0 bottom-[-10px] w-5 h-5 bg-slate-900/60 sm:bg-transparent rounded-full -ml-2.5"></div>
-                <div className="absolute right-0 bottom-[-10px] w-5 h-5 bg-slate-900/60 sm:bg-transparent rounded-full -mr-2.5"></div>
-                
+              <div className="px-5 py-4 bg-white border-b border-slate-100 flex items-center justify-between shrink-0 relative">
                 <div>
-                  <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Receipt Invoice</h2>
-                  <p className="text-lg font-black text-slate-900 font-mono">{selectedInvoice.invoiceNumber}</p>
+                  <h2 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Rincian Invoice</h2>
+                  <p className="text-base font-bold text-slate-900 font-mono">{selectedInvoice.invoiceNumber}</p>
                 </div>
-                <button onClick={() => setSelectedInvoice(null)} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-full transition-colors"><X size={18} /></button>
+                <button onClick={() => setSelectedInvoice(null)} className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-lg transition-colors"><X size={16} /></button>
               </div>
 
               {/* Body Receipt (Scrollable) */}
-              <div className="flex-1 overflow-y-auto px-8 py-8 custom-scrollbar">
+              <div className="flex-1 overflow-y-auto px-5 py-5 custom-scrollbar">
                 
                 {/* Items List */}
-                <div className="space-y-4 mb-8">
+                <div className="space-y-3 mb-6">
                   {selectedInvoice.items?.map((item, idx) => (
-                    <div key={idx} className="flex justify-between items-start text-sm font-mono border-b border-slate-100 pb-3">
-                      <div className="pr-4">
-                        <p className="font-bold text-slate-800">{item.description}</p>
+                    <div key={idx} className="flex justify-between items-start text-xs font-mono border-b border-slate-100 pb-2.5">
+                      <div className="pr-3">
+                        <p className="font-semibold text-slate-800 font-sans">{item.description}</p>
                         {item.subDescription && (
-                          <p className="text-xs text-slate-500 font-sans mt-0.5">{item.subDescription}</p>
+                          <p className="text-[11px] text-slate-500 font-sans mt-0.5">{item.subDescription}</p>
                         )}
                         {item.points && item.points.length > 0 && (
-                          <ul className="mt-1 space-y-0.5 list-none font-sans text-xs text-slate-600 pl-0">
+                          <ul className="mt-1 space-y-0.5 list-none font-sans text-[11px] text-slate-600 pl-0">
                             {item.points.map((pt, pIdx) => (
                               <li key={pIdx} className="flex items-start gap-1">
                                 <span className="text-blue-500 font-bold">•</span>
@@ -189,7 +186,7 @@ export default function TenantBillingPage() {
                             ))}
                           </ul>
                         )}
-                        <p className="text-xs text-slate-500 mt-1">{item.quantity} {item.unit ? `${item.unit} ` : ''}x {formatRupiah(item.unitPrice)}</p>
+                        <p className="text-[11px] text-slate-400 mt-0.5">{item.quantity} {item.unit ? `${item.unit} ` : ''}x {formatRupiah(item.unitPrice)}</p>
                       </div>
                       <p className="font-bold text-slate-800 shrink-0">{formatRupiah(item.total)}</p>
                     </div>
@@ -197,9 +194,9 @@ export default function TenantBillingPage() {
                 </div>
 
                 {selectedInvoice.termsAndConditions && selectedInvoice.termsAndConditions.length > 0 && (
-                  <div className="mb-6 p-4 bg-blue-50/50 rounded-xl border border-blue-100 font-sans">
-                    <p className="text-xs font-bold text-blue-900 mb-2 uppercase tracking-wider">Ketentuan Pembayaran:</p>
-                    <ol className="space-y-1 text-xs text-slate-600 pl-4 list-decimal">
+                  <div className="mb-5 p-3.5 bg-blue-50/50 rounded-xl border border-blue-100 font-sans">
+                    <p className="text-[11px] font-bold text-blue-900 mb-1.5 uppercase tracking-wider">Ketentuan Pembayaran:</p>
+                    <ol className="space-y-0.5 text-xs text-slate-600 pl-4 list-decimal">
                       {selectedInvoice.termsAndConditions.map((term, tIdx) => (
                         <li key={tIdx}>{term}</li>
                       ))}
@@ -207,31 +204,31 @@ export default function TenantBillingPage() {
                   </div>
                 )}
 
-                <div className="border-t-2 border-dashed border-slate-200 pt-6 space-y-3 text-sm font-mono">
+                <div className="border-t border-dashed border-slate-200 pt-4 space-y-2 text-xs font-mono">
                   <div className="flex justify-between text-slate-500"><span>Subtotal</span><span>{formatRupiah(selectedInvoice.subTotal)}</span></div>
                   {selectedInvoice.taxAmount > 0 && <div className="flex justify-between text-slate-500"><span>PPN (11%)</span><span>{formatRupiah(selectedInvoice.taxAmount)}</span></div>}
                   {selectedInvoice.discountAmount > 0 && <div className="flex justify-between text-red-500"><span>Diskon</span><span>- {formatRupiah(selectedInvoice.discountAmount)}</span></div>}
-                  <div className="flex justify-between items-center text-slate-900 pt-4 border-t border-slate-200 font-black text-xl mt-4">
-                    <span>TOTAL</span><span>{formatRupiah(selectedInvoice.totalAmount)}</span>
+                  <div className="flex justify-between items-center text-slate-900 pt-3 border-t border-slate-200 font-bold text-base mt-2">
+                    <span className="font-sans">TOTAL</span><span>{formatRupiah(selectedInvoice.totalAmount)}</span>
                   </div>
                 </div>
 
                 {/* Info & Status Area */}
-                <div className="mt-8 p-5 bg-slate-50 rounded-2xl border border-slate-200">
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-xs font-black uppercase tracking-widest text-slate-500">Status Pembayaran</span>
-                    <span className={`px-2.5 py-1 rounded border text-[10px] font-black uppercase tracking-widest ${selectedInvoice.remainingAmount > 0 ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200'}`}>
+                <div className="mt-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Status Pembayaran</span>
+                    <span className={`px-2 py-0.5 rounded border text-[10px] font-bold uppercase tracking-wider ${selectedInvoice.remainingAmount > 0 ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200'}`}>
                       {selectedInvoice.remainingAmount > 0 ? 'Belum Lunas' : 'LUNAS'}
                     </span>
                   </div>
                   {selectedInvoice.history && selectedInvoice.history.length > 0 && (
-                    <div className="space-y-2 mt-4 pt-4 border-t border-slate-200">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Riwayat Transaksi</p>
+                    <div className="space-y-1.5 mt-3 pt-3 border-t border-slate-200">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Riwayat Transaksi</p>
                       {selectedInvoice.history.map(h => (
-                        <div key={h.id} className={`flex justify-between text-xs font-mono px-3 py-2 rounded-lg border ${h.status === 'PENDING' ? 'text-amber-700 bg-amber-50 border-amber-100' : 'text-emerald-700 bg-emerald-50 border-emerald-100'}`}>
+                        <div key={h.id} className={`flex justify-between text-[11px] font-mono px-2.5 py-1.5 rounded-lg border ${h.status === 'PENDING' ? 'text-amber-700 bg-amber-50 border-amber-100' : 'text-emerald-700 bg-emerald-50 border-emerald-100'}`}>
                           <span className="flex items-center gap-1.5">
-                            {h.status === 'PENDING' ? <Clock size={12} /> : <CheckCircle size={12}/>}
-                            {h.date} {h.status === 'PENDING' && '(Menunggu Verifikasi Kasir)'}
+                            {h.status === 'PENDING' ? <Clock size={11} /> : <CheckCircle size={11}/>}
+                            {h.date} {h.status === 'PENDING' && '(Menunggu Kasir)'}
                           </span>
                           <span className="font-bold">{formatRupiah(h.amount)}</span>
                         </div>

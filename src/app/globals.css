@@ -1545,25 +1545,43 @@
 
 /* ==========================================================================
    13. FULL-PAGE WORKSPACE & BUILDER SYSTEM (DESKTOP & MOBILE BORDERLESS)
-   Menggantikan Modal/Drawer Kompleks menjadi Halaman Editor Ber-Slug
+   Sistem Layout & Tipografi Elegan, Fit, dan Responsif (Desktop, Tablet, HP)
    ========================================================================== */
 
 .workspace-page-container {
   width: 100%;
-  max-width: 1440px;
+  max-width: 1024px;
   margin-left: auto;
   margin-right: auto;
-  padding-bottom: 5rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-bottom: 3.5rem;
+}
+
+.workspace-page-narrow {
+  max-width: 680px !important;
+}
+
+.workspace-page-wide {
+  max-width: 1140px !important;
+}
+
+@media (min-width: 640px) {
+  .workspace-page-container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
 }
 
 @media (max-width: 639px) {
   .workspace-page-container {
-    margin-left: -1rem;
-    margin-right: -1rem;
-    margin-top: -1rem;
-    width: calc(100% + 2rem);
-    max-width: none;
-    padding-bottom: 6rem;
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
+    width: calc(100% + 1.5rem);
+    max-width: none !important;
+    padding-left: 0;
+    padding-right: 0;
+    padding-bottom: 4rem;
   }
 }
 
@@ -1575,10 +1593,10 @@
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(226, 232, 240, 0.85);
-  border-radius: 1.25rem;
-  padding: 1rem 1.5rem;
-  margin-bottom: 1.25rem;
-  box-shadow: 0 2px 12px -2px rgba(15, 23, 42, 0.04);
+  border-radius: 1rem;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 3px -1px rgba(15, 23, 42, 0.05);
 }
 
 @media (max-width: 639px) {
@@ -1588,7 +1606,7 @@
     border-right: none !important;
     border-top: none !important;
     border-bottom: 1px solid #f1f5f9 !important;
-    padding: 0.875rem 1rem;
+    padding: 0.625rem 0.875rem;
     margin-bottom: 0.5rem;
     box-shadow: none !important;
   }
@@ -1596,9 +1614,9 @@
 
 .workspace-card {
   background-color: #ffffff;
-  border-radius: 1.5rem;
+  border-radius: 1rem;
   border: 1px solid rgba(226, 232, 240, 0.85);
-  box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.03);
+  box-shadow: 0 1px 4px -1px rgba(15, 23, 42, 0.04);
   overflow: hidden;
 }
 
@@ -1621,21 +1639,80 @@
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-top: 1px solid rgba(226, 232, 240, 0.85);
-  padding: 0.875rem 1.5rem;
-  padding-bottom: calc(0.875rem + env(safe-area-inset-bottom, 0px));
+  padding: 0.75rem 1.25rem;
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
 }
 
 @media (max-width: 639px) {
   .workspace-footer-sticky {
-    padding: 0.75rem 1rem;
-    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    padding: 0.625rem 0.875rem;
+    padding-bottom: calc(0.625rem + env(safe-area-inset-bottom, 0px));
     border-left: none !important;
     border-right: none !important;
   }
 
-  /* Pastikan semua kartu dan input grup di dalam workspace tampil borderless ramah ponsel */
   .workspace-card .rounded-2xl,
   .workspace-card .rounded-3xl {
-    border-radius: 0.75rem;
+    border-radius: 0.625rem;
   }
+}
+
+/* Penyelarasan Tipografi Elegan & Proporsional di Seluruh Workspace/Modal */
+.workspace-page-container h1,
+.workspace-card h1 {
+  font-size: 1.125rem !important;
+  line-height: 1.5rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.015em;
+}
+
+@media (min-width: 640px) {
+  .workspace-page-container h1,
+  .workspace-card h1 {
+    font-size: 1.25rem !important;
+    line-height: 1.75rem !important;
+  }
+}
+
+.workspace-page-container h2,
+.workspace-card h2 {
+  font-size: 1rem !important;
+  line-height: 1.375rem !important;
+  font-weight: 700 !important;
+}
+
+@media (min-width: 640px) {
+  .workspace-page-container h2,
+  .workspace-card h2 {
+    font-size: 1.125rem !important;
+    line-height: 1.5rem !important;
+  }
+}
+
+.workspace-page-container h3,
+.workspace-card h3 {
+  font-size: 0.875rem !important;
+  line-height: 1.25rem !important;
+  font-weight: 600 !important;
+}
+
+.workspace-page-container label,
+.workspace-card label {
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  color: #334155;
+}
+
+.workspace-page-container input:not([type="checkbox"]):not([type="radio"]),
+.workspace-page-container select,
+.workspace-card input:not([type="checkbox"]):not([type="radio"]),
+.workspace-card select {
+  font-size: 0.8125rem !important;
+  height: 2.375rem !important;
+}
+
+.workspace-page-container textarea,
+.workspace-card textarea {
+  font-size: 0.8125rem !important;
+  line-height: 1.4 !important;
 }

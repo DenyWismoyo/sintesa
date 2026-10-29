@@ -150,39 +150,30 @@ export default function CreateForumThreadModal({
   };
 
   return (
-    <div className="workspace-page-container py-2 sm:py-4">
-      <div className="workspace-header mb-4">
-        <button
-          type="button"
-          onClick={onClose}
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200/80 shadow-2xs transition-colors"
-        >
-          ← Kembali ke Forum Alumni
-        </button>
-      </div>
+    <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
       <form
         onSubmit={handleSubmit}
-        className="workspace-card w-full p-5 sm:p-8 space-y-5"
+        className="bg-white w-full max-w-2xl rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-2xl p-4 sm:p-6 my-auto space-y-3.5 animate-in fade-in zoom-in-95 duration-200"
       >
-        <div className="flex items-start justify-between pb-3 border-b border-slate-100">
+        <div className="flex items-start justify-between pb-2.5 border-b border-slate-100">
           <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60">
               Mulai Diskusi / Kolaborasi Baru
             </span>
-            <h3 className="text-lg font-black text-slate-900">
+            <h3 className="text-sm sm:text-base font-bold text-slate-900 mt-1">
               Posting sebagai {currentName} ({actorBadgeLabel})
             </h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:bg-slate-100"
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
           <div className="space-y-1">
             <label className="text-xs font-bold text-slate-700">Pilih Kanal Forum *</label>
             <select

@@ -124,11 +124,11 @@ export default function BookingWizardModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full sm:max-w-[720px] p-0 overflow-hidden bg-white rounded-3xl border-0 shadow-2xl max-h-[92vh] flex flex-col focus:outline-none fixed bottom-0 sm:bottom-auto">
+      <DialogContent className="w-full sm:max-w-[640px] p-0 overflow-hidden bg-white rounded-2xl sm:rounded-3xl border-0 shadow-2xl max-h-[92vh] flex flex-col focus:outline-none fixed bottom-0 sm:bottom-auto">
         <DialogTitle className="sr-only">Formulir Booking {asset.name}</DialogTitle>
 
         {/* --- 1. HEADER RUANGAN TERPADU (16:9 PREVIEW & STEPPER) --- */}
-        <div className="bg-gradient-to-br from-slate-900 via-sky-950 to-slate-900 p-5 sm:p-7 text-white relative shrink-0 overflow-hidden">
+        <div className="bg-gradient-to-br from-slate-900 via-sky-950 to-slate-900 p-4 sm:p-5 text-white relative shrink-0 overflow-hidden">
           <div className="absolute top-0 right-0 w-80 h-80 bg-sky-500/15 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -146,10 +146,10 @@ export default function BookingWizardModal({
               </div>
 
               <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-sky-400 block mb-0.5">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-sky-400 block mb-0.5">
                   Pengajuan Sewa Ruangan
                 </span>
-                <h3 className="text-lg sm:text-xl font-black text-white tracking-tight leading-tight line-clamp-1">
+                <h3 className="text-sm sm:text-base font-bold text-white tracking-tight leading-tight line-clamp-1">
                   {asset.name}
                 </h3>
                 <div className="flex items-center gap-3 text-[11px] text-slate-300 font-medium mt-1">

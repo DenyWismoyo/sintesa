@@ -57,23 +57,23 @@ export function DialogPageModeProvider({
     >
       <div className="workspace-page-container animate-in fade-in duration-200">
         {(backHref || onClosePage || pageTitle) && (
-          <div className="workspace-header flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
+          <div className="workspace-header flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
               {backHref ? (
                 <Link
                   href={backHref}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs sm:text-sm font-bold transition-colors shrink-0"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-semibold transition-colors shrink-0"
                 >
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeft className="w-3.5 h-3.5" />
                   <span>{backLabel}</span>
                 </Link>
               ) : onClosePage ? (
                 <button
                   type="button"
                   onClick={onClosePage}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs sm:text-sm font-bold transition-colors shrink-0"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-semibold transition-colors shrink-0"
                 >
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeft className="w-3.5 h-3.5" />
                   <span>{backLabel}</span>
                 </button>
               ) : null}
@@ -81,17 +81,17 @@ export function DialogPageModeProvider({
               {pageTitle && (
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h1 className="text-base sm:text-xl font-black text-slate-900 tracking-tight truncate">
+                    <h1 className="text-sm sm:text-base md:text-lg font-bold text-slate-900 tracking-tight truncate">
                       {pageTitle}
                     </h1>
                     {badgeText && (
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200/60">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200/60">
                         {badgeText}
                       </span>
                     )}
                   </div>
                   {pageSubtitle && (
-                    <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
+                    <p className="text-[11px] sm:text-xs text-slate-500 font-normal truncate mt-0.5">
                       {pageSubtitle}
                     </p>
                   )}
@@ -218,7 +218,7 @@ function DialogContent({
       <div
         data-slot="dialog-content-page"
         className={cn(
-          "workspace-card w-full max-w-none flex flex-col gap-4 p-4 sm:p-6 lg:p-8",
+          "workspace-card w-full max-w-4xl mx-auto flex flex-col gap-3.5 p-3.5 sm:p-5 md:p-6",
           stripModalConstraintClasses(className)
         )}
       >
@@ -233,7 +233,7 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-full sm:max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-none sm:rounded-2xl border-y border-x-0 sm:border p-4 sm:p-6 shadow-none sm:shadow-lg duration-200 outline-none sm:max-w-lg",
+          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-1.5rem)] sm:max-w-lg md:max-w-xl translate-x-[-50%] translate-y-[-50%] gap-3.5 rounded-2xl border border-slate-200/90 p-4 sm:p-6 shadow-xl duration-200 outline-none max-h-[92vh] overflow-y-auto custom-scrollbar",
           className
         )}
         {...props}
@@ -257,7 +257,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn("flex flex-col gap-2 text-left", className)}
+      className={cn("flex flex-col gap-1 text-left pb-2.5 border-b border-slate-100", className)}
       {...props}
     />
   )
@@ -276,8 +276,8 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
-        isPageMode && "workspace-footer-sticky -mx-4 sm:-mx-6 lg:-mx-8 -mb-4 sm:-mb-6 lg:-mb-8 mt-4",
+        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end pt-2",
+        isPageMode && "workspace-footer-sticky -mx-3.5 sm:-mx-5 md:-mx-6 -mb-3.5 sm:-mb-5 md:-mb-6 mt-3",
         className
       )}
       {...props}
@@ -285,12 +285,12 @@ function DialogFooter({
       {children}
       {showCloseButton &&
         (isPageMode ? (
-          <Button type="button" variant="outline" onClick={onClosePage}>
+          <Button type="button" variant="outline" size="sm" onClick={onClosePage} className="h-8.5 text-xs font-semibold">
             Batal
           </Button>
         ) : (
           <DialogPrimitive.Close asChild>
-            <Button variant="outline">Close</Button>
+            <Button variant="outline" size="sm" className="h-8.5 text-xs font-semibold">Batal</Button>
           </DialogPrimitive.Close>
         ))}
     </div>
@@ -306,7 +306,7 @@ function DialogTitle({
     return (
       <h2
         data-slot="dialog-title"
-        className={cn("text-lg sm:text-xl leading-none font-bold text-slate-900", className)}
+        className={cn("text-base sm:text-lg leading-tight font-bold text-slate-900 tracking-tight", className)}
         {...(props as any)}
       />
     )
@@ -314,7 +314,7 @@ function DialogTitle({
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn("text-lg leading-none font-semibold", className)}
+      className={cn("text-base sm:text-lg leading-tight font-bold text-slate-900 tracking-tight", className)}
       {...props}
     />
   )
@@ -329,7 +329,7 @@ function DialogDescription({
     return (
       <p
         data-slot="dialog-description"
-        className={cn("text-muted-foreground text-xs sm:text-sm", className)}
+        className={cn("text-slate-500 text-xs sm:text-sm font-normal leading-relaxed", className)}
         {...(props as any)}
       />
     )
@@ -337,7 +337,7 @@ function DialogDescription({
   return (
     <DialogPrimitive.Description
       data-slot="dialog-description"
-      className={cn("text-muted-foreground text-sm", className)}
+      className={cn("text-slate-500 text-xs sm:text-sm font-normal leading-relaxed", className)}
       {...props}
     />
   )

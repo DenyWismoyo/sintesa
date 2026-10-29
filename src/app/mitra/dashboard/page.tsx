@@ -114,7 +114,6 @@ export default function MitraDashboardPage() {
         </div>
       </div>
 
-      <div className={isDraftModalOpen ? 'hidden' : 'space-y-6'}>
       {/* Navigation Tabs */}
       <div className="flex bg-white p-1.5 rounded-2xl border border-slate-200 overflow-x-auto gap-1 w-full sm:w-fit">
         {[
@@ -278,7 +277,6 @@ export default function MitraDashboardPage() {
           <ChangePasswordCard />
         </div>
       )}
-      </div>
 
       <PartnerJobDraftModal
         isOpen={isDraftModalOpen}

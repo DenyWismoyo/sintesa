@@ -92,33 +92,33 @@ export default function ModalDetailAset({ asset, allReports, baseUrl, onClose, o
       <div className="workspace-card w-full flex flex-col">
         
         {/* HEADER */}
-        <div className="flex justify-between items-center p-4 sm:p-6 md:p-8 border-b border-slate-100 bg-white shrink-0">
-          <div className="flex items-center gap-3 sm:gap-5">
-            <div className="h-11 w-11 sm:h-14 sm:w-14 bg-blue-50 text-blue-600 rounded-xl sm:rounded-2xl flex items-center justify-center border border-blue-100 shrink-0">
-              <Package size={24} className="sm:w-7 sm:h-7" />
+        <div className="flex justify-between items-center px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-100 bg-white shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 sm:h-10 sm:w-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center border border-blue-100 shrink-0">
+              <Package size={20} />
             </div>
             <div>
-              <h2 className="text-lg sm:text-xl md:text-2xl font-black text-slate-800 tracking-tight leading-tight">{asset.name}</h2>
-              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1 sm:mt-1.5">
-                <span className="text-[10px] sm:text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md font-mono">{asset.inventoryNumber}</span>
-                {asset.registerNumber && <span className="text-[10px] sm:text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md border border-blue-100">REG: {asset.registerNumber}</span>}
+              <h2 className="text-sm sm:text-base md:text-lg font-bold text-slate-900 tracking-tight leading-tight">{asset.name}</h2>
+              <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                <span className="text-[10px] sm:text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded font-mono">{asset.inventoryNumber}</span>
+                {asset.registerNumber && <span className="text-[10px] sm:text-[11px] font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">REG: {asset.registerNumber}</span>}
               </div>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1.5 sm:p-2 rounded-full hover:bg-slate-100 transition-colors shrink-0">
-            <X size={20} className="sm:w-6 sm:h-6" />
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors shrink-0">
+            <X size={18} />
           </button>
         </div>
 
         {/* TABS NAVIGATION */}
-        <div className="flex border-b border-slate-100 px-4 sm:px-6 md:px-8 bg-white overflow-x-auto hide-scrollbar shrink-0">
-          <button onClick={() => setTab('Info')} className={`px-3.5 py-3 sm:px-5 sm:py-3.5 text-xs sm:text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${tab === 'Info' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Informasi Aset</button>
-          <button onClick={() => setTab('Galeri')} className={`px-3.5 py-3 sm:px-5 sm:py-3.5 text-xs sm:text-sm font-bold border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${tab === 'Galeri' ? 'border-purple-600 text-purple-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Galeri Foto {asset.galleryUrls?.length ? `(${asset.galleryUrls.length})` : ''}</button>
-          <button onClick={() => setTab('Laporan')} className={`px-3.5 py-3 sm:px-5 sm:py-3.5 text-xs sm:text-sm font-bold border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${tab === 'Laporan' ? 'border-red-600 text-red-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Laporan Publik {assetReports.length > 0 && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm">{assetReports.length}</span>}</button>
-          <button onClick={() => setTab('Riwayat')} className={`px-3.5 py-3 sm:px-5 sm:py-3.5 text-xs sm:text-sm font-bold border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${tab === 'Riwayat' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Riwayat Perbaikan</button>
+        <div className="flex border-b border-slate-100 px-4 sm:px-6 bg-white overflow-x-auto hide-scrollbar shrink-0 gap-1">
+          <button onClick={() => setTab('Info')} className={`px-3 py-2.5 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${tab === 'Info' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Informasi Aset</button>
+          <button onClick={() => setTab('Galeri')} className={`px-3 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${tab === 'Galeri' ? 'border-purple-600 text-purple-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Galeri Foto {asset.galleryUrls?.length ? `(${asset.galleryUrls.length})` : ''}</button>
+          <button onClick={() => setTab('Laporan')} className={`px-3 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${tab === 'Laporan' ? 'border-red-600 text-red-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Laporan Publik {assetReports.length > 0 && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full shadow-xs">{assetReports.length}</span>}</button>
+          <button onClick={() => setTab('Riwayat')} className={`px-3 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${tab === 'Riwayat' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Riwayat Perbaikan</button>
         </div>
         
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 bg-slate-50/50 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 md:p-6 bg-slate-50/50 custom-scrollbar">
           
           {/* KONTEN TAB INFO */}
           {tab === 'Info' && (
@@ -139,33 +139,33 @@ export default function ModalDetailAset({ asset, allReports, baseUrl, onClose, o
               </div>
 
               {/* Data Detail */}
-              <div className="lg:col-span-2 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
-                    <h4 className="text-xs font-black text-blue-600 uppercase tracking-widest flex items-center gap-2"><Info size={16}/> Identitas & Legalitas</h4>
+              <div className="lg:col-span-2 space-y-4 sm:space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+                  <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/90 shadow-2xs space-y-3.5">
+                    <h4 className="text-xs font-bold text-blue-700 flex items-center gap-1.5"><Info size={14}/> Identitas & Legalitas</h4>
                     
-                    <div className="grid grid-cols-2 gap-4">
-                      <DetailItem icon={<Folder size={16}/>} label="Kategori" value={asset.category || '-'} />
-                      <DetailItem icon={<Layers size={16}/>} label="Sub Jenis" value={asset.assetType || '-'} />
+                    <div className="grid grid-cols-2 gap-3">
+                      <DetailItem icon={<Folder size={14}/>} label="Kategori" value={asset.category || '-'} />
+                      <DetailItem icon={<Layers size={14}/>} label="Sub Jenis" value={asset.assetType || '-'} />
                     </div>
-                    <DetailItem icon={<Landmark size={16}/>} label="Asal-Usul / Dana" value={asset.fundingSource || '-'} />
-                    <DetailItem icon={<Activity size={16}/>} label="Tahun Perolehan" value={asset.acquisitionYear || '-'} />
-                    <DetailItem icon={<BadgeDollarSign size={16}/>} label="Nilai Aset" value={asset.priceValue ? `Rp ${asset.priceValue.toLocaleString('id-ID')}` : '-'} />
-                    <DetailItem icon={<User size={16}/>} label="Penanggung Jawab" value={asset.picName || '-'} />
+                    <DetailItem icon={<Landmark size={14}/>} label="Asal-Usul / Dana" value={asset.fundingSource || '-'} />
+                    <DetailItem icon={<Activity size={14}/>} label="Tahun Perolehan" value={asset.acquisitionYear || '-'} />
+                    <DetailItem icon={<BadgeDollarSign size={14}/>} label="Nilai Aset" value={asset.priceValue ? `Rp ${asset.priceValue.toLocaleString('id-ID')}` : '-'} />
+                    <DetailItem icon={<User size={14}/>} label="Penanggung Jawab" value={asset.picName || '-'} />
                   </div>
 
-                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
-                    <h4 className="text-xs font-black text-amber-600 uppercase tracking-widest flex items-center gap-2"><Ruler size={16}/> Spesifikasi Fisik</h4>
-                    <DetailItem icon={<Wrench size={16}/>} label="Merek / Type" value={asset.brandType || '-'} />
-                    <DetailItem icon={<Package size={16}/>} label="Bahan" value={asset.material || '-'} />
-                    <DetailItem icon={<Ruler size={16}/>} label="Dimensi / Ukuran" value={asset.dimensions || '-'} />
-                    <DetailItem icon={<MapPin size={16}/>} label="Lokasi Penempatan" value={asset.location || '-'} />
+                  <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/90 shadow-2xs space-y-3.5">
+                    <h4 className="text-xs font-bold text-amber-700 flex items-center gap-1.5"><Ruler size={14}/> Spesifikasi Fisik</h4>
+                    <DetailItem icon={<Wrench size={14}/>} label="Merek / Type" value={asset.brandType || '-'} />
+                    <DetailItem icon={<Package size={14}/>} label="Bahan" value={asset.material || '-'} />
+                    <DetailItem icon={<Ruler size={14}/>} label="Dimensi / Ukuran" value={asset.dimensions || '-'} />
+                    <DetailItem icon={<MapPin size={14}/>} label="Lokasi Penempatan" value={asset.location || '-'} />
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                   <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest mb-3">Keterangan / Deskripsi</h4>
-                   <p className="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/90 shadow-2xs">
+                   <h4 className="text-xs font-bold text-slate-800 mb-2">Keterangan / Deskripsi</h4>
+                   <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100">
                      {asset.description || <span className="italic text-slate-400">Tidak ada keterangan tambahan yang dicatat untuk aset ini.</span>}
                    </p>
                 </div>
@@ -327,11 +327,11 @@ export default function ModalDetailAset({ asset, allReports, baseUrl, onClose, o
 // Komponen kecil pemanis item detail
 function DetailItem({ icon, label, value }: { icon: any, label: string, value: string }) {
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2.5">
       <div className="text-slate-400 shrink-0">{icon}</div>
-      <div className="truncate">
-        <p className="text-[10px] font-bold text-slate-400 uppercase leading-none mb-1">{label}</p>
-        <p className="text-sm font-bold text-slate-800 truncate">{value}</p>
+      <div className="truncate min-w-0">
+        <p className="text-[10px] font-semibold text-slate-400 uppercase leading-none mb-1">{label}</p>
+        <p className="text-xs font-semibold text-slate-800 truncate">{value}</p>
       </div>
     </div>
   )

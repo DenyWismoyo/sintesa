@@ -94,37 +94,27 @@ export default function CreateThreadModal({ isOpen, onClose }: CreateThreadModal
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="workspace-page-container py-4">
-          <div className="workspace-header mb-4">
-            <button
-              type="button"
-              onClick={() => !isCreatingThread && onClose()}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200/80 shadow-2xs transition-colors"
-            >
-              ← Kembali ke Bursa Kolaborasi
-            </button>
-          </div>
-
-          {/* Workspace Content */}
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+          {/* Modal Content */}
           <motion.div
             variants={modalVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="workspace-card w-full flex flex-col overflow-hidden"
+            className="bg-white w-full max-w-xl rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-2xl relative z-10 flex flex-col max-h-[90vh] overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200"
           >
             {/* Header */}
-            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <div className="px-5 py-3.5 sm:px-6 sm:py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
               <div>
-                <h3 className="text-xl font-black text-slate-900 tracking-tight">Buat Thread Baru</h3>
-                <p className="text-sm text-slate-500 font-medium mt-1">Mulai kolaborasi dengan ekosistem Technopark</p>
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">Buat Thread Diskusi Baru</h3>
+                <p className="text-[11px] sm:text-xs text-slate-500 font-normal mt-0.5">Mulai kolaborasi dengan jejaring ekosistem Solo Technopark</p>
               </div>
               <button
                 type="button"
                 onClick={() => !isCreatingThread && onClose()}
-                className="p-2 bg-white rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors border border-slate-200"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
 
@@ -225,12 +215,12 @@ export default function CreateThreadModal({ isOpen, onClose }: CreateThreadModal
             </div>
 
             {/* Footer Actions */}
-            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-3">
+            <div className="px-5 py-3 border-t border-slate-100 bg-slate-50/80 flex items-center justify-end gap-2">
               <button
                 type="button"
                 disabled={isCreatingThread}
                 onClick={onClose}
-                className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-200 transition-colors"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200/80 transition-colors"
               >
                 Batal
               </button>
@@ -238,11 +228,11 @@ export default function CreateThreadModal({ isOpen, onClose }: CreateThreadModal
                 type="submit"
                 form="hub-thread-form"
                 disabled={isCreatingThread}
-                className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all hover:bg-indigo-700 shadow-md disabled:opacity-70 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all hover:bg-indigo-700 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {isCreatingThread ? (
                   <>
-                    <Loader2 size={16} className="animate-spin" /> Memproses...
+                    <Loader2 size={14} className="animate-spin" /> Memproses...
                   </>
                 ) : (
                   'Posting Thread'

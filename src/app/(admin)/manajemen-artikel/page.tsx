@@ -678,25 +678,25 @@ export default function ManajemenArtikelPage() {
         <DialogContent className="w-[96vw] sm:max-w-[850px] p-0 overflow-hidden bg-white rounded-2xl sm:rounded-3xl border-0 shadow-2xl max-h-[92vh] sm:max-h-[90vh] flex flex-col focus:outline-none">
           <DialogTitle className="sr-only">Editor Artikel Solo Technopark</DialogTitle>
           
-          {/* Header Dialog */}
-          <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
-            <div className="flex items-center gap-2.5">
-              <span className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                <Newspaper size={18} />
+          {/* Header Dialog (Hanya tampil jika bukan page mode) */}
+          <div className="hidden px-4 py-3 sm:px-6 sm:py-3.5 border-b border-slate-100 items-center justify-between shrink-0 bg-white">
+            <div className="flex items-center gap-2">
+              <span className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                <Newspaper size={16} />
               </span>
               <div>
-                <h2 className="text-sm sm:text-lg font-black text-slate-900 tracking-tight">
+                <h2 className="text-sm font-bold text-slate-900 tracking-tight">
                   {editingId ? 'Edit Artikel' : 'Tulis Artikel & Warta Baru'}
                 </h2>
-                <p className="text-[11px] sm:text-xs text-slate-500 font-normal">Buat artikel edukatif dan tautkan Smart CTA ke layanan Anda.</p>
+                <p className="text-[11px] text-slate-500 font-normal">Buat artikel edukatif dan tautkan Smart CTA ke layanan Anda.</p>
               </div>
             </div>
 
             <button 
               onClick={() => setIsModalOpen(false)}
-              className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors cursor-pointer"
+              className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors cursor-pointer"
             >
-              <X size={16} />
+              <X size={15} />
             </button>
           </div>
 

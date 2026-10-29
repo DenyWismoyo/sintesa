@@ -32,3 +32,4 @@ export default async function RoomBookingWorkspacePage({ params }: Props) {
   const initialRoom = await getAssetServerCached(id);
   return <RoomDetailClient roomId={id} initialRoom={initialRoom} defaultOpenBooking={true} />;
 }
+

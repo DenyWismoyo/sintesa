@@ -92,28 +92,19 @@ export default function ForumThreadDetailModal({
   };
 
   return (
-    <div className="workspace-page-container py-2 sm:py-4">
-      <div className="workspace-header mb-4">
-        <button
-          type="button"
-          onClick={onClose}
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200/80 shadow-2xs transition-colors"
-        >
-          ← Kembali ke Forum Alumni
-        </button>
-      </div>
-      <div className="workspace-card w-full flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+      <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="p-5 border-b border-slate-100 flex items-start justify-between gap-3">
+        <div className="p-4 sm:p-5 border-b border-slate-100 flex items-start justify-between gap-3 bg-slate-50/50 shrink-0">
           <div>
-            <span className="text-[11px] font-bold text-emerald-700">
+            <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60 uppercase tracking-wider">
               {thread.authorName} • {thread.authorBadgeLabel}
             </span>
-            <h3 className="text-base sm:text-lg font-black text-slate-900 mt-0.5">
+            <h3 className="text-sm sm:text-base font-bold text-slate-900 mt-1">
               {thread.title}
             </h3>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             {thread.id && (
               <button
                 type="button"
@@ -121,18 +112,18 @@ export default function ForumThreadDetailModal({
                   await reportThreadMutation.mutateAsync(thread.id!);
                   toast.info('Laporan dikirim ke meja Moderator Karir STP.');
                 }}
-                className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                 title="Laporkan konten mencurigakan / pungli ke Moderator"
               >
-                <Flag className="w-4 h-4" />
+                <Flag className="w-3.5 h-3.5" />
               </button>
             )}
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl text-slate-400 hover:bg-slate-100"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>

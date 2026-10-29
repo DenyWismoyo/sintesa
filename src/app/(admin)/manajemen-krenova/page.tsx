@@ -306,10 +306,10 @@ export default function ManajemenKrenovaPage() {
       {/* FULL-PAGE KRENOVA WORKSPACE EDITOR (MOBILE BORDERLESS) */}
       </div>
       {isModalOpen && (
-        <div className="workspace-page-container animate-in fade-in duration-200">
+        <div className="workspace-page-container workspace-page-narrow max-w-2xl animate-in fade-in duration-200">
           <div className="workspace-card w-full flex flex-col">
             <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
-              <h2 className="text-base sm:text-lg font-black text-slate-900">
+              <h2 className="text-sm sm:text-base font-bold text-slate-900">
                 {editingId ? "Edit Video KRENOVA" : "Tambah Video Baru"}
               </h2>
               <button onClick={handleCloseModal} disabled={isSubmitting} className="p-2 text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-full transition-colors cursor-pointer">

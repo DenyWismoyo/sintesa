@@ -191,9 +191,9 @@ export default function TenantProductsPage() {
 
       <AnimatePresence>
         {isDrawerOpen && (
-          <div className="workspace-page-container">
-            <div className="workspace-header mb-4">
-              <button type="button" onClick={() => setIsDrawerOpen(false)} className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200/80 shadow-2xs transition-colors">
+          <div className="workspace-page-container workspace-page-narrow max-w-2xl">
+            <div className="workspace-header mb-3">
+              <button type="button" onClick={() => setIsDrawerOpen(false)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200/80 shadow-2xs transition-colors">
                 ← Kembali ke Katalog Produk
               </button>
             </div>
@@ -209,15 +209,15 @@ export default function TenantProductsPage() {
               className="workspace-card w-full bg-[#F8FAFC] flex flex-col overflow-hidden"
             >
               
-              <div className="px-8 py-6 bg-white border-b border-slate-100 flex items-center justify-between shrink-0">
+              <div className="px-4 py-3 sm:px-6 sm:py-4 bg-white border-b border-slate-100 flex items-center justify-between shrink-0">
                 <div>
-                  <h2 className="text-2xl font-black text-slate-900 tracking-tight">{editingId ? 'Edit Portofolio' : 'Tambah Portofolio'}</h2>
-                  <p className="text-sm text-slate-500 mt-1">Lengkapi etalase produk Anda di sini.</p>
+                  <h2 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">{editingId ? 'Edit Portofolio Produk' : 'Tambah Portofolio Baru'}</h2>
+                  <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">Lengkapi etalase produk Anda di sini.</p>
                 </div>
-                <button onClick={() => setIsDrawerOpen(false)} className="w-10 h-10 bg-slate-50 hover:bg-slate-100 text-slate-500 rounded-full flex items-center justify-center transition-colors"><X size={20}/></button>
+                <button onClick={() => setIsDrawerOpen(false)} className="w-8 h-8 bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-600 rounded-lg flex items-center justify-center transition-colors"><X size={16}/></button>
               </div>
               
-              <div className="flex px-8 pt-3 gap-8 bg-white border-b border-slate-100 shrink-0 overflow-x-auto custom-scrollbar">
+              <div className="flex px-4 sm:px-6 pt-2 gap-4 sm:gap-6 bg-white border-b border-slate-100 shrink-0 overflow-x-auto custom-scrollbar">
                 {[
                   { id: 'info', label: '1. Info Dasar' },
                   { id: 'fitur', label: '2. Detail & Fitur' },
@@ -225,14 +225,14 @@ export default function TenantProductsPage() {
                 ].map((tab) => (
                   <button 
                     key={tab.id} onClick={() => setActiveTab(tab.id as any)} 
-                    className={`pb-4 text-sm font-bold border-b-[3px] transition-colors whitespace-nowrap relative ${activeTab === tab.id ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-slate-400 hover:text-slate-700'}`}
+                    className={`pb-2.5 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap relative ${activeTab === tab.id ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
                   >
                     {tab.label}
                   </button>
                 ))}
               </div>
 
-              <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6">
                 <AnimatePresence mode="wait">
                   <motion.div key={activeTab} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
                     

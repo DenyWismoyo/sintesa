@@ -373,13 +373,13 @@ export default function ManajemenEventPage() {
 
       {/* FULL-PAGE EVENT BUILDER WORKSPACE (MOBILE BORDERLESS) */}</div>
       {isModalOpen && (
-        <div className="workspace-page-container animate-in fade-in duration-200">
+        <div className="workspace-page-container workspace-page-narrow max-w-4xl animate-in fade-in duration-200">
           <div className="workspace-card w-full flex flex-col">
             
             {/* Modal Header */}
             <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-150 flex items-center justify-between bg-white shrink-0">
               <div className="min-w-0 pr-2">
-                <h3 className="text-sm sm:text-base font-black text-slate-800 tracking-tight truncate">{editingId ? 'Edit Event Setup' : 'Event Builder Baru'}</h3>
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight truncate">{editingId ? 'Edit Event Setup' : 'Event Builder Baru'}</h3>
                 <p className="text-[11px] text-slate-400 hidden sm:block mt-0.5 truncate">Konfigurasi jadwal, konten, dan tiket acara.</p>
               </div>
               <button onClick={handleCloseModal} className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 p-1.5 rounded-lg transition-colors shrink-0"><XCircle size={18} /></button>
@@ -408,7 +408,7 @@ export default function ManajemenEventPage() {
                 {/* TAB 1: BASIC INFO */}
                 {activeTab === 'BASIC' && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300 max-w-3xl">
-                    <h4 className="text-lg font-black text-slate-800 border-b border-slate-200 pb-3 mb-6">Informasi Dasar Acara</h4>
+                    <h4 className="text-sm font-bold text-slate-900 border-b border-slate-200 pb-2 mb-4">Informasi Dasar Acara</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="col-span-1 md:col-span-2">
                         <label className="block text-xs font-bold text-slate-700 mb-1.5">Judul Event *</label>

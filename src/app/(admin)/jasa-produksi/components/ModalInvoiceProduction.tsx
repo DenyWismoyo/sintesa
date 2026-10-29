@@ -157,44 +157,44 @@ export default function ModalInvoiceProduction({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && !isSubmitting && onClose()}>
-      <DialogContent className="max-w-lg p-0 overflow-hidden shadow-2xl border-slate-200">
-        <DialogHeader className="p-6 pb-4 bg-gradient-to-r from-blue-900 to-indigo-950 text-white">
-          <div className="flex items-center gap-2 text-blue-300 text-xs font-semibold tracking-wider uppercase mb-1">
-            <ReceiptText className="w-4 h-4" />
-            <span>Integrasi Billing & Keuangan BLUD</span>
+      <DialogContent className="max-w-md p-0 overflow-hidden shadow-2xl border-slate-200">
+        <DialogHeader className="px-5 py-4 bg-gradient-to-r from-blue-900 to-indigo-950 text-white shrink-0">
+          <div className="flex items-center gap-1.5 text-blue-300 text-[10px] font-semibold tracking-wider uppercase mb-1">
+            <ReceiptText className="w-3.5 h-3.5" />
+            <span>Billing & Keuangan BLUD</span>
           </div>
-          <DialogTitle className="text-xl font-bold text-white flex items-center justify-between">
+          <DialogTitle className="text-sm sm:text-base font-bold text-white flex items-center justify-between">
             <span>Terbitkan Tagihan (Invoice)</span>
-            <span className="text-xs font-mono font-normal bg-blue-500/20 text-blue-200 px-2.5 py-1 rounded border border-blue-400/30">
+            <span className="text-[11px] font-mono font-normal bg-blue-500/20 text-blue-200 px-2 py-0.5 rounded border border-blue-400/30">
               {order.orderNumber}
             </span>
           </DialogTitle>
-          <DialogDescription className="text-blue-100 text-sm">
+          <DialogDescription className="text-blue-100/90 text-xs mt-0.5">
             Klien: <span className="font-semibold text-white">{order.clientName}</span> ({order.clientType})
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-3.5">
           {/* Opsi Jenis Tagihan */}
-          <div className="space-y-2">
-            <Label className="text-xs font-medium text-slate-700">Pilih Termin Tagihan</Label>
-            <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-slate-700">Pilih Termin Tagihan</Label>
+            <div className="grid grid-cols-2 gap-2.5">
               <div
-                className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${
+                className={`p-2.5 sm:p-3 rounded-xl border flex items-start gap-2.5 cursor-pointer transition-all ${
                   invoiceType === 'DP'
-                    ? 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-600/20'
+                    ? 'border-indigo-600 bg-indigo-50/50 ring-1 ring-indigo-600/30'
                     : 'border-slate-200 hover:bg-slate-50'
                 }`}
                 onClick={() => setInvoiceType('DP')}
               >
-                <div className={`w-4 h-4 rounded-full border flex items-center justify-center mt-0.5 ${invoiceType === 'DP' ? 'border-indigo-600 bg-indigo-600' : 'border-slate-300'}`}>
+                <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center mt-0.5 shrink-0 ${invoiceType === 'DP' ? 'border-indigo-600 bg-indigo-600' : 'border-slate-300'}`}>
                   {invoiceType === 'DP' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                 </div>
                 <div>
                   <span className="font-bold text-xs text-slate-800 block">
-                    Uang Muka (DP {dpPercentage}%)
+                    DP ({dpPercentage}%)
                   </span>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Syarat mulai produksi</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Syarat mulai produksi</p>
                   <p className="text-xs font-bold text-indigo-700 mt-1 font-mono">
                     {formatRupiah(dpAmount)}
                   </p>

@@ -354,7 +354,7 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
       </div>
 
       {/* ─── Main Hero Card Lowongan ─── */}
-      <div className={isQuickApplyOpen ? 'hidden' : 'public-card bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 mb-8 shadow-sm'}>
+      <div className="public-card bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 mb-8 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
           {/* Logo & Info Perusahaan */}
           <div className="flex items-start gap-4 sm:gap-5 min-w-0">
@@ -469,7 +469,7 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
       </div>
 
       {/* ─── Layout 2 Kolom (Konten Detail + Sidebar Lamar) ─── */}
-      <div className={isQuickApplyOpen ? 'hidden' : 'grid grid-cols-1 lg:grid-cols-12 gap-8 items-start'}>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* ─── Kolom Kiri: Rincian Lengkap (8 Kolom) ─── */}
         <div className="lg:col-span-8 space-y-8">
           {/* Banner Kurikulum Selaras Solo Technopark */}

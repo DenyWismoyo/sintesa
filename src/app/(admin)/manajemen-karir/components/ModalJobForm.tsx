@@ -247,19 +247,19 @@ export default function ModalJobForm({
   };
 
   return (
-    <div className="workspace-page-container animate-in fade-in duration-200">
+    <div className="workspace-page-container workspace-page-narrow max-w-3xl animate-in fade-in duration-200">
       <div className="workspace-card w-full flex flex-col">
         {/* Modal Header */}
-        <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-emerald-50/50 via-slate-50 to-white">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
-              <Briefcase className="w-5 h-5" />
+        <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-emerald-50/50 via-slate-50 to-white">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+              <Briefcase className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-lg font-black text-slate-900">
+              <h2 className="text-sm sm:text-base font-bold text-slate-900">
                 {initialJob ? 'Edit Lowongan Pekerjaan' : 'Tambah Lowongan Mitra Baru'}
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-[11px] sm:text-xs text-slate-500">
                 Publikasikan peluang karir untuk alumni diklat & ekosistem Solo Technopark.
               </p>
             </div>
