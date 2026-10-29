@@ -257,7 +257,7 @@ export default function BillingPage() {
   const VISIBLE_VIEWS = ALL_VIEWS.filter(view => view.allowed);
 
   return (
-    <div className="space-y-6 pb-24 animate-in fade-in">
+    <div className="space-y-6 pb-24 animate-in fade-in"><div className={isFormOpen ? "hidden" : "space-y-6"}>
       <Toaster position="top-center" richColors closeButton />
       
       <PrintInvoiceLayout invoice={printingInvoice} accounts={accounts || []} />
@@ -375,7 +375,7 @@ export default function BillingPage() {
         </>
       )}
 
-      {isFormOpen && <ModalFormInvoice onClose={() => { setIsFormOpen(false); setEditingInvoice(null); }} onSubmit={handleFormSubmit} initialData={editingInvoice} invoices={invoices || []} />}
+      </div>{isFormOpen && <div className="workspace-page-container"><ModalFormInvoice asPage={true} onClose={() => { setIsFormOpen(false); setEditingInvoice(null); }} onSubmit={handleFormSubmit} initialData={editingInvoice} invoices={invoices || []} /></div>}
       
       {isDetailOpen && selectedInvoice && (
         <ModalInvoiceDetail 

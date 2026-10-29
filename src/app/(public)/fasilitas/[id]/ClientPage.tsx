@@ -34,6 +34,7 @@ import { SocialShareBar } from '@/components/common/SocialShareBar';
 import { StickyActionBar } from '@/components/common/StickyActionBar';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import BookingWizardModal from '../components/BookingWizardModal';
+import { DialogPageModeProvider } from '@/components/ui/dialog';
 import { useBooking } from '@/hooks/useBooking';
 import { getActiveRefCode } from '@/components/common/AffiliateTracker';
 import { toast } from 'sonner';
@@ -41,14 +42,15 @@ import { toast } from 'sonner';
 interface RoomDetailClientProps {
   roomId: string;
   initialRoom: Asset | null;
+  defaultOpenBooking?: boolean;
 }
 
-export default function RoomDetailClient({ roomId, initialRoom }: RoomDetailClientProps) {
+export default function RoomDetailClient({ roomId, initialRoom, defaultOpenBooking = false }: RoomDetailClientProps) {
   const router = useRouter();
   const [room, setRoom] = useState<Asset | null>(initialRoom);
   const [loading, setLoading] = useState(!initialRoom);
   const [activePhoto, setActivePhoto] = useState<string>(initialRoom?.imageUrl || '');
-  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState(defaultOpenBooking);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { submitBooking } = useBooking('public');
@@ -139,7 +141,7 @@ export default function RoomDetailClient({ roomId, initialRoom }: RoomDetailClie
 
   return (
     <SectionContainer accent="sky" width="default" className="pb-24 sm:pb-12">
-      <div className="py-4 sm:py-8 space-y-8">
+      <div className={showBookingModal ? 'hidden' : 'py-4 sm:py-8 space-y-8'}>
 
         {/* --- 1. BREADCRUMBS & NAVIGATION --- */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
@@ -381,15 +383,37 @@ export default function RoomDetailClient({ roomId, initialRoom }: RoomDetailClie
         </div>
       </StickyActionBar>
 
-      {/* --- BOOKING WIZARD MODAL --- */}
+      {/* --- BOOKING WIZARD WORKSPACE --- */}
       {showBookingModal && (
-        <BookingWizardModal
-          isOpen={showBookingModal}
-          onClose={() => setShowBookingModal(false)}
-          asset={room}
-          onSubmit={handleSubmitBooking}
-          isSubmitting={isSubmitting}
-        />
+        <div className="py-4 sm:py-8">
+          <DialogPageModeProvider
+            onClosePage={() => {
+              if (defaultOpenBooking) {
+                router.push(`/fasilitas/${room.id}`);
+              } else {
+                setShowBookingModal(false);
+              }
+            }}
+            backLabel={`Kembali ke Detail ${room.name}`}
+            pageTitle={`Pengajuan Sewa: ${room.name}`}
+            pageSubtitle="Lengkapi jadwal, rincian peminjam, dan dokumen permohonan resmi"
+            badgeText="WORKSPACE PEMINJAMAN"
+          >
+            <BookingWizardModal
+              isOpen={showBookingModal}
+              onClose={() => {
+                if (defaultOpenBooking) {
+                  router.push(`/fasilitas/${room.id}`);
+                } else {
+                  setShowBookingModal(false);
+                }
+              }}
+              asset={room}
+              onSubmit={handleSubmitBooking}
+              isSubmitting={isSubmitting}
+            />
+          </DialogPageModeProvider>
+        </div>
       )}
 
     </SectionContainer>

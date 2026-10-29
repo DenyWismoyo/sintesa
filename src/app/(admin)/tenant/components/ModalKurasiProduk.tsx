@@ -11,9 +11,10 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   tenant: Tenant | null;
+  asPage?: boolean;
 }
 
-export default function ModalKurasiProduk({ isOpen, onClose, tenant }: Props) {
+export default function ModalKurasiProduk({ isOpen, onClose, tenant, asPage = false }: Props) {
   const { products, updateProduct } = useTenantProducts(tenant?.id);
   const queryClient = useQueryClient();
   
@@ -135,8 +136,8 @@ export default function ModalKurasiProduk({ isOpen, onClose, tenant }: Props) {
   if (!isOpen || !tenant) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-5xl max-h-[92vh] sm:max-h-[88vh] my-auto flex flex-col md:flex-row overflow-hidden border border-slate-200 animate-in zoom-in-95">
+    <div className={asPage ? "w-full animate-in fade-in duration-200" : "fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200"}>
+      <div className={asPage ? "workspace-card w-full flex flex-col md:flex-row min-h-[75vh]" : "bg-white rounded-none sm:rounded-3xl shadow-none sm:shadow-2xl w-full max-w-5xl max-h-[96vh] sm:max-h-[88vh] my-auto flex flex-col md:flex-row overflow-hidden border-x-0 sm:border border-slate-200 animate-in zoom-in-95"}>
         
         {/* PANEL KIRI: Daftar Produk Tenant */}
         <div className={`w-full md:w-80 bg-slate-50 border-b md:border-b-0 md:border-r border-slate-200 flex-col shrink-0 ${selectedProductId ? 'hidden md:flex' : 'flex'}`}>

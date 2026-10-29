@@ -108,8 +108,8 @@ export default function ModalFormAset({ assetToEdit, onClose, onSave }: Props) {
   const labelClassName = "text-[11px] sm:text-xs font-bold text-slate-600 mb-1 block";
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-[95vw] sm:max-w-4xl max-h-[92vh] sm:max-h-[88vh] my-auto flex flex-col overflow-hidden border border-slate-200/80">
+    <div className="workspace-page-container animate-in fade-in duration-200">
+      <div className="workspace-card w-full flex flex-col">
         
         {/* HEADER */}
         <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-150 flex items-center justify-between shrink-0 bg-white">

@@ -116,7 +116,7 @@ export default function TenantProductsPage() {
 
   return (
     <div className="space-y-8 w-full pb-12">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+      <div className={isDrawerOpen ? "hidden" : "flex flex-col sm:flex-row sm:items-center justify-between gap-6"}>
         <div>
           <h1 className="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
             <div className="p-2.5 bg-indigo-100 text-indigo-600 rounded-2xl shadow-inner"><Package size={28} /></div> 
@@ -129,7 +129,7 @@ export default function TenantProductsPage() {
         </button>
       </div>
 
-      {!profile ? (
+      {isDrawerOpen ? null : !profile ? (
         <div className="bg-white/60 backdrop-blur-md rounded-3xl shadow-sm border border-slate-200/50 py-24 flex flex-col items-center justify-center text-center px-4 w-full">
           <Package size={48} className="text-slate-300 mb-4" />
           <h3 className="text-xl font-bold text-slate-800 mb-2">Profil Belum Lengkap</h3>
@@ -191,17 +191,22 @@ export default function TenantProductsPage() {
 
       <AnimatePresence>
         {isDrawerOpen && (
-          <>
+          <div className="workspace-page-container">
+            <div className="workspace-header mb-4">
+              <button type="button" onClick={() => setIsDrawerOpen(false)} className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200/80 shadow-2xs transition-colors">
+                ← Kembali ke Katalog Produk
+              </button>
+            </div>
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-40" 
+              className="hidden" 
               onClick={() => setIsDrawerOpen(false)} 
             />
             
             <motion.div 
-              initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 right-0 w-full max-w-2xl bg-[#F8FAFC] shadow-2xl z-50 flex flex-col border-l border-white/50"
+              className="workspace-card w-full bg-[#F8FAFC] flex flex-col overflow-hidden"
             >
               
               <div className="px-8 py-6 bg-white border-b border-slate-100 flex items-center justify-between shrink-0">
@@ -339,7 +344,7 @@ export default function TenantProductsPage() {
                 </button>
               </div>
             </motion.div>
-          </>
+          </div>
         )}
       </AnimatePresence>
     </div>

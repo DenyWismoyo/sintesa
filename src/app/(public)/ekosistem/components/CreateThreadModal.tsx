@@ -94,23 +94,24 @@ export default function CreateThreadModal({ isOpen, onClose }: CreateThreadModal
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => !isCreatingThread && onClose()}
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-          />
+        <div className="workspace-page-container py-4">
+          <div className="workspace-header mb-4">
+            <button
+              type="button"
+              onClick={() => !isCreatingThread && onClose()}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200/80 shadow-2xs transition-colors"
+            >
+              ← Kembali ke Bursa Kolaborasi
+            </button>
+          </div>
 
-          {/* Modal Content */}
+          {/* Workspace Content */}
           <motion.div
             variants={modalVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl relative z-10 flex flex-col max-h-[90vh] overflow-hidden"
+            className="workspace-card w-full flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">

@@ -24,7 +24,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogPageModeProvider } from '@/components/ui/dialog';
 import { AdminPageHeader, AdminFilterBar } from '@/components/admin';
 
 const CATEGORIES: ArticleCategory[] = [
@@ -458,6 +458,7 @@ export default function ManajemenArtikelPage() {
 
   return (
     <div className="w-full space-y-6 pb-20 animate-in fade-in duration-300">
+      <div className={isModalOpen ? 'hidden' : 'space-y-6'}>
       
       {/* 1. Standardized Header & Quick Actions */}
       <AdminPageHeader
@@ -664,7 +665,15 @@ export default function ManajemenArtikelPage() {
         </div>
       )}
 
-      {/* 5. MODAL FORM EDITOR ARTIKEL & SMART CTA */}
+      </div>
+      {/* 5. FULL-PAGE WORKSPACE EDITOR ARTIKEL & SMART CTA */}
+      <DialogPageModeProvider
+        backLabel="Kembali ke Daftar Artikel"
+        onClosePage={() => setIsModalOpen(false)}
+        pageTitle={editingId ? 'Edit Artikel & Warta' : 'Tulis Artikel & Warta Baru'}
+        pageSubtitle="Studio penulisan markdown, konfigurasi SEO, dan integrasi Smart CTA lintas-divisi."
+        badgeText={editingId ? 'Mode Edit' : 'Artikel Baru'}
+      >
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="w-[96vw] sm:max-w-[850px] p-0 overflow-hidden bg-white rounded-2xl sm:rounded-3xl border-0 shadow-2xl max-h-[92vh] sm:max-h-[90vh] flex flex-col focus:outline-none">
           <DialogTitle className="sr-only">Editor Artikel Solo Technopark</DialogTitle>
@@ -1149,6 +1158,7 @@ export default function ManajemenArtikelPage() {
           </form>
         </DialogContent>
       </Dialog>
+      </DialogPageModeProvider>
 
       {/* 6. MODAL KONFIRMASI HAPUS */}
       {deleteConfirmId && (

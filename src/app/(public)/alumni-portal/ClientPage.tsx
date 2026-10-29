@@ -215,7 +215,7 @@ export default function AlumniPortalClientPage() {
       />
 
       {/* Toolbar Filter Kejuruan & CTA Buat Topik */}
-      <div className="public-filter-bar mb-6 flex flex-wrap items-center justify-between gap-3">
+      <div className={selectedThread || isComposerOpen ? 'hidden' : 'public-filter-bar mb-6 flex flex-wrap items-center justify-between gap-3'}>
         <div className="flex flex-wrap items-center gap-2">
           <select
             value={vocationalTrack}
@@ -249,7 +249,7 @@ export default function AlumniPortalClientPage() {
       </div>
 
       {/* Layout 2 Kolom: Sidebar Zona A & B + Feed Diskusi */}
-      <div className="flex flex-col lg:flex-row items-start gap-6">
+      <div className={selectedThread || isComposerOpen ? 'hidden' : 'flex flex-col lg:flex-row items-start gap-6'}>
         <ForumZoneSidebar
           role={role}
           uid={user.uid}

@@ -162,7 +162,7 @@ export default function ManajemenEventPage() {
   const inputClass = "w-full px-3 py-2 sm:py-2.5 bg-slate-50/80 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all";
 
   return (
-    <div className="w-full space-y-6 pb-24 animate-in fade-in duration-300">
+    <div className="w-full space-y-6 pb-24 animate-in fade-in duration-300"><div className={isModalOpen ? 'hidden' : 'space-y-6'}>
       {/* STANDARDIZED HEADER */}
       <AdminPageHeader
         title="Manajemen Event & Acara"
@@ -371,10 +371,10 @@ export default function ManajemenEventPage() {
         )}
       />
 
-      {/* MODAL FORM BUILDER (WIZARD) - Responsif & Scrollable */}
+      {/* FULL-PAGE EVENT BUILDER WORKSPACE (MOBILE BORDERLESS) */}</div>
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-5xl max-h-[92vh] sm:max-h-[88vh] my-auto flex flex-col border border-slate-200/80 animate-in zoom-in-95 duration-200 overflow-hidden">
+        <div className="workspace-page-container animate-in fade-in duration-200">
+          <div className="workspace-card w-full flex flex-col">
             
             {/* Modal Header */}
             <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-150 flex items-center justify-between bg-white shrink-0">

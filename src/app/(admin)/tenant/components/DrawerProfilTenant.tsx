@@ -17,6 +17,7 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   invoices?: Invoice[]; 
+  asPage?: boolean;
 }
 
 // PERUBAHAN FASE 3: Menambahkan tab 'curation' & 'health_ai'
@@ -60,7 +61,7 @@ const getCapTableColor = (type: string, index: number) => {
 
 const formatRupiah = (angka: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
 
-export default function DrawerProfilTenant({ tenant, isOpen, onClose, invoices = [] }: Props) {
+export default function DrawerProfilTenant({ tenant, isOpen, onClose, invoices = [], asPage = false }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   
   const { updateTenant } = useTenants();
@@ -274,10 +275,10 @@ export default function DrawerProfilTenant({ tenant, isOpen, onClose, invoices =
 
   return (
     <>
-      <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 transition-opacity animate-in fade-in" onClick={onClose} />
+      {!asPage && <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 transition-opacity animate-in fade-in" onClick={onClose} />}
       
       {/* Container Drawer: Two Pane Layout di Desktop */}
-      <div className="fixed inset-y-0 right-0 w-full md:max-w-5xl bg-white shadow-2xl z-50 flex flex-col md:flex-row transform transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] translate-x-0 animate-in slide-in-from-right overflow-hidden">
+      <div className={asPage ? "workspace-card w-full flex flex-col lg:flex-row min-h-[78vh]" : "fixed inset-y-0 right-0 w-full md:max-w-5xl bg-white shadow-2xl z-50 flex flex-col md:flex-row transform transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] translate-x-0 animate-in slide-in-from-right overflow-hidden"}>
         
         {/* ==================================================== */}
         {/* PANE KIRI: SIDEBAR PROFIL & NAVIGASI (30% WIDTH) */}

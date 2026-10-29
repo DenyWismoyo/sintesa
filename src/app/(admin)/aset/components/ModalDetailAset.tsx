@@ -88,8 +88,8 @@ export default function ModalDetailAset({ asset, allReports, baseUrl, onClose, o
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto z-50 animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-5xl max-h-[92vh] sm:max-h-[88vh] my-auto flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100">
+    <div className="workspace-page-container animate-in fade-in duration-200">
+      <div className="workspace-card w-full flex flex-col">
         
         {/* HEADER */}
         <div className="flex justify-between items-center p-4 sm:p-6 md:p-8 border-b border-slate-100 bg-white shrink-0">

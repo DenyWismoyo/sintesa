@@ -247,8 +247,8 @@ export default function ModalJobForm({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-3xl max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+    <div className="workspace-page-container animate-in fade-in duration-200">
+      <div className="workspace-card w-full flex flex-col">
         {/* Modal Header */}
         <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-emerald-50/50 via-slate-50 to-white">
           <div className="flex items-center gap-3">

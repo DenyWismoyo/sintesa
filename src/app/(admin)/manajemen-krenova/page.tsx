@@ -168,6 +168,7 @@ export default function ManajemenKrenovaPage() {
 
   return (
     <div className="w-full space-y-6 pb-20 animate-in fade-in duration-300">
+      <div className={isModalOpen ? 'hidden' : 'space-y-6'}>
       
       {/* STANDARDIZED HEADER */}
       <AdminPageHeader
@@ -302,10 +303,11 @@ export default function ManajemenKrenovaPage() {
         </div>
       )}
 
-      {/* MODAL FORM WITH UPLOAD FEATURE */}
+      {/* FULL-PAGE KRENOVA WORKSPACE EDITOR (MOBILE BORDERLESS) */}
+      </div>
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-2xl max-h-[92vh] sm:max-h-[88vh] my-auto overflow-hidden shadow-2xl flex flex-col border border-slate-100">
+        <div className="workspace-page-container animate-in fade-in duration-200">
+          <div className="workspace-card w-full flex flex-col">
             <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
               <h2 className="text-base sm:text-lg font-black text-slate-900">
                 {editingId ? "Edit Video KRENOVA" : "Tambah Video Baru"}

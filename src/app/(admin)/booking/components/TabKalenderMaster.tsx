@@ -4,6 +4,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Booking } from '@/types';
+import { DialogPageModeProvider } from '@/components/ui/dialog';
 import { 
   formatDateId,
   getCalendarMonthDays,
@@ -174,7 +175,7 @@ export default function TabKalenderMaster({ bookings }: Props) {
   };
 
   return (
-    <div className="bg-white p-5 sm:p-7 md:p-8 rounded-3xl shadow-sm border border-slate-200 animate-in fade-in min-h-[850px] flex flex-col relative">
+    <div className="bg-white p-5 sm:p-7 md:p-8 rounded-3xl shadow-sm border border-slate-200 animate-in fade-in min-h-[850px] flex flex-col relative"><div className={isCreateModalOpen ? 'hidden' : 'flex flex-col flex-1'}>
       
       {/* --- 1. HEADER & CONTROLS ADMIN --- */}
       <div className="mb-6 space-y-4">
@@ -703,12 +704,14 @@ export default function TabKalenderMaster({ bookings }: Props) {
         )}
       </div>
 
-      {/* --- 4. RENDER MODAL ADMIN INTERVENSI CREATE BOOKING --- */}
+      {/* --- 4. RENDER WORKSPACE ADMIN INTERVENSI CREATE BOOKING --- */}</div>
+      <DialogPageModeProvider backLabel="Kembali ke Kalender Master" onClosePage={() => setIsCreateModalOpen(false)} pageTitle="Intervensi & Reservasi Jadwal Manual" badgeText="Booking Studio">
       <ModalAdminCreateBooking 
         isOpen={isCreateModalOpen} 
         onClose={() => setIsCreateModalOpen(false)} 
         prefilledSlot={selectedSlot}
       />
+      </DialogPageModeProvider>
 
       {/* --- 5. MODAL DETAIL JADWAL ADMIN --- */}
       {selectedEvent && (

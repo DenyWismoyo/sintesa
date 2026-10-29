@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect } from 'react';
-import { X } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft, X } from 'lucide-react';
 
 export interface AdminFormDrawerProps {
   isOpen: boolean;
@@ -11,6 +12,10 @@ export interface AdminFormDrawerProps {
   children: React.ReactNode;
   footer?: React.ReactNode;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl';
+  asPage?: boolean;
+  backHref?: string;
+  backLabel?: string;
+  badgeText?: string;
 }
 
 const MAX_WIDTH_CLASSES: Record<string, string> = {
@@ -30,10 +35,17 @@ export default function AdminFormDrawer({
   subtitle,
   children,
   footer,
-  maxWidth = '2xl'
+  maxWidth = '2xl',
+  asPage = false,
+  backHref,
+  backLabel = 'Kembali ke Daftar',
+  badgeText,
 }: AdminFormDrawerProps) {
-  // Cegah scroll pada body saat modal terbuka
   useEffect(() => {
+    if (asPage) {
+      document.body.style.overflow = '';
+      return;
+    }
     if (isOpen) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -42,9 +54,71 @@ export default function AdminFormDrawer({
     return () => {
       document.body.style.overflow = '';
     };
-  }, [isOpen]);
+  }, [isOpen, asPage]);
 
   if (!isOpen) return null;
+
+  if (asPage) {
+    return (
+      <div className="workspace-page-container animate-in fade-in duration-200">
+        <div className="workspace-header flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            {backHref ? (
+              <Link
+                href={backHref}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs sm:text-sm font-bold transition-colors shrink-0"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>{backLabel}</span>
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={onClose}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs sm:text-sm font-bold transition-colors shrink-0"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>{backLabel}</span>
+              </button>
+            )}
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-base sm:text-xl font-black text-slate-900 tracking-tight truncate">
+                  {title}
+                </h1>
+                {badgeText && (
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200/60">
+                    {badgeText}
+                  </span>
+                )}
+              </div>
+              {subtitle && (
+                <p className="text-xs text-slate-500 mt-0.5 font-medium truncate">
+                  {subtitle}
+                </p>
+              )}
+            </div>
+          </div>
+          {footer && (
+            <div className="hidden sm:flex items-center gap-2.5">
+              {footer}
+            </div>
+          )}
+        </div>
+
+        <div className="workspace-card">
+          <div className="p-4 sm:p-6 lg:p-8 space-y-5 text-slate-700 font-sans">
+            {children}
+          </div>
+          {footer && (
+            <div className="workspace-footer-sticky flex items-center justify-end gap-3">
+              {footer}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -55,32 +129,32 @@ export default function AdminFormDrawer({
         aria-hidden="true"
       />
 
-      {/* 2. MODAL DIALOG (DESKTOP) / BOTTOM SHEET (MOBILE) */}
+      {/* 2. MODAL DIALOG (DESKTOP) / BORDERLESS FULL-WIDTH SHEET (MOBILE) */}
       <div 
-        className={`relative w-full ${MAX_WIDTH_CLASSES[maxWidth] || 'sm:max-w-2xl'} bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[85vh] z-10 overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-300`}
+        className={`relative w-full ${MAX_WIDTH_CLASSES[maxWidth] || 'sm:max-w-2xl'} bg-white rounded-none sm:rounded-3xl border-x-0 sm:border border-slate-200/80 shadow-none sm:shadow-2xl flex flex-col max-h-[95vh] sm:max-h-[88vh] z-10 overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-300`}
         role="dialog"
         aria-modal="true"
       >
         {/* Mobile Drag Indicator */}
-        <div className="sm:hidden flex justify-center pt-3 pb-1">
-          <div className="w-12 h-1.5 bg-slate-300 rounded-full" />
+        <div className="sm:hidden flex justify-center pt-2.5 pb-1">
+          <div className="w-10 h-1 bg-slate-300 rounded-full" />
         </div>
 
         {/* HEADER BAR (STICKY) */}
-        <div className="px-5 py-4 sm:px-6 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
-          <div>
-            <h2 className="text-lg sm:text-xl font-bold text-slate-800 tracking-tight">
+        <div className="px-4 py-3.5 sm:px-6 sm:py-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
+          <div className="min-w-0">
+            <h2 className="text-base sm:text-xl font-bold text-slate-800 tracking-tight truncate">
               {title}
             </h2>
             {subtitle && (
-              <p className="text-xs text-slate-500 mt-0.5 font-medium">
+              <p className="text-xs text-slate-500 mt-0.5 font-medium truncate">
                 {subtitle}
               </p>
             )}
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
+            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors shrink-0"
             title="Tutup Form"
           >
             <X className="w-5 h-5" />
@@ -88,13 +162,13 @@ export default function AdminFormDrawer({
         </div>
 
         {/* BODY SCROLLABLE CONTENT */}
-        <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 text-slate-700 font-sans custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 text-slate-700 font-sans custom-scrollbar">
           {children}
         </div>
 
         {/* FOOTER ACTIONS (STICKY DI BAWAH) */}
         {footer && (
-          <div className="px-5 py-3.5 sm:px-6 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3 shrink-0">
+          <div className="px-4 py-3 sm:px-6 sm:py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3 shrink-0">
             {footer}
           </div>
         )}

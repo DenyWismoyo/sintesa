@@ -16,6 +16,7 @@ import { AdminPageHeader } from '@/components/admin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { DialogPageModeProvider } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   DropdownMenu,
@@ -206,7 +207,7 @@ export default function JasaProduksiPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6"><div className={(isFormModalOpen || isProgressModalOpen) ? 'hidden' : 'space-y-6'}>
       {/* 1. Header Halaman */}
       <AdminPageHeader
         title="Jasa Produksi & Manufaktur STP"
@@ -835,7 +836,7 @@ export default function JasaProduksiPage() {
         </div>
       )}
 
-      {/* 6. Modals */}
+      {/* 6. Modals & Workspaces */}</div><DialogPageModeProvider backLabel="Kembali ke Daftar SPK" onClosePage={() => { setIsFormModalOpen(false); setEditingOrder(null); }} pageTitle={editingOrder ? `Edit SPK: ${editingOrder.orderNumber}` : 'Penerbitan SPK Jasa Produksi Baru'} badgeText="SPK Builder">
       {/* Modal Form SPK (Create / Edit) */}
       <ModalFormProductionOrder
         isOpen={isFormModalOpen}
@@ -845,7 +846,7 @@ export default function JasaProduksiPage() {
         }}
         onSubmit={handleSaveOrder}
         initialData={editingOrder}
-      />
+      /></DialogPageModeProvider><DialogPageModeProvider backLabel="Kembali ke Daftar SPK" onClosePage={() => { setIsProgressModalOpen(false); setSelectedOrderForProgress(null); }} pageTitle={selectedOrderForProgress ? `Log Kemajuan Bengkel: ${selectedOrderForProgress.orderNumber}` : 'Log Kemajuan Bengkel'} badgeText="Workshop Log">
 
       {/* Modal Progres Bengkel */}
       <ModalProgressLog
@@ -857,7 +858,7 @@ export default function JasaProduksiPage() {
         order={selectedOrderForProgress}
         onSuccess={() => refetch()}
         currentUserName={user?.displayName || user?.email || 'Teknisi STP'}
-      />
+      /></DialogPageModeProvider>
 
       {/* Modal Surat Jalan (Delivery Order) */}
       <ModalDeliveryOrder

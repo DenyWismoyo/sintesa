@@ -20,6 +20,7 @@ interface ModalFormInvoiceProps {
   initialData?: Invoice | null;
   invoices?: Invoice[]; 
   accounts?: Account[]; 
+  asPage?: boolean;
 }
 
 const ISSUER_CACHE_KEY = 'billing_invoice_issuer_cache';
@@ -31,7 +32,7 @@ const DEFAULT_INVOICE_TERMS = [
   'Segala bentuk kerusakan aset fisik atau kelalaian fasilitas kawasan menjadi tanggung jawab penyewa.'
 ];
 
-export default function ModalFormInvoice({ onClose, onSubmit, initialData, invoices = [], accounts = [] }: ModalFormInvoiceProps) {
+export default function ModalFormInvoice({ onClose, onSubmit, initialData, invoices = [], accounts = [], asPage = true }: ModalFormInvoiceProps) {
   const { products } = useCatalog();
   const { tenants } = useTenants();
   const { assets } = useAssets();      
@@ -438,7 +439,7 @@ export default function ModalFormInvoice({ onClose, onSubmit, initialData, invoi
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }}
             onClick={handleClose}
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[70]" 
+            className={asPage ? "hidden" : "fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[70]"} 
           />
           
           <motion.div 
@@ -446,7 +447,7 @@ export default function ModalFormInvoice({ onClose, onSubmit, initialData, invoi
             animate={{ x: 0 }} 
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-y-0 right-0 z-[75] w-full max-w-[1300px] h-full bg-white shadow-2xl flex flex-col overflow-hidden border-l border-slate-200"
+            className={asPage ? "workspace-card w-full flex flex-col overflow-hidden" : "fixed inset-y-0 right-0 z-[75] w-full max-w-[1300px] h-full bg-white shadow-2xl flex flex-col overflow-hidden border-l border-slate-200"}
           >
             
             <div className="px-4 py-3 sm:px-6 sm:py-4 md:px-8 md:py-5 flex items-center justify-between bg-white border-b border-slate-100 shrink-0">

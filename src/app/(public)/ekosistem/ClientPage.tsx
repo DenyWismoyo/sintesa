@@ -73,7 +73,7 @@ export default function EkosistemSmartHubPage() {
       />
 
       {/* 3. Navigation Switcher Tabs (Konsisten dengan menu Fasilitas & E-Katalog) */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+      <div className={isCreateModalOpen ? 'hidden' : 'flex flex-wrap items-center justify-between gap-3 mb-6'}>
         <PillTabs
           tabs={[
             { key: 'DIRECTORY', label: 'Direktori Profil', icon: <Building2 size={15} /> },
@@ -87,7 +87,7 @@ export default function EkosistemSmartHubPage() {
       </div>
 
       {/* 4. Main Content View Area */}
-      <main className="w-full">
+      <main className={isCreateModalOpen ? 'hidden' : 'w-full'}>
         <AnimatePresence mode="wait">
           {/* ======================================================== */}
           {/* VIEW 1: DIREKTORI PROFIL STARTUP & TENANT                */}

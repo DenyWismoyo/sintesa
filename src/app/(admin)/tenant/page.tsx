@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import TabDirektoriTenant from './components/TabDirektoriTenant';
 import ModalFormTenant from './components/ModalFormTenant';
 import KanbanBoardTenant from './components/KanbanBoardTenant';
@@ -27,6 +28,7 @@ import { useFinance } from '@/hooks/useFinance';
 import { Tenant, Invoice } from '@/types';
 
 export default function TenantAdminPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('direktori');
 
   const { 
@@ -67,14 +69,14 @@ export default function TenantAdminPage() {
   const [selectedValidationTenant, setSelectedValidationTenant] = useState<Tenant | null>(null);
 
   // Handler Modal
-  const handleOpenAdd = () => { setSelectedTenant(null); setIsModalOpen(true); };
-  const handleOpenEdit = (tenant: Tenant) => { setSelectedTenant(tenant); setIsModalOpen(true); };
+  const handleOpenAdd = () => { router.push('/tenant/editor'); };
+  const handleOpenEdit = (tenant: Tenant) => { router.push(`/tenant/editor?id=${tenant.id}`); };
   const handleCloseModal = () => { setIsModalOpen(false); setTimeout(() => setSelectedTenant(null), 200); };
 
-  const handleViewProfile = (tenant: Tenant) => { setSelectedProfile(tenant); setIsDrawerOpen(true); };
+  const handleViewProfile = (tenant: Tenant) => { router.push(`/tenant/${tenant.id}`); };
   const handleCloseDrawer = () => { setIsDrawerOpen(false); setTimeout(() => setSelectedProfile(null), 200); };
 
-  const handleStartCuration = (tenant: Tenant) => { setSelectedCurationTenant(tenant); setIsCurationModalOpen(true); };
+  const handleStartCuration = (tenant: Tenant) => { router.push(`/tenant/${tenant.id}?mode=kurasi`); };
   const handleCloseCuration = () => { setIsCurationModalOpen(false); setTimeout(() => setSelectedCurationTenant(null), 200); };
 
   // HANDLER BARU FASE 5: Validasi Pendaftar

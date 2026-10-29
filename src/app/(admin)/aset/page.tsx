@@ -142,7 +142,7 @@ export default function AsetPage() {
 
   return (
     <>
-      <div className="space-y-6 print:hidden pb-24">
+      <div className="space-y-6 print:hidden pb-24"><div className={(detailAsset || formAsset) ? 'hidden' : 'space-y-6'}>
         {/* 1. ADMIN PAGE HEADER */}
         <AdminPageHeader
           title="Manajemen Aset & Fasilitas"
@@ -222,7 +222,7 @@ export default function AsetPage() {
         
         {mainTab === 'Laporan Publik' && <TabLaporanPublik reports={openReports} assets={assets} onOpenDetail={handleOpenDetail} />}
 
-        {/* MODALS */}
+        {/* WORKSPACES & MODALS */}</div>
         {detailAsset && (
           <ModalDetailAset 
             asset={detailAsset} 

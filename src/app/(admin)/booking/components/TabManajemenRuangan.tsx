@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogPageModeProvider } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
@@ -149,7 +149,7 @@ export default function TabManajemenRuangan() {
   );
 
   return (
-    <div className="animate-in fade-in space-y-6">
+    <div className="animate-in fade-in space-y-6"><div className={isEditModalOpen ? 'hidden' : 'space-y-6'}>
       
       {/* Header, Filter Pills & Sorting */}
       <div className="flex flex-col gap-4">
@@ -305,7 +305,7 @@ export default function TabManajemenRuangan() {
         })}
       </div>
 
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+      </div><DialogPageModeProvider backLabel="Kembali ke Daftar Ruangan" onClosePage={() => setIsEditModalOpen(false)} pageTitle={selectedRoom ? `Spesifikasi & Tarif: ${selectedRoom.name}` : 'Konfigurasi Ruangan'} badgeText="Room Studio"><Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="sm:max-w-[650px] flex flex-col max-h-[90vh] p-0 overflow-hidden bg-white rounded-3xl border border-slate-100 shadow-2xl">
           <DialogHeader className="px-8 py-6 border-b border-slate-100 bg-white/50 backdrop-blur-md">
             <DialogTitle className="text-xl font-black text-slate-800">Atur Spesifikasi & Harga Sewa</DialogTitle>
@@ -426,7 +426,7 @@ export default function TabManajemenRuangan() {
             </DialogFooter>
           </form>
         </DialogContent>
-      </Dialog>
+      </Dialog></DialogPageModeProvider>
     </div>
   );
 }

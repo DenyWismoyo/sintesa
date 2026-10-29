@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import TabDaftarKatalog from './components/TabDaftarKatalog';
 import ModalFormProduct from './components/ModalFormProduct';
 import DivisionInvoiceTracker from '@/components/finance/DivisionInvoiceTracker';
@@ -12,6 +13,7 @@ import { useCatalog } from '@/hooks/useCatalog';
 import { ProductCatalog } from '@/types';
 
 export default function KatalogAdminPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'daftar' | 'tagihan' | 'pengaturan'>('daftar');
 
   const { 
@@ -32,12 +34,13 @@ export default function KatalogAdminPage() {
 
   // Handler Modal
   const handleOpenAdd = () => {
-    setSelectedProduct(null);
+    router.push('/katalog/builder'); return;
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = async (product: ProductCatalog) => {
     if (!product.id) return;
+    router.push(`/katalog/builder?id=${product.id}`); return;
 
     setIsFetchingDetail(true);
     const result = await getProduct(product.id);

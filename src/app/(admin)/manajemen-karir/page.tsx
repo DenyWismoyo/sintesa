@@ -250,7 +250,7 @@ export default function AdminManajemenKarirPage() {
   };
 
   return (
-    <div className="w-full space-y-6 pb-24 animate-in fade-in duration-300">
+    <div className="w-full space-y-6 pb-24 animate-in fade-in duration-300"><div className={isModalOpen ? 'hidden' : 'space-y-6'}>
       {/* ─── 1. Admin Page Header ─── */}
       <AdminPageHeader
         title="Manajemen Bursa Karir & Lowongan Mitra"
@@ -934,7 +934,7 @@ export default function AdminManajemenKarirPage() {
         <TabTracerStudyAnalytics />
       )}
 
-      {/* ─── Modal Form Tambah / Edit Lowongan ─── */}
+      {/* ─── Workspace Form Tambah / Edit Lowongan ─── */}</div>
       <ModalJobForm
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

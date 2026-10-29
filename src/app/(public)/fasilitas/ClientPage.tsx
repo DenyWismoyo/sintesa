@@ -203,7 +203,7 @@ export default function FasilitasPublicPage() {
                       key={room.id} 
                       room={room} 
                       onShowDetail={(r) => router.push(`/fasilitas/${r.id}`)} 
-                      onBook={(r) => { setSelectedAsset(r); setShowBookingWizard(true); }} 
+                      onBook={(r) => router.push(`/fasilitas/${r.id}/sewa`)} 
                     />
                   ))}
                 </motion.div>
@@ -235,7 +235,7 @@ export default function FasilitasPublicPage() {
         </AnimatePresence>
       </div>
 
-      <RoomDetailModal isOpen={showDetailModal} onClose={() => setShowDetailModal(false)} room={selectedAsset} onBook={(r) => { setShowDetailModal(false); setTimeout(() => { setSelectedAsset(r); setShowBookingWizard(true); }, 200); }} />
+      <RoomDetailModal isOpen={showDetailModal} onClose={() => setShowDetailModal(false)} room={selectedAsset} onBook={(r) => { setShowDetailModal(false); router.push(`/fasilitas/${r.id}/sewa`); }} />
       <BookingWizardModal isOpen={showBookingWizard} onClose={() => setShowBookingWizard(false)} asset={selectedAsset} onSubmit={handleSubmitBooking} isSubmitting={isSubmitting} />
     </SectionContainer>
   );

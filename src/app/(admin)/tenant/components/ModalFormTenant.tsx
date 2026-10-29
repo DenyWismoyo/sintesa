@@ -8,9 +8,10 @@ interface Props {
   onClose: () => void;
   onSubmit: (data: Partial<Tenant>, logoFile: File | null, docFile: File | null) => Promise<void>;
   initialData?: Tenant | null;
+  asPage?: boolean;
 }
 
-export default function ModalFormTenant({ isOpen, onClose, onSubmit, initialData }: Props) {
+export default function ModalFormTenant({ isOpen, onClose, onSubmit, initialData, asPage = false }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   
@@ -76,8 +77,8 @@ export default function ModalFormTenant({ isOpen, onClose, onSubmit, initialData
   const labelClass = "block text-[11px] sm:text-xs font-bold text-slate-700 mb-1";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-[95vw] sm:max-w-4xl lg:max-w-5xl max-h-[92vh] sm:max-h-[90vh] flex flex-col border border-slate-200/80 animate-in zoom-in-95 duration-200 overflow-hidden">
+    <div className={asPage ? "w-full animate-in fade-in duration-200" : "fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-6 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200"}>
+      <div className={asPage ? "workspace-card w-full flex flex-col" : "bg-white rounded-none sm:rounded-3xl shadow-none sm:shadow-2xl w-full max-w-full sm:max-w-4xl lg:max-w-5xl max-h-[96vh] sm:max-h-[90vh] flex flex-col border-x-0 sm:border border-slate-200/80 animate-in zoom-in-95 duration-200 overflow-hidden"}>
         
         {/* HEADER */}
         <div className="px-4 py-3.5 sm:px-6 sm:py-4 border-b border-slate-200 flex justify-between items-center bg-white shrink-0">
