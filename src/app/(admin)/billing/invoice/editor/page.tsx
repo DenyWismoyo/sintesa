@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Loader2 } from 'lucide-react';
@@ -23,6 +23,13 @@ function InvoiceEditorContent() {
 
   const existingInvoice = editId ? invoices.find((inv) => inv.id === editId) || null : null;
   const targetTenant = tenantId ? allTenants.find((t) => t.id === tenantId) || null : null;
+
+  useEffect(() => {
+    if (editId && !loading && !existingInvoice && invoices.length > 0) {
+      toast.error('Dokumen tagihan tidak ditemukan.');
+      router.push('/billing');
+    }
+  }, [editId, loading, existingInvoice, invoices.length, router]);
 
   const initialDraft: Partial<Invoice> | null = existingInvoice
     ? existingInvoice
@@ -52,6 +59,14 @@ function InvoiceEditorContent() {
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3 text-slate-500">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
         <p className="text-xs font-bold uppercase tracking-wider">Memuat Dokumen Tagihan...</p>
+        <button
+          type="button"
+          onClick={() => router.push(tenantId ? `/tenant/${tenantId}` : '/billing')}
+          className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-2xs"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Batal & Kembali</span>
+        </button>
       </div>
     );
   }
@@ -116,4 +131,3 @@ export default function InvoiceEditorPage() {
     </Suspense>
   );
 }
-

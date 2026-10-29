@@ -75,39 +75,55 @@ export const catalogService = {
   getProductById: async (id: string): Promise<ProductCatalog | null> => {
     try {
       const docSnap = await getDoc(doc(db, COLLECTION_NAME, id));
-      if (!docSnap.exists()) return null;
-      
-      const raw = { id: docSnap.id, ...(docSnap.data() || {}) } as any;
-      const parsed = ProductCatalogSchema.safeParse(raw);
-      if (parsed.success) return parsed.data;
+      if (docSnap.exists()) {
+        const raw = { id: docSnap.id, ...(docSnap.data() || {}) } as any;
+        const parsed = ProductCatalogSchema.safeParse(raw);
+        if (parsed.success) return parsed.data;
 
-      console.warn(`[CATALOG] safeParse warning for ID ${id}, using normalized fallback:`, parsed.error);
-      return {
-        id: docSnap.id,
-        name: raw.name || '',
-        category: raw.category || 'Umum',
-        shortDescription: raw.shortDescription || '',
-        price: Number(raw.price) || 0,
-        pricingType: raw.pricingType || 'Tetap',
-        isNegotiable: Boolean(raw.isNegotiable),
-        description: raw.description || '',
-        highlights: Array.isArray(raw.highlights) ? raw.highlights : [],
-        specifications: Array.isArray(raw.specifications) ? raw.specifications : [],
-        tags: Array.isArray(raw.tags) ? raw.tags : [],
-        images: Array.isArray(raw.images) ? raw.images : [],
-        coverImage: raw.coverImage || (Array.isArray(raw.images) && raw.images.length > 0 ? raw.images[0] : null),
-        ownerType: raw.ownerType || 'INTERNAL',
-        tenantId: raw.tenantId || undefined,
-        tenantName: raw.tenantName || '',
-        sourceProductId: raw.sourceProductId || undefined,
-        ctaType: raw.ctaType || 'WHATSAPP',
-        ctaLink: raw.ctaLink || '',
-        ctaText: raw.ctaText || 'Hubungi Kami',
-        isPublished: raw.isPublished !== false,
-        createdAt: raw.createdAt || 0,
-      } as ProductCatalog;
+        console.warn(`[CATALOG] safeParse warning for ID ${id}, using normalized fallback:`, parsed.error);
+        return {
+          id: docSnap.id,
+          name: raw.name || '',
+          category: raw.category || 'Umum',
+          shortDescription: raw.shortDescription || '',
+          price: Number(raw.price) || 0,
+          pricingType: raw.pricingType || 'Tetap',
+          isNegotiable: Boolean(raw.isNegotiable),
+          description: raw.description || '',
+          highlights: Array.isArray(raw.highlights) ? raw.highlights : [],
+          specifications: Array.isArray(raw.specifications) ? raw.specifications : [],
+          tags: Array.isArray(raw.tags) ? raw.tags : [],
+          images: Array.isArray(raw.images) ? raw.images : [],
+          coverImage: raw.coverImage || (Array.isArray(raw.images) && raw.images.length > 0 ? raw.images[0] : null),
+          ownerType: raw.ownerType || 'INTERNAL',
+          tenantId: raw.tenantId || undefined,
+          tenantName: raw.tenantName || '',
+          sourceProductId: raw.sourceProductId || undefined,
+          ctaType: raw.ctaType || 'WHATSAPP',
+          ctaLink: raw.ctaLink || '',
+          ctaText: raw.ctaText || 'Hubungi Kami',
+          isPublished: raw.isPublished !== false,
+          createdAt: raw.createdAt || 0,
+        } as ProductCatalog;
+      }
+
+      // Fallback: Jika tidak ditemukan di dokumen root, periksa master cache
+      const cached = await catalogService.getAllCatalogsCached();
+      const found = cached.find((item: any) => item.id === id);
+      if (found) {
+        return found as ProductCatalog;
+      }
+
+      return null;
     } catch (error) {
       console.error(`[CATALOG] Error in getProductById for ID ${id}:`, error);
+      try {
+        const cached = await catalogService.getAllCatalogsCached();
+        const found = cached.find((item: any) => item.id === id);
+        if (found) return found as ProductCatalog;
+      } catch (cacheErr) {
+        // Abaikan error cache
+      }
       return null;
     }
   },

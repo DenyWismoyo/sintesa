@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 import { DialogPageModeProvider } from '@/components/ui/dialog';
 import { useCatalog } from '@/hooks/useCatalog';
 import { ProductCatalog } from '@/types';
@@ -14,7 +14,7 @@ function KatalogBuilderContent() {
   const searchParams = useSearchParams();
   const editId = searchParams?.get('id');
 
-  const { addProduct, updateProduct, editProduct, getProduct } = useCatalog() as any;
+  const { products = [], loading: catalogLoading, addProduct, updateProduct, editProduct, getProduct } = useCatalog() as any;
   const [initialData, setInitialData] = useState<ProductCatalog | null>(null);
   const [loadingDetail, setLoadingDetail] = useState<boolean>(Boolean(editId));
 
@@ -24,6 +24,22 @@ function KatalogBuilderContent() {
       setLoadingDetail(false);
       return;
     }
+
+    // 1. Jika data sudah ada di TanStack Query / cache lokal, gunakan seketika!
+    const foundInMemory = products.find((p: any) => p.id === editId);
+    if (foundInMemory) {
+      setInitialData(foundInMemory);
+      setLoadingDetail(false);
+      return;
+    }
+
+    // 2. Jika daftar produk masih proses fetch awal dari cache, pertahankan loading sementara
+    if (catalogLoading) {
+      setLoadingDetail(true);
+      return;
+    }
+
+    // 3. Fallback: ambil secara direct via getProduct jika tidak ada di memori lokal (misal direct URL)
     let active = true;
     (async () => {
       setLoadingDetail(true);
@@ -32,6 +48,7 @@ function KatalogBuilderContent() {
         if (active) {
           if (res?.success && res.data) {
             setInitialData(res.data);
+            setLoadingDetail(false);
           } else {
             toast.error('Produk tidak ditemukan.');
             router.push('/katalog');
@@ -39,14 +56,19 @@ function KatalogBuilderContent() {
         }
       } catch (err) {
         console.error(err);
+        if (active) {
+          toast.error('Gagal memuat konfigurasi produk.');
+          router.push('/katalog');
+        }
       } finally {
         if (active) setLoadingDetail(false);
       }
     })();
+
     return () => {
       active = false;
     };
-  }, [editId, getProduct, router]);
+  }, [editId, products, catalogLoading, getProduct, router]);
 
   const handleSaveProduct = async (data: Partial<ProductCatalog>, imageFiles: File[]) => {
     const { id, ...payload } = data;
@@ -78,6 +100,14 @@ function KatalogBuilderContent() {
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3 text-slate-500">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
         <p className="text-xs font-bold uppercase tracking-wider">Memuat Konfigurasi Produk...</p>
+        <button
+          type="button"
+          onClick={() => router.push('/katalog')}
+          className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-2xs"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Batal & Kembali ke Katalog</span>
+        </button>
       </div>
     );
   }
@@ -114,4 +144,3 @@ export default function KatalogBuilderPage() {
     </Suspense>
   );
 }
-

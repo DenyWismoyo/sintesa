@@ -73,6 +73,10 @@ export default function PelatihanBuilderPage() {
             }
 
             setForm(data);
+          } else {
+            toast.error("Kelas tidak ditemukan.");
+            router.push('/pelatihan');
+            return;
           }
         } catch (error) {
           console.error("Gagal mengambil data:", error);

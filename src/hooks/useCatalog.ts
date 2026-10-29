@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { catalogService } from '@/services/catalog.service';
 import { ProductCatalog } from '@/types';
@@ -55,7 +56,7 @@ export function useCatalog() {
   });
 
   // --- WRAPPER FUNCTIONS (Menjaga Kompatibilitas dengan UI saat ini) ---
-  const addProduct = async (data: Omit<ProductCatalog, 'id'>, imageFiles?: File[]) => {
+  const addProduct = useCallback(async (data: Omit<ProductCatalog, 'id'>, imageFiles?: File[]) => {
     try {
       let imageUrls: string[] = [];
       if (imageFiles && imageFiles.length > 0) {
@@ -67,9 +68,9 @@ export function useCatalog() {
     } catch (err: any) {
       return { success: false, error: err.message };
     }
-  };
+  }, [addMutation]);
 
-  const editProduct = async (id: string, data: Partial<ProductCatalog>, newImageFiles?: File[]) => {
+  const editProduct = useCallback(async (id: string, data: Partial<ProductCatalog>, newImageFiles?: File[]) => {
     try {
       let finalData = { ...data };
       if (newImageFiles && newImageFiles.length > 0) {
@@ -82,25 +83,35 @@ export function useCatalog() {
     } catch (err: any) {
       return { success: false, error: err.message };
     }
-  };
+  }, [updateMutation]);
 
-  const removeProduct = async (id: string) => {
+  const removeProduct = useCallback(async (id: string) => {
     try {
       await deleteMutation.mutateAsync(id);
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message };
     }
-  };
+  }, [deleteMutation]);
 
-  const getProduct = async (id: string) => {
+  const getProduct = useCallback(async (id: string) => {
     try {
+      // 1. Cek langsung dari QueryClient cache jika ada
+      const cachedList = queryClient.getQueryData<ProductCatalog[]>(['allCatalogsCached']);
+      if (cachedList && Array.isArray(cachedList)) {
+        const found = cachedList.find(item => item.id === id);
+        if (found) return { success: true, data: found };
+      }
+
+      // 2. Fallback fetch via service (termasuk fallback master cache)
       const data = await catalogService.getProductById(id);
-      return { success: true, data };
+      if (data) return { success: true, data };
+
+      return { success: false, error: 'Produk tidak ditemukan' };
     } catch (err: any) {
       return { success: false, error: err.message };
     }
-  };
+  }, [queryClient]);
 
   return {
     products, 

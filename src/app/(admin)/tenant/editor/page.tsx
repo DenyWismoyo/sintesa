@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Loader2 } from 'lucide-react';
@@ -17,11 +17,26 @@ function TenantEditorContent() {
   const { allTenants, loading, addTenant, updateTenant } = useTenants();
   const existingTenant = editId ? allTenants.find((t) => t.id === editId) || null : null;
 
+  useEffect(() => {
+    if (editId && !loading && !existingTenant && allTenants.length > 0) {
+      toast.error('Data tenant tidak ditemukan.');
+      router.push('/tenant');
+    }
+  }, [editId, loading, existingTenant, allTenants.length, router]);
+
   if (editId && loading && !existingTenant) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3 text-slate-500">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
         <p className="text-xs font-bold uppercase tracking-wider">Memuat Data Tenant...</p>
+        <button
+          type="button"
+          onClick={() => router.push('/tenant')}
+          className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-2xs"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Batal & Kembali ke Direktori</span>
+        </button>
       </div>
     );
   }
@@ -89,4 +104,3 @@ export default function TenantEditorPage() {
     </Suspense>
   );
 }
-

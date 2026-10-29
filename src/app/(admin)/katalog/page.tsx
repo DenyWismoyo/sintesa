@@ -32,26 +32,14 @@ export default function KatalogAdminPage() {
   const [selectedProduct, setSelectedProduct] = useState<ProductCatalog | null>(null);
   const [isFetchingDetail, setIsFetchingDetail] = useState(false);
 
-  // Handler Modal
+  // Handler Navigasi Builder
   const handleOpenAdd = () => {
-    router.push('/katalog/builder'); return;
-    setIsModalOpen(true);
+    router.push('/katalog/builder');
   };
 
-  const handleOpenEdit = async (product: ProductCatalog) => {
+  const handleOpenEdit = (product: ProductCatalog) => {
     if (!product.id) return;
-    router.push(`/katalog/builder?id=${product.id}`); return;
-
-    setIsFetchingDetail(true);
-    const result = await getProduct(product.id);
-    setIsFetchingDetail(false);
-
-    if (result && result.success && result.data) {
-      setSelectedProduct(result.data);
-      setIsModalOpen(true);
-    } else {
-      alert("Gagal memuat detail lengkap produk dari server.");
-    }
+    router.push(`/katalog/builder?id=${product.id}`);
   };
 
   const handleCloseModal = () => {
