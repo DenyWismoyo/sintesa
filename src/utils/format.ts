@@ -1,3 +1,36 @@
+
+/**
+ * Konversi nilai waktu lintas format (Firestore Timestamp, ISO string, Date, number, object seconds)
+ * ke representasi epoch milliseconds (number).
+ * Mengembalikan 0 jika nilai tidak valid atau null/undefined.
+ */
+export const toMillis = (val: unknown): number => {
+  if (val === null || val === undefined) return 0;
+  if (typeof val === 'number') {
+    return val < 10000000000 ? val * 1000 : val;
+  }
+  if (val instanceof Date) {
+    return isNaN(val.getTime()) ? 0 : val.getTime();
+  }
+  if (typeof val === 'string') {
+    const parsed = Date.parse(val);
+    return isNaN(parsed) ? 0 : parsed;
+  }
+  if (typeof (val as any)?.toMillis === 'function') {
+    return (val as any).toMillis();
+  }
+  if (typeof (val as any)?.toDate === 'function') {
+    return (val as any).toDate().getTime();
+  }
+  if (typeof (val as any)?.seconds === 'number') {
+    return (val as any).seconds * 1000 + Math.floor(((val as any).nanoseconds || 0) / 1000000);
+  }
+  if (typeof (val as any)?._seconds === 'number') {
+    return (val as any)._seconds * 1000 + Math.floor(((val as any)._nanoseconds || 0) / 1000000);
+  }
+  return 0;
+};
+
 /**
  * Utilitas pemformatan mata uang, angka, dan tanggal standar Indonesia
  * untuk sistem Teknopark / Sintesa.
@@ -55,13 +88,14 @@ export const formatSingkatRupiah = (angka: number | undefined | null): string =>
  * Contoh: Date.now() -> "9 September 2026" atau "9 Sep 2026, 09:30"
  */
 export const formatTanggal = (
-  val: number | string | Date | undefined | null,
+  val: unknown,
   includeTime: boolean = false
 ): string => {
   if (!val) return '-';
   try {
-    const d = typeof val === 'number' || typeof val === 'string' ? new Date(val) : val;
-    if (isNaN(d.getTime())) return '-';
+    const ms = toMillis(val);
+    if (!ms) return '-';
+    const d = new Date(ms);
 
     const options: Intl.DateTimeFormatOptions = {
       day: 'numeric',

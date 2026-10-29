@@ -165,6 +165,7 @@ export const AlumniSchema = z.object({
   name: z.string().min(1, "Nama wajib diisi"),
   email: z.string().email("Format email tidak valid").optional().or(z.literal('')),
   phone: z.string().optional().or(z.literal('')),
+  nik: z.string().optional(),
   birthInfo: z.string().optional(), 
   birthPlace: z.string().optional(), 
   birthDate: z.string().optional(),
@@ -213,6 +214,10 @@ export const AlumniSchema = z.object({
   forumReputationScore: z.number().default(0).optional(),
   acceptedSolutionsCount: z.number().default(0).optional(),
   endorsedSkills: z.array(z.string()).optional(),
+  hiredByCompany: z.string().optional(),
+  hiredAt: z.number().optional(),
+  certificateNumber: z.string().optional(),
+  updatedAt: z.number().optional(),
 });
 export type Alumni = z.infer<typeof AlumniSchema>;
 

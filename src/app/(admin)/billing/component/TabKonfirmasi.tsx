@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, Filter, CheckCircle2, Clock, AlertCircle, FileText, ChevronRight, Check } from 'lucide-react';
+import { Search, Filter, CheckCircle2, Clock, AlertCircle, FileText, ChevronRight, Check, Sparkles } from 'lucide-react';
 import { Invoice } from '@/types';
 import ModalInvoiceDetail from './ModalInvoiceDetail';
 
@@ -66,7 +66,7 @@ export default function TabKonfirmasi({ invoices, accounts, onVerifyPending, onR
                 <th className="px-6 py-4">Nomor Invoice & Klien</th>
                 <th className="px-6 py-4 text-center">Tgl Konfirmasi</th>
                 <th className="px-6 py-4 text-right">Nominal Transfer</th>
-                <th className="px-6 py-4 text-center">Status</th>
+                <th className="px-6 py-4 text-center">Validasi AI & Status</th>
                 <th className="px-6 py-4 text-right">Aksi</th>
               </tr>
             </thead>
@@ -74,6 +74,7 @@ export default function TabKonfirmasi({ invoices, accounts, onVerifyPending, onR
               {filteredInvoices.map(inv => {
                 // Temukan item history yang berstatus PENDING untuk ditampilkan datanya
                 const pendingItem = inv.history?.find((h: any) => h.status === 'PENDING');
+                const proofMeta = (inv as any).paymentProofMeta;
                 
                 return (
                   <tr key={inv.id} className="hover:bg-slate-50/50 transition-colors group">
@@ -93,14 +94,29 @@ export default function TabKonfirmasi({ invoices, accounts, onVerifyPending, onR
                       <p className="font-black text-slate-900">{formatRupiah(pendingItem?.amount || 0)}</p>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-wider animate-pulse">
-                        Menunggu Cek
-                      </span>
+                      <div className="flex flex-col items-center gap-1">
+                        {proofMeta ? (
+                          proofMeta.isMatched ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black border border-emerald-300">
+                              <Sparkles className="w-3 h-3 text-emerald-600" />
+                              AI Cocok ({formatRupiah(proofMeta.ocrAmount)})
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 text-[10px] font-bold border border-rose-200">
+                              <AlertCircle className="w-3 h-3 text-rose-500" />
+                              AI: {formatRupiah(proofMeta.ocrAmount)}
+                            </span>
+                          )
+                        ) : null}
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-wider animate-pulse">
+                          Menunggu Cek
+                        </span>
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button 
                         onClick={() => setSelectedInvoice(inv)}
-                        className="inline-flex items-center gap-1 px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition-colors"
+                        className="inline-flex items-center gap-1 px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
                       >
                         Tinjau Bukti <ChevronRight className="w-3.5 h-3.5" />
                       </button>

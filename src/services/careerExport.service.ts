@@ -503,3 +503,37 @@ export async function exportToPdf(
   const nowStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
   doc.save(`Dokumen_Kemitraan_STP_${nowStr}.pdf`);
 }
+
+/**
+ * Ekspor Laporan Tracer Study Serapan Kerja Alumni (STP Vokasi & RSKB Surakarta)
+ */
+export function exportAlumniTracerStudy(
+  alumnis: any[],
+  format: 'XLSX' | 'CSV' = 'XLSX',
+  fileName: string = 'Laporan_Tracer_Study_STP_RSKB'
+) {
+  const dataRows = alumnis.map((a, idx) => ({
+    'No': idx + 1,
+    'Nomor Registrasi': a.registrationCode || '-',
+    'Nama Lengkap': a.name || '-',
+    'Asal Program': a.originSource === 'RSKB_SURAKARTA' ? 'RSKB Surakarta' : 'STP Vokasi',
+    'Kejuruan / Program': a.programTaken || '-',
+    'Tahun Lulus': a.graduationYear || a.trainingYear || '-',
+    'Status Kebekerjaan': a.employmentStatus || 'Proses Verifikasi',
+    'Perusahaan Tempat Bekerja': a.company || a.hiredByCompany || '-',
+    'Posisi / Jabatan': a.currentJob || '-',
+    'No. WhatsApp': a.phone || '-',
+    'Email': a.email || '-',
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(dataRows);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Tracer Study');
+
+  const nowStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  if (format === 'CSV') {
+    XLSX.writeFile(workbook, `${fileName}_${nowStr}.csv`, { bookType: 'csv' });
+  } else {
+    XLSX.writeFile(workbook, `${fileName}_${nowStr}.xlsx`, { bookType: 'xlsx' });
+  }
+}

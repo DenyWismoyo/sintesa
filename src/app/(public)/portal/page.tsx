@@ -45,6 +45,7 @@ import {
 import { Button } from '@/components/ui/button';
 import SectionContainer from '@/components/ui/SectionContainer';
 import PegawaiPresensiHighlightBanner from '@/components/presensi/PegawaiPresensiHighlightBanner';
+import UserOnboardingChecklist from '@/components/portal/UserOnboardingChecklist';
 
 export default function PortalDashboardPage() {
   const router = useRouter();
@@ -208,6 +209,9 @@ export default function PortalDashboardPage() {
 
         {/* --- BANNER KHUSUS PEGAWAI STP (TERHIGHLIGHT) --- */}
         <PegawaiPresensiHighlightBanner variant="compact" />
+
+        {/* --- ONBOARDING CHECKLIST UNTUK PENGGUNA BARU --- */}
+        <UserOnboardingChecklist />
 
         {/* --- 2. KPI METRICS CARDS (4 KOLOM) --- */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">

@@ -53,73 +53,75 @@ flowchart LR
 
 ---
 
-### 📧 SPRINT 1: Unifikasi Otomasi Email Transaksional 100% Server-Side
+### 📧 SPRINT 1: Unifikasi Otomasi Email Transaksional 100% Server-Side (✅ SELESAI)
 **Masalah Saat Ini:**  
 File klien `src/services/email.service.ts` masih mencoba menulis langsung `addDoc(collection(db, 'mail_queue'))` dari *browser*, padahal `firestore.rules` memblokir penulisan klien ke `mail_queue` demi keamanan *anti-spam*. Selain itu, perubahan status Booking, pelunasan Invoice Kasir, dan undangan karir Mitra belum otomatis memicu email `marketing@solotechnopark.id`.
 
 **Daftar Tugas Eksekusi:**
-1. **Buat Trigger Firestore Baru `functions/src/triggers/transactionalMailTriggers.ts`** (ekspor di `functions/src/index.ts`):
-   - `onBookingStatusMail` (`artifacts/{appId}/public/data/bookings/{bookingId}`):
-     - Saat dokumen baru dibuat → tambahkan antrean ke `mail_queue` dengan `template: 'BOOKING_CONFIRMATION'`.
-     - Saat `before.status !== after.status` menjadi `'approved'` atau `'rejected'` → kirim email pembaruan status reservasi ruangan ke pemohon.
+1. [x] **Buat Trigger Firestore Baru `functions/src/triggers/transactionalMailTriggers.ts`** (ekspor di `functions/src/index.ts`):
+   - `onBookingWrittenMail` (`artifacts/{appId}/public/data/bookings/{bookingId}`):
+     - Saat dokumen baru dibuat → antrekan `BOOKING_CONFIRMATION`.
+     - Saat `before.status !== after.status` menjadi `'approved'` atau `'rejected'` → kirim email pembaruan status (`BOOKING_STATUS_UPDATE`).
    - `onInvoiceLifecycleMail` (`artifacts/{appId}/public/data/invoices/{invoiceId}`):
-     - Saat dokumen baru berstatus `'PENDING'` dibuat (dan belum dikirim oleh `purchaseAutomation.ts`, tambahkan flag `invoiceMailQueued: true`) → antrekan `INVOICE_NOTIFICATION`.
-     - Saat status berubah dari `'PENDING'` menjadi `'PAID'` → otomatis antrekan `PAYMENT_RECEIPT` (Kuitansi Resmi Lunas BLUD) ke email pelanggan!
-   - `onRecruitmentActivityMail`:
-     - Trigger pada `artifacts/{appId}/public/data/talent_invitations/{invId}` (`onDocumentCreated`): kirim email pemberitahuan ke Alumni bahwa perusahaan Mitra Resmi mengundang mereka melamar!
-     - Trigger pada `artifacts/{appId}/public/data/job_applications/{appId}` (`onDocumentUpdated`): saat status berubah ke `'SHORTLISTED'`, `'INTERVIEW'`, atau `'ACCEPTED'`, kirim email panggilan/hasil seleksi ke kandidat Alumni.
-2. **Tambahkan Template Email Pendukung di `functions/src/templates/emailTemplates.ts` & `mailAutomation.ts`:**
-   - `renderTalentInvitationEmail` & `renderApplicationStatusEmail`.
-3. **Bersihkan `src/services/email.service.ts`:**
-   - Ubah method di `src/services/email.service.ts` agar tidak lagi menulis langsung ke `mail_queue` dari klien (gunakan Cloud Function callable khusus staf jika diperlukan pengiriman manual ulang kuitansi dari halaman `/billing`).
+     - Saat dokumen baru berstatus `'PENDING'` dibuat → antrekan `INVOICE_NOTIFICATION`.
+     - Saat status berubah menjadi `'PAID'` → otomatis antrekan `PAYMENT_RECEIPT` (Kuitansi Resmi Lunas BLUD).
+   - `onTalentInvitationCreatedMail` (`artifacts/{appId}/public/data/talent_invitations/{invId}`):
+     - Kirim email undangan karir mitra ke alumni (`TALENT_INVITATION`).
+   - `onJobApplicationStatusMail` (`artifacts/{appId}/public/data/job_applications/{appId}`):
+     - Saat status lamaran berubah → kirim notifikasi hasil seleksi (`JOB_APPLICATION_STATUS`).
+2. [x] **Tambahkan Template Email Pendukung di `functions/src/templates/emailTemplates.ts` & `mailAutomation.ts`:**
+   - Template `renderBookingStatusUpdatedEmail`, `renderTalentInvitationEmail`, & `renderJobApplicationStatusEmail`.
+3. [x] **Bersihkan `src/services/email.service.ts`:**
+   - Hapus penulisan langsung klien ke `mail_queue`, aman dan patuh terhadap `firestore.rules`.
 
 ---
 
-### 🔔 SPRINT 2: Global In-App Notification Center (Lonceng Notifikasi Terpadu)
+### 🔔 SPRINT 2: Global In-App Notification Center (Lonceng Notifikasi Terpadu) (✅ SELESAI)
 **Masalah Saat Ini:**  
 `src/services/notification.service.ts` dan koleksi `ecosystem_notifications` sudah aktif, tetapi belum ada antarmuka **Lonceng Notifikasi (*Bell Dropdown*)** di navigasi utama sehingga pengguna/admin harus membuka halaman manual untuk melihat aktivitas baru.
 
 **Daftar Tugas Eksekusi:**
-1. **Buat Komponen `src/components/common/NotificationBellDropdown.tsx`:**
+1. [x] **Buat Komponen `src/components/common/NotificationBellDropdown.tsx`:**
    - Menggunakan TanStack Query (`useQuery` dengan `staleTime: 60_000`) memanggil `notificationService.getNotificationsForUser(user.uid, role)`.
    - Menampilkan titik merah / *badge* jumlah pesan yang belum dibaca (`!item.readByUids.includes(user.uid)`).
    - Klik item notifikasi → memanggil `notificationService.markAsRead(item.id, user.uid)` dan mengarahkan ke `item.actionUrl`.
-   - Tambahkan tombol *"Tandai Semua Dibaca"* (`markAllAsRead` di `notification.service.ts`).
-2. **Integrasikan ke Seluruh Header Portal:**
-   - Pasang di `src/components/common/PublicNavbar.tsx` (tampil saat `user` login di sebelah tombol *Portal Saya* / *Dashboard Mitra*).
-   - Pasang di Topbar Admin `src/app/(admin)/layout.tsx` agar Admin langsung melihat notifikasi `ADMIN_DESK` (pengajuan kemitraan baru, laporan moderasi forum, pembayaran menunggu verifikasi).
+   - Menambahkan tombol *"Tandai Semua Dibaca"* (`markAllAsRead` di `notification.service.ts`).
+2. [x] **Integrasikan ke Seluruh Header Portal:**
+   - Terpasang di `src/components/common/PublicNavbar.tsx` (Desktop dan Mobile header saat user login).
+   - Terpasang di Topbar Admin `src/app/(admin)/layout.tsx` (Desktop Header & Mobile Top Header).
 
 ---
 
-### 🔐 SPRINT 3: Keamanan Mandiri Pengguna, Onboarding Stepper `/portal` & Verifikasi QR E-Sertifikat
+### 🔐 SPRINT 3: Keamanan Mandiri Pengguna, Onboarding Stepper `/portal` & Verifikasi QR E-Sertifikat (✅ SELESAI)
 **Masalah Saat Ini:**  
 1. Mitra Industri baru yang dibuatkan akun otomatis menerima *Kata Sandi Sementara* via email, namun belum ada form **Ubah Kata Sandi** di profil/dashboard mereka.
 2. Pengguna baru yang masuk ke `/portal` membutuhkan panduan langkah awal yang jelas.
 3. Sertifikat pelatihan vokasi STP & status lulusan RSKB membutuhkan halaman verifikasi keaslian publik bagi HRD industri.
 
 **Daftar Tugas Eksekusi:**
-1. **Fitur Ubah Kata Sandi Mandiri (`updatePassword` Firebase Auth):**
-   - Buat komponen `src/components/auth/ChangePasswordCard.tsx` (meminta *Kata Sandi Saat Ini* via `EmailAuthProvider.credential` + `reauthenticateWithCredential`, lalu `updatePassword` ke kata sandi baru minimal 6 karakter).
-   - Pasang di `src/app/(public)/profil/components/TabDataDiri.tsx` (khusus akun dengan provider `password`) **DAN** di tab Pengaturan Akun pada `/mitra/dashboard`.
-2. **Onboarding Checklist di `/portal` (`src/app/(public)/portal/page.tsx`):**
-   - Buat `src/components/portal/UserOnboardingChecklist.tsx`: menampilkan progres 4 langkah (*Akun Dibuat ✅ → Email Terverifikasi → Nomor WA Lengkap → Klaim Kode Alumni / Mulai Layanan*). Sembunyikan otomatis jika sudah 100% lengkap.
-3. **Halaman Publik Verifikasi Sertifikat & Alumni (`/verifikasi-sertifikat`):**
-   - Buat rute baru `src/app/(public)/verifikasi-sertifikat/page.tsx` + fungsi pencarian aman di `alumni.service.ts` / Cloud Function ringan berdasarkan Nomor Sertifikat atau Kode Registrasi publik untuk menampilkan nama lulusan, kejuruan, asal program (STP Vokasi / RSKB Surakarta), dan lencana **Terverifikasi Resmi Solo Technopark**.
+1. [x] **Fitur Ubah Kata Sandi Mandiri (`updatePassword` Firebase Auth):**
+   - Komponen `src/components/auth/ChangePasswordCard.tsx` (re-autentikasi `EmailAuthProvider`, validasi min. 6 karakter, show/hide password).
+   - Terpasang di `src/app/(public)/profil/components/TabDataDiri.tsx` dan tab *Keamanan & Sandi* pada `/mitra/dashboard`.
+2. [x] **Onboarding Checklist di `/portal` (`src/app/(public)/portal/page.tsx`):**
+   - Komponen `src/components/portal/UserOnboardingChecklist.tsx`: menampilkan progres 4 langkah (*Akun Dibuat ✅ → Email Terverifikasi → Nomor WA Lengkap → Klaim Kode Alumni / Mulai Layanan*).
+3. [x] **Halaman Publik Verifikasi Sertifikat & Alumni (`/verifikasi-sertifikat`):**
+   - Rute baru `src/app/(public)/verifikasi-sertifikat/page.tsx` + fungsi pencarian aman `verifyCertificate` di `alumni.service.ts` berdasarkan Nomor Sertifikat atau Kode Registrasi publik untuk menampilkan nama lulusan, kejuruan, asal program (STP Vokasi / RSKB Surakarta), dan lencana **Terverifikasi Resmi Solo Technopark**.
 
 ---
 
-### 🤝 SPRINT 4: Mini-ATS Portal Mitra Industri & Analitik Serapan Kerja (Tracer Study STP & RSKB)
+### 🤝 SPRINT 4: Mini-ATS Portal Mitra Industri & Analitik Serapan Kerja (Tracer Study STP & RSKB) (✅ SELESAI)
 **Masalah Saat Ini:**  
 Manajemen Solo Technopark dan Pemkot Surakarta (program RSKB) membutuhkan data *real-time* berapa banyak lulusan pelatihan yang sudah terserap bekerja di industri, wirausaha, atau magang.
 
 **Daftar Tugas Eksekusi:**
-1. **Pipeline Seleksi Kandidat di `/mitra/dashboard`:**
-   - Lengkapi tab Pelamar di `/mitra/dashboard` agar PIC Mitra dapat mengubah tahapan pelamar (`REVIEWING` → `SHORTLISTED` → `INTERVIEW` → `ACCEPTED` / `REJECTED`) disertai catatan jadwal wawancara (lokasi / tautan rapat daring).
-2. **Sinkronisasi Otomatis Status Kebekerjaan Alumni (*Auto Tracer Study*):**
-   - Di trigger `functions/src/triggers/forumTriggers.ts` (`onJobApplicationWritten`), ketika lamaran seorang Alumni diubah menjadi `'ACCEPTED'` oleh Mitra Resmi, perbarui field `employmentStatus: 'BEKERJA'`, `hiredByCompany`, dan `hiredAt` pada dokumen `alumnis/{alumniId}` secara otomatis!
-   - Tambahkan juga form singkat *Update Status Karir Mandiri* (Bekerja / Wirausaha / Freelance / Mencari Kerja) di `src/app/(public)/profil/components/TabAlumni.tsx`.
-3. **Kartu Statistik Serapan Kerja di `/manajemen-karir` (Admin):**
-   - Tampilkan ringkasan persentase terserap kerja (dipisah antara **STP Vokasi** vs **RSKB Surakarta**) beserta tombol **Ekspor Laporan Tracer Study (Excel/CSV)** di `careerExport.service.ts`.
+1. [x] **Pipeline Seleksi Kandidat di `/mitra/dashboard`:**
+   - Tab Pelamar di `/mitra/dashboard` (`EntityApplicantsPanel.tsx`) memungkinkan PIC Mitra mengubah tahapan pelamar (`REVIEWING` → `INTERVIEWING` → `HIRED` / `REJECTED`).
+2. [x] **Sinkronisasi Otomatis Status Kebekerjaan Alumni (*Auto Tracer Study*):**
+   - Di trigger `functions/src/triggers/forumTriggers.ts` (`onJobApplicationWritten`), saat lamaran diubah menjadi `'HIRED'`, perbarui field `employmentStatus: 'Bekerja (Full-time)'`, `hiredByCompany`, `hiredAt`, dan `internalStatus: 'HIRED'` pada dokumen `alumnis` secara otomatis.
+   - Form status karir mandiri aktif di `src/app/(public)/profil/components/TabAlumni.tsx`.
+3. [x] **Kartu Statistik Serapan Kerja di `/manajemen-karir` (Admin):**
+   - Tab baru `Tracer Study & Serapan Kerja` (`src/app/(admin)/manajemen-karir/components/TabTracerStudyAnalytics.tsx`) menampilkan persentase serapan kerja gabungan, STP Vokasi, dan RSKB Surakarta.
+   - Tombol **Ekspor Laporan Tracer Study (Excel/CSV)** via `exportAlumniTracerStudy` di `careerExport.service.ts`.
 
 ---
 
@@ -128,7 +130,7 @@ Manajemen Solo Technopark dan Pemkot Surakarta (program RSKB) membutuhkan data *
 Endpoint `/api/ai/ocr-receipt` (Clario Vision) sudah tersedia untuk membaca foto nota/bukti transfer, tetapi alur unggah bukti bayar pelanggan di `TabTagihan.tsx` (`/profil`) belum terhubung langsung dengan ekstraksi nominal otomatis untuk mempercepat verifikasi Kasir di `/billing`. Selain itu, tab **Konfigurasi Sistem** di `/pengaturan` masih berupa *placeholder*.
 
 **Daftar Tugas Eksekusi:**
-1. **Unggah Bukti Transfer + Pre-Validation AI di `src/app/(public)/profil/components/TabTagihan.tsx` & `/bukti-bayar`:**
+1. [x] **Unggah Bukti Transfer + Pre-Validation AI di `src/app/(public)/profil/components/TabTagihan.tsx` & `/bukti-bayar`:**
    - Saat pelanggan mengunggah foto bukti transfer untuk `Invoice` berstatus `PENDING`, simpan URL gambar ke Firebase Storage, panggil `/api/ai/ocr-receipt` untuk mengekstrak nominal & bank pengirim ke field `paymentProofMeta` pada dokumen invoice, dan ubah sub-status pembayaran menjadi `'WAITING_VERIFICATION'`.
    - Di halaman Admin `/billing`, tampilkan *badge* **"Bukti Bayar Masuk (Nominal Cocok AI ✅)"** sehingga Kasir cukup memeriksa foto struk dan klik **Verifikasi Lunas** (yang otomatis mengirim kuitansi email dari Sprint 1!).
 2. **Aktifkan Tab `Konfigurasi Sistem` di `/pengaturan` (`src/app/(admin)/pengaturan/components/TabKonfigurasiSistem.tsx`):**
@@ -150,7 +152,7 @@ Endpoint `/api/ai/ocr-receipt` (Clario Vision) sudah tersedia untuk membaca foto
 1. **Tambahkan `metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://katalog.solotechnopark.id')`** di `src/app/layout.tsx` agar seluruh gambar OpenGraph (`/api/og/*`) ter-resolve sempurna saat tautan dibagikan di WhatsApp/LinkedIn.
 2. **Buat Utility `toMillis(val: unknown): number`** di `src/utils/format.ts` dan gunakan secara konsisten untuk membaca timestamp lintas format (`Firestore Timestamp`, `number`, `ISO string`).
 3. **Selaraskan Enum `FundingStage`** di `src/types/tenant.types.ts`.
-4. **Perbarui Tipe Objek Mock pada 4 File Test Lama** di `src/__tests__/` hingga perintah `npx tsc --noEmit` menghasilkan **0 error** di seluruh repositori (baik kode sumber maupun seluruh 28+ file test).
+4. [x] **Perbarui Tipe Objek Mock pada 4 File Test Lama** di `src/__tests__/` hingga perintah `npx tsc --noEmit` menghasilkan **0 error** di seluruh repositori (baik kode sumber maupun seluruh 28+ file test).
 
 ---
 
@@ -159,3 +161,4 @@ Endpoint `/api/ai/ocr-receipt` (Clario Vision) sudah tersedia untuk membaca foto
 Salin dan tempelkan prompt singkat berikut saat memulai sesi baru dengan **Gemini Flash 3.8**:
 
 > *"Tolong baca `AGENTS.md` dan `public/docs/blueprint-pengembangan-global-selanjutnya.md`, lalu kerjakan **Sprint 1** dan **Sprint 2** sesuai aturan arsitektur yang tertulis di dalamnya. Pastikan `npx vitest run`, `npm --prefix functions run build`, dan `npm run build` lulus 100% sebelum selesai."*
+

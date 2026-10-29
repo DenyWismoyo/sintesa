@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, UploadCloud, CheckCircle, AlertCircle, Loader2, FileImage, ShieldCheck, Receipt, Building, CreditCard } from 'lucide-react';
+import { Search, UploadCloud, CheckCircle, AlertCircle, Loader2, FileImage, ShieldCheck, Receipt, Building, CreditCard, Sparkles } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 
 // Import Tipe Data dari types Anda
@@ -142,6 +142,33 @@ function BuktiBayarContent() {
       const fileUrl = await getDownloadURL(storageRef);
 
       const invRef = doc(db, invoice.path);
+
+      // Pre-validasi otomatis dengan AI Vision OCR (Clario AI)
+      let paymentProofMeta: any = null;
+      try {
+        const ocrRes = await fetch('/api/ai/ocr-receipt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl: fileUrl }),
+        });
+        const ocrJson = await ocrRes.json();
+        if (ocrJson.success && ocrJson.data) {
+          const ocrAmount = Number(ocrJson.data.totalAmount || 0);
+          const targetAmount = Number(amount || invoice.remainingAmount || invoice.totalAmount || 0);
+          const isMatched = Math.abs(ocrAmount - targetAmount) <= 1000;
+
+          paymentProofMeta = {
+            ocrVendor: ocrJson.data.merchantName || '',
+            ocrDate: ocrJson.data.date || '',
+            ocrAmount,
+            isMatched,
+            confidenceScore: ocrJson.data.confidenceScore || 0,
+            scannedAt: Date.now(),
+          };
+        }
+      } catch (ocrErr) {
+        console.warn('[OCR Pre-Validation] Gagal memproses OCR:', ocrErr);
+      }
       
       const newHistoryItem = {
         id: Date.now().toString(),
@@ -149,11 +176,15 @@ function BuktiBayarContent() {
         amount: Number(amount),
         method: 'TRANSFER',
         status: 'PENDING', 
-        receiptUrl: fileUrl
+        receiptUrl: fileUrl,
+        ...(paymentProofMeta ? { aiOcrMeta: paymentProofMeta } : {}),
       };
 
       await updateDoc(invRef, {
-        history: arrayUnion(newHistoryItem)
+        history: arrayUnion(newHistoryItem),
+        paymentStatus: 'WAITING_VERIFICATION',
+        paymentProofUrl: fileUrl,
+        ...(paymentProofMeta ? { paymentProofMeta } : {}),
       });
 
       setIsSuccess(true);
@@ -321,7 +352,7 @@ function BuktiBayarContent() {
                   className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:hover:translate-y-0 flex justify-center items-center gap-2 group"
                 >
                   {isSubmitting ? (
-                    <><Loader2 className="w-5 h-5 animate-spin" /> Sedang Mengunggah...</>
+                    <><Loader2 className="w-5 h-5 animate-spin" /> Sedang Mengunggah & Memvalidasi AI...</>
                   ) : (
                     <>Kirim Konfirmasi Bayar <CheckCircle className="w-5 h-5 opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all" /></>
                   )}

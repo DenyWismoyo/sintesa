@@ -70,23 +70,52 @@ export default function TabTagihan({ userEmail }: { userEmail: string }) {
       // 1. Upload file ke Storage
       const receiptUrl = await billingService.uploadReceipt(proofFile);
 
-      // 2. Buat object history baru dengan status PENDING
+      // 2. Pre-validasi otomatis via AI Vision OCR (Clario AI)
+      let paymentProofMeta: any = null;
+      try {
+        const ocrRes = await fetch("/api/ai/ocr-receipt", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageUrl: receiptUrl }),
+        });
+        const ocrJson = await ocrRes.json();
+        if (ocrJson.success && ocrJson.data) {
+          const ocrAmount = Number(ocrJson.data.totalAmount || 0);
+          const targetAmount = Number(proofAmount || selectedInvoice.remainingAmount || 0);
+          const isMatched = Math.abs(ocrAmount - targetAmount) <= 1000;
+          paymentProofMeta = {
+            ocrVendor: ocrJson.data.merchantName || "",
+            ocrDate: ocrJson.data.date || "",
+            ocrAmount,
+            isMatched,
+            confidenceScore: ocrJson.data.confidenceScore || 0,
+            scannedAt: Date.now(),
+          };
+        }
+      } catch (ocrErr) {
+        console.warn("[OCR Pre-Validation TabTagihan] Gagal:", ocrErr);
+      }
+
+      // 3. Buat object history baru dengan status PENDING
       const newHistoryItem = {
         id: `proof-${Date.now()}`,
-        date: new Date().toISOString().split('T')[0],
+        date: new Date().toISOString().split("T")[0],
         amount: Number(proofAmount),
         method: proofMethod,
-        status: 'PENDING',
-        receiptUrl: receiptUrl
+        status: "PENDING",
+        receiptUrl: receiptUrl,
+        ...(paymentProofMeta ? { aiOcrMeta: paymentProofMeta } : {}),
       };
 
-      // 3. Tambahkan ke history invoice yang ada
+      // 4. Tambahkan ke history invoice yang ada
       const updatedHistory = [...(selectedInvoice.history || []), newHistoryItem];
       
       await updateInvoice(selectedInvoice.id, {
-        history: updatedHistory
+        history: updatedHistory,
+        paymentStatus: "WAITING_VERIFICATION",
+        paymentProofUrl: receiptUrl,
+        ...(paymentProofMeta ? { paymentProofMeta } : {}),
       });
-
       toast.success("Bukti berhasil dikirim! Menunggu verifikasi admin.", { id: toastId });
       setProofAmount('');
       setProofMethod('');

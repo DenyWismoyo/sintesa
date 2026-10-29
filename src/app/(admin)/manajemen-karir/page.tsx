@@ -34,6 +34,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   MessageSquare,
+  TrendingUp,
 } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin';
 import { Button } from '@/components/ui/button';
@@ -52,13 +53,14 @@ import ModalJobForm from './components/ModalJobForm';
 import ModalExportPartnership from './components/ModalExportPartnership';
 import TabPartnerOnboarding from './components/TabPartnerOnboarding';
 import TabForumModerationAnalytics from './components/TabForumModerationAnalytics';
+import TabTracerStudyAnalytics from './components/TabTracerStudyAnalytics';
 
 export default function AdminManajemenKarirPage() {
   const router = useRouter();
   const { role, loading: authLoading } = useAuth();
   const canManageCareer = canPerformAction(role, PERMISSIONS.MANAGE_CAREER);
 
-  const [activeTab, setActiveTab] = useState<'LIST' | 'MITRA' | 'FORUM' | 'SYNC' | 'TALENT'>('LIST');
+  const [activeTab, setActiveTab] = useState<'LIST' | 'MITRA' | 'FORUM' | 'SYNC' | 'TALENT' | 'TRACER'>('LIST');
   const [searchFilter, setSearchFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [partnerFilter, setPartnerFilter] = useState('ALL');
@@ -364,6 +366,19 @@ export default function AdminManajemenKarirPage() {
           >
             <GraduationCap className="w-4 h-4" />
             <span>Penyaluran Alumni STP</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('TRACER')}
+            className={`flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
+              activeTab === 'TRACER'
+                ? 'bg-white text-emerald-700 shadow-xs'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+            }`}
+          >
+            <TrendingUp className="w-4 h-4" />
+            <span>Tracer Study & Serapan Kerja</span>
           </button>
         </div>
       </AdminPageHeader>
@@ -912,6 +927,11 @@ export default function AdminManajemenKarirPage() {
             </Link>
           </div>
         </div>
+      )}
+
+      {/* ─── TAB TRACER STUDY & ANALITIK SERAPAN KERJA ─── */}
+      {activeTab === 'TRACER' && (
+        <TabTracerStudyAnalytics />
       )}
 
       {/* ─── Modal Form Tambah / Edit Lowongan ─── */}

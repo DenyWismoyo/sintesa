@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Receipt, CheckCircle, Clock, Plus, AlertCircle, QrCode, Building, Loader2, CreditCard, ChevronRight, Landmark, FileText, PieChart, Copy, XCircle, Check, Link as LinkIcon } from 'lucide-react';
+import { X, Receipt, CheckCircle, Clock, Plus, AlertCircle, QrCode, Building, Loader2, CreditCard, ChevronRight, Landmark, FileText, PieChart, Copy, XCircle, Check, Link as LinkIcon, Sparkles } from 'lucide-react';
 import { Invoice, Account } from '@/types';
 
 // IMPORT FUNGSI CETAK PDF ASLI
@@ -487,6 +487,22 @@ Salam hangat,
                               {hist.status === 'PENDING' && (
                                 <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl shadow-sm">
                                   <p className="text-xs font-bold text-amber-800 mb-1.5 flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5"/> Menunggu Verifikasi Anda</p>
+                                  {(invoice as any).paymentProofMeta && (
+                                    <div className="mb-2.5 p-2 rounded-lg bg-white/90 border border-amber-200/80 text-[11px] space-y-0.5">
+                                      <div className="flex items-center gap-1 font-bold text-slate-800">
+                                        <Sparkles className="w-3 h-3 text-blue-600" />
+                                        <span>Analisis Bukti AI Vision:</span>
+                                      </div>
+                                      <p className="text-slate-700">
+                                        Nominal: <strong>{formatRupiah((invoice as any).paymentProofMeta.ocrAmount)}</strong>{' '}
+                                        {(invoice as any).paymentProofMeta.isMatched ? (
+                                          <span className="text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">Cocok 100% ?</span>
+                                        ) : (
+                                          <span className="text-rose-700 font-bold bg-rose-50 px-1.5 py-0.2 rounded border border-rose-200">Cek Manual ??</span>
+                                        )}
+                                      </p>
+                                    </div>
+                                  )}
                                   {hist.receiptUrl && hist.receiptUrl !== '#' && (
                                     <a href={hist.receiptUrl} target="_blank" rel="noreferrer" className="inline-block text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-lg mb-3 hover:underline">
                                        Cek Bukti Gambar / PDF ↗

@@ -20,7 +20,8 @@ export const PaymentHistorySchema = z.object({
   amount: z.number(),
   method: z.string(),
   status: z.enum(['SUCCESS', 'PENDING', 'FAILED']),
-  receiptUrl: z.string().optional()
+  receiptUrl: z.string().optional(),
+  aiOcrMeta: z.record(z.string(), z.any()).optional(),
 });
 export type PaymentHistory = z.infer<typeof PaymentHistorySchema>;
 
@@ -141,6 +142,9 @@ export const InvoiceSchema = z.object({
   })).optional(),
   history: z.array(PaymentHistorySchema),
   paymentUrl: z.string().optional(),
+  paymentStatus: z.string().optional(),
+  paymentProofUrl: z.string().optional(),
+  paymentProofMeta: z.record(z.string(), z.any()).optional(),
   notes: z.string().optional(),
   termsAndConditions: z.array(z.string()).optional(),
   referralCode: z.string().optional(),

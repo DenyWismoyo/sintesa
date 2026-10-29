@@ -305,7 +305,7 @@ export const alumniService = {
           originInstitution: data.originInstitution || '',
           district: data.district || '',
           isVerified: Boolean(data.isVerified),
-        status: data.status || 'DORMANT',
+          status: data.status || 'DORMANT',
           registrationCode: data.registrationCode || '',
           employmentStatus: (!data.employmentStatus || data.employmentStatus === 'Belum Bekerja') ? 'Proses Verifikasi' : data.employmentStatus,
           company: data.company || '',
@@ -329,6 +329,70 @@ export const alumniService = {
     } catch (err) {
       console.warn("[SYNC CACHE ALUMNI WARNING] Gagal sinkronisasi cache alumni:", err);
       return { success: false, error: err };
+    }
+  },
+
+  /**
+   * P17: Verifikasi Keaslian Sertifikat & Kelulusan Alumni Publik
+   * Mencari berdasarkan Nomor Sertifikat atau Kode Registrasi unik (mis. AL-2024-xxx, RSKB-2024-xxx)
+   */
+  verifyCertificate: async (queryCode: string): Promise<{
+    found: boolean;
+    data?: {
+      name: string;
+      programTaken: string;
+      batch?: string;
+      graduationYear?: string;
+      originSource: string;
+      registrationCode: string;
+      certificateNumber?: string;
+      certificationResult?: string;
+      isVerified: boolean;
+      status: string;
+    };
+    error?: string;
+  }> => {
+    try {
+      const clean = queryCode.trim().toUpperCase();
+      if (!clean) {
+        return { found: false, error: 'Masukkan nomor sertifikat atau kode registrasi.' };
+      }
+
+      // 1. Cari berdasarkan registrationCode
+      let q = query(collection(db, COLLECTION_NAME), where('registrationCode', '==', clean), limit(1));
+      let snap = await getDocs(q);
+
+      // 2. Jika tidak ditemukan, cari berdasarkan certificateNumber
+      const isFirstEmpty = !snap || snap.empty || !snap.docs || snap.docs.length === 0;
+      if (isFirstEmpty) {
+        q = query(collection(db, COLLECTION_NAME), where('certificateNumber', '==', clean), limit(1));
+        snap = await getDocs(q);
+      }
+
+      const isSecondEmpty = !snap || snap.empty || !snap.docs || snap.docs.length === 0;
+      if (isSecondEmpty) {
+        return { found: false, error: 'Nomor sertifikat atau kode registrasi tidak ditemukan dalam database resmi.' };
+      }
+
+      const docData = snap.docs[0].data();
+      return {
+        found: true,
+        data: {
+          name: docData.name || 'Alumni Terdaftar',
+          programTaken: docData.programTaken || 'Program Pelatihan Vokasi',
+          batch: docData.batch || '',
+          graduationYear: docData.graduationYear || docData.trainingYear || '',
+          originSource: docData.originSource || 'STP_VOKASI',
+          registrationCode: docData.registrationCode || clean,
+          certificateNumber: docData.certificateNumber || docData.registrationCode || '',
+          certificationResult: docData.certificationResult || 'Lulus Terverifikasi',
+          isVerified: true,
+          status: docData.status || 'ACTIVE',
+        },
+      };
+    } catch (err: any) {
+      console.error('Error verifying certificate:', err);
+      return { found: false, error: 'Terjadi kendala saat memverifikasi data sertifikat.' };
     }
   },
 };

@@ -109,5 +109,26 @@ export const notificationService = {
       return false;
     }
   },
+
+  async markAllAsRead(uid: string, role: string | null): Promise<boolean> {
+    if (!uid) return false;
+    try {
+      const items = await this.getNotificationsForUser(uid, role);
+      const unreadItems = items.filter((item) => !item.readByUids?.includes(uid) && item.id);
+      if (unreadItems.length === 0) return true;
+
+      await Promise.all(
+        unreadItems.map((item) =>
+          updateDoc(doc(db, getNotificationsPath(), item.id!), {
+            readByUids: arrayUnion(uid),
+          }).catch(() => null)
+        )
+      );
+      return true;
+    } catch (err) {
+      console.warn('[notificationService] Gagal markAllAsRead:', err);
+      return false;
+    }
+  },
 };
 

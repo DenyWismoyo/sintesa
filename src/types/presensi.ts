@@ -20,14 +20,15 @@ export type PresensiStatus =
   | "libur"
   | "lembur";
 
-export type LKHStatus = "draft" | "submitted" | "approved" | "rejected";
+export type LKHStatus = "draft" | "submitted" | "approved" | "rejected" | "disetujui" | "ditolak";
 
 export type LemburStatus =
   | "draft"
   | "diajukan"
   | "disetujui"
   | "ditolak"
-  | "selesai";
+  | "selesai"
+  | "menunggu";
 
 export type LemburJenis = "hari_kerja" | "hari_libur" | "hari_raya";
 
@@ -41,7 +42,7 @@ export interface UserProfile {
   jabatan: string;
   golongan: string; // misal: BLUD, Staf, Kepala Divisi
   instansi: string; // UPTD KST Solo Technopark
-  departmentId: string;
+  departmentId?: string;
   departmentName: string;
 
   /**
@@ -83,6 +84,7 @@ export interface UserProfile {
   storageUsedBytes: number;
   storageLimitBytes: number;
   createdAt?: string;
+  updatedAt?: string | number;
   canAccessCatalogAdmin?: boolean;
   catalogRole?: string;
   googleEmail?: string;
@@ -211,6 +213,14 @@ export interface PresensiRecord {
   namaKantor?: string;
   checkIn?: PresensiCheckPoint;
   checkOut?: PresensiCheckPoint;
+  jamMasuk?: string;
+  lokasiMasuk?: any;
+  jamPulang?: string;
+  lokasiPulang?: any;
+  fotoMasukUrl?: string;
+  fotoPulangUrl?: string;
+  createdAt?: string;
+  updatedAt?: string | number;
   status: PresensiStatus;
   durasiKerjaMenit?: number;
   keterangan?: string;
@@ -226,17 +236,21 @@ export interface PresensiRecord {
 
 export interface LKHItem {
   id: string;
-  aktivitasId?: number; // Referensi 152 Master Aktivitas
+  aktivitasId?: number | string; // Referensi 152 Master Aktivitas
+  namaAktivitas?: string;
   kategoriAktivitas?: string;
   namaAktivitasBaku?: string;
-  deskripsi: string;
-  outputKegiatan: string;
+  deskripsi?: string;
+  outputKegiatan?: string;
+  outputHasil?: string;
   volumeKegiatan: number;
-  satuanKegiatan: string;
-  jamMulai: string; // '08:00'
-  jamSelesai: string; // '10:00'
+  satuan?: string;
+  satuanKegiatan?: string;
+  jamMulai?: string; // '08:00'
+  jamSelesai?: string; // '10:00'
   nilaiPoin: number;
   totalPoin: number;
+  lampiranUrl?: string;
   lampiranFotoUrls?: string[];
   lampiranDokumenUrls?: string[];
 }
@@ -257,6 +271,7 @@ export interface LKHRecord {
   status: LKHStatus;
   catatanPegawai?: string;
   catatanAtasan?: string;
+  catatanRealisasi?: string;
   approvedBy?: string;
   approvedByName?: string;
   approvedAt?: string;
@@ -271,16 +286,25 @@ export interface PengajuanIzinItem {
   nama: string;
   nip: string;
   orgId: string;
-  atasanId: string;
-  jenis: "Cuti Tahunan" | "Izin Alasan Penting" | "Sakit" | "Dinas Luar";
+  atasanId?: string;
+  atasanNama?: string;
+  kantorId?: string;
+  namaKantor?: string;
+  jenis: "Cuti Tahunan" | "Izin Alasan Penting" | "Sakit" | "Dinas Luar" | "cuti" | "sakit" | "izin" | "dinas";
   tanggalMulai: string;
   tanggalSelesai: string;
-  jumlahHari: number;
+  jumlahHari?: number;
   alasan: string;
   dokumenUrl?: string;
   dokumenNama?: string;
+  lampiranUrl?: string;
   status: "menunggu" | "disetujui" | "ditolak";
+  approvedBy?: string;
+  approvedByName?: string;
+  catatanAtasan?: string;
+  catatanRealisasi?: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface LemburRecord {
@@ -294,14 +318,19 @@ export interface LemburRecord {
   alasanLembur: string;
   jamMulaiRencana: string;
   jamSelesaiRencana: string;
-  atasanId: string;
-  atasanNama: string;
+  totalJamRencana?: number;
+  jamMulaiRealisasi?: string;
+  jamSelesaiRealisasi?: string;
+  totalJamRealisasi?: number;
+  atasanId?: string;
+  atasanNama?: string;
   status: LemburStatus;
   checkInLembur?: PresensiCheckPoint;
   checkOutLembur?: PresensiCheckPoint;
   durasiLemburMenit?: number;
   suratPerintahLemburUrl?: string;
   catatanAtasan?: string;
+  catatanRealisasi?: string;
   approvedBy?: string;
   approvedByName?: string;
   approvedAt?: string;

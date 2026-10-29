@@ -12,6 +12,9 @@ import {
   renderAlumniClaimedEmail,
   renderPartnerOnboardedEmail,
   renderRolePromotedEmail,
+  renderBookingStatusUpdatedEmail,
+  renderTalentInvitationEmail,
+  renderJobApplicationStatusEmail,
 } from '../templates/emailTemplates';
 
 function ensureAdmin() {
@@ -165,6 +168,45 @@ export const onMailQueued = onDocumentCreated(
             email: payload.email || to,
             newRoleLabel: payload.newRoleLabel || 'Pengguna Terotorisasi',
             dashboardPath: payload.dashboardPath || '/dashboard',
+          });
+          break;
+
+        case 'BOOKING_STATUS_UPDATE':
+          subject = subject || `Update Status Reservasi: ${payload.assetName || 'Fasilitas'} - Solo Technopark`;
+          html = renderBookingStatusUpdatedEmail({
+            userName: payload.userName || 'Pemohon',
+            assetName: payload.assetName || 'Fasilitas Kawasan',
+            bookingId: payload.bookingId || mailId,
+            startDate: payload.startDate || '-',
+            endDate: payload.endDate,
+            startTime: payload.startTime,
+            endTime: payload.endTime,
+            status: payload.status || 'approved',
+            adminNotes: payload.adminNotes,
+          });
+          break;
+
+        case 'TALENT_INVITATION':
+          subject = subject || `Undangan Karir: ${payload.roleOffered || 'Peluang Karir'} di ${payload.senderCompanyName || 'Mitra Industri'} - Solo Technopark`;
+          html = renderTalentInvitationEmail({
+            alumniName: payload.alumniName || 'Alumni',
+            senderCompanyName: payload.senderCompanyName || 'Mitra Industri Solo Technopark',
+            roleOffered: payload.roleOffered || 'Posisi Pekerjaan',
+            workType: payload.workType,
+            message: payload.message || 'Perusahaan tertarik dengan profil talenta Anda.',
+            senderPicName: payload.senderPicName,
+            invitationUrl: payload.invitationUrl,
+          });
+          break;
+
+        case 'JOB_APPLICATION_STATUS':
+          subject = subject || `Update Lamaran: ${payload.jobTitle || 'Pekerjaan'} di ${payload.companyName || 'Mitra Industri'} - Solo Technopark`;
+          html = renderJobApplicationStatusEmail({
+            applicantName: payload.applicantName || 'Pelamar',
+            jobTitle: payload.jobTitle || 'Lowongan Kerja',
+            companyName: payload.companyName || 'Mitra Industri',
+            status: payload.status || 'REVIEWED',
+            statusNote: payload.statusNote,
           });
           break;
 

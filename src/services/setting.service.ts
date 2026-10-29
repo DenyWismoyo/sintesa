@@ -30,6 +30,43 @@ export interface FinanceSetting {
   updatedAt?: number;
 }
 
+export interface SystemConfigSetting {
+  // 1. Global Announcement Banner
+  isAnnouncementActive: boolean;
+  announcementText: string;
+  announcementLinkText?: string;
+  announcementLinkUrl?: string;
+
+  // 2. Operasional Fasilitas & Booking
+  operatingHours: string;
+  minBookingDaysInAdvance: number;
+  maxBookingDaysInAdvance: number;
+
+  // 3. Kontak Pusat & Helpdesk
+  helpdeskWhatsApp: string;
+  helpdeskEmail: string;
+  instagramUrl?: string;
+  linkedinUrl?: string;
+  youtubeUrl?: string;
+
+  updatedAt?: number;
+}
+
+export const DEFAULT_SYSTEM_CONFIG: SystemConfigSetting = {
+  isAnnouncementActive: true,
+  announcementText: 'Pendaftaran Program Pelatihan Vokasi Batch Baru & Rumah Siap Kerja Bersama (RSKB) telah dibuka!',
+  announcementLinkText: 'Lihat Program',
+  announcementLinkUrl: '/program-pelatihan',
+  operatingHours: '08:00 - 17:00 WIB (Senin - Jumat)',
+  minBookingDaysInAdvance: 1,
+  maxBookingDaysInAdvance: 30,
+  helpdeskWhatsApp: '08112634567',
+  helpdeskEmail: 'marketing@solotechnopark.id',
+  instagramUrl: 'https://instagram.com/solotechnopark_official',
+  linkedinUrl: 'https://linkedin.com/company/solo-technopark',
+  youtubeUrl: 'https://youtube.com/@solotechnopark',
+};
+
 export const settingService = {
   // ==========================================
   // MODUL 1: PROFIL INSTANSI
@@ -68,5 +105,29 @@ export const settingService = {
     const appId = getAppId();
     const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'finance');
     await setDoc(docRef, { ...data, updatedAt: Date.now() }, { merge: true });
-  }
+  },
+
+  // ==========================================
+  // MODUL 3: KONFIGURASI SISTEM GLOBAL
+  // ==========================================
+  getSystemConfig: async (): Promise<SystemConfigSetting> => {
+    try {
+      const appId = getAppId();
+      const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'system_config');
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        return { ...DEFAULT_SYSTEM_CONFIG, ...(snap.data() as Partial<SystemConfigSetting>) };
+      }
+      return DEFAULT_SYSTEM_CONFIG;
+    } catch (err) {
+      console.warn('[settingService.getSystemConfig] Fallback to default config:', err);
+      return DEFAULT_SYSTEM_CONFIG;
+    }
+  },
+
+  updateSystemConfig: async (data: Partial<SystemConfigSetting>) => {
+    const appId = getAppId();
+    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'system_config');
+    await setDoc(docRef, { ...data, updatedAt: Date.now() }, { merge: true });
+  },
 };

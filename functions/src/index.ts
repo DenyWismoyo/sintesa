@@ -31,3 +31,4 @@ export * from './triggers/cacheInvalidation';
 export * from './triggers/weeklyJobSync';
 export * from './triggers/mailAutomation';
 export * from './triggers/forumTriggers';
+export * from './triggers/transactionalMailTriggers';

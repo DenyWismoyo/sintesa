@@ -37,6 +37,7 @@ import { signOut } from 'firebase/auth';
 import { toast } from 'sonner';
 import { isInternalStaff, APP_ROLES, canAccessCareer, canAccessAlumniForum } from '@/config/roles';
 import GlobalSearchModal from './GlobalSearchModal';
+import NotificationBellDropdown from './NotificationBellDropdown';
 import { useLoginModal } from '@/context/LoginModalContext';
 import { authService } from '@/services/auth.service';
 import { usePresensiSession } from '@/hooks/usePresensiSession';
@@ -358,6 +359,7 @@ export default function PublicNavbar() {
     if (role === APP_ROLES.PEGAWAI) {
       return (
         <div className="flex items-center gap-2">
+          <NotificationBellDropdown className="mr-0.5" />
           <Link
             href="/presensi"
             className="relative px-4 py-1.5 h-9 text-xs font-black bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-600 text-white rounded-full transition-all flex items-center gap-2 shadow-md shadow-emerald-600/25 ring-2 ring-emerald-400/40 hover:-translate-y-0.5 active:translate-y-0"
@@ -384,6 +386,7 @@ export default function PublicNavbar() {
     if (isInternalStaff(role)) {
       return (
         <div className="flex items-center gap-2">
+          <NotificationBellDropdown className="mr-0.5" />
           <Link
             href="/dashboard"
             className="px-4 py-2 h-9 text-xs font-bold bg-gradient-to-r from-indigo-600 to-blue-700 hover:from-indigo-700 hover:to-blue-800 text-white rounded-full transition-all shadow-xs flex items-center gap-1.5 hover:-translate-y-0.5"
@@ -409,30 +412,37 @@ export default function PublicNavbar() {
 
     if (role === APP_ROLES.INDUSTRI) {
       return (
-        <Link
-          href="/mitra/dashboard"
-          className="px-4 py-2 h-9 text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white rounded-full transition-all shadow-xs flex items-center gap-1.5 hover:-translate-y-0.5"
-        >
-          <Handshake size={15} />
-          <span>Dashboard Mitra</span>
-        </Link>
+        <div className="flex items-center gap-2">
+          <NotificationBellDropdown className="mr-0.5" />
+          <Link
+            href="/mitra/dashboard"
+            className="px-4 py-2 h-9 text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white rounded-full transition-all shadow-xs flex items-center gap-1.5 hover:-translate-y-0.5"
+          >
+            <Handshake size={15} />
+            <span>Dashboard Mitra</span>
+          </Link>
+        </div>
       );
     }
 
     if (role === APP_ROLES.TENANT) {
       return (
-        <Link
-          href="/tenant/dashboard"
-          className="px-4 py-2 h-9 text-xs font-bold bg-gradient-to-r from-teal-600 to-emerald-700 hover:from-teal-700 hover:to-emerald-800 text-white rounded-full transition-all shadow-xs flex items-center gap-1.5 hover:-translate-y-0.5"
-        >
-          <Building2 size={15} />
-          <span>Dashboard Tenant</span>
-        </Link>
+        <div className="flex items-center gap-2">
+          <NotificationBellDropdown className="mr-0.5" />
+          <Link
+            href="/tenant/dashboard"
+            className="px-4 py-2 h-9 text-xs font-bold bg-gradient-to-r from-teal-600 to-emerald-700 hover:from-teal-700 hover:to-emerald-800 text-white rounded-full transition-all shadow-xs flex items-center gap-1.5 hover:-translate-y-0.5"
+          >
+            <Building2 size={15} />
+            <span>Dashboard Tenant</span>
+          </Link>
+        </div>
       );
     }
 
     return (
       <div className="flex items-center gap-2">
+        <NotificationBellDropdown className="mr-0.5" />
         <Link
           href="/portal"
           className="px-3.5 py-1.5 h-9 text-xs font-bold bg-blue-50 hover:bg-blue-100 border border-blue-200/80 text-blue-700 rounded-full transition-all flex items-center gap-1.5 shadow-2xs"
@@ -558,6 +568,7 @@ export default function PublicNavbar() {
             </p>
             <p className="text-[10px] font-semibold text-slate-500">{roleName}</p>
           </div>
+          <NotificationBellDropdown align="right" />
         </div>
 
         {/* Action Button sesuai role */}
@@ -809,8 +820,10 @@ export default function PublicNavbar() {
             {renderDesktopAuth()}
           </div>
 
-          {/* SISI KANAN PONSEL / TABLET: TOMBOL SEARCH & HAMBURGER BERDAMPINGAN */}
+          {/* SISI KANAN PONSEL / TABLET: NOTIFIKASI + TOMBOL SEARCH & HAMBURGER */}
           <div className="flex lg:hidden items-center gap-2 shrink-0">
+            {user && <NotificationBellDropdown align="right" />}
+
             {/* Tombol Search di Ponsel (Sesuai instruksi: di bagian kanan dekat dengan menu hamburger) */}
             <button
               type="button"

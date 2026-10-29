@@ -21,6 +21,7 @@ export const viewport: Viewport = {
 
 // --- KONFIGURASI METADATA & PWA APPLE ---
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://katalog.solotechnopark.id'),
   title: "Katalog Solo Technopark | Jembatan Katalog & Layanan Kawasan",
   description: "Katalog resmi layanan, fasilitas, pelatihan, dan produk inovasi Solo Technopark. Bagian terintegrasi dari ekosistem solotechnopark.id",
   generator: "Next.js",

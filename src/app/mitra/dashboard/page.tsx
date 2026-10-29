@@ -15,6 +15,7 @@ import {
   Save,
   Users,
   MessageSquare,
+  KeyRound,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,6 +32,7 @@ import { PARTNER_TIER_LABELS } from '@/types/partnership.types';
 import TalentPoolExplorer from '@/components/career/TalentPoolExplorer';
 import PartnerJobDraftModal from '@/components/career/PartnerJobDraftModal';
 import EntityApplicantsPanel from '@/components/career/EntityApplicantsPanel';
+import ChangePasswordCard from '@/components/auth/ChangePasswordCard';
 import { useEntityJobApplications } from '@/hooks/useAlumniForum';
 import { toast } from 'sonner';
 
@@ -44,7 +46,7 @@ export default function MitraDashboardPage() {
   const { data: incomingApplicants = [] } = useEntityJobApplications({ partnerId: effectivePartnerId || null });
   const { updateProfileMutation } = usePartnerMutations();
 
-  const [activeTab, setActiveTab] = useState<'JOBS' | 'APPLICANTS' | 'TALENTS' | 'INVITATIONS' | 'PROFILE'>('JOBS');
+  const [activeTab, setActiveTab] = useState<'JOBS' | 'APPLICANTS' | 'TALENTS' | 'INVITATIONS' | 'PROFILE' | 'SECURITY'>('JOBS');
   const [isDraftModalOpen, setIsDraftModalOpen] = useState(false);
 
   const [companyName, setCompanyName] = useState('');
@@ -120,6 +122,7 @@ export default function MitraDashboardPage() {
           { id: 'TALENTS', label: 'Katalog Talenta STP × RSKB', icon: GraduationCap },
           { id: 'INVITATIONS', label: `Undangan Wawancara (${myInvitations.length})`, icon: Send },
           { id: 'PROFILE', label: 'Profil Perusahaan', icon: Building2 },
+          { id: 'SECURITY', label: 'Keamanan & Sandi', icon: KeyRound },
         ].map((tab) => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;
@@ -268,6 +271,13 @@ export default function MitraDashboardPage() {
         </form>
       )}
 
+      {/* TAB 5: KEAMANAN & KATA SANDI */}
+      {activeTab === 'SECURITY' && (
+        <div className="max-w-2xl">
+          <ChangePasswordCard />
+        </div>
+      )}
+
       <PartnerJobDraftModal
         isOpen={isDraftModalOpen}
         onClose={() => setIsDraftModalOpen(false)}
@@ -281,4 +291,3 @@ export default function MitraDashboardPage() {
     </div>
   );
 }
-

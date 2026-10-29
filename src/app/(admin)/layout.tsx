@@ -8,6 +8,7 @@ import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useAuth } from '@/lib/AuthContext';
 import { hasAccess, isInternalStaff, ROLE_LABELS } from '@/config/roles';
+import NotificationBellDropdown from '@/components/common/NotificationBellDropdown';
 import { 
   LayoutDashboard, 
   Building2, 
@@ -289,13 +290,40 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                </span>
              </div>
           </div>
-          <button 
-            onClick={() => setIsMobileMenuOpen(true)}
-            className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors active:scale-95"
-            aria-label="Buka Menu Navigasi"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <NotificationBellDropdown align="right" />
+            <button 
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors active:scale-95"
+              aria-label="Buka Menu Navigasi"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+          </div>
+        </header>
+
+        {/* Desktop Top Header */}
+        <header className="hidden md:flex h-14 bg-white/90 backdrop-blur-md border-b border-slate-200/80 items-center justify-between px-6 z-20 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="font-extrabold text-slate-800 text-sm leading-tight truncate">
+              {currentMenu?.name || 'Dashboard'}
+            </span>
+            <span className="text-[10px] bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded-full border border-blue-200/60 uppercase tracking-wider">
+              {ROLE_LABELS[role || ''] || role}
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <NotificationBellDropdown align="right" />
+            <div className="h-4 w-px bg-slate-200" />
+            <Link 
+              href="/" 
+              className="px-3 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-semibold"
+              title="Kunjungi Beranda Publik"
+            >
+              <Home className="w-3.5 h-3.5" />
+              <span>Portal Publik</span>
+            </Link>
+          </div>
         </header>
 
         {/* Content Body */}

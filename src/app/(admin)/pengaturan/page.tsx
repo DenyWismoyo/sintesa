@@ -6,6 +6,7 @@ import TabProfilInstansi from './components/TabProfilInstansi';
 import TabFinanceSettings from './components/TabFinanceSettings';
 import TabKeamanan from './components/TabKeamanan';
 import TabNotifikasiEmail from './components/TabNotifikasiEmail';
+import TabKonfigurasiSistem from './components/TabKonfigurasiSistem';
 import { useAuth } from '@/lib/AuthContext';
 import { canPerformAction, PERMISSIONS } from '@/config/roles';
 import { AdminPageHeader } from '@/components/admin';
@@ -90,14 +91,7 @@ export default function PengaturanPage() {
           {activeTab === 'Keuangan' && <TabFinanceSettings />}
           {activeTab === 'Keamanan' && <TabKeamanan />}
           
-          {/* Placeholder untuk menu lain jika belum dikembangkan */}
-          {activeTab === 'Sistem' && (
-             <div className="text-center py-24 text-slate-500 animate-in fade-in">
-               <Sliders className="h-16 w-16 mx-auto text-slate-300 mb-4 bg-slate-50 rounded-full p-4 border border-slate-100" />
-               <p className="font-bold text-lg text-slate-700">Konfigurasi Sistem</p>
-               <p className="text-sm mt-1">Modul ini dalam tahap pengembangan.</p>
-             </div>
-          )}
+                    {activeTab === 'Sistem' && <TabKonfigurasiSistem />}
           {activeTab === 'Notifikasi' && <TabNotifikasiEmail />}
           {false && (
              <div className="text-center py-24 text-slate-500 animate-in fade-in">

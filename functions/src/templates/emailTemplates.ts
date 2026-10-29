@@ -683,3 +683,231 @@ export function renderRolePromotedEmail(data: {
 
   return wrapBaseTemplate(`Pembaruan Hak Akses: ${data.newRoleLabel} - Solo Technopark`, body);
 }
+
+/**
+ * 10. Template Notifikasi Pembaruan Status Reservasi Fasilitas (Disetujui / Ditolak)
+ */
+export function renderBookingStatusUpdatedEmail(data: {
+  userName: string;
+  assetName: string;
+  bookingId: string;
+  startDate: string;
+  endDate?: string;
+  startTime?: string;
+  endTime?: string;
+  status: string;
+  adminNotes?: string;
+}): string {
+  const portalUrl = (process.env.PUBLIC_PORTAL_URL || 'https://katalog.solotechnopark.id').trim();
+  const isApproved = data.status.toLowerCase() === 'approved';
+  const badgeColor = isApproved ? '#047857' : '#b91c1c';
+  const badgeBg = isApproved ? '#ecfdf5' : '#fef2f2';
+  const badgeBorder = isApproved ? '#a7f3d0' : '#fecaca';
+  const statusLabel = isApproved ? 'DISETUJUI' : 'DITOLAK / DIBATALKAN';
+
+  const body = `
+    <div style="text-align: center; margin-bottom: 24px;">
+      <span style="background: ${badgeBg}; color: ${badgeColor}; font-size: 12px; font-weight: 800; padding: 4px 14px; border-radius: 9999px; text-transform: uppercase; border: 1px solid ${badgeBorder};">
+        Status Reservasi: ${statusLabel}
+      </span>
+      <h2 style="margin: 12px 0 6px; font-size: 22px; font-weight: 900; color: #0f172a;">
+        Pemberitahuan Status Peminjaman Fasilitas
+      </h2>
+      <p style="margin: 0; font-size: 14px; color: #64748b;">
+        Halo <strong>${data.userName}</strong>, permohonan reservasi sarana dan prasarana Anda telah ditinjau oleh Pengelola Kawasan.
+      </p>
+    </div>
+
+    <div class="card-detail">
+      <table width="100%" cellspacing="0" cellpadding="6" style="font-size: 13px;">
+        <tr>
+          <td width="35%" style="color: #64748b; font-weight: 600;">Nomor Referensi</td>
+          <td style="font-weight: 800; font-family: monospace; color: #0f172a;">${data.bookingId}</td>
+        </tr>
+        <tr>
+          <td style="color: #64748b; font-weight: 600;">Fasilitas / Gedung</td>
+          <td style="font-weight: 700; color: #0f172a;">${data.assetName}</td>
+        </tr>
+        <tr>
+          <td style="color: #64748b; font-weight: 600;">Jadwal Penggunaan</td>
+          <td style="font-weight: 700; color: #0f172a;">${data.startDate} ${data.endDate && data.endDate !== data.startDate ? `s/d ${data.endDate}` : ''}</td>
+        </tr>
+        ${data.startTime ? `
+        <tr>
+          <td style="color: #64748b; font-weight: 600;">Waktu Sewa</td>
+          <td style="font-weight: 700; color: #0f172a;">${data.startTime} - ${data.endTime || 'Selesai'}</td>
+        </tr>` : ''}
+        <tr>
+          <td style="color: #64748b; font-weight: 600;">Status Akhir</td>
+          <td style="font-weight: 800; color: ${badgeColor};">${statusLabel}</td>
+        </tr>
+        ${data.adminNotes ? `
+        <tr>
+          <td style="color: #64748b; font-weight: 600;">Catatan Admin</td>
+          <td style="color: #334155; font-style: italic;">${data.adminNotes}</td>
+        </tr>` : ''}
+      </table>
+    </div>
+
+    <div style="text-align: center; margin-top: 24px;">
+      <a href="${portalUrl}/portal" class="btn-cta">
+        Lihat Detail di Portal Personal
+      </a>
+      <p style="margin: 12px 0 0; font-size: 12px; color: #94a3b8;">
+        ${isApproved ? 'Silakan persiapkan kegiatan Anda sesuai jadwal dan tata tertib kawasan.' : 'Hubungi pengelola jika Anda memerlukan rekomendasi ruangan alternatif.'}
+      </p>
+    </div>
+  `;
+
+  return wrapBaseTemplate(`Update Reservasi: ${data.assetName} (${statusLabel}) - Solo Technopark`, body);
+}
+
+/**
+ * 11. Template Undangan Rekrutmen / Talent Invitation dari Mitra Industri Resmi ke Alumni
+ */
+export function renderTalentInvitationEmail(data: {
+  alumniName: string;
+  senderCompanyName: string;
+  roleOffered: string;
+  workType?: string;
+  message: string;
+  senderPicName?: string;
+  invitationUrl?: string;
+}): string {
+  const baseOrigin = getBaseOrigin();
+  const targetUrl = data.invitationUrl || `${baseOrigin}/alumni-portal`;
+
+  const body = `
+    <div style="text-align: center; margin-bottom: 24px;">
+      <span style="background: #ecfdf5; color: #047857; font-size: 12px; font-weight: 800; padding: 4px 14px; border-radius: 9999px; text-transform: uppercase; border: 1px solid #a7f3d0;">
+        Undangan Rekrutmen Prioritas
+      </span>
+      <h2 style="margin: 12px 0 6px; font-size: 22px; font-weight: 900; color: #0f172a;">
+        Anda Mendapat Tawaran Peluang Karir!
+      </h2>
+      <p style="margin: 0; font-size: 14px; color: #64748b;">
+        Halo <strong>${data.alumniName}</strong>, profil talenta Anda menarik perhatian perusahaan mitra industri Solo Technopark.
+      </p>
+    </div>
+
+    <div class="card-detail">
+      <table width="100%" cellspacing="0" cellpadding="6" style="font-size: 13px;">
+        <tr>
+          <td width="35%" style="color: #64748b; font-weight: 600;">Perusahaan / Pengundang</td>
+          <td style="font-weight: 800; color: #0f172a;">${data.senderCompanyName}</td>
+        </tr>
+        <tr>
+          <td style="color: #64748b; font-weight: 600;">Posisi yang Ditawarkan</td>
+          <td style="font-weight: 700; color: #047857;">${data.roleOffered}</td>
+        </tr>
+        ${data.workType ? `
+        <tr>
+          <td style="color: #64748b; font-weight: 600;">Skema Kerja</td>
+          <td style="font-weight: 700; color: #0f172a;">${data.workType}</td>
+        </tr>` : ''}
+        ${data.senderPicName ? `
+        <tr>
+          <td style="color: #64748b; font-weight: 600;">PIC Rekruter</td>
+          <td style="color: #334155;">${data.senderPicName}</td>
+        </tr>` : ''}
+      </table>
+
+      <div style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed #cbd5e1;">
+        <p style="margin: 0 0 6px; font-size: 12px; font-weight: 700; color: #475569;">Pesan dari Rekruter:</p>
+        <p style="margin: 0; font-size: 13px; color: #1e293b; background: #ffffff; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; line-height: 1.5;">
+          ${data.message}
+        </p>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 24px;">
+      <a href="${targetUrl}" class="btn-cta" style="background: #047857;">
+        Tinjau & Tanggapi Undangan di Forum Alumni
+      </a>
+      <p style="margin: 12px 0 0; font-size: 12px; color: #94a3b8;">
+        Kesempatan ini eksklusif bagi jaringan Alumni Vokasi STP & RSKB Surakarta.
+      </p>
+    </div>
+  `;
+
+  return wrapBaseTemplate(`Undangan Karir: ${data.roleOffered} di ${data.senderCompanyName} - Solo Technopark`, body);
+}
+
+/**
+ * 12. Template Pembaruan Status Lamaran Kerja (Shortlisted, Interview, Accepted/Hired, Rejected)
+ */
+export function renderJobApplicationStatusEmail(data: {
+  applicantName: string;
+  jobTitle: string;
+  companyName: string;
+  status: string;
+  statusNote?: string;
+}): string {
+  const baseOrigin = getBaseOrigin();
+  const portalUrl = `${baseOrigin}/karir`;
+
+  const statusMap: Record<string, { label: string; color: string; bg: string; border: string }> = {
+    REVIEWED: { label: 'Ditinjau Rekruter', color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' },
+    SHORTLISTED: { label: 'Lolos Tahap Seleksi Berkas', color: '#0f766e', bg: '#f0fdfa', border: '#99f6e4' },
+    INTERVIEWING: { label: 'Undangan Tahap Wawancara', color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
+    HIRED: { label: 'Selamat! Anda Diterima (HIRED)', color: '#047857', bg: '#ecfdf5', border: '#a7f3d0' },
+    REJECTED: { label: 'Belum Sesuai Kebutuhan', color: '#475569', bg: '#f8fafc', border: '#e2e8f0' },
+  };
+
+  const meta = statusMap[data.status.toUpperCase()] || {
+    label: data.status,
+    color: '#0f172a',
+    bg: '#f8fafc',
+    border: '#e2e8f0',
+  };
+
+  const body = `
+    <div style="text-align: center; margin-bottom: 24px;">
+      <span style="background: ${meta.bg}; color: ${meta.color}; font-size: 12px; font-weight: 800; padding: 4px 14px; border-radius: 9999px; text-transform: uppercase; border: 1px solid ${meta.border};">
+        ${meta.label}
+      </span>
+      <h2 style="margin: 12px 0 6px; font-size: 22px; font-weight: 900; color: #0f172a;">
+        Pembaruan Status Lamaran Pekerjaan
+      </h2>
+      <p style="margin: 0; font-size: 14px; color: #64748b;">
+        Halo <strong>${data.applicantName}</strong>, berikut perkembangan terbaru dari lamaran kerja yang Anda ajukan.
+      </p>
+    </div>
+
+    <div class="card-detail">
+      <table width="100%" cellspacing="0" cellpadding="6" style="font-size: 13px;">
+        <tr>
+          <td width="35%" style="color: #64748b; font-weight: 600;">Posisi Lowongan</td>
+          <td style="font-weight: 800; color: #0f172a;">${data.jobTitle}</td>
+        </tr>
+        <tr>
+          <td style="color: #64748b; font-weight: 600;">Perusahaan Mitra</td>
+          <td style="font-weight: 700; color: #0f172a;">${data.companyName}</td>
+        </tr>
+        <tr>
+          <td style="color: #64748b; font-weight: 600;">Tahapan Saat Ini</td>
+          <td style="font-weight: 800; color: ${meta.color};">${meta.label}</td>
+        </tr>
+      </table>
+
+      ${data.statusNote ? `
+      <div style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed #cbd5e1;">
+        <p style="margin: 0 0 6px; font-size: 12px; font-weight: 700; color: #475569;">Catatan / Jadwal dari Perusahaan:</p>
+        <p style="margin: 0; font-size: 13px; color: #1e293b; background: #ffffff; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; line-height: 1.5;">
+          ${data.statusNote}
+        </p>
+      </div>` : ''}
+    </div>
+
+    <div style="text-align: center; margin-top: 24px;">
+      <a href="${portalUrl}" class="btn-cta">
+        Buka Portal Karir Solo Technopark
+      </a>
+      <p style="margin: 12px 0 0; font-size: 12px; color: #94a3b8;">
+        Pantau seluruh status lamaran dan portofolio talenta Anda secara terpusat.
+      </p>
+    </div>
+  `;
+
+  return wrapBaseTemplate(`Update Lamaran: ${data.jobTitle} di ${data.companyName} - Solo Technopark`, body);
+}

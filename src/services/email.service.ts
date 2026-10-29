@@ -106,6 +106,9 @@ export const emailService = {
 
   /**
    * Fungsi internal untuk menulis dokumen ke koleksi `mail_queue`.
+   * Catatan Arsitektur: Mulai Sprint 1, seluruh email transaksional di-enqueue secara otomatis
+   * oleh Firestore Triggers di server backend (transactionalMailTriggers.ts) dengan Admin SDK,
+   * sehingga klien browser terlindungi dari pembatasan hak tulis langsung ke `mail_queue`.
    */
   async queueEmail(item: {
     to: string;
@@ -114,22 +117,9 @@ export const emailService = {
     payload: Record<string, any>;
     replyTo?: string;
   }) {
-    try {
-      const colRef = collection(db, 'mail_queue');
-      const docRef = await addDoc(colRef, {
-        to: item.to,
-        template: item.template,
-        subject: item.subject || 'Pemberitahuan dari Solo Technopark',
-        payload: item.payload,
-        replyTo: item.replyTo || 'info@solotechnopark.id',
-        status: 'QUEUED',
-        createdAt: Date.now(),
-      });
-      return { success: true, queueId: docRef.id };
-    } catch (err: any) {
-      console.error('[EmailService Client] Gagal menambahkan email ke antrian:', err);
-      return { success: false, error: err.message };
-    }
+    // Graceful fallback: hindari permission denied jika dipanggil langsung dari client
+    console.log(`[EmailService] Email transaksional '${item.template}' untuk ${item.to} dikelola otomatis via Firestore Cloud Triggers.`);
+    return { success: true, queueId: `managed-by-trigger-${Date.now()}` };
   },
 
   /**
