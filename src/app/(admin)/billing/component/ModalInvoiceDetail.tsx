@@ -167,45 +167,45 @@ Salam hangat,
             animate={{ x: 0 }} 
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-y-0 right-0 z-[75] w-full max-w-[1300px] h-full bg-slate-50 shadow-2xl flex flex-col md:flex-row overflow-hidden border-l border-slate-200 print:hidden"
+            className="fixed inset-y-0 right-0 z-[75] w-full max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-5xl h-full bg-slate-50 shadow-2xl flex flex-col md:flex-row overflow-hidden border-l border-slate-200 print:hidden"
           >
             
-            <div className="flex-1 overflow-y-auto p-2 sm:p-4 md:p-10 custom-scrollbar flex justify-center items-start bg-slate-100/50">
-              <div className="bg-white p-4 sm:p-6 md:p-10 rounded-2xl shadow-sm border border-slate-200 relative w-full max-w-3xl min-h-full overflow-hidden">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-5 md:p-6 lg:p-7 custom-scrollbar flex justify-center items-start bg-slate-100/50">
+              <div className="bg-white p-4 sm:p-5 md:p-7 rounded-2xl shadow-sm border border-slate-200 relative w-full max-w-3xl min-h-full overflow-hidden">
                 
                 {invoice.status === 'PAID' && (
                   <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none z-0">
-                    <span className="text-[80px] sm:text-[120px] font-black text-emerald-900 transform -rotate-45 tracking-widest">LUNAS</span>
+                    <span className="text-[70px] sm:text-[100px] font-bold text-emerald-900 transform -rotate-45 tracking-widest">LUNAS</span>
                   </div>
                 )}
                 {invoice.status === 'CANCELLED' && (
                   <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none z-0">
-                    <span className="text-[70px] sm:text-[100px] font-black text-red-900 transform -rotate-45 tracking-widest">BATAL</span>
+                    <span className="text-[60px] sm:text-[90px] font-bold text-red-900 transform -rotate-45 tracking-widest">BATAL</span>
                   </div>
                 )}
 
                 <div className="relative z-10">
-                  <div className="flex flex-col sm:flex-row justify-between items-start border-b border-slate-100 pb-5 sm:pb-8 mb-5 sm:mb-8 gap-4 sm:gap-0">
-                    <div className="flex items-center gap-3 sm:gap-5">
-                      <img src="/image/LogoInvoice.png" alt="Logo" className="w-12 h-12 sm:w-16 sm:h-16 object-contain shrink-0" />
+                  <div className="flex flex-col sm:flex-row justify-between items-start border-b border-slate-100 pb-4 sm:pb-5 mb-4 sm:mb-6 gap-3 sm:gap-0">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <img src="/image/LogoInvoice.png" alt="Logo" className="w-10 h-10 sm:w-12 sm:h-12 object-contain shrink-0" />
                       <div>
-                        <h1 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">SOLO TECHNOPARK</h1>
-                        <p className="text-xs sm:text-sm text-slate-500 font-bold mt-0.5 sm:mt-1">Badan Layanan Umum Daerah (BLUD)</p>
-                        <p className="text-[10px] sm:text-[11px] text-slate-400 mt-1 font-medium">Jl. Ki Hajar Dewantara No.19, Surakarta</p>
+                        <h1 className="text-sm sm:text-base md:text-lg font-bold text-slate-900 tracking-tight leading-tight">SOLO TECHNOPARK</h1>
+                        <p className="text-[11px] sm:text-xs text-slate-500 font-semibold mt-0.5">Badan Layanan Umum Daerah (BLUD)</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Jl. Ki Hajar Dewantara No.19, Surakarta</p>
                       </div>
                     </div>
                     <div className="text-left sm:text-right">
-                      <h2 className="text-xl sm:text-3xl font-black text-slate-800 tracking-tight uppercase">Invoice</h2>
-                      <p className="font-mono text-slate-500 text-xs sm:text-sm font-bold mt-1 sm:mt-2 bg-slate-50 px-2.5 py-1 rounded-lg inline-block border border-slate-100">{invoice.invoiceNumber}</p>
+                      <h2 className="text-base sm:text-lg font-bold text-slate-800 tracking-tight uppercase">Invoice</h2>
+                      <p className="font-mono text-slate-600 text-xs font-bold mt-1 bg-slate-50 px-2 py-0.5 rounded-md inline-block border border-slate-200">{invoice.invoiceNumber}</p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 mb-6 sm:mb-10">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 mb-5 sm:mb-7">
                     <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 sm:mb-2">Ditagihkan Kepada:</p>
-                      <p className="font-black text-base sm:text-xl text-slate-900 leading-tight">{invoice.customerName}</p>
-                      <p className="text-[10px] sm:text-xs font-bold text-blue-600 bg-blue-50 border border-blue-100 inline-block px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md mt-1.5 sm:mt-2">{invoice.customerType}</p>
-                      <div className="mt-2 sm:mt-3 space-y-0.5 sm:space-y-1 text-xs sm:text-sm font-medium text-slate-500">
+                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Ditagihkan Kepada:</p>
+                      <p className="font-bold text-sm sm:text-base text-slate-900 leading-tight">{invoice.customerName}</p>
+                      <p className="text-[10px] font-semibold text-blue-600 bg-blue-50 border border-blue-100 inline-block px-2 py-0.5 rounded-md mt-1">{invoice.customerType}</p>
+                      <div className="mt-1.5 space-y-0.5 text-xs font-medium text-slate-500">
                         {invoice.customerEmail && <p>{invoice.customerEmail}</p>}
                         {invoice.customerPhone && <p>{invoice.customerPhone}</p>}
                       </div>
@@ -221,29 +221,29 @@ Salam hangat,
                     </div>
                   </div>
 
-                  <div className="mb-10 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-                    <table className="w-full text-sm text-left border-collapse">
+                  <div className="mb-6 rounded-xl overflow-hidden border border-slate-200 shadow-2xs">
+                    <table className="w-full text-xs sm:text-sm text-left border-collapse">
                       <thead>
-                        <tr className="bg-slate-50 text-slate-500 text-xs font-bold uppercase tracking-wider border-b border-slate-200">
-                          <th className="px-5 py-4">Deskripsi Layanan / Rincian</th>
-                          <th className="px-5 py-4 text-center w-28">Qty / Satuan</th>
-                          <th className="px-5 py-4 text-right w-40">Harga Satuan</th>
-                          <th className="px-5 py-4 text-right w-40">Total Harga</th>
+                        <tr className="bg-slate-50 text-slate-500 text-[11px] font-semibold uppercase tracking-wider border-b border-slate-200">
+                          <th className="px-3.5 py-2.5 sm:px-4 sm:py-3">Deskripsi Layanan / Rincian</th>
+                          <th className="px-3 py-2.5 sm:px-4 sm:py-3 text-center w-24 sm:w-28">Qty</th>
+                          <th className="px-3 py-2.5 sm:px-4 sm:py-3 text-right w-32 sm:w-36">Harga Satuan</th>
+                          <th className="px-3 py-2.5 sm:px-4 sm:py-3 text-right w-32 sm:w-36">Total</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {invoice.items && invoice.items.length > 0 ? (
                           invoice.items.map((item, idx) => (
                             <tr key={idx} className="bg-white">
-                              <td className="px-5 py-4">
-                                <p className="font-bold text-slate-900">{item.description}</p>
+                              <td className="px-3.5 py-2.5 sm:px-4 sm:py-3">
+                                <p className="font-semibold text-slate-800">{item.description}</p>
                                 {item.subDescription && (
-                                  <p className="text-xs text-slate-500 font-normal mt-0.5">{item.subDescription}</p>
+                                  <p className="text-[11px] text-slate-500 font-normal mt-0.5">{item.subDescription}</p>
                                 )}
                                 {item.points && item.points.length > 0 && (
-                                  <ul className="mt-1.5 space-y-1 list-none pl-0">
+                                  <ul className="mt-1 space-y-0.5 list-none pl-0">
                                     {item.points.map((pt, pIdx) => (
-                                      <li key={pIdx} className="text-xs text-slate-600 flex items-start gap-1.5">
+                                      <li key={pIdx} className="text-[11px] text-slate-600 flex items-start gap-1">
                                         <span className="text-blue-500 font-bold shrink-0">•</span>
                                         <span>{pt}</span>
                                       </li>
@@ -251,16 +251,16 @@ Salam hangat,
                                   </ul>
                                 )}
                               </td>
-                              <td className="px-5 py-4 text-center font-bold text-slate-800">
+                              <td className="px-3 py-2.5 sm:px-4 sm:py-3 text-center font-semibold text-slate-700">
                                 <span>{item.quantity}</span>
-                                {item.unit && <span className="ml-1 text-xs text-slate-500 font-medium">{item.unit}</span>}
+                                {item.unit && <span className="ml-1 text-[11px] text-slate-400 font-normal">{item.unit}</span>}
                               </td>
-                              <td className="px-5 py-4 text-right font-medium text-slate-600">{formatRupiah(item.unitPrice)}</td>
-                              <td className="px-5 py-4 text-right font-bold text-slate-900">{formatRupiah(item.total)}</td>
+                              <td className="px-3 py-2.5 sm:px-4 sm:py-3 text-right font-medium text-slate-600 font-mono text-xs">{formatRupiah(item.unitPrice)}</td>
+                              <td className="px-3 py-2.5 sm:px-4 sm:py-3 text-right font-bold text-slate-900 font-mono text-xs">{formatRupiah(item.total)}</td>
                             </tr>
                           ))
                         ) : (
-                          <tr><td colSpan={4} className="px-5 py-8 text-center text-slate-400 text-sm italic">Rincian item kosong.</td></tr>
+                          <tr><td colSpan={4} className="px-4 py-6 text-center text-slate-400 text-xs italic">Rincian item kosong.</td></tr>
                         )}
                       </tbody>
                     </table>
@@ -318,17 +318,17 @@ Salam hangat,
                       
                       <div className="my-4 border-t border-slate-200"></div>
 
-                      <div className="flex justify-between items-center text-slate-900 font-black text-xl px-2">
+                      <div className="flex justify-between items-center text-slate-900 font-bold text-sm sm:text-base px-1">
                         <span>Total Tagihan</span><span>{formatRupiah(invoice.totalAmount)}</span>
                       </div>
                       
-                      <div className="flex justify-between text-emerald-600 font-bold text-sm mt-4 px-2">
+                      <div className="flex justify-between text-emerald-600 font-semibold text-xs mt-2 px-1">
                         <span>Telah Dibayar</span><span>- {formatRupiah(invoice.paidAmount)}</span>
                       </div>
                       
-                      <div className="flex justify-between items-center bg-slate-50 border border-slate-200 p-4 rounded-xl font-black mt-4 shadow-inner">
-                        <span className="text-slate-600 text-sm uppercase tracking-wider">Sisa Bayar</span>
-                        <span className={`text-xl ${invoice.remainingAmount > 0 ? "text-slate-900" : "text-emerald-600"}`}>{formatRupiah(invoice.remainingAmount)}</span>
+                      <div className="flex justify-between items-center bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold mt-3 shadow-2xs">
+                        <span className="text-slate-600 text-xs uppercase tracking-wider">Sisa Bayar</span>
+                        <span className={`text-sm sm:text-base ${invoice.remainingAmount > 0 ? "text-slate-900" : "text-emerald-600"}`}>{formatRupiah(invoice.remainingAmount)}</span>
                       </div>
                     </div>
                   </div>
@@ -337,32 +337,32 @@ Salam hangat,
               </div>
             </div>
 
-            <div className="w-full md:w-[400px] bg-white border-l border-slate-200 flex flex-col shrink-0 relative z-20">
+            <div className="w-full md:w-72 lg:w-80 bg-white border-l border-slate-200 flex flex-col shrink-0 relative z-20">
               
-              <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-white">
+              <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-3.5 border-b border-slate-100 bg-white">
                 <div>
-                  <h3 className="font-black text-slate-800 text-base">Pusat Kendali</h3>
-                  <p className="text-[11px] font-medium text-slate-500 mt-1">Manajemen & Aksi Transaksi</p>
+                  <h3 className="font-bold text-slate-800 text-sm">Pusat Kendali</h3>
+                  <p className="text-[10px] font-medium text-slate-500 mt-0.5">Manajemen & Aksi Transaksi</p>
                 </div>
-                <button onClick={handleClose} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors bg-slate-50">
-                  <X className="w-5 h-5" />
+                <button onClick={handleClose} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors bg-slate-50">
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
               <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
-                <div className="p-8 border-b border-slate-100 flex flex-col items-start bg-slate-50/50">
-                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Status Saat Ini</p>
-                   <div className={`inline-flex items-center gap-2.5 px-4 py-2 rounded-xl text-sm font-bold border ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border} shadow-sm`}>
+                <div className="p-3.5 sm:p-4 border-b border-slate-100 flex flex-col items-start bg-slate-50/50">
+                   <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Status Saat Ini</p>
+                   <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold border ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border} shadow-2xs`}>
                   {statusStyle.icon}
                   {statusStyle.label}
                </div>
             </div>
 
-            <div className="p-6 space-y-4 border-b border-slate-100 bg-white">
+            <div className="p-3.5 sm:p-4 space-y-2 border-b border-slate-100 bg-white">
               
-              {/* TOMBOL CETAK PDF YANG SUDAH DIPERBAIKI (TIDAK ADA ALERT MOCK LAGI) */}
-              <button onClick={handleExportPDF} disabled={isExporting} className="w-full flex items-center justify-between px-5 py-3.5 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm group disabled:opacity-70 disabled:cursor-not-allowed">
-                <div className="flex items-center gap-3">
+              {/* TOMBOL CETAK PDF */}
+              <button onClick={handleExportPDF} disabled={isExporting} className="w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-2xs group disabled:opacity-70 disabled:cursor-not-allowed">
+                <div className="flex items-center gap-2.5">
                   {isExporting ? <Loader2 className="w-5 h-5 text-blue-500 animate-spin" /> : <FileText className="w-5 h-5 text-slate-400 group-hover:text-blue-500 transition-colors" />}
                   {isExporting ? 'Memproses Dokumen...' : 'Cetak Invoice (PDF)'}
                 </div>
@@ -371,18 +371,18 @@ Salam hangat,
               
               {/* LOGIKA CETAK KWITANSI YANG SUDAH BENAR TERSAMBUNG KE onOpenKwitansi */}
               {hasSuccessfulPayments && onOpenKwitansi && (
-                 <button onClick={() => onOpenKwitansi(invoice)} className="w-full flex items-center justify-between px-5 py-3.5 text-sm font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl hover:bg-emerald-100 hover:border-emerald-300 transition-colors shadow-sm group">
-                   <div className="flex items-center gap-3">
-                     <Receipt className="w-5 h-5 text-emerald-500 group-hover:text-emerald-700 transition-colors" /> Cetak Kwitansi Tanda Terima
+                 <button onClick={() => onOpenKwitansi(invoice)} className="w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl hover:bg-emerald-100 hover:border-emerald-300 transition-colors shadow-2xs group">
+                   <div className="flex items-center gap-2.5">
+                     <Receipt className="w-4 h-4 text-emerald-500 group-hover:text-emerald-700 transition-colors" /> Cetak Kwitansi Tanda Terima
                    </div>
-                   <ChevronRight className="w-4 h-4 text-emerald-300 group-hover:text-emerald-600 group-hover:translate-x-1 transition-transform" />
+                   <ChevronRight className="w-3.5 h-3.5 text-emerald-300 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-transform" />
                  </button>
               )}
               
               {onDuplicateInvoice && (
-                <button onClick={() => onDuplicateInvoice(invoice)} className="w-full flex items-center justify-between px-5 py-3.5 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm group">
-                  <div className="flex items-center gap-3"><Copy className="w-5 h-5 text-slate-400 group-hover:text-indigo-500 transition-colors" /> Duplikat Tagihan</div>
-                  <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 group-hover:translate-x-1 transition-transform" />
+                <button onClick={() => onDuplicateInvoice(invoice)} className="w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-2xs group">
+                  <div className="flex items-center gap-2.5"><Copy className="w-4 h-4 text-slate-400 group-hover:text-indigo-500 transition-colors" /> Duplikat Tagihan</div>
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-500 group-hover:translate-x-0.5 transition-transform" />
                 </button>
               )}
 
@@ -390,29 +390,29 @@ Salam hangat,
                     <>
                       <button 
                         onClick={handleCopyPaymentLink}
-                        className="w-full flex items-center justify-between px-5 py-3.5 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm group"
+                        className="w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-2xs group"
                       >
-                        <div className="flex items-center gap-3">
-                          {copiedLink ? <CheckCircle className="w-5 h-5 text-emerald-500" /> : <LinkIcon className="w-5 h-5 text-slate-400 group-hover:text-blue-500 transition-colors" />} 
+                        <div className="flex items-center gap-2.5">
+                          {copiedLink ? <CheckCircle className="w-4 h-4 text-emerald-500" /> : <LinkIcon className="w-4 h-4 text-slate-400 group-hover:text-blue-500 transition-colors" />} 
                           {copiedLink ? 'Tautan Disalin!' : 'Salin Tautan Bayar Publik'}
                         </div>
-                        {!copiedLink && <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 group-hover:translate-x-1 transition-transform" />}
+                        {!copiedLink && <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-500 group-hover:translate-x-0.5 transition-transform" />}
                       </button>
 
                       {onAddPayment && (
                          <button 
                            onClick={() => { if (invoice.id) onAddPayment(invoice); }} 
-                           className="w-full flex items-center justify-between px-5 py-4 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200 group mt-4"
+                           className="w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200 group mt-2"
                          >
-                           <div className="flex items-center gap-3"><Plus className="w-5 h-5" /> Catat Pembayaran Manual</div>
-                           <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                           <div className="flex items-center gap-2.5"><Plus className="w-4 h-4" /> Catat Pembayaran Manual</div>
+                           <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                          </button>
                       )}
 
-                      <div className="pt-2">
-                        <button onClick={() => setShowQRIS(!showQRIS)} className="w-full flex items-center justify-between px-5 py-3 text-xs font-bold text-slate-600 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors">
-                          <div className="flex items-center gap-3"><QrCode className="w-4 h-4 text-slate-500" /> Tampilkan Layar QRIS</div>
-                          <span className="text-[10px] font-bold px-2 py-1 bg-white rounded-md border border-slate-200">{showQRIS ? 'Tutup' : 'Buka'}</span>
+                      <div className="pt-1">
+                        <button onClick={() => setShowQRIS(!showQRIS)} className="w-full flex items-center justify-between px-3.5 py-2 text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors">
+                          <div className="flex items-center gap-2"><QrCode className="w-3.5 h-3.5 text-slate-500" /> Tampilkan Layar QRIS</div>
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 bg-white rounded border border-slate-200">{showQRIS ? 'Tutup' : 'Buka'}</span>
                         </button>
                       </div>
                     </>

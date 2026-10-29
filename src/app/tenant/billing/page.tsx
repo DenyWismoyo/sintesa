@@ -145,132 +145,154 @@ export default function TenantBillingPage() {
         </div>
       )}
 
-      {/* Modal / Slide-over Receipt Style */}
+      {/* Modal / Slide-over Receipt Style (Slide dari samping kanan) */}
       <AnimatePresence>
         {selectedInvoice && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 pt-10">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setSelectedInvoice(null)} />
-            
+          <div className="fixed inset-0 z-50 overflow-hidden">
             <motion.div 
-              initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="w-full max-w-md bg-[#FDFDFD] rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl relative z-10 flex flex-col max-h-[90vh] sm:max-h-[85vh] overflow-hidden"
-            >
-              {/* Header Receipt */}
-              <div className="px-5 py-4 bg-white border-b border-slate-100 flex items-center justify-between shrink-0 relative">
-                <div>
-                  <h2 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Rincian Invoice</h2>
-                  <p className="text-base font-bold text-slate-900 font-mono">{selectedInvoice.invoiceNumber}</p>
-                </div>
-                <button onClick={() => setSelectedInvoice(null)} className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-lg transition-colors"><X size={16} /></button>
-              </div>
-
-              {/* Body Receipt (Scrollable) */}
-              <div className="flex-1 overflow-y-auto px-5 py-5 custom-scrollbar">
-                
-                {/* Items List */}
-                <div className="space-y-3 mb-6">
-                  {selectedInvoice.items?.map((item, idx) => (
-                    <div key={idx} className="flex justify-between items-start text-xs font-mono border-b border-slate-100 pb-2.5">
-                      <div className="pr-3">
-                        <p className="font-semibold text-slate-800 font-sans">{item.description}</p>
-                        {item.subDescription && (
-                          <p className="text-[11px] text-slate-500 font-sans mt-0.5">{item.subDescription}</p>
-                        )}
-                        {item.points && item.points.length > 0 && (
-                          <ul className="mt-1 space-y-0.5 list-none font-sans text-[11px] text-slate-600 pl-0">
-                            {item.points.map((pt, pIdx) => (
-                              <li key={pIdx} className="flex items-start gap-1">
-                                <span className="text-blue-500 font-bold">•</span>
-                                <span>{pt}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                        <p className="text-[11px] text-slate-400 mt-0.5">{item.quantity} {item.unit ? `${item.unit} ` : ''}x {formatRupiah(item.unitPrice)}</p>
-                      </div>
-                      <p className="font-bold text-slate-800 shrink-0">{formatRupiah(item.total)}</p>
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity" 
+              onClick={() => { setSelectedInvoice(null); setShowQRIS(false); }} 
+            />
+            
+            <div className="fixed inset-y-0 right-0 flex max-w-full">
+              <motion.div 
+                initial={{ x: '100%' }} 
+                animate={{ x: 0 }} 
+                exit={{ x: '100%' }} 
+                transition={{ type: 'spring', damping: 28, stiffness: 260 }}
+                className="w-screen max-w-full sm:max-w-md md:max-w-lg bg-[#FCFCFD] sm:rounded-l-2xl shadow-2xl relative z-10 flex flex-col h-full overflow-hidden border-l border-slate-200"
+              >
+                {/* Header Receipt */}
+                <div className="px-4 py-3 sm:px-5 sm:py-3.5 bg-white border-b border-slate-100 flex items-center justify-between shrink-0">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                      <Receipt size={16} />
                     </div>
-                  ))}
-                </div>
-
-                {selectedInvoice.termsAndConditions && selectedInvoice.termsAndConditions.length > 0 && (
-                  <div className="mb-5 p-3.5 bg-blue-50/50 rounded-xl border border-blue-100 font-sans">
-                    <p className="text-[11px] font-bold text-blue-900 mb-1.5 uppercase tracking-wider">Ketentuan Pembayaran:</p>
-                    <ol className="space-y-0.5 text-xs text-slate-600 pl-4 list-decimal">
-                      {selectedInvoice.termsAndConditions.map((term, tIdx) => (
-                        <li key={tIdx}>{term}</li>
-                      ))}
-                    </ol>
-                  </div>
-                )}
-
-                <div className="border-t border-dashed border-slate-200 pt-4 space-y-2 text-xs font-mono">
-                  <div className="flex justify-between text-slate-500"><span>Subtotal</span><span>{formatRupiah(selectedInvoice.subTotal)}</span></div>
-                  {selectedInvoice.taxAmount > 0 && <div className="flex justify-between text-slate-500"><span>PPN (11%)</span><span>{formatRupiah(selectedInvoice.taxAmount)}</span></div>}
-                  {selectedInvoice.discountAmount > 0 && <div className="flex justify-between text-red-500"><span>Diskon</span><span>- {formatRupiah(selectedInvoice.discountAmount)}</span></div>}
-                  <div className="flex justify-between items-center text-slate-900 pt-3 border-t border-slate-200 font-bold text-base mt-2">
-                    <span className="font-sans">TOTAL</span><span>{formatRupiah(selectedInvoice.totalAmount)}</span>
-                  </div>
-                </div>
-
-                {/* Info & Status Area */}
-                <div className="mt-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Status Pembayaran</span>
-                    <span className={`px-2 py-0.5 rounded border text-[10px] font-bold uppercase tracking-wider ${selectedInvoice.remainingAmount > 0 ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200'}`}>
-                      {selectedInvoice.remainingAmount > 0 ? 'Belum Lunas' : 'LUNAS'}
-                    </span>
-                  </div>
-                  {selectedInvoice.history && selectedInvoice.history.length > 0 && (
-                    <div className="space-y-1.5 mt-3 pt-3 border-t border-slate-200">
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Riwayat Transaksi</p>
-                      {selectedInvoice.history.map(h => (
-                        <div key={h.id} className={`flex justify-between text-[11px] font-mono px-2.5 py-1.5 rounded-lg border ${h.status === 'PENDING' ? 'text-amber-700 bg-amber-50 border-amber-100' : 'text-emerald-700 bg-emerald-50 border-emerald-100'}`}>
-                          <span className="flex items-center gap-1.5">
-                            {h.status === 'PENDING' ? <Clock size={11} /> : <CheckCircle size={11}/>}
-                            {h.date} {h.status === 'PENDING' && '(Menunggu Kasir)'}
-                          </span>
-                          <span className="font-bold">{formatRupiah(h.amount)}</span>
-                        </div>
-                      ))}
+                    <div className="min-w-0">
+                      <h2 className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider leading-none">Rincian Invoice</h2>
+                      <p className="text-xs sm:text-sm font-bold text-slate-900 font-mono truncate mt-0.5">{selectedInvoice.invoiceNumber}</p>
                     </div>
-                  )}
-                </div>
-
-                {/* QRIS Area */}
-                <AnimatePresence>
-                  {showQRIS && selectedInvoice.remainingAmount > 0 && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mt-6 flex flex-col items-center overflow-hidden">
-                      <div className="p-4 bg-white border-2 border-dashed border-blue-300 rounded-2xl flex flex-col items-center w-full">
-                        <p className="text-xs font-bold text-blue-600 mb-4 uppercase tracking-widest">Scan QRIS Berikut</p>
-                        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=QRIS_${selectedInvoice.invoiceNumber}_${selectedInvoice.remainingAmount}`} alt="QRIS" className="w-48 h-48 object-contain mb-5" />
-                        <button onClick={handleSimulatePayment} disabled={isProcessingPayment} className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl text-sm transition-colors flex justify-center items-center gap-2 shadow-lg disabled:opacity-70">
-                          {isProcessingPayment ? <Loader2 className="animate-spin h-4 w-4" /> : <ShieldCheck size={18} />}
-                          {isProcessingPayment ? 'Mengirim Konfirmasi...' : 'Konfirmasi: Saya Sudah Bayar'}
-                        </button>
-                        <button onClick={() => setShowQRIS(false)} className="mt-3 text-xs font-bold text-slate-400 hover:text-slate-600">Batal Scan</button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-                
-                {/* Spacing for sticky footer */}
-                <div className="h-6"></div>
-              </div>
-
-              {/* Sticky Payment Bar (Footer) */}
-              {selectedInvoice.remainingAmount > 0 && !showQRIS && (
-                <div className="bg-white border-t border-slate-100 p-6 shrink-0 shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm font-bold text-slate-500">Sisa Tagihan</span>
-                    <span className="text-2xl font-black text-blue-600">{formatRupiah(selectedInvoice.remainingAmount)}</span>
                   </div>
-                  <button onClick={() => setShowQRIS(true)} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-500/30 text-base">
-                    <QrCode size={20} /> Bayar via QRIS
+                  <button 
+                    onClick={() => { setSelectedInvoice(null); setShowQRIS(false); }} 
+                    className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                  >
+                    <X size={16} />
                   </button>
                 </div>
-              )}
-            </motion.div>
+
+                {/* Body Receipt (Scrollable) */}
+                <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-5 sm:py-5 custom-scrollbar space-y-4">
+                  
+                  {/* Items List */}
+                  <div className="space-y-2.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Daftar Layanan & Item</p>
+                    {selectedInvoice.items?.map((item, idx) => (
+                      <div key={idx} className="flex justify-between items-start text-xs font-mono border-b border-slate-100 pb-2.5">
+                        <div className="pr-3 min-w-0">
+                          <p className="font-semibold text-slate-800 font-sans truncate">{item.description}</p>
+                          {item.subDescription && (
+                            <p className="text-[11px] text-slate-500 font-sans mt-0.5">{item.subDescription}</p>
+                          )}
+                          {item.points && item.points.length > 0 && (
+                            <ul className="mt-1 space-y-0.5 list-none font-sans text-[11px] text-slate-600 pl-0">
+                              {item.points.map((pt, pIdx) => (
+                                <li key={pIdx} className="flex items-start gap-1">
+                                  <span className="text-blue-500 font-bold">•</span>
+                                  <span>{pt}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                          <p className="text-[11px] text-slate-400 mt-0.5">{item.quantity} {item.unit ? `${item.unit} ` : ''}x {formatRupiah(item.unitPrice)}</p>
+                        </div>
+                        <p className="font-bold text-slate-800 shrink-0">{formatRupiah(item.total)}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {selectedInvoice.termsAndConditions && selectedInvoice.termsAndConditions.length > 0 && (
+                    <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 font-sans">
+                      <p className="text-[10px] font-bold text-blue-900 mb-1 uppercase tracking-wider">Ketentuan Pembayaran:</p>
+                      <ol className="space-y-0.5 text-xs text-slate-600 pl-4 list-decimal">
+                        {selectedInvoice.termsAndConditions.map((term, tIdx) => (
+                          <li key={tIdx}>{term}</li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
+
+                  <div className="border-t border-dashed border-slate-200 pt-3 space-y-1.5 text-xs font-mono">
+                    <div className="flex justify-between text-slate-500"><span>Subtotal</span><span>{formatRupiah(selectedInvoice.subTotal)}</span></div>
+                    {selectedInvoice.taxAmount > 0 && <div className="flex justify-between text-slate-500"><span>PPN (11%)</span><span>{formatRupiah(selectedInvoice.taxAmount)}</span></div>}
+                    {selectedInvoice.discountAmount > 0 && <div className="flex justify-between text-red-500"><span>Diskon</span><span>- {formatRupiah(selectedInvoice.discountAmount)}</span></div>}
+                    <div className="flex justify-between items-center text-slate-900 pt-2.5 border-t border-slate-200 font-bold text-sm sm:text-base mt-1.5">
+                      <span className="font-sans">TOTAL TAGIHAN</span><span>{formatRupiah(selectedInvoice.totalAmount)}</span>
+                    </div>
+                  </div>
+
+                  {/* Info & Status Area */}
+                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                    <div className="flex justify-between items-center mb-1.5">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Status Pembayaran</span>
+                      <span className={`px-2 py-0.5 rounded border text-[10px] font-bold uppercase tracking-wider ${selectedInvoice.remainingAmount > 0 ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200'}`}>
+                        {selectedInvoice.remainingAmount > 0 ? 'Belum Lunas' : 'LUNAS'}
+                      </span>
+                    </div>
+                    {selectedInvoice.history && selectedInvoice.history.length > 0 && (
+                      <div className="space-y-1.5 mt-2.5 pt-2.5 border-t border-slate-200">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-0.5">Riwayat Transaksi</p>
+                        {selectedInvoice.history.map(h => (
+                          <div key={h.id} className={`flex justify-between text-[11px] font-mono px-2 py-1 rounded-md border ${h.status === 'PENDING' ? 'text-amber-700 bg-amber-50 border-amber-100' : 'text-emerald-700 bg-emerald-50 border-emerald-100'}`}>
+                            <span className="flex items-center gap-1.5">
+                              {h.status === 'PENDING' ? <Clock size={11} /> : <CheckCircle size={11}/>}
+                              {h.date} {h.status === 'PENDING' && '(Menunggu Kasir)'}
+                            </span>
+                            <span className="font-bold">{formatRupiah(h.amount)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* QRIS Area */}
+                  <AnimatePresence>
+                    {showQRIS && selectedInvoice.remainingAmount > 0 && (
+                      <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="flex flex-col items-center overflow-hidden">
+                        <div className="p-3.5 bg-white border border-blue-200 rounded-xl flex flex-col items-center w-full shadow-xs">
+                          <p className="text-[10px] font-bold text-blue-600 mb-2 uppercase tracking-wider">Scan QRIS Berikut</p>
+                          <img src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=QRIS_${selectedInvoice.invoiceNumber}_${selectedInvoice.remainingAmount}`} alt="QRIS" className="w-40 h-40 object-contain mb-3" />
+                          <button onClick={handleSimulatePayment} disabled={isProcessingPayment} className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2.5 rounded-lg text-xs transition-colors flex justify-center items-center gap-2 shadow-sm disabled:opacity-70">
+                            {isProcessingPayment ? <Loader2 className="animate-spin h-3.5 w-3.5" /> : <ShieldCheck size={14} />}
+                            {isProcessingPayment ? 'Mengirim Konfirmasi...' : 'Konfirmasi: Saya Sudah Bayar'}
+                          </button>
+                          <button onClick={() => setShowQRIS(false)} className="mt-2 text-xs font-semibold text-slate-400 hover:text-slate-600">Batal Scan</button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                  
+                  {/* Spacing for sticky footer */}
+                  <div className="h-2"></div>
+                </div>
+
+                {/* Sticky Payment Bar (Footer) */}
+                {selectedInvoice.remainingAmount > 0 && !showQRIS && (
+                  <div className="bg-white border-t border-slate-100 px-4 py-3 sm:px-5 sm:py-3.5 shrink-0 shadow-[0_-6px_20px_rgba(0,0,0,0.04)]">
+                    <div className="flex items-center justify-between mb-2.5">
+                      <span className="text-xs font-semibold text-slate-500">Sisa Tagihan</span>
+                      <span className="text-sm sm:text-base font-bold text-blue-600">{formatRupiah(selectedInvoice.remainingAmount)}</span>
+                    </div>
+                    <button onClick={() => setShowQRIS(true)} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-9 sm:h-10 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/20 text-xs sm:text-sm">
+                      <QrCode size={16} /> Bayar via QRIS
+                    </button>
+                  </div>
+                )}
+              </motion.div>
+            </div>
           </div>
         )}
       </AnimatePresence>
