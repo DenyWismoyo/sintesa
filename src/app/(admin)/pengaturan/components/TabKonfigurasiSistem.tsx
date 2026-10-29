@@ -8,7 +8,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { settingService, SystemConfigSetting, DEFAULT_SYSTEM_CONFIG } from '@/services/setting.service';
 
@@ -74,19 +74,10 @@ export default function TabKonfigurasiSistem() {
             <span className="text-xs font-semibold text-slate-600">
               {config.isAnnouncementActive ? 'Aktif' : 'Nonaktif'}
             </span>
-            <button
-              type="button"
-              onClick={() => setConfig(prev => ({ ...prev, isAnnouncementActive: !prev.isAnnouncementActive }))}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                config.isAnnouncementActive ? 'bg-blue-600' : 'bg-slate-300'
-              }`}
-            >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                  config.isAnnouncementActive ? 'translate-x-5' : 'translate-x-0'
-                }`}
-              />
-            </button>
+            <Switch
+              checked={config.isAnnouncementActive}
+              onCheckedChange={(checked) => setConfig({ ...config, isAnnouncementActive: checked })}
+            />
           </div>
         </div>
 
@@ -297,4 +288,3 @@ export default function TabKonfigurasiSistem() {
     </form>
   );
 }
-
