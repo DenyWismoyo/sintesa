@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Trash2, Loader2, FileUp, Sparkles, AlertCircle, Wrench, Calendar, Building2, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatRupiah } from '@/utils/format';
+import { useAssets } from '@/hooks/useAssets';
 
 interface Props {
   isOpen: boolean;
@@ -38,6 +39,7 @@ export default function ModalFormProductionOrder({
 }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const { allEquipments = [] } = useAssets();
 
   // States Informasi Pemesan
   const [clientName, setClientName] = useState('');
@@ -414,7 +416,26 @@ export default function ModalFormProductionOrder({
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-xs font-bold text-slate-700">Lokasi Workshop STP</Label>
+                  <Label className="text-xs font-bold text-slate-700">Lokasi Workshop / Mesin STP</Label>
+                  {allEquipments.length > 0 && (
+                    <select
+                      onChange={e => {
+                        const eq = allEquipments.find(a => a.id === e.target.value);
+                        if (eq) {
+                          setWorkshopLocation(`${eq.name} — ${eq.location || 'Workshop STP'}`);
+                        }
+                      }}
+                      defaultValue=""
+                      className="w-full h-8 px-2.5 mb-1.5 text-[11px] font-semibold rounded-lg bg-blue-50/70 border border-blue-200 text-blue-900 outline-none"
+                    >
+                      <option value="">-- Pilih dari Master Mesin / Aset STP (Opsional) --</option>
+                      {allEquipments.map(eq => (
+                        <option key={eq.id} value={eq.id} disabled={eq.status === 'Pemeliharaan' || eq.condition === 'Rusak Berat'}>
+                          {eq.name} ({eq.location || 'STP'}) {eq.status === 'Pemeliharaan' ? '[MAINTENANCE]' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                   <Input 
                     value={workshopLocation} 
                     onChange={e => setWorkshopLocation(e.target.value)}

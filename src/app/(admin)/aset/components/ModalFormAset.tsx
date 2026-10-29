@@ -244,7 +244,15 @@ export default function ModalFormAset({ assetToEdit, onClose, onSave }: Props) {
             <hr className="border-slate-100" />
 
             {/* STATUS & PENGADAAN */}
-            <section className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div>
+                <label className={labelClassName}>Status Operasional</label>
+                <select value={form.status} onChange={(e) => setForm({...form, status: e.target.value as AssetStatus})} className={inputClassName}>
+                  <option value="Tersedia">Tersedia</option>
+                  <option value="Pemeliharaan">Pemeliharaan (Maintenance)</option>
+                  <option value="Disewa">Disewa / Digunakan</option>
+                </select>
+              </div>
               <div>
                 <label className={labelClassName}>Kondisi Fisik</label>
                 <select value={form.condition} onChange={(e) => setForm({...form, condition: e.target.value as AssetCondition})} className={inputClassName}>

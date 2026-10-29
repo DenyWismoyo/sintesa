@@ -1,6 +1,10 @@
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import * as admin from "firebase-admin";
 
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
+
 const db = admin.firestore();
 
 export const onTrainingRegistered = onDocumentCreated("trainings/{trainingId}/registrations/{regId}", async (event) => {
@@ -25,14 +29,14 @@ export const onTrainingRegistered = onDocumentCreated("trainings/{trainingId}/re
 
     const price = trainingData.price;
     const dateObj = new Date();
-    // Format YYYYMMDD
     const dateStr = dateObj.toISOString().split('T')[0].replace(/-/g, '');
     const invNumber = `INV/TRN/${dateStr}/${Math.floor(1000 + Math.random() * 9000)}`;
 
-    const appId = process.env.NEXT_PUBLIC_APP_ID || 'blud-app-dev';
+    const appId = process.env.APP_ID || process.env.NEXT_PUBLIC_APP_ID || 'blud-app-dev';
 
     const newInvoice = {
       invoiceNumber: invNumber,
+      division: 'DIKLAT_PELATIHAN',
       customerName: regData.name || 'Peserta Pelatihan',
       customerType: 'Umum',
       customerEmail: regData.email || '',
@@ -40,7 +44,6 @@ export const onTrainingRegistered = onDocumentCreated("trainings/{trainingId}/re
       items: [{
         id: Date.now().toString(),
         referenceType: 'TRAINING',
-        // Menyimpan TrainingID dan RegID agar bisa dilacak oleh Sync-Back
         referenceId: `${event.params.trainingId}::${event.params.regId}`, 
         description: `Tiket Pelatihan: ${trainingData.title}`,
         quantity: 1,
@@ -54,7 +57,6 @@ export const onTrainingRegistered = onDocumentCreated("trainings/{trainingId}/re
       paidAmount: 0,
       remainingAmount: price, 
       term: 'FULL_PAYMENT',
-      // Memastikan format tanggal bersih YYYY-MM-DD
       date: dateObj.toISOString().split('T')[0],
       dueDate: new Date(dateObj.getTime() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       status: 'PENDING',
@@ -75,8 +77,7 @@ export const onCatalogOrderCreated = onDocumentCreated("artifacts/{appId}/public
   const orderData = event.data?.data();
   if (!orderData) return;
 
-  const db = admin.firestore();
-  const appId = event.params.appId;
+  const appId = event.params.appId || process.env.APP_ID || 'blud-app-dev';
 
   try {
     console.log(`[Purchase Automation] Memproses Order Katalog: ${event.params.orderId}`);
@@ -116,6 +117,7 @@ export const onCatalogOrderCreated = onDocumentCreated("artifacts/{appId}/public
 
     const newInvoice = {
       invoiceNumber: invNumber,
+      division: 'KATALOG_PRODUK',
       customerName: orderData.customerName || orderData.buyerName || 'Pelanggan Katalog',
       customerType: 'Umum',
       customerEmail: orderData.customerEmail || orderData.buyerEmail || '',

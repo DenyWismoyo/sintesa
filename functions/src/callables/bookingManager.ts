@@ -21,7 +21,7 @@ export const submitBooking = onCall(async (request) => {
   const authEmail = request.auth.token?.email || '';
 
   const data = request.data || {};
-  const appId = data.appId || 'blud-app-dev'; 
+  const appId = data.appId || process.env.APP_ID || 'blud-app-dev'; 
 
   const { assetId, startDate, endDate, startTime, endTime } = data;
 
@@ -34,6 +34,18 @@ export const submitBooking = onCall(async (request) => {
   try {
     // Memulai Transaksi Database: Mengunci data agar tidak ada Race Condition (Booking bersamaan)
     const result = await db.runTransaction(async (transaction) => {
+      // Validasi ketersediaan fisik aset (Sprint 3: Blokir aset berstatus Pemeliharaan / Rusak Berat)
+      const assetRef = db.collection('assets').doc(String(assetId));
+      const assetSnap = await transaction.get(assetRef);
+      if (assetSnap.exists) {
+        const assetData = assetSnap.data();
+        if (assetData?.status === 'Pemeliharaan' || assetData?.condition === 'Rusak Berat') {
+          throw new HttpsError(
+            'failed-precondition',
+            `Maaf, fasilitas "${assetData?.name || 'tersebut'}" sedang dalam masa Pemeliharaan / Perbaikan Teknis dan tidak dapat dipesan sementara waktu.`
+          );
+        }
+      }
       
       // PERBAIKAN UTAMA:
       // Kita HANYA mencari berdasarkan assetId. Kita menghindari penggunaan multiple .where()
@@ -51,12 +63,10 @@ export const submitBooking = onCall(async (request) => {
         if (existing.status === 'approved' || existing.status === 'completed') {
             
             // 2. Cek Irisan Tanggal (Date Overlap)
-            // Rumus: Start Baru <= End Lama DAN End Baru >= Start Lama
             const isDateOverlap = startDate <= existing.endDate && endDate >= existing.startDate;
 
             if (isDateOverlap) {
                 // 3. Cek Irisan Jam (Time Overlap) jika tanggalnya ternyata bersinggungan
-                // Rumus: Waktu Mulai Baru < Waktu Selesai Lama DAN Waktu Selesai Baru > Waktu Mulai Lama
                 const isTimeOverlap = startTime < existing.endTime && endTime > existing.startTime;
                 
                 if (isTimeOverlap) {
@@ -67,7 +77,6 @@ export const submitBooking = onCall(async (request) => {
       });
 
       if (isClashing) {
-        // Melempar status "already-exists" agar ditangkap rapi oleh frontend tanpa memunculkan error 500
         throw new HttpsError('already-exists', 'Maaf, Ruangan sudah dipesan pada tanggal dan jam tersebut. Silakan pilih waktu lain.');
       }
 
@@ -92,6 +101,7 @@ export const submitBooking = onCall(async (request) => {
         purpose: typeof data.purpose === 'string' ? data.purpose : '',
         notes: typeof data.notes === 'string' ? data.notes : '',
         totalPrice: typeof data.totalPrice === 'number' ? data.totalPrice : 0,
+        referralCode: typeof data.referralCode === 'string' && data.referralCode.trim() ? data.referralCode.trim() : null,
         status: 'pending', // Status pengajuan awal harus selalu pending
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       };
@@ -107,12 +117,10 @@ export const submitBooking = onCall(async (request) => {
   } catch (error: any) {
     console.error("Booking Transaction Failed:", error);
     
-    // Jika error ini adalah buatan kita sendiri (Ruangan Penuh / Data Kurang), teruskan pesannya ke Klien
-    if (error.code === 'already-exists' || error.code === 'invalid-argument' || error.code === 'unauthenticated') {
+    if (error.code === 'already-exists' || error.code === 'invalid-argument' || error.code === 'unauthenticated' || error.code === 'failed-precondition') {
         throw error;
     }
     
-    // Jika ada error jaringan/database tak terduga, jadikan internal error (500) yang terbaca rapi
     throw new HttpsError('internal', error.message || 'Gagal memproses peminjaman ruangan pada server.');
   }
 });

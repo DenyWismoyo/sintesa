@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const InvoiceItemSchema = z.object({
   id: z.string(),
   referenceId: z.string().optional(), 
-  referenceType: z.enum(['CATALOG', 'TARIFF_DAY', 'TARIFF_MONTH', 'CUSTOM', 'BOOKING', 'TRAINING', 'PRODUCTION']).default('CUSTOM'),
+  referenceType: z.enum(['CATALOG', 'TARIFF_DAY', 'TARIFF_MONTH', 'CUSTOM', 'BOOKING', 'TRAINING', 'PRODUCTION', 'TENANT', 'PARTNERSHIP', 'EVENT']).default('CUSTOM'),
   description: z.string(),
   subDescription: z.string().optional(),
   unit: z.string().optional(),
@@ -101,10 +101,10 @@ export function inferInvoiceDivision(invoice: Partial<Invoice>): InvoiceDivision
   const invNumber = invoice.invoiceNumber || '';
 
   if (refType === 'PRODUCTION' || invNumber.includes('/PROD/')) return 'JASA_PRODUKSI';
+  if (refType === 'TENANT' || invoice.customerType === 'Tenant' || invNumber.includes('/TENANT/')) return 'INKUBASI_TENANT';
   if (refType === 'BOOKING' || refType === 'TARIFF_DAY' || refType === 'TARIFF_MONTH' || invNumber.includes('/SEWA/') || invNumber.includes('/BKG/')) return 'FASILITAS_ASET';
   if (refType === 'TRAINING' || invNumber.includes('/TRN/') || invNumber.includes('/TRAINING/')) return 'DIKLAT_PELATIHAN';
   if (refType === 'CATALOG' || invNumber.includes('/CAT/')) return 'KATALOG_PRODUK';
-  if (invoice.customerType === 'Tenant' || invNumber.includes('/TENANT/')) return 'INKUBASI_TENANT';
   return 'UMUM';
 }
 
@@ -113,6 +113,7 @@ export const InvoiceSchema = z.object({
   invoiceNumber: z.string(),
   customerName: z.string(),
   customerType: z.enum(['Tenant', 'Umum']),
+  tenantId: z.string().optional(),
   customerEmail: z.string().optional().or(z.literal('')),
   customerPhone: z.string().optional().or(z.literal('')),
   items: z.array(InvoiceItemSchema),

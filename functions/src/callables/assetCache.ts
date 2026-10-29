@@ -14,12 +14,12 @@ export const rebuildAssetMasterCache = onCall(async (request) => {
   }
 
   const role = request.auth.token?.role as string | undefined;
-  const allowedRoles = ['super_admin', 'admin_aset'];
+  const allowedRoles = ['super_admin', 'admin', 'admin_aset', 'operator_aset'];
   if (!role || !allowedRoles.includes(role)) {
     throw new HttpsError('permission-denied', 'Akses Ditolak: Hak akses tidak mencukupi untuk memperbarui cache aset.');
   }
 
-  const appId = request.data.appId || 'blud-app-dev';
+  const appId = process.env.APP_ID || request.data?.appId || 'blud-app-dev';
 
   try {
     // 2. Baca seluruh data aset dari koleksi utama

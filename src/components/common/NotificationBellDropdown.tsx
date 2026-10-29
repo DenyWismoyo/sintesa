@@ -19,6 +19,7 @@ import {
   Inbox,
 } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
+import { isInternalStaff } from '@/config/roles';
 import { notificationService } from '@/services/notification.service';
 import { EcosystemNotification } from '@/types/alumniForum.types';
 
@@ -252,11 +253,11 @@ export default function NotificationBellDropdown({ align = 'right', className = 
                 type="button"
                 onClick={() => {
                   setIsOpen(false);
-                  router.push('/alumni-portal');
+                  router.push(isInternalStaff(role) ? '/dashboard' : '/alumni-portal');
                 }}
                 className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
               >
-                <span>Buka Pusat Komunitas & Forum</span>
+                <span>{isInternalStaff(role) ? 'Buka Command Center Admin' : 'Buka Pusat Komunitas & Forum'}</span>
                 <ChevronRight size={12} />
               </button>
             </div>

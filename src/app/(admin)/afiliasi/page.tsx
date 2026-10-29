@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { useAllAffiliates, useAllCommissions, useAllPayouts, useAffiliateSettings } from '@/hooks/useAffiliate';
+import { useFinance } from '@/hooks/useFinance';
 import { storageService } from '@/services/storage.service';
 import { formatRupiah } from '@/utils/format';
 import { AffiliatePartner, CommissionRecord, AffiliatePayoutRequest } from '@/types/affiliate.types';
@@ -10,7 +11,7 @@ import { toast } from 'sonner';
 import { 
   Share2, Users, CheckCircle2, Clock, XCircle, DollarSign, TrendingUp,
   Search, ChevronDown, Eye, Check, X, Banknote, UploadCloud, Settings2,
-  ExternalLink, Copy, BadgeCheck, AlertTriangle, Loader2, Link2, RefreshCcw, Ban
+  ExternalLink, Copy, BadgeCheck, AlertTriangle, Loader2, Link2, RefreshCcw, Ban, Landmark
 } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin';
 
@@ -49,9 +50,14 @@ export default function AfiliasPage() {
   const [customCode, setCustomCode] = useState('');
   const [payoutModal, setPayoutModal] = useState<{ open: boolean; payout: AffiliatePayoutRequest } | null>(null);
   const [proofFile, setProofFile] = useState<File | null>(null);
+  const [selectedSourceAccountId, setSelectedSourceAccountId] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const { accounts, createNewExpense, updateExpenseStatus } = useFinance();
+  const kasBankAccounts = (accounts || []).filter(a => a.type === 'KAS_BANK');
+  const bebanAccounts = (accounts || []).filter(a => a.type === 'BEBAN');
 
   const { affiliates: pending, isLoading: pendingLoading, approveAffiliate, rejectAffiliate, isSubmitting: affSubmitting } = useAllAffiliates('PENDING');
   const { affiliates: active, isLoading: activeLoading } = useAllAffiliates('APPROVED');
@@ -78,6 +84,12 @@ export default function AfiliasPage() {
       });
     }
   }, [settings]);
+
+  React.useEffect(() => {
+    if (!selectedSourceAccountId && kasBankAccounts.length > 0 && kasBankAccounts[0].id) {
+      setSelectedSourceAccountId(kasBankAccounts[0].id);
+    }
+  }, [kasBankAccounts, selectedSourceAccountId]);
 
   const statsCards = [
     { label: 'Total Mitra', value: allAff.length, icon: Users, color: 'blue' },
@@ -119,6 +131,30 @@ export default function AfiliasPage() {
         proofReceiptUrl: url,
         adminNotes,
       });
+
+      // Integrasi Otomatis ke Sistem Pengeluaran & Jurnal Akuntansi BLUD
+      if (selectedSourceAccountId) {
+        const defaultBebanAcc = bebanAccounts.find(a => a.name.toLowerCase().includes('pemasaran') || a.name.toLowerCase().includes('komisi') || a.name.toLowerCase().includes('operasional')) || bebanAccounts[0];
+        const expenseNumber = `EXP/AFF/${new Date().toISOString().slice(0, 10).replace(/-/g, '')}/${Math.floor(1000 + Math.random() * 9000)}`;
+        const expData = {
+          expenseNumber,
+          date: new Date().toISOString().split('T')[0],
+          categoryId: defaultBebanAcc?.id || '5-1099',
+          categoryName: defaultBebanAcc?.name || 'Beban Komisi Afiliasi & Pemasaran',
+          payeeName: `${payoutModal.payout.accountHolderName} (Mitra ${payoutModal.payout.referralCode})`,
+          description: `Pencairan Komisi Afiliasi Mitra ${payoutModal.payout.referralCode} ke ${payoutModal.payout.bankName} ${payoutModal.payout.accountNumber}${adminNotes ? ` (${adminNotes})` : ''}`,
+          amount: payoutModal.payout.amount,
+          sourceAccountId: selectedSourceAccountId,
+          status: 'PENDING_APPROVAL' as const,
+          receiptUrl: url
+        };
+        const expRes = await createNewExpense(expData, null);
+        if (expRes.success && expRes.id) {
+          await updateExpenseStatus({ ...expData, id: expRes.id }, 'PAID');
+          toast.success('Jurnal Pengeluaran & Pemotongan Saldo Kas/Bank berhasil dicatat otomatis.');
+        }
+      }
+
       setPayoutModal(null);
       setProofFile(null);
       setAdminNotes('');
@@ -457,11 +493,28 @@ export default function AfiliasPage() {
       {payoutModal?.open && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 w-full max-w-md max-h-[92vh] sm:max-h-[88vh] my-auto shadow-2xl overflow-y-auto custom-scrollbar border border-slate-100 flex flex-col">
-            <h3 className="text-base sm:text-lg font-black text-slate-900 mb-1">Konfirmasi Transfer</h3>
+            <h3 className="text-base sm:text-lg font-black text-slate-900 mb-1">Konfirmasi Transfer Komisi</h3>
             <p className="text-xs text-slate-500 mb-4">
               {formatRupiah(payoutModal.payout.amount)} ke <strong>{payoutModal.payout.accountHolderName}</strong><br />
               {payoutModal.payout.bankName} · {payoutModal.payout.accountNumber}
             </p>
+
+            <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1.5">
+              <Landmark className="w-3.5 h-3.5 text-indigo-600" /> Rekening Kas / Bank Sumber Dana (BLUD) *
+            </label>
+            <select
+              value={selectedSourceAccountId}
+              onChange={e => setSelectedSourceAccountId(e.target.value)}
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+            >
+              <option value="">-- Pilih Rekening Kas/Bank Sumber --</option>
+              {kasBankAccounts.map(acc => (
+                <option key={acc.id} value={acc.id}>
+                  {acc.code} - {acc.name} ({formatRupiah(acc.balance || 0)})
+                </option>
+              ))}
+            </select>
+
             <label className="block text-xs font-bold text-slate-700 mb-1">Upload Bukti Transfer *</label>
             <div className="border-2 border-dashed border-slate-200 rounded-xl p-4 text-center mb-3 cursor-pointer hover:border-indigo-400 transition-colors"
               onClick={() => fileRef.current?.click()}>
@@ -477,12 +530,12 @@ export default function AfiliasPage() {
             <input ref={fileRef} type="file" accept="image/*,.pdf" className="hidden" onChange={e => setProofFile(e.target.files?.[0] || null)} />
             <label className="block text-xs font-bold text-slate-700 mb-1">Catatan Admin (opsional)</label>
             <input value={adminNotes} onChange={e => setAdminNotes(e.target.value)}
-              placeholder="e.g. Transfer via BCA 14:30"
+              placeholder="e.g. Transfer via Bank Jateng 14:30"
               className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 mb-4" />
             <div className="flex gap-2.5 sm:gap-3 mt-auto">
               <button onClick={handleProcessPayout} disabled={isUploading || !proofFile}
                 className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-bold py-2.5 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer">
-                {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Konfirmasi
+                {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Konfirmasi & Catat Jurnal
               </button>
               <button onClick={() => setPayoutModal(null)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs sm:text-sm cursor-pointer">Batal</button>
             </div>

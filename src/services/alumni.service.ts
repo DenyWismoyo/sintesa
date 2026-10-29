@@ -265,7 +265,8 @@ export const alumniService = {
       await updateDoc(docRef, {
         status: 'CLAIMED',
         claimedByUserId: userId,
-        claimedAt: Date.now()
+        claimedAt: Date.now(),
+        isVerified: true
       });
 
       return { success: true, data: { id: alumniDoc.id, ...alumniDoc.data() } };

@@ -1,8 +1,11 @@
-// Lokasi file: src/app/admin/tenant/components/ModalKurasiProduk.tsx
 import React, { useState, useEffect } from 'react';
-import { X, Package, ShieldCheck, Save, Loader2, Target, Sparkles, CheckCircle2 } from 'lucide-react';
-import { Tenant, StartupProduct, CurationScore, AIProductInsights } from '@/types';
+import { X, Package, Save, Loader2, Target, Sparkles, CheckCircle2, Rocket } from 'lucide-react';
+import { Tenant, CurationScore, AIProductInsights } from '@/types';
 import { useTenantProducts } from '@/hooks/useTenants';
+import { tenantService } from '@/services/tenant.service';
+import { catalogService } from '@/services/catalog.service';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 interface Props {
   isOpen: boolean;
@@ -12,10 +15,13 @@ interface Props {
 
 export default function ModalKurasiProduk({ isOpen, onClose, tenant }: Props) {
   const { products, updateProduct } = useTenantProducts(tenant?.id);
+  const queryClient = useQueryClient();
   
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [isPromoting, setIsPromoting] = useState(false);
+  const [catalogPrice, setCatalogPrice] = useState<number>(0);
   
   const [scores, setScores] = useState({
     productQuality: 0, brandingPackaging: 0, productionConsistency: 0,
@@ -54,12 +60,46 @@ export default function ModalKurasiProduk({ isOpen, onClose, tenant }: Props) {
   const handleScoreChange = (key: keyof typeof scores, value: number) => setScores(prev => ({ ...prev, [key]: value }));
 
   const handleSaveCuration = async () => {
-    if (!selectedProductId) return;
+    if (!selectedProductId || !tenant?.id) return;
     setIsSaving(true);
-    const curationData: CurationScore = { ...scores, totalScore, readinessLevel: readinessLevel as any, curatedAt: Date.now(), curatedBy: 'Admin Kurator' };
-    await updateProduct.mutateAsync({ productId: selectedProductId, data: { isCurated: true, curation: curationData } });
-    setIsSaving(false);
-    alert('Hasil kurasi berhasil disimpan!');
+    try {
+      const curationData: CurationScore = { ...scores, totalScore, readinessLevel: readinessLevel as any, curatedAt: Date.now(), curatedBy: 'Admin Kurator' };
+      await updateProduct.mutateAsync({ productId: selectedProductId, data: { isCurated: true, curation: curationData } });
+      // Sinkronkan smeReadinessLevel ke dokumen induk Tenant agar tampil di kartu & tabel
+      await tenantService.updateTenant(tenant.id, { smeReadinessLevel: readinessLevel as any });
+      queryClient.invalidateQueries({ queryKey: ['tenants'] });
+      toast.success(`Hasil kurasi disimpan! Level kesiapan: ${readinessLevel}`);
+    } catch (err: any) {
+      toast.error('Gagal menyimpan kurasi: ' + err.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handlePromoteToCatalog = async () => {
+    if (!selectedProduct || !tenant) return;
+    setIsPromoting(true);
+    try {
+      const res = await catalogService.promoteTenantProductToCatalog(
+        tenant,
+        {
+          ...selectedProduct,
+          isCurated: true,
+          curation: { ...scores, totalScore, readinessLevel: readinessLevel as any, curatedAt: Date.now(), curatedBy: 'Admin Kurator' }
+        },
+        catalogPrice
+      );
+      queryClient.invalidateQueries({ queryKey: ['catalogs'] });
+      toast.success(
+        res.updated
+          ? `Produk "${selectedProduct.name}" berhasil diperbarui di Master E-Katalog!`
+          : `Produk "${selectedProduct.name}" resmi ditayangkan ke Master E-Katalog Publik!`
+      );
+    } catch (err: any) {
+      toast.error('Gagal mempromosikan ke E-Katalog: ' + err.message);
+    } finally {
+      setIsPromoting(false);
+    }
   };
 
   // FUNGSI BARU: GENERATE AI INSIGHTS
@@ -80,14 +120,13 @@ export default function ModalKurasiProduk({ isOpen, onClose, tenant }: Props) {
       const data = await response.json();
       if (data.success && data.insights) {
         const aiData: AIProductInsights = { ...data.insights, generatedAt: Date.now() };
-        // Simpan langsung ke database produk
         await updateProduct.mutateAsync({ productId: selectedProduct.id!, data: { aiInsights: aiData } });
-        alert('Insight AI berhasil digenerate & disimpan!');
+        toast.success('Insight AI berhasil digenerate & disimpan!');
       } else {
-        alert('Gagal menghasilkan AI Insight: ' + data.error);
+        toast.error('Gagal menghasilkan AI Insight: ' + data.error);
       }
     } catch (error) {
-      alert('Terjadi kesalahan jaringan saat menghubungi AI.');
+      toast.error('Terjadi kesalahan jaringan saat menghubungi AI.');
     } finally {
       setIsGeneratingAI(false);
     }
@@ -99,11 +138,11 @@ export default function ModalKurasiProduk({ isOpen, onClose, tenant }: Props) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-5xl max-h-[92vh] sm:max-h-[88vh] my-auto flex flex-col md:flex-row overflow-hidden border border-slate-200 animate-in zoom-in-95">
         
-        {/* PANEL KIRI: Daftar Produk Tenant (Responsif Master-Detail di Mobile) */}
+        {/* PANEL KIRI: Daftar Produk Tenant */}
         <div className={`w-full md:w-80 bg-slate-50 border-b md:border-b-0 md:border-r border-slate-200 flex-col shrink-0 ${selectedProductId ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-4 sm:p-5 border-b border-slate-200 bg-white flex items-center justify-between shrink-0">
             <div>
-              <h2 className="text-base sm:text-lg font-black text-slate-800 leading-tight">Kurasi Produk UKM</h2>
+              <h2 className="text-base sm:text-lg font-black text-slate-800 leading-tight">Kurasi Produk & Inovasi</h2>
               <p className="text-xs font-medium text-slate-500 mt-0.5">Tenant: <span className="text-emerald-600 font-bold">{tenant.name}</span></p>
             </div>
             <button onClick={onClose} className="md:hidden p-1.5 text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-lg">
@@ -146,7 +185,7 @@ export default function ModalKurasiProduk({ isOpen, onClose, tenant }: Props) {
             <div className="flex-1 flex flex-col items-center justify-center text-slate-400 p-8 text-center">
               <Target className="w-16 h-16 mb-4 opacity-20" />
               <p className="font-bold text-base sm:text-lg text-slate-600">Pilih Produk untuk Dikurasi</p>
-              <p className="text-xs text-slate-400 mt-1 max-w-xs">Pilih salah satu item di panel kiri untuk mulai penilaian kurasi produk UKM.</p>
+              <p className="text-xs text-slate-400 mt-1 max-w-xs">Pilih salah satu item di panel kiri untuk mulai penilaian kurasi dan penayangan ke E-Katalog.</p>
             </div>
           ) : (
             <>
@@ -165,7 +204,7 @@ export default function ModalKurasiProduk({ isOpen, onClose, tenant }: Props) {
               <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar bg-slate-50/50">
                 
                 {/* Result & AI Card */}
-                <div className="bg-slate-900 rounded-2xl p-6 text-white mb-6 shadow-xl flex items-center justify-between sticky top-0 z-10">
+                <div className="bg-slate-900 rounded-2xl p-6 text-white mb-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky top-0 z-10">
                   <div>
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Curation Score™</p>
                     <div className="flex items-end gap-3">
@@ -183,15 +222,46 @@ export default function ModalKurasiProduk({ isOpen, onClose, tenant }: Props) {
                   </div>
                 </div>
 
+                {/* INTEGRASI PROMOSI KE MASTER E-KATALOG */}
+                <div className="bg-indigo-50/80 border border-indigo-200 rounded-2xl p-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-black text-indigo-900 uppercase tracking-wider flex items-center gap-1.5">
+                      <Rocket size={14} className="text-indigo-600" /> Promosi ke Etalase Master E-Katalog (/katalog)
+                    </h4>
+                    <p className="text-[11px] text-indigo-700/80">
+                      Tayangkan produk tenant yang telah terkurasi ke halaman publik <code className="font-mono">/e-katalog</code> agar dapat dipesan langsung.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="Harga Jual (Rp)"
+                      value={catalogPrice || ''}
+                      onChange={e => setCatalogPrice(Number(e.target.value))}
+                      className="w-36 px-3 py-2 bg-white border border-indigo-200 rounded-xl text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={handlePromoteToCatalog}
+                      disabled={isPromoting}
+                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm disabled:opacity-60 whitespace-nowrap"
+                    >
+                      {isPromoting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Rocket className="w-3.5 h-3.5" />}
+                      Tayangkan ke E-Katalog
+                    </button>
+                  </div>
+                </div>
+
                 {/* TAMPILAN AI INSIGHTS JIKA ADA */}
                 {selectedProduct.aiInsights && (
                    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-6 animate-in slide-in-from-top-2">
                       <h4 className="text-sm font-black text-amber-800 mb-3 flex items-center gap-2"><Sparkles size={16}/> AI Curation Recommendations</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-medium text-amber-900/80">
                          <div><strong className="block text-amber-900 mb-0.5">Target Pasar:</strong> {selectedProduct.aiInsights.targetMarket}</div>
-                         <div><strong className="block text-amber-900 mb-0.5">Saran Harga:</strong> {selectedProduct.aiInsights.idealPrice}</div>
-                         <div><strong className="block text-amber-900 mb-0.5">Kanal Distribusi:</strong> {selectedProduct.aiInsights.distributionChannel}</div>
-                         <div><strong className="block text-amber-900 mb-0.5">Perbaikan Kemasan:</strong> {selectedProduct.aiInsights.packagingImprovement}</div>
+                         <div><strong className="block text-amber-900 mb-0.5">Saran Harga:</strong> {selectedProduct.aiInsights.idealPrice || (selectedProduct.aiInsights as any).pricingAndMonetization}</div>
+                         <div><strong className="block text-amber-900 mb-0.5">Kanal Distribusi:</strong> {selectedProduct.aiInsights.distributionChannel || (selectedProduct.aiInsights as any).distributionAndGrowth}</div>
+                         <div><strong className="block text-amber-900 mb-0.5">Perbaikan Kemasan / Produk:</strong> {selectedProduct.aiInsights.packagingImprovement || (selectedProduct.aiInsights as any).productImprovement}</div>
                       </div>
                    </div>
                 )}
@@ -224,7 +294,7 @@ export default function ModalKurasiProduk({ isOpen, onClose, tenant }: Props) {
               <div className="p-5 bg-white border-t border-slate-100 flex justify-end gap-3 shrink-0">
                 <button onClick={() => setSelectedProductId(null)} className="px-6 py-2.5 text-sm font-bold text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">Batal</button>
                 <button onClick={handleSaveCuration} disabled={isSaving} className="px-8 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm flex items-center gap-2 shadow-lg shadow-emerald-200 disabled:opacity-70 transition-all">
-                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Simpan Skor
+                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Simpan Skor Kurasi
                 </button>
               </div>
             </>

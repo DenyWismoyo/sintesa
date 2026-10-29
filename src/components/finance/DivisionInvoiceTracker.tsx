@@ -4,6 +4,8 @@
 import React, { useState, useMemo } from 'react';
 import { useBilling } from '@/hooks/useBilling';
 import { useFinance } from '@/hooks/useFinance';
+import { useAuth } from '@/lib/AuthContext';
+import { hasAccess } from '@/config/roles';
 import { useQueryClient } from '@tanstack/react-query';
 import { Invoice, InvoiceDivision, inferInvoiceDivision, INVOICE_DIVISION_CONFIG } from '@/types';
 import { formatRupiah } from '@/utils/format';
@@ -15,6 +17,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import ModalInvoiceDetail from '@/app/(admin)/billing/component/ModalInvoiceDetail';
+import PrintInvoiceLayout from '@/app/(admin)/billing/component/PrintInvoiceLayout';
+import PrintKwitansiLayout, { downloadKwitansiPDF } from '@/app/(admin)/billing/component/PrintKwitansiLayout';
+import ModalPreviewKwitansi from '@/app/(admin)/billing/component/ModalPreviewKwitansi';
 import Link from 'next/link';
 
 interface Props {
@@ -34,6 +39,7 @@ export default function DivisionInvoiceTracker({
 }: Props) {
   const { invoices, loading } = useBilling();
   const { accounts } = useFinance();
+  const { role } = useAuth();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -42,6 +48,14 @@ export default function DivisionInvoiceTracker({
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
+  // Kwitansi State
+  const [isKwitansiModalOpen, setIsKwitansiModalOpen] = useState(false);
+  const [selectedKwitansiInvoice, setSelectedKwitansiInvoice] = useState<Invoice | null>(null);
+  const [printingKwitansiPayment, setPrintingKwitansiPayment] = useState<any | null>(null);
+  const [kwitansiPenyetor, setKwitansiPenyetor] = useState('');
+  const [kwitansiPenerima, setKwitansiPenerima] = useState('');
+
+  const canOpenBillingMenu = hasAccess(role, '/billing');
   const divConfig = INVOICE_DIVISION_CONFIG[division];
 
   // Filter invoice sesuai divisi ini
@@ -96,6 +110,26 @@ export default function DivisionInvoiceTracker({
     setIsDetailOpen(true);
   };
 
+  const handleOpenKwitansiModal = (invoice: Invoice) => {
+    setSelectedKwitansiInvoice(invoice);
+    setIsDetailOpen(false);
+    setTimeout(() => setIsKwitansiModalOpen(true), 150);
+  };
+
+  const handleProcessPrintKwitansi = async (invoice: Invoice, payment: any, penyetor: string, penerima: string) => {
+    const toastId = toast.loading('Memproses Kwitansi PDF...');
+    setPrintingKwitansiPayment(payment);
+    setSelectedKwitansiInvoice(invoice);
+    setKwitansiPenyetor(penyetor);
+    setKwitansiPenerima(penerima);
+
+    setTimeout(async () => {
+      await downloadKwitansiPDF(invoice.invoiceNumber, payment.id, () => {
+        toast.success('Kwitansi siap diunduh!', { id: toastId });
+      });
+    }, 500);
+  };
+
   const handleCopyPaymentLink = (inv: Invoice) => {
     if (!inv.paymentUrl) {
       toast.info('Tautan pembayaran online belum dibuat.');
@@ -123,6 +157,14 @@ export default function DivisionInvoiceTracker({
 
   return (
     <div className="space-y-4">
+      <PrintInvoiceLayout invoice={selectedInvoice} accounts={accounts || []} />
+      <PrintKwitansiLayout
+        invoice={selectedKwitansiInvoice}
+        payment={printingKwitansiPayment}
+        penyetorName={kwitansiPenyetor}
+        penerimaName={kwitansiPenerima}
+      />
+
       {/* 1. Header & Summary Cards */}
       <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-4 border-b border-slate-100">
@@ -153,12 +195,14 @@ export default function DivisionInvoiceTracker({
             >
               {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Segarkan'}
             </Button>
-            <Link href="/billing">
-              <Button size="sm" variant="default" className="text-xs h-8 bg-blue-600 hover:bg-blue-700 gap-1.5">
-                <span>Buka Billing Terpadu</span>
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </Button>
-            </Link>
+            {canOpenBillingMenu && (
+              <Link href="/billing">
+                <Button size="sm" variant="default" className="text-xs h-8 bg-blue-600 hover:bg-blue-700 gap-1.5">
+                  <span>Buka Billing Terpadu</span>
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -341,6 +385,15 @@ export default function DivisionInvoiceTracker({
           }}
           invoice={selectedInvoice}
           accounts={accounts || []}
+          onOpenKwitansi={handleOpenKwitansiModal}
+        />
+      )}
+
+      {isKwitansiModalOpen && selectedKwitansiInvoice && (
+        <ModalPreviewKwitansi
+          invoice={selectedKwitansiInvoice}
+          onClose={() => setIsKwitansiModalOpen(false)}
+          onPrint={handleProcessPrintKwitansi}
         />
       )}
     </div>

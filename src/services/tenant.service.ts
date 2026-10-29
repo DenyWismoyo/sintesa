@@ -1,10 +1,24 @@
-import { collection, doc, addDoc, updateDoc, deleteDoc, query, orderBy, getDocs, where, limit, startAfter, getDoc, writeBatch } from 'firebase/firestore';
+import { collection, doc, addDoc, updateDoc, deleteDoc, query, orderBy, getDocs, where, limit, startAfter, getDoc, writeBatch, onSnapshot, Unsubscribe } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { getAppId } from '@/lib/appId';
 import { storageService } from '@/services/storage.service';
 import { TenantSchema, Tenant, TeamMember, StartupProduct, StartupMilestone, TenantMonev, TenantKPI, MentoringSession, TenantRevenue } from '@/types';
 
 const COLLECTION_NAME = 'tenants';
+
+export interface TenantTicketItem {
+  id?: string;
+  tenantId?: string;
+  tenantName?: string;
+  title: string;
+  category: 'Fasilitas' | 'Internet & IT' | 'Kebersihan' | 'Keamanan' | 'Lainnya';
+  priority: 'Rendah' | 'Sedang' | 'Tinggi' | 'Darurat';
+  description: string;
+  status: 'PENDING' | 'PROSES' | 'SELESAI';
+  createdAt: number;
+  adminReply?: string;
+  repliedAt?: number;
+}
 
 export const tenantService = {
   // MENGAMBIL DARI CACHE + MERGE DENGAN DATA FRESH "Menunggu Review"
@@ -30,12 +44,10 @@ export const tenantService = {
         pendingTenants.push({ id: docSnap.id, ...docSnap.data() } as Tenant);
       });
 
-      // Menggabungkan data (Data pending fresh akan menimpa data cache jika id sama, dan menambah yang baru)
       const mergedMap = new Map<string, Tenant>();
       cachedTenants.forEach(t => mergedMap.set(t.id!, t));
       pendingTenants.forEach(t => mergedMap.set(t.id!, t)); 
 
-      // Fallback jika cache gagal dan kosong total
       if (cachedTenants.length === 0 && pendingTenants.length === 0) {
          const qAll = query(collection(db, COLLECTION_NAME), orderBy('createdAt', 'desc'));
          const allSnap = await getDocs(qAll);
@@ -44,7 +56,6 @@ export const tenantService = {
          return allFresh;
       }
 
-      // Kembalikan data yang sudah digabung & diurutkan berdasarkan waktu dibuat
       return Array.from(mergedMap.values()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     } catch (error) {
       console.error("Gagal mengambil data dari Cache Tenant:", error);
@@ -85,21 +96,19 @@ export const tenantService = {
   submitCurationApplication: async (tenantData: any, productData: any) => {
     const batch = writeBatch(db);
     
-    // 1. Buat referensi dokumen Tenant baru (Induk)
     const tenantRef = doc(collection(db, COLLECTION_NAME));
-    batch.set(tenantRef, { ...tenantData, createdAt: Date.now() });
+    const cleanTenant = JSON.parse(JSON.stringify({ ...tenantData, createdAt: Date.now() }));
+    batch.set(tenantRef, cleanTenant);
 
-    // 2. Buat referensi dokumen Produk di sub-koleksi (Anak)
     const productRef = doc(collection(db, `${COLLECTION_NAME}/${tenantRef.id}/products`));
-    batch.set(productRef, { ...productData, createdAt: Date.now() });
+    const cleanProduct = JSON.parse(JSON.stringify({ ...productData, createdAt: Date.now() }));
+    batch.set(productRef, cleanProduct);
 
-    // 3. Eksekusi transaksi secara atomic
     await batch.commit();
     return { id: tenantRef.id };
   },
 
   updateTenant: async (id: string, data: Partial<Tenant>) => {
-    // Sanitasi rekursif: bersihkan seluruh field bernilai undefined agar Firestore updateDoc tidak pernah melempar error
     const sanitized = JSON.parse(JSON.stringify(data));
     return await updateDoc(doc(db, COLLECTION_NAME, id), sanitized);
   },
@@ -185,7 +194,7 @@ export const tenantService = {
   deleteMentoringSession: async (tenantId: string, sessionId: string) => await deleteDoc(doc(db, COLLECTION_NAME, tenantId, 'mentoring_sessions', sessionId)),
 
   getTenantRevenues: async (tenantId: string): Promise<TenantRevenue[]> => {
-    const q = query(collection(db, COLLECTION_NAME, tenantId, 'revenues'), orderBy('date', 'desc'));
+    const q = query(collection(db, COLLECTION_NAME, tenantId, 'revenues'), orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as TenantRevenue));
   },
@@ -196,5 +205,62 @@ export const tenantService = {
   
   deleteTenantRevenue: async (tenantId: string, revenueId: string) => {
     return await deleteDoc(doc(db, COLLECTION_NAME, tenantId, 'revenues', revenueId));
+  },
+
+  // --- HELPDESK TIKET FASILITAS TENANT (R-001) ---
+  subscribeTenantTickets: (
+    tenantId: string,
+    onData: (tickets: TenantTicketItem[]) => void,
+    onError?: (err: any) => void
+  ): Unsubscribe => {
+    const q = query(collection(db, COLLECTION_NAME, tenantId, 'tickets'), orderBy('createdAt', 'desc'));
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        const list = snapshot.docs.map(d => ({ id: d.id, tenantId, ...d.data() } as TenantTicketItem));
+        onData(list);
+      },
+      onError
+    );
+  },
+
+  getAllTenantTickets: async (tenantsList: Tenant[]): Promise<TenantTicketItem[]> => {
+    const allTickets: TenantTicketItem[] = [];
+    await Promise.all(
+      tenantsList.map(async (t) => {
+        if (!t.id) return;
+        try {
+          const q = query(collection(db, COLLECTION_NAME, t.id, 'tickets'), orderBy('createdAt', 'desc'));
+          const snap = await getDocs(q);
+          snap.forEach(d => {
+            allTickets.push({
+              id: d.id,
+              tenantId: t.id,
+              tenantName: t.name,
+              ...(d.data() as any)
+            });
+          });
+        } catch (err) {
+          console.warn(`Gagal memuat tiket untuk tenant ${t.name}:`, err);
+        }
+      })
+    );
+    return allTickets.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  },
+
+  createTenantTicket: async (tenantId: string, data: Omit<TenantTicketItem, 'id' | 'status' | 'createdAt'>) => {
+    return await addDoc(collection(db, COLLECTION_NAME, tenantId, 'tickets'), {
+      ...data,
+      status: 'PENDING',
+      createdAt: Date.now()
+    });
+  },
+
+  updateTenantTicket: async (tenantId: string, ticketId: string, data: Partial<TenantTicketItem>) => {
+    return await updateDoc(doc(db, COLLECTION_NAME, tenantId, 'tickets', ticketId), data);
+  },
+
+  deleteTenantTicket: async (tenantId: string, ticketId: string) => {
+    return await deleteDoc(doc(db, COLLECTION_NAME, tenantId, 'tickets', ticketId));
   }
 };

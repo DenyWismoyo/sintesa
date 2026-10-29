@@ -1,5 +1,8 @@
 import { Asset } from '@/types';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Wrench } from 'lucide-react';
+import { assetService } from '@/services/asset.service';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 interface Props {
   reports: any[];
@@ -8,12 +11,24 @@ interface Props {
 }
 
 export default function TabLaporanPublik({ reports, assets, onOpenDetail }: Props) {
+  const queryClient = useQueryClient();
+
   const handleTindakLanjut = (assetId: string) => {
     const targetAsset = assets.find((a: Asset) => a.id === assetId);
     if (targetAsset) {
       onOpenDetail(targetAsset);
     } else {
       alert('Data aset tidak ditemukan atau sudah dihapus.');
+    }
+  };
+
+  const handleSetMaintenance = async (assetId: string, assetName: string) => {
+    try {
+      await assetService.updateAsset(assetId, { status: 'Pemeliharaan' });
+      queryClient.invalidateQueries({ queryKey: ['asset_master_cache'] });
+      toast.success(`Status "${assetName}" diubah ke Pemeliharaan (otomatis dikunci dari Booking).`);
+    } catch (err: any) {
+      toast.error('Gagal mengubah status aset: ' + err.message);
     }
   };
 
@@ -60,9 +75,18 @@ export default function TabLaporanPublik({ reports, assets, onOpenDetail }: Prop
                       <p className="text-[10px] text-slate-400 font-medium mt-1.5 flex items-center gap-1">📍 {report.currentLocation}</p>
                     </td>
                     <td className="px-6 py-5 text-center">
-                      <button onClick={() => handleTindakLanjut(report.assetId)} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm shadow-blue-200">
-                        Tindak Lanjuti
-                      </button>
+                      <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+                        <button
+                          onClick={() => handleSetMaintenance(report.assetId, report.assetName)}
+                          className="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-3 py-2 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1"
+                          title="Ubah status aset ke Pemeliharaan agar tidak bisa dibooking"
+                        >
+                          <Wrench size={13} /> Set Pemeliharaan
+                        </button>
+                        <button onClick={() => handleTindakLanjut(report.assetId)} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm shadow-blue-200">
+                          Tindak Lanjuti
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

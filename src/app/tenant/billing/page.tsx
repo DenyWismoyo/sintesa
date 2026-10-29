@@ -2,15 +2,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/AuthContext';
+import { useTenants } from '@/hooks/useTenants';
 import { db } from '@/lib/firebase';
 import { getAppId } from '@/lib/appId';
 import { collection, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 import { Invoice, formatRupiah } from '@/types';
 import { Receipt, CheckCircle, Clock, QrCode, X, Loader2, CreditCard, ArrowRight, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
 export default function TenantBillingPage() {
   const { user } = useAuth();
+  const { useTenantProfile } = useTenants();
+  const { data: myTenant } = useTenantProfile(user?.uid);
   const appId = getAppId();
 
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -25,9 +29,12 @@ export default function TenantBillingPage() {
     const invoicesRef = collection(db, 'artifacts', appId, 'public', 'data', 'invoices');
     const unsubscribe = onSnapshot(invoicesRef, (snapshot) => {
       const fetchedInvoices: Invoice[] = [];
-      snapshot.forEach(doc => {
-        const inv = { id: doc.id, ...doc.data() } as Invoice;
-        if (inv.customerEmail === user.email || (!inv.customerEmail && inv.customerType === 'Tenant')) {
+      snapshot.forEach(docSnap => {
+        const inv = { id: docSnap.id, ...docSnap.data() } as Invoice;
+        const matchEmail = Boolean(user.email && inv.customerEmail && inv.customerEmail.toLowerCase() === user.email.toLowerCase());
+        const matchTenantId = Boolean(myTenant?.id && (inv.tenantId === myTenant.id || inv.items?.some(it => it.referenceId === myTenant.id)));
+        const matchTenantName = Boolean(myTenant?.name && inv.customerName?.toLowerCase().includes(myTenant.name.toLowerCase()));
+        if (matchEmail || matchTenantId || matchTenantName) {
           fetchedInvoices.push(inv);
         }
       });
@@ -36,22 +43,31 @@ export default function TenantBillingPage() {
       setLoading(false);
     });
     return () => unsubscribe();
-  }, [user, appId]);
+  }, [user, myTenant?.id, myTenant?.name, appId]);
 
   const handleSimulatePayment = async () => {
     if (!selectedInvoice || !selectedInvoice.id) return;
     setIsProcessingPayment(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 1500));
       const paymentAmount = selectedInvoice.remainingAmount;
-      const newHistory = { id: Date.now().toString(), date: new Date().toLocaleString('id-ID'), amount: paymentAmount, method: 'QRIS', status: 'SUCCESS' as const };
-      const updatedData = { paidAmount: selectedInvoice.paidAmount + paymentAmount, remainingAmount: 0, status: 'PAID', history: [...(selectedInvoice.history || []), newHistory] };
+      const newHistory = {
+        id: Date.now().toString(),
+        date: new Date().toLocaleString('id-ID'),
+        amount: paymentAmount,
+        method: 'QRIS',
+        status: 'PENDING' as const
+      };
+      const updatedData = {
+        history: [...(selectedInvoice.history || []), newHistory]
+      };
 
       await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'invoices', selectedInvoice.id), updatedData);
       setSelectedInvoice({ ...selectedInvoice, ...updatedData } as Invoice);
       setShowQRIS(false);
+      toast.success('Konfirmasi pembayaran QRIS berhasil dikirim! Menunggu verifikasi Kasir untuk penerbitan kuitansi resmi.');
     } catch (error) {
-      alert("Gagal memproses pembayaran.");
+      alert("Gagal memproses konfirmasi pembayaran.");
     } finally {
       setIsProcessingPayment(false);
     }
@@ -212,8 +228,11 @@ export default function TenantBillingPage() {
                     <div className="space-y-2 mt-4 pt-4 border-t border-slate-200">
                       <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Riwayat Transaksi</p>
                       {selectedInvoice.history.map(h => (
-                        <div key={h.id} className="flex justify-between text-xs font-mono text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-100">
-                          <span className="flex items-center gap-1.5"><CheckCircle size={12}/> {h.date}</span>
+                        <div key={h.id} className={`flex justify-between text-xs font-mono px-3 py-2 rounded-lg border ${h.status === 'PENDING' ? 'text-amber-700 bg-amber-50 border-amber-100' : 'text-emerald-700 bg-emerald-50 border-emerald-100'}`}>
+                          <span className="flex items-center gap-1.5">
+                            {h.status === 'PENDING' ? <Clock size={12} /> : <CheckCircle size={12}/>}
+                            {h.date} {h.status === 'PENDING' && '(Menunggu Verifikasi Kasir)'}
+                          </span>
                           <span className="font-bold">{formatRupiah(h.amount)}</span>
                         </div>
                       ))}
@@ -230,7 +249,7 @@ export default function TenantBillingPage() {
                         <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=QRIS_${selectedInvoice.invoiceNumber}_${selectedInvoice.remainingAmount}`} alt="QRIS" className="w-48 h-48 object-contain mb-5" />
                         <button onClick={handleSimulatePayment} disabled={isProcessingPayment} className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl text-sm transition-colors flex justify-center items-center gap-2 shadow-lg disabled:opacity-70">
                           {isProcessingPayment ? <Loader2 className="animate-spin h-4 w-4" /> : <ShieldCheck size={18} />}
-                          {isProcessingPayment ? 'Memverifikasi...' : 'Simulasi: Saya Sudah Bayar'}
+                          {isProcessingPayment ? 'Mengirim Konfirmasi...' : 'Konfirmasi: Saya Sudah Bayar'}
                         </button>
                         <button onClick={() => setShowQRIS(false)} className="mt-3 text-xs font-bold text-slate-400 hover:text-slate-600">Batal Scan</button>
                       </div>

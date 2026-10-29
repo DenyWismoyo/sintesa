@@ -3,6 +3,9 @@
 import React, { useState, useRef } from 'react';
 import { useEvents } from '@/hooks/useEvents';
 import { eventService } from '@/services/event.service';
+import { useAssets } from '@/hooks/useAssets';
+import { useBooking } from '@/hooks/useBooking';
+import { toast } from 'sonner';
 import { AppEvent } from '@/types';
 import { 
   Plus, Edit, Trash2, Search, Calendar, 
@@ -13,6 +16,10 @@ import { AdminPageHeader, AdminFilterBar, AdminResponsiveView } from '@/componen
 
 export default function ManajemenEventPage() {
   const { events, loading, error, addEvent, updateEvent, removeEvent } = useEvents();
+  const { allRooms = [] } = useAssets();
+  const { adminCreateBooking } = useBooking('admin');
+  const [selectedRoomId, setSelectedRoomId] = useState<string>('');
+  const [autoLockRoom, setAutoLockRoom] = useState<boolean>(true);
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -92,6 +99,27 @@ export default function ManajemenEventPage() {
         await updateEvent(editingId, formData as AppEvent, imageFile);
       } else {
         await addEvent(formData as AppEvent, imageFile);
+        if (!formData.isOnline && autoLockRoom && selectedRoomId) {
+          const room = allRooms.find(r => r.id === selectedRoomId);
+          if (room) {
+            await adminCreateBooking({
+              assetId: room.id,
+              assetName: room.name,
+              userName: 'Panitia Event Solo Technopark',
+              userEmail: 'event@solotechnopark.id',
+              userPhone: '-',
+              institution: 'Internal Solo Technopark',
+              bookingType: 'internal',
+              startDate: formData.date || new Date().toISOString().split('T')[0],
+              endDate: formData.date || new Date().toISOString().split('T')[0],
+              timeSlot: formData.time || '08:00 - 17:00 WIB',
+              purpose: `Agenda Event STP: ${formData.title}`,
+              totalPrice: 0,
+              status: 'completed',
+            });
+            toast.success(`Jadwal ruangan "${room.name}" otomatis dikunci di Kalender Booking!`);
+          }
+        }
       }
       handleCloseModal();
     } catch (err: any) {
@@ -399,6 +427,42 @@ export default function ManajemenEventPage() {
 
                       <div className="col-span-1 md:col-span-2">
                         <label className="block text-xs font-bold text-slate-700 mb-1.5">Lokasi Fisik *</label>
+                        {!formData.isOnline && allRooms.length > 0 && (
+                          <div className="mb-2 space-y-2 bg-blue-50/60 p-3 rounded-xl border border-blue-100">
+                            <select
+                              value={selectedRoomId}
+                              onChange={(e) => {
+                                const rId = e.target.value;
+                                setSelectedRoomId(rId);
+                                const r = allRooms.find(rm => rm.id === rId);
+                                if (r) {
+                                  setFormData({ ...formData, location: `${r.name}${r.location ? ` (${r.location})` : ''}` });
+                                }
+                              }}
+                              className="w-full px-3 py-2 bg-white border border-blue-200 rounded-lg text-xs font-bold text-slate-700 outline-none"
+                            >
+                              <option value="">-- Pilih dari Master Ruangan STP (Opsional) --</option>
+                              {allRooms.map(r => (
+                                <option key={r.id} value={r.id}>
+                                  {r.name} {r.capacity ? `(Kapasitas ${r.capacity} org)` : ''} — {r.location || 'Kawasan STP'}
+                                </option>
+                              ))}
+                            </select>
+                            {selectedRoomId && !editingId && (
+                              <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={autoLockRoom}
+                                  onChange={e => setAutoLockRoom(e.target.checked)}
+                                  className="rounded border-blue-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
+                                />
+                                <span className="text-xs font-bold text-blue-800">
+                                  Kunci jadwal ruangan ini secara otomatis di Kalender Master Booking (/booking)
+                                </span>
+                              </label>
+                            )}
+                          </div>
+                        )}
                         <input required={!formData.isOnline} type="text" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} className={inputClass} placeholder="Cth: Auditorium STP" disabled={formData.isOnline} />
                         <label className="flex items-center gap-2 mt-3 cursor-pointer w-fit">
                           <input type="checkbox" checked={formData.isOnline} onChange={(e) => setFormData({...formData, isOnline: e.target.checked, location: e.target.checked ? 'Online' : ''})} className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 transition-colors" />

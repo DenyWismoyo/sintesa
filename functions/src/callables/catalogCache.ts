@@ -8,12 +8,12 @@ export const rebuildCatalogMasterCache = onCall(async (request) => {
   if (!request.auth) throw new HttpsError('unauthenticated', 'Akses Ditolak.');
 
   const role = request.auth.token?.role as string | undefined;
-  const allowedRoles = ['super_admin', 'admin_tenant'];
+  const allowedRoles = ['super_admin', 'admin', 'admin_tenant', 'admin_keuangan'];
   if (!role || !allowedRoles.includes(role)) {
     throw new HttpsError('permission-denied', 'Akses Ditolak: Hak akses tidak mencukupi untuk memperbarui cache katalog.');
   }
 
-  const appId = request.data.appId || 'blud-app-dev';
+  const appId = process.env.APP_ID || request.data?.appId || 'blud-app-dev';
 
   try {
     const snapshot = await db.collection('catalogs').orderBy('createdAt', 'desc').get();

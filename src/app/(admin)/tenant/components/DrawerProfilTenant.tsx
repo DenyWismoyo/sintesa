@@ -426,10 +426,10 @@ export default function DrawerProfilTenant({ tenant, isOpen, onClose, invoices =
                    <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6">Dimensi Kelayakan</h3>
                    <div className="space-y-5">
                      {[
-                       { label: 'Kualitas & Produksi', score: tenant.aiCurationData.breakdown?.kualitas, color: 'bg-blue-500' },
-                       { label: 'Branding & Visual', score: tenant.aiCurationData.breakdown?.branding, color: 'bg-emerald-500' },
-                       { label: 'Legalitas & Sertifikasi', score: tenant.aiCurationData.breakdown?.legalitas, color: 'bg-amber-500' },
-                       { label: 'Potensi Pasar & Ekspor', score: tenant.aiCurationData.breakdown?.pasar, color: 'bg-indigo-500' }
+                       { label: 'Kualitas & Produk/Tech', score: tenant.aiCurationData.scoreBreakdown?.productAndTech ?? tenant.aiCurationData.breakdown?.kualitas ?? 0, color: 'bg-blue-500' },
+                       { label: 'Pasar & Finansial', score: tenant.aiCurationData.scoreBreakdown?.marketAndFinancial ?? tenant.aiCurationData.breakdown?.pasar ?? 0, color: 'bg-emerald-500' },
+                       { label: 'Legalitas & Kepatuhan', score: tenant.aiCurationData.scoreBreakdown?.legalAndCompliance ?? tenant.aiCurationData.breakdown?.legalitas ?? 0, color: 'bg-amber-500' },
+                       { label: 'Potensi Pasar & Ekspor', score: tenant.aiCurationData.breakdown?.pasar ?? tenant.aiCurationData.scoreBreakdown?.marketAndFinancial ?? 0, color: 'bg-indigo-500' }
                      ].map(item => (
                        <div key={item.label}>
                          <div className="flex justify-between text-xs font-bold mb-1.5">
@@ -457,15 +457,15 @@ export default function DrawerProfilTenant({ tenant, isOpen, onClose, invoices =
                         </div>
                         <div className="bg-white/60 p-4 rounded-2xl border border-amber-200/50">
                            <h4 className="text-[10px] font-bold text-amber-800 uppercase tracking-widest mb-1 flex items-center gap-1.5"><Package size={12}/> Inovasi Kemasan</h4>
-                           <p className="text-sm text-slate-700 font-medium">{tenant.aiCurationData.recommendations.packagingImprovement}</p>
+                           <p className="text-sm text-slate-700 font-medium">{tenant.aiCurationData.recommendations.productImprovement || tenant.aiCurationData.recommendations.packagingImprovement || '-'}</p>
                         </div>
                         <div className="bg-white/60 p-4 rounded-2xl border border-amber-200/50">
                            <h4 className="text-[10px] font-bold text-amber-800 uppercase tracking-widest mb-1 flex items-center gap-1.5"><Globe size={12}/> Distribusi</h4>
-                           <p className="text-sm text-slate-700 font-medium">{tenant.aiCurationData.recommendations.distributionChannel}</p>
+                           <p className="text-sm text-slate-700 font-medium">{tenant.aiCurationData.recommendations.distributionAndGrowth || tenant.aiCurationData.recommendations.distributionChannel || '-'}</p>
                         </div>
                         <div className="bg-white/60 p-4 rounded-2xl border border-amber-200/50">
                            <h4 className="text-[10px] font-bold text-amber-800 uppercase tracking-widest mb-1 flex items-center gap-1.5"><ShoppingBag size={12}/> Harga & Branding</h4>
-                           <p className="text-sm text-slate-700 font-medium">{tenant.aiCurationData.recommendations.idealPrice} {tenant.aiCurationData.recommendations.brandingStrategy}</p>
+                           <p className="text-sm text-slate-700 font-medium">{tenant.aiCurationData.recommendations.pricingAndMonetization || `${tenant.aiCurationData.recommendations.idealPrice || ''} ${tenant.aiCurationData.recommendations.brandingStrategy || ''}`.trim() || '-'}</p>
                         </div>
                      </div>
                   </div>

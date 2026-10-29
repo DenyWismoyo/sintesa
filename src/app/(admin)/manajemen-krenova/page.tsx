@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Plus, Edit2, Trash2, Video, Search, Loader2, X, RefreshCw, UploadCloud, Tag } from "lucide-react";
+import Link from "next/link";
+import { Plus, Edit2, Trash2, Video, Search, Loader2, X, RefreshCw, UploadCloud, Sparkles, ArrowUpRight } from "lucide-react";
 import { KrenovaContent } from "@/types";
 import { krenovaService } from "@/services/krenova.service";
 import { storageService } from "@/services/storage.service";
@@ -179,6 +180,13 @@ export default function ManajemenKrenovaPage() {
         ]}
         actions={
           <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Link
+              href="/tenant"
+              className="min-h-[40px] px-3.5 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold inline-flex items-center justify-center gap-1.5 transition-colors"
+              title="Buka Antrean Kurasi Inovasi"
+            >
+              <Sparkles className="w-4 h-4" /> Antrean Kurasi (/tenant) <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
             <button
               onClick={loadData}
               className="min-h-[40px] px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold inline-flex items-center justify-center gap-1.5 transition-colors"
@@ -209,9 +217,12 @@ export default function ManajemenKrenovaPage() {
             onChange: setTypeFilter,
             options: [
               { label: 'Semua Tipe', value: 'ALL' },
-              { label: 'Teaser', value: 'teaser' },
-              { label: 'Pitching', value: 'pitching' },
-              { label: 'Highlight', value: 'highlight' },
+              { label: 'Teaser / Trailer', value: 'teaser' },
+              { label: 'Perkenalan Maskot', value: 'mascot' },
+              { label: 'Rundown / Jadwal', value: 'rundown' },
+              { label: 'Panduan / Tutorial', value: 'guide' },
+              { label: 'Video Pitching', value: 'pitching' },
+              { label: 'Highlight Acara', value: 'highlight' },
             ]
           }
         ]}
@@ -330,6 +341,8 @@ export default function ManajemenKrenovaPage() {
                         <option value="mascot">Perkenalan Maskot</option>
                         <option value="rundown">Rundown / Jadwal</option>
                         <option value="guide">Panduan / Tutorial</option>
+                        <option value="pitching">Video Pitching</option>
+                        <option value="highlight">Highlight Acara</option>
                       </select>
                     </div>
 

@@ -13,12 +13,12 @@ export const rebuildTenantMasterCache = onCall(async (request) => {
   }
 
   const role = request.auth.token?.role as string | undefined;
-  const allowedRoles = ['super_admin', 'admin_tenant'];
+  const allowedRoles = ['super_admin', 'admin', 'admin_tenant', 'operator_tenant'];
   if (!role || !allowedRoles.includes(role)) {
     throw new HttpsError('permission-denied', 'Akses Ditolak: Hak akses tidak mencukupi untuk memperbarui cache tenant.');
   }
 
-  const appId = request.data.appId || 'blud-app-dev';
+  const appId = process.env.APP_ID || request.data?.appId || 'blud-app-dev';
 
   try {
     const snapshot = await db.collection('tenants').orderBy('createdAt', 'desc').get();

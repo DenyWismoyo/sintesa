@@ -69,6 +69,9 @@ export default function ModalReviewTenant({ isOpen, onClose, tenant, onSaveDecis
       pipelineStage: decision === 'Aktif' ? (pipelineStage as any) : undefined,
       mentor: mentor || undefined,
       isVerified: decision === 'Aktif',
+      accessCode: decision === 'Aktif'
+        ? (tenant.accessCode || ('SNT-' + Math.random().toString(36).substring(2, 7).toUpperCase()))
+        : tenant.accessCode,
     };
 
     if (aiData || isOverride) {

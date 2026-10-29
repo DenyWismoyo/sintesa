@@ -379,10 +379,12 @@ Salam hangat,
                  </button>
               )}
               
-              <button onClick={() => onDuplicateInvoice && onDuplicateInvoice(invoice)} className="w-full flex items-center justify-between px-5 py-3.5 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm group">
-                <div className="flex items-center gap-3"><Copy className="w-5 h-5 text-slate-400 group-hover:text-indigo-500 transition-colors" /> Duplikat Tagihan</div>
-                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 group-hover:translate-x-1 transition-transform" />
-              </button>
+              {onDuplicateInvoice && (
+                <button onClick={() => onDuplicateInvoice(invoice)} className="w-full flex items-center justify-between px-5 py-3.5 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm group">
+                  <div className="flex items-center gap-3"><Copy className="w-5 h-5 text-slate-400 group-hover:text-indigo-500 transition-colors" /> Duplikat Tagihan</div>
+                  <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 group-hover:translate-x-1 transition-transform" />
+                </button>
+              )}
 
               {invoice.remainingAmount > 0 && invoice.status !== 'CANCELLED' && (
                     <>
@@ -416,7 +418,7 @@ Salam hangat,
                     </>
                   )}
 
-                  {['PENDING', 'OVERDUE'].includes(invoice.status) && invoice.paidAmount === 0 && (
+                  {onCancelInvoice && ['PENDING', 'OVERDUE'].includes(invoice.status) && invoice.paidAmount === 0 && (
                     <div className="pt-4 mt-4 border-t border-slate-100">
                       <button 
                         onClick={() => setShowCancelPrompt(!showCancelPrompt)} 

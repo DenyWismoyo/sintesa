@@ -171,9 +171,9 @@ export const billingService = {
   },
 
   syncBackToOrigin: async (invoice: Invoice) => {
-    // Guard: Hanya izinkan sinkronisasi jika ada pembayaran (PAID atau PARTIAL)
-    if (invoice.status !== 'PAID' && invoice.status !== 'PARTIAL') {
-      console.warn(`[SYNC] Invoice ${invoice.id || invoice.invoiceNumber} belum ada pembayaran (status: ${invoice.status}), sync diabaikan.`);
+    // Guard: Izinkan sinkronisasi jika ada pembayaran (PAID, PARTIAL) atau pembatalan (CANCELLED)
+    if (invoice.status !== 'PAID' && invoice.status !== 'PARTIAL' && invoice.status !== 'CANCELLED') {
+      console.warn(`[SYNC] Invoice ${invoice.id || invoice.invoiceNumber} status ${invoice.status} tidak memerlukan sync.`);
       return;
     }
 
@@ -183,52 +183,127 @@ export const billingService = {
 
     for (const item of invoice.items) {
       try {
-        if (item.referenceType === 'BOOKING' && item.referenceId) {
+        if ((item.referenceType === 'BOOKING' || item.referenceType === 'TARIFF_DAY') && item.referenceId) {
           const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', item.referenceId);
-          if (invoice.status === 'PAID') {
-            batch.update(docRef, { status: 'completed', paymentStatus: 'PAID', updatedAt: Date.now() });
-            hasUpdates = true;
-          } else if (invoice.status === 'PARTIAL') {
-            batch.update(docRef, { status: 'confirmed', paymentStatus: 'PARTIAL', updatedAt: Date.now() });
-            hasUpdates = true;
+          const snap = await getDoc(docRef);
+          if (snap.exists()) {
+            if (invoice.status === 'PAID') {
+              batch.update(docRef, { status: 'completed', paymentStatus: 'PAID', updatedAt: Date.now() });
+              hasUpdates = true;
+            } else if (invoice.status === 'PARTIAL') {
+              batch.update(docRef, { status: 'approved', paymentStatus: 'PARTIAL', updatedAt: Date.now() });
+              hasUpdates = true;
+            } else if (invoice.status === 'CANCELLED') {
+              batch.update(docRef, {
+                status: 'rejected',
+                paymentStatus: 'CANCELLED',
+                rejectionReason: 'Tagihan dibatalkan oleh bagian keuangan.',
+                updatedAt: Date.now()
+              });
+              hasUpdates = true;
+            }
           }
         } 
         else if (item.referenceType === 'CATALOG' && item.referenceId) {
-          if (invoice.status === 'PAID') {
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', item.referenceId);
-            batch.update(docRef, { status: 'PAID', updatedAt: Date.now() });
+          const orderRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', item.referenceId);
+          const orderSnap = await getDoc(orderRef);
+          if (orderSnap.exists()) {
+            batch.update(orderRef, { status: invoice.status, updatedAt: Date.now() });
             hasUpdates = true;
+          }
+          // Jika lunas & produk adalah milik Tenant Binaan, otomatis catat omzet ke profil Tenant
+          if (invoice.status === 'PAID') {
+            const catRef = doc(db, 'catalogs', item.referenceId);
+            const catSnap = await getDoc(catRef);
+            if (catSnap.exists()) {
+              const catData = catSnap.data();
+              if (catData.ownerType === 'TENANT' && catData.tenantId) {
+                const revRef = doc(collection(db, 'tenants', catData.tenantId, 'revenues'));
+                batch.set(revRef, {
+                  month: new Date().toLocaleDateString('id-ID', { month: 'short', year: 'numeric' }),
+                  amount: item.total,
+                  productSold: item.quantity,
+                  notes: `Penjualan E-Katalog Otomatis (${invoice.invoiceNumber} - ${item.description})`,
+                  sourceInvoiceId: invoice.id || invoice.invoiceNumber,
+                  createdAt: Date.now()
+                });
+                hasUpdates = true;
+              }
+            }
           }
         } 
         else if (item.referenceType === 'TRAINING' && item.referenceId) {
-          if (invoice.status === 'PAID') {
-            const parts = item.referenceId.split('::');
-            if (parts.length === 2) {
-              const [trainingId, regId] = parts;
-              const docRef = doc(db, 'trainings', trainingId, 'registrations', regId);
-              batch.update(docRef, { paymentStatus: 'PAID', status: 'CONFIRMED', updatedAt: Date.now() });
-              hasUpdates = true;
+          const parts = item.referenceId.split('::');
+          if (parts.length === 2) {
+            const [trainingId, regId] = parts;
+            const docRef = doc(db, 'trainings', trainingId, 'registrations', regId);
+            const regSnap = await getDoc(docRef);
+            if (regSnap.exists()) {
+              if (invoice.status === 'PAID') {
+                batch.update(docRef, { paymentStatus: 'PAID', status: 'CONFIRMED', updatedAt: Date.now() });
+                hasUpdates = true;
+              } else if (invoice.status === 'PARTIAL') {
+                batch.update(docRef, { paymentStatus: 'PARTIAL', updatedAt: Date.now() });
+                hasUpdates = true;
+              } else if (invoice.status === 'CANCELLED') {
+                batch.update(docRef, { paymentStatus: 'UNPAID', status: 'REJECTED', updatedAt: Date.now() });
+                hasUpdates = true;
+              }
             }
           }
         }
         else if (item.referenceType === 'PRODUCTION' && item.referenceId) {
           const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'production_orders', item.referenceId);
-          const isDp = invoice.term === 'DOWN_PAYMENT' || 
-                       invoice.invoiceNumber.includes('/DP') || 
-                       (invoice.notes && invoice.notes.toLowerCase().includes('uang muka'));
+          const prodSnap = await getDoc(docRef);
+          if (prodSnap.exists()) {
+            const prodData = prodSnap.data();
+            const isDp = invoice.term === 'DOWN_PAYMENT' || 
+                         invoice.invoiceNumber.includes('/DP') || 
+                         (invoice.notes && invoice.notes.toLowerCase().includes('uang muka'));
 
-          if (isDp || invoice.status === 'PARTIAL') {
-            batch.update(docRef, { 
-              paymentStatus: invoice.status === 'PAID' && !isDp ? 'FULL_PAID' : 'DP_PAID', 
-              status: 'IN_PRODUCTION',
-              updatedAt: Date.now() 
-            });
-            hasUpdates = true;
-          } else if (invoice.status === 'PAID') {
-            batch.update(docRef, { 
-              paymentStatus: 'FULL_PAID', 
-              updatedAt: Date.now() 
-            });
+            if (invoice.status === 'CANCELLED') {
+              batch.update(docRef, { paymentStatus: 'UNPAID', updatedAt: Date.now() });
+              hasUpdates = true;
+            } else if (isDp || invoice.status === 'PARTIAL') {
+              const nextStatus = ['PENDING', 'ACCEPTED'].includes(prodData.status) ? 'IN_PRODUCTION' : prodData.status;
+              batch.update(docRef, { 
+                paymentStatus: invoice.status === 'PAID' && !isDp ? 'FULL_PAID' : 'DP_PAID', 
+                status: nextStatus,
+                updatedAt: Date.now() 
+              });
+              hasUpdates = true;
+            } else if (invoice.status === 'PAID') {
+              const nextStatus = prodData.status === 'DELIVERED' ? 'COMPLETED' : prodData.status;
+              batch.update(docRef, { 
+                paymentStatus: 'FULL_PAID', 
+                status: nextStatus,
+                updatedAt: Date.now() 
+              });
+              hasUpdates = true;
+            }
+          }
+        }
+        else if ((item.referenceType === 'TENANT' || item.referenceType === 'TARIFF_MONTH') && (item.referenceId || invoice.tenantId)) {
+          const targetTenantId = item.referenceId || invoice.tenantId;
+          if (targetTenantId && invoice.status === 'PAID') {
+            const tenantRef = doc(db, 'tenants', targetTenantId);
+            const tSnap = await getDoc(tenantRef);
+            if (tSnap.exists()) {
+              batch.update(tenantRef, {
+                lastPaymentDate: new Date().toISOString().split('T')[0],
+                lastInvoiceNumber: invoice.invoiceNumber,
+                billingStatus: 'LUNAS',
+                updatedAt: Date.now()
+              });
+              hasUpdates = true;
+            }
+          }
+        }
+        else if (item.referenceType === 'PARTNERSHIP' && item.referenceId) {
+          const inqRef = doc(db, 'partnership_inquiries', item.referenceId);
+          const inqSnap = await getDoc(inqRef);
+          if (inqSnap.exists() && invoice.status === 'PAID') {
+            batch.update(inqRef, { status: 'Disetujui', paymentStatus: 'PAID', updatedAt: Date.now() });
             hasUpdates = true;
           }
         }

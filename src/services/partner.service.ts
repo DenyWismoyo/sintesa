@@ -23,6 +23,7 @@ import {
 } from '@/types/partnership.types';
 import { Alumni } from '@/types/ecosystem.types';
 import { JobListing } from '@/types/job.types';
+import { notificationService } from '@/services/notification.service';
 
 const getTalentPoolCachePath = () =>
   `artifacts/${getAppId()}/public/data/cache_talent_pool`;
@@ -253,6 +254,27 @@ export const partnerService = {
       }
 
       await setDoc(newRef, parsed.data);
+
+      try {
+        let recipientUid = parsed.data.alumniId;
+        const alumniSnap = await getDoc(doc(db, 'alumnis', parsed.data.alumniId));
+        if (alumniSnap.exists()) {
+          const alData = alumniSnap.data();
+          if (alData?.claimedByUserId) {
+            recipientUid = alData.claimedByUserId;
+          }
+        }
+        await notificationService.createNotification({
+          recipientUid,
+          title: `Undangan Wawancara: ${parsed.data.roleOffered}`,
+          message: `${parsed.data.senderCompanyName} mengundang Anda untuk sesi rekrutmen/wawancara.`,
+          linkUrl: '/profil',
+          category: 'INTERVIEW_INVITE',
+        });
+      } catch (notifErr) {
+        console.warn('[partnerService] Gagal mengirim notifikasi undangan wawancara:', notifErr);
+      }
+
       return { success: true, id: newRef.id };
     } catch (err: any) {
       console.error('[partnerService] Error sendTalentInvitation:', err);

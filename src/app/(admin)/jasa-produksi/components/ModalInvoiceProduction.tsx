@@ -4,14 +4,14 @@
 import React, { useState, useEffect } from 'react';
 import { ProductionOrder } from '@/types/production.types';
 import { Invoice, InvoiceItem } from '@/types/finance.types';
-import { billingService } from '@/services/billing.service';
+import { useBilling } from '@/hooks/useBilling';
 import { productionService } from '@/services/production.service';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ReceiptText, Calendar, DollarSign, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
+import { ReceiptText, Calendar, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatRupiah } from '@/utils/format';
 
@@ -30,6 +30,7 @@ export default function ModalInvoiceProduction({
   onSuccess,
   currentUserName = 'Petugas Loket BLUD'
 }: Props) {
+  const { createNewInvoice } = useBilling('MUTATION_ONLY');
   const [invoiceType, setInvoiceType] = useState<'DP' | 'FULL'>('DP');
   const [dueDate, setDueDate] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
@@ -41,7 +42,7 @@ export default function ModalInvoiceProduction({
       if (order.paymentStatus === 'DP_PAID') {
         setInvoiceType('FULL');
       } else {
-        setInvoiceType(order.dpPercentage > 0 ? 'DP' : 'FULL');
+        setInvoiceType(order.dpRequired && order.dpPercentage && order.dpPercentage > 0 ? 'DP' : 'FULL');
       }
 
       // Default due date: 7 hari ke depan
@@ -125,13 +126,17 @@ export default function ModalInvoiceProduction({
         history: []
       };
 
-      const newInvId = await billingService.createInvoice(invoiceData);
+      const invRes = await createNewInvoice(invoiceData);
+      if (!invRes.success || !invRes.id) {
+        throw new Error(invRes.error || 'Gagal menerbitkan invoice di sistem keuangan.');
+      }
+      const newInvId = invRes.id;
 
       // Sinkronkan ID invoice ke record pesanan produksi
       if (invoiceType === 'DP') {
         await productionService.updateProductionOrder(order.id, {
           dpInvoiceId: newInvId,
-          status: order.status === 'DRAFT' || order.status === 'ESTIMATION' ? 'APPROVED_WAITING_DP' : order.status
+          status: ['DRAFT', 'ESTIMATION', 'VALIDATION', 'APPROVED_WAITING_DP'].includes(order.status) ? 'IN_PRODUCTION' : order.status
         });
       } else {
         await productionService.updateProductionOrder(order.id, {
@@ -139,7 +144,7 @@ export default function ModalInvoiceProduction({
         });
       }
 
-      toast.success(`Tagihan ${invoiceNumber} senilai ${formatRupiah(billAmount)} berhasil diterbitkan!`);
+      toast.success(`Tagihan ${invoiceNumber} senilai ${formatRupiah(billAmount)} berhasil diterbitkan & Jurnal Piutang tercatat!`);
       onSuccess?.();
       onClose();
     } catch (error: any) {

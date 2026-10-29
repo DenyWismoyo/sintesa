@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Asset, MaintenanceRecord } from '@/types';
+import { financeService } from '@/services/finance.service';
 import { Wrench, X, Info, AlertTriangle, Activity, Trash2, CheckCircle, FileText, Image as ImageIcon, Camera, MapPin, Tag, Landmark, Ruler, Package, User, BadgeDollarSign, Clock, Check, Plus, Loader2, Folder, Layers } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
+import { toast } from 'sonner';
 
 interface Props {
   asset: Asset;
@@ -17,6 +19,7 @@ export default function ModalDetailAset({ asset, allReports, baseUrl, onClose, o
   const [tab, setTab] = useState<'Info' | 'Laporan' | 'Riwayat' | 'Galeri'>('Info');
   
   const [maintenanceForm, setMaintenanceForm] = useState({ date: new Date().toISOString().split('T')[0], description: '', cost: 0, technician: '' });
+  const [recordAsExpense, setRecordAsExpense] = useState(true);
   const [isAddingMaintenance, setIsAddingMaintenance] = useState(false);
   
   const [resolvingId, setResolvingId] = useState<string | null>(null);
@@ -34,21 +37,41 @@ export default function ModalDetailAset({ asset, allReports, baseUrl, onClose, o
     e.preventDefault();
     setIsAddingMaintenance(true);
     
+    const costNum = Number(maintenanceForm.cost) || 0;
     const newRecord: MaintenanceRecord = { 
       id: Date.now().toString(), 
       date: maintenanceForm.date, 
       description: maintenanceForm.description, 
-      cost: Number(maintenanceForm.cost), 
+      cost: costNum, 
       technician: maintenanceForm.technician 
     };
     
     const res = await onAddMaintenance(asset.id!, newRecord);
     
+    if (res.success && recordAsExpense && costNum > 0) {
+      try {
+        await financeService.addExpense({
+          date: maintenanceForm.date,
+          expenseNumber: `EXP-MAINT-${Date.now().toString().slice(-6)}`, categoryId: '5103', categoryName: 'Beban Pemeliharaan Aset & Fasilitas', payeeName: maintenanceForm.technician || 'Vendor / Teknisi Pemeliharaan', sourceAccountId: 'PENDING_KASIR',
+          description: `Pemeliharaan Aset [${asset.inventoryNumber || asset.name}]: ${maintenanceForm.description}`,
+          amount: costNum,
+          status: 'PENDING_APPROVAL',
+          updatedAt: Date.now(),
+          createdAt: Date.now()
+        });
+        toast.success('Catatan pemeliharaan disimpan & pengajuan pengeluaran (Expense) otomatis diteruskan ke Keuangan (/billing)!');
+      } catch (err) {
+        console.warn('Gagal meneruskan biaya pemeliharaan ke modul keuangan:', err);
+      }
+    }
+
     setIsAddingMaintenance(false);
     
     if (res.success) {
       setMaintenanceForm({ date: new Date().toISOString().split('T')[0], description: '', cost: 0, technician: '' });
-      alert("Catatan pemeliharaan berhasil ditambahkan!");
+      if (!recordAsExpense || costNum <= 0) {
+        toast.success("Catatan pemeliharaan berhasil ditambahkan!");
+      }
     } else {
       alert("Gagal menyimpan catatan pemeliharaan: " + res.error);
     }
@@ -269,6 +292,19 @@ export default function ModalDetailAset({ asset, allReports, baseUrl, onClose, o
                       <label className="block text-xs font-bold text-slate-700 mb-1.5">Biaya (Rp)</label>
                       <input type="number" min="0" required value={maintenanceForm.cost || ''} onChange={e => setMaintenanceForm({...maintenanceForm, cost: Number(e.target.value)})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="0" />
                     </div>
+                    {Number(maintenanceForm.cost) > 0 && (
+                      <label className="flex items-start gap-2.5 p-3 rounded-xl bg-blue-50/70 border border-blue-100 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={recordAsExpense}
+                          onChange={e => setRecordAsExpense(e.target.checked)}
+                          className="mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-[11px] font-bold text-blue-900 leading-snug">
+                          Catat juga sebagai Pengajuan Pengeluaran (Expense) di Sistem Keuangan (/billing)
+                        </span>
+                      </label>
+                    )}
                     <div>
                       <label className="block text-xs font-bold text-slate-700 mb-1.5">Nama Teknisi / Vendor</label>
                       <input type="text" required value={maintenanceForm.technician} onChange={e => setMaintenanceForm({...maintenanceForm, technician: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="Nama bengkel/orang" />

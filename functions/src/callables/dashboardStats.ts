@@ -15,14 +15,21 @@ export const getDashboardStats = onCall(async (request) => {
 
   // --- 2. GUARD: CEK OTORISASI (ROLE VIA CUSTOM CLAIMS) ---
   const role = request.auth.token?.role as string | undefined;
-  const allowedRoles = ['super_admin', 'admin_keuangan', 'admin_aset', 'admin_tenant', 'admin_pelatihan'];
+  const allowedRoles = [
+    'super_admin', 'admin',
+    'admin_keuangan', 'kasir', 'kasir_pengeluaran',
+    'admin_aset', 'operator_aset',
+    'admin_tenant', 'operator_tenant',
+    'admin_pelatihan', 'operator_pelatihan',
+    'admin_produksi', 'operator_produksi'
+  ];
   if (!role || !allowedRoles.includes(role)) {
     throw new HttpsError('permission-denied', 'Akses Ditolak: Hak akses Anda tidak mencukupi untuk memuat data ini.');
   }
 
   // --- 3. EKSEKUSI DATA OPERASIONAL ---
   const data = request.data || {};
-  const appId = data.appId || 'blud-app-dev';
+  const appId = process.env.APP_ID || data.appId || 'blud-app-dev';
   
   const filterMonth = data.month !== undefined ? data.month : new Date().getMonth();
   const filterYear = data.year !== undefined ? data.year : new Date().getFullYear();

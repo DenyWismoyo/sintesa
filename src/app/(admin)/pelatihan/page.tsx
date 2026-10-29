@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { useRouter } from 'next/navigation';
-import { Plus, Search, Edit, Trash2, Calendar, Loader2, LayoutGrid, Users, BookOpen, Tag, Info, GraduationCap, Briefcase, Layers } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Calendar, Loader2, LayoutGrid, Users, BookOpen, Tag, GraduationCap, Briefcase, Layers, Receipt } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin';
 import { useTraining } from '@/hooks/useTraining';
 import { canPerformAction, PERMISSIONS } from '@/config/roles';
@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 
 import AlumniTab from './components/AlumniTab';
 import TalentPoolTab from './components/TalentPoolTab';
+import DivisionInvoiceTracker from '@/components/finance/DivisionInvoiceTracker';
 
 export default function AdminPelatihanPage() {
   const { user, role, loading: authLoading } = useAuth();
@@ -20,7 +21,7 @@ export default function AdminPelatihanPage() {
   const canManageAlumni = canPerformAction(role, PERMISSIONS.MANAGE_ALUMNI);
   const canManageTalent = canPerformAction(role, PERMISSIONS.MANAGE_TALENT);
 
-  const [activeView, setActiveView] = useState<'lms' | 'alumni' | 'talent'>('lms');
+  const [activeView, setActiveView] = useState<'lms' | 'alumni' | 'talent' | 'tagihan'>('lms');
 
   const { trainings, loading, fetchNextPage, hasNextPage, deleteTraining } = useTraining();
   
@@ -108,6 +109,16 @@ export default function AdminPelatihanPage() {
               }`}
             >
               <Briefcase size={16} /> Direktori Talent & Karir
+            </button>
+          )}
+          {canManageLMS && (
+            <button 
+              onClick={() => setActiveView('tagihan')} 
+              className={`flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
+                activeView === 'tagihan' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+              }`}
+            >
+              <Receipt size={16} /> Tagihan Diklat
             </button>
           )}
         </div>
@@ -212,6 +223,13 @@ export default function AdminPelatihanPage() {
 
       {activeView === 'alumni' && canManageAlumni && <AlumniTab />}
       {activeView === 'talent' && canManageTalent && <TalentPoolTab />}
+      {activeView === 'tagihan' && canManageLMS && (
+        <DivisionInvoiceTracker
+          division="DIKLAT_PELATIHAN"
+          title="Pantauan Tagihan Peserta Pelatihan & Diklat"
+          subtitle="Pantau pelunasan biaya pendaftaran pelatihan berbayar, cetak invoice PDF, dan kwitansi peserta."
+        />
+      )}
     </div>
   );
 }

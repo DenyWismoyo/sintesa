@@ -3,7 +3,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { ProductCatalog, BundleItem, Asset } from '@/types';
-import { UploadCloud, Loader2, Plus, Trash2, AlertCircle, Info, Tag, Settings, Image as ImageIcon, CheckCircle2, Package, Search, Calculator } from 'lucide-react';
+import { useTenants } from '@/hooks/useTenants';
+import { UploadCloud, Loader2, Plus, Trash2, AlertCircle, Info, Tag, Settings, Image as ImageIcon, CheckCircle2, Package } from 'lucide-react';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ interface ModalFormProductProps {
 }
 
 export default function ModalFormProduct({ isOpen, onClose, onSubmit, initialData }: ModalFormProductProps) {
+  const { allTenants } = useTenants();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -34,7 +36,7 @@ export default function ModalFormProduct({ isOpen, onClose, onSubmit, initialDat
   const [formData, setFormData] = useState<Partial<ProductCatalog>>({
     name: '', category: '', price: 0, pricingType: 'Per Hari', 
     shortDescription: '', description: '', isPublished: true, isNegotiable: false,
-    ownerType: 'INTERNAL', tenantName: '', ctaType: 'WHATSAPP', ctaText: 'Hubungi Kami', ctaLink: '', images: [],
+    ownerType: 'INTERNAL', tenantId: '', tenantName: '', ctaType: 'WHATSAPP', ctaText: 'Hubungi Kami', ctaLink: '', images: [],
     productType: 'SINGLE', isPriceCalculated: false, bundleItems: []
   });
 
@@ -66,7 +68,7 @@ export default function ModalFormProduct({ isOpen, onClose, onSubmit, initialDat
       setFormData({ 
         name: '', category: '', price: 0, pricingType: 'Per Hari', 
         shortDescription: '', description: '', isPublished: true, isNegotiable: false,
-        ownerType: 'INTERNAL', tenantName: '', ctaType: 'WHATSAPP', ctaText: 'Hubungi Kami', ctaLink: '', images: [],
+        ownerType: 'INTERNAL', tenantId: '', tenantName: '', ctaType: 'WHATSAPP', ctaText: 'Hubungi Kami', ctaLink: '', images: [],
         productType: 'SINGLE', isPriceCalculated: false, bundleItems: []
       });
       setSpecifications([]);
@@ -168,7 +170,6 @@ export default function ModalFormProduct({ isOpen, onClose, onSubmit, initialDat
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Pembersihan Data Array
     const validSpecs = specifications.filter(s => s.label.trim() !== '');
     const validHighlights = highlights.filter(h => h.trim() !== '');
     const parsedTags = tagsInput.split(',').map(t => t.trim()).filter(t => t !== '');
@@ -276,7 +277,7 @@ export default function ModalFormProduct({ isOpen, onClose, onSubmit, initialDat
         <form id="katalog-form" onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           <div className="flex-1 overflow-y-auto p-3.5 sm:p-5 space-y-3.5 sm:space-y-4 custom-scrollbar">
             
-            {/* --- TAB 1: INFO UTAMA (GRID 2 KOLOM DI DESKTOP) --- */}
+            {/* --- TAB 1: INFO UTAMA --- */}
             <div className={activeTab === 'info' ? 'block animate-in fade-in duration-200' : 'hidden'}>
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-start">
                 
@@ -636,20 +637,43 @@ export default function ModalFormProduct({ isOpen, onClose, onSubmit, initialDat
                 <h4 className="font-bold text-xs sm:text-sm text-slate-800 border-b border-slate-100 pb-1.5">Sumber / Kepemilikan Produk</h4>
                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   <label className={`border-2 rounded-xl p-3 cursor-pointer transition-all ${formData.ownerType === 'INTERNAL' ? 'border-blue-500 bg-blue-50/70' : 'border-slate-200 hover:bg-slate-50'}`}>
-                    <input type="radio" name="owner" value="INTERNAL" checked={formData.ownerType === 'INTERNAL'} onChange={() => setFormData({...formData, ownerType: 'INTERNAL', tenantName: ''})} className="hidden" />
+                    <input type="radio" name="owner" value="INTERNAL" checked={formData.ownerType === 'INTERNAL'} onChange={() => setFormData({...formData, ownerType: 'INTERNAL', tenantId: '', tenantName: ''})} className="hidden" />
                     <div className="font-bold text-xs sm:text-sm text-slate-800">Internal BLUD</div>
                     <div className="text-[10px] sm:text-xs text-slate-500 mt-0.5">Produk pengelola technopark.</div>
                   </label>
                   <label className={`border-2 rounded-xl p-3 cursor-pointer transition-all ${formData.ownerType === 'TENANT' ? 'border-amber-500 bg-amber-50/70' : 'border-slate-200 hover:bg-slate-50'}`}>
                     <input type="radio" name="owner" value="TENANT" checked={formData.ownerType === 'TENANT'} onChange={() => setFormData({...formData, ownerType: 'TENANT'})} className="hidden" />
                     <div className="font-bold text-xs sm:text-sm text-slate-800">Tenant Binaan</div>
-                    <div className="text-[10px] sm:text-xs text-slate-500 mt-0.5">Produk startup/mitra.</div>
+                    <div className="text-[10px] sm:text-xs text-slate-500 mt-0.5">Produk startup/mitra binaan.</div>
                   </label>
                 </div>
                 {formData.ownerType === 'TENANT' && (
-                   <div className="space-y-1.5 animate-in slide-in-from-top-2 pt-1">
-                     <Label className="text-xs font-semibold text-slate-700">Nama Tenant Pemilik *</Label>
-                     <Input required value={formData.tenantName || ''} onChange={e => setFormData({...formData, tenantName: e.target.value})} placeholder="Masukkan nama tenant..." className="h-9 sm:h-10 text-xs sm:text-sm bg-slate-50/70" />
+                   <div className="space-y-3 animate-in slide-in-from-top-2 pt-1">
+                     <div className="space-y-1.5">
+                       <Label className="text-xs font-semibold text-slate-700">Pilih dari Direktori Tenant Binaan</Label>
+                       <select
+                         value={formData.tenantId || ''}
+                         onChange={(e) => {
+                           const tId = e.target.value;
+                           const found = allTenants.find(t => t.id === tId);
+                           if (found) {
+                             setFormData({ ...formData, tenantId: found.id, tenantName: found.name });
+                           } else {
+                             setFormData({ ...formData, tenantId: '' });
+                           }
+                         }}
+                         className="w-full h-9 sm:h-10 px-3 bg-slate-50/70 border border-slate-200 rounded-md text-xs sm:text-sm font-medium outline-none focus:ring-2 focus:ring-amber-500"
+                       >
+                         <option value="">-- Pilih Tenant Terdaftar (Otomatis Sinkron Omzet) --</option>
+                         {allTenants.map(t => (
+                           <option key={t.id} value={t.id}>{t.name} ({t.sector})</option>
+                         ))}
+                       </select>
+                     </div>
+                     <div className="space-y-1.5">
+                       <Label className="text-xs font-semibold text-slate-700">Nama Tenant Pemilik *</Label>
+                       <Input required value={formData.tenantName || ''} onChange={e => setFormData({...formData, tenantName: e.target.value})} placeholder="Masukkan nama tenant..." className="h-9 sm:h-10 text-xs sm:text-sm bg-slate-50/70" />
+                     </div>
                    </div>
                 )}
               </div>
@@ -683,7 +707,7 @@ export default function ModalFormProduct({ isOpen, onClose, onSubmit, initialDat
               </div>
             </div>
 
-            {/* --- TAB 4: GALERI FOTO (EASY DELETE DI PONSEL & DESKTOP) --- */}
+            {/* --- TAB 4: GALERI FOTO --- */}
             <div className={activeTab === 'galeri' ? 'block space-y-4 animate-in fade-in duration-200' : 'hidden'}>
               <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
                 
@@ -716,7 +740,6 @@ export default function ModalFormProduct({ isOpen, onClose, onSubmit, initialDat
                 
                 {/* GRID FOTO */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
-                  {/* FOTO EKSISTING */}
                   {existingImages.map((url, idx) => (
                     <div 
                       key={`ex-${idx}`} 
@@ -725,15 +748,11 @@ export default function ModalFormProduct({ isOpen, onClose, onSubmit, initialDat
                       }`}
                     >
                       <img src={url} alt={`Foto ${idx + 1}`} className="w-full h-full object-cover" />
-                      
-                      {/* BADGE COVER */}
                       {idx === 0 && (
                         <span className="absolute top-2 left-2 bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow-md tracking-wider">
                           COVER UTAMA
                         </span>
                       )}
-
-                      {/* TOMBOL HAPUS PERMANEN (MUDAH DI SENTUH DI PONSEL & DESKTOP) */}
                       <button 
                         type="button" 
                         onClick={() => removeExistingImage(idx)} 
@@ -742,8 +761,6 @@ export default function ModalFormProduct({ isOpen, onClose, onSubmit, initialDat
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
-
-                      {/* BAR AKSI BAWAH */}
                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 flex items-center justify-between">
                         <span className="text-[10px] font-medium text-white/90">Foto #{idx + 1}</span>
                         <button 
@@ -757,20 +774,15 @@ export default function ModalFormProduct({ isOpen, onClose, onSubmit, initialDat
                     </div>
                   ))}
 
-                  {/* FOTO BARU YANG DIPILIH */}
                   {newImagePreviews.map((preview, idx) => (
                     <div 
                       key={`nw-${idx}`} 
                       className="relative aspect-video rounded-xl border-2 border-emerald-500 bg-emerald-50 overflow-hidden shadow-xs ring-2 ring-emerald-200 transition-all"
                     >
                       <img src={preview} alt={`Foto Baru ${idx + 1}`} className="w-full h-full object-cover" />
-                      
-                      {/* BADGE BARU */}
                       <span className="absolute top-2 left-2 bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow-md tracking-wider">
                         FOTO BARU
                       </span>
-
-                      {/* TOMBOL HAPUS PERMANEN */}
                       <button 
                         type="button" 
                         onClick={() => removeNewImage(idx)} 
@@ -779,8 +791,6 @@ export default function ModalFormProduct({ isOpen, onClose, onSubmit, initialDat
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
-
-                      {/* BAR AKSI BAWAH */}
                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 flex items-center justify-between">
                         <span className="text-[10px] font-medium text-white/90">Menunggu Disimpan</span>
                         <button 
@@ -794,7 +804,6 @@ export default function ModalFormProduct({ isOpen, onClose, onSubmit, initialDat
                     </div>
                   ))}
 
-                  {/* CARD TAMBAH FOTO */}
                   {(existingImages.length + newImageFiles.length) < 5 && (
                     <div 
                       onClick={() => fileInputRef.current?.click()} 

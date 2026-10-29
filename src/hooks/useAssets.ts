@@ -56,7 +56,11 @@ export function useAssets() {
 
   // Hanya ruangan yang aktif dikomersialkan (untuk sewa publik)
   const publicRooms = useMemo(() => {
-    return allRooms.filter(a => a.isRentable === true);
+    return allRooms.filter(a => a.isRentable === true && a.condition !== 'Rusak Berat' && a.status !== 'Pemeliharaan');
+  }, [allRooms]);
+
+  const allEquipments = useMemo(() => {
+    return assets.filter(a => (a.category || '').toLowerCase() !== 'ruangan');
   }, [allRooms]);
   
   const loadingRooms = loadingAssets;
@@ -238,7 +242,7 @@ export function useAssets() {
   const submitReport = async (reportData: any, imageFiles: File[]) => { try { await submitReportMutation.mutateAsync({ reportData, imageFiles }); return { success: true }; } catch (err: any) { return { success: false, error: err.message }; } };
 
   return {
-    assets, allRooms, publicRooms, loadingRooms, openReports, loading, error, 
+    assets, allRooms, publicRooms, allEquipments, loadingRooms, openReports, loading, error, 
     fetchNextPage: () => {}, hasNextPage: false, isFetchingNextPage: false,
     addAsset, updateAsset, saveAssetWithImage,
     deleteAsset, resolveReport, addMaintenance, getAsset, submitReport 

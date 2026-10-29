@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/lib/AuthContext';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { collection, query, onSnapshot, orderBy, limit } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '@/lib/firebase';
@@ -71,21 +72,21 @@ export default function DashboardPage() {
     const unsubB = onSnapshot(query(collection(db, 'artifacts', appId, 'public', 'data', 'bookings'), orderBy('createdAt', 'desc'), limit(5)), (snap) => {
       setFeeds(p => ({ ...p, bookings: snap.docs.map(d => {
         const data = d.data();
-        return { id: d.id, type: 'booking', icon: CalendarCheck, color: 'text-blue-500 bg-blue-100', title: `Peminjaman: ${data.assetName}`, subtitle: `Oleh ${data.userName}`, date: getTs(data.createdAt), status: data.status }
+        return { id: d.id, type: 'booking', href: '/booking', icon: CalendarCheck, color: 'text-blue-500 bg-blue-100', title: `Peminjaman: ${data.assetName}`, subtitle: `Oleh ${data.userName}`, date: getTs(data.createdAt), status: data.status }
       })}));
     });
 
     const unsubT = onSnapshot(query(collection(db, 'tenants'), orderBy('createdAt', 'desc'), limit(5)), (snap) => {
       setFeeds(p => ({ ...p, tenants: snap.docs.map(d => {
         const data = d.data();
-        return { id: d.id, type: 'tenant', icon: Rocket, color: 'text-purple-500 bg-purple-100', title: `Tenant Baru: ${data.name}`, subtitle: `Sektor: ${data.sector || 'Umum'}`, date: getTs(data.createdAt), status: data.status }
+        return { id: d.id, type: 'tenant', href: '/tenant', icon: Rocket, color: 'text-purple-500 bg-purple-100', title: `Tenant Baru: ${data.name}`, subtitle: `Sektor: ${data.sector || 'Umum'}`, date: getTs(data.createdAt), status: data.status }
       })}));
     });
 
     const unsubTr = onSnapshot(query(collection(db, 'trainings'), orderBy('createdAt', 'desc'), limit(5)), (snap) => {
       setFeeds(p => ({ ...p, trainings: snap.docs.map(d => {
         const data = d.data();
-        return { id: d.id, type: 'training', icon: GraduationCap, color: 'text-amber-500 bg-amber-100', title: `Pelatihan Baru: ${data.title}`, subtitle: `Kategori: ${data.category}`, date: getTs(data.createdAt), status: data.status }
+        return { id: d.id, type: 'training', href: '/pelatihan', icon: GraduationCap, color: 'text-amber-500 bg-amber-100', title: `Pelatihan Baru: ${data.title}`, subtitle: `Kategori: ${data.category}`, date: getTs(data.createdAt), status: data.status }
       })}));
     });
 
@@ -154,6 +155,7 @@ export default function DashboardPage() {
               value={stats?.users?.total?.toString() || "0"} 
               icon={<UserPlus size={22} />} 
               trend="Akun Terdaftar" colorClass="text-blue-600 bg-blue-50 border-blue-100"
+              href="/pengaturan"
             />
             <StatCard 
               title="Inkubasi Tenant Aktif" 
@@ -161,6 +163,7 @@ export default function DashboardPage() {
               subValue={`dari total ${stats?.tenants?.total || 0} pendaftar`}
               icon={<Rocket size={22} />} 
               trend="Mitra Startup" colorClass="text-purple-600 bg-purple-50 border-purple-100"
+              href="/tenant"
             />
             <StatCard 
               title="Aset Sedang Dipakai" 
@@ -168,6 +171,7 @@ export default function DashboardPage() {
               subValue={`dari total ${stats?.assets?.total || 0} unit/ruangan`}
               icon={<Building2 size={22} />} 
               trend="Utilisasi Aset" colorClass="text-emerald-600 bg-emerald-50 border-emerald-100"
+              href="/booking"
             />
             <StatCard 
               title="Total Peserta Pelatihan" 
@@ -175,6 +179,7 @@ export default function DashboardPage() {
               subValue={`di dalam ${stats?.training?.totalEvents || 0} program kelas`}
               icon={<GraduationCap size={22} />} 
               trend="Siswa LMS" colorClass="text-amber-600 bg-amber-50 border-amber-100"
+              href="/pelatihan"
             />
           </div>
 
@@ -264,7 +269,7 @@ export default function DashboardPage() {
                   </h3>
                   
                   <div className="space-y-4">
-                    <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center justify-between">
+                    <Link href="/aset" className="p-4 bg-red-50 hover:bg-red-100/80 border border-red-100 rounded-2xl flex items-center justify-between transition-colors">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-red-100 text-red-600 rounded-xl flex items-center justify-center">
                           <Wrench size={20} />
@@ -274,9 +279,9 @@ export default function DashboardPage() {
                           <p className="text-xl font-black text-red-800 mt-0.5">{stats?.assets?.openReports || 0} <span className="text-sm font-medium">Tiket Terbuka</span></p>
                         </div>
                       </div>
-                    </div>
+                    </Link>
 
-                    <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between">
+                    <Link href="/katalog" className="p-4 bg-slate-50 hover:bg-slate-100 border border-slate-100 rounded-2xl flex items-center justify-between transition-colors">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-white border border-slate-200 text-slate-600 rounded-xl flex items-center justify-center">
                           <PackageSearch size={20} />
@@ -286,7 +291,7 @@ export default function DashboardPage() {
                           <p className="text-xl font-black text-slate-800 mt-0.5">{stats?.tenants?.products || 0} <span className="text-sm font-medium">Item Tayang</span></p>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   </div>
                 </div>
 
@@ -307,7 +312,7 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   recentActivities.map((act, i) => (
-                    <div key={`${act.id}-${i}`} className="flex gap-4 group">
+                    <Link key={`${act.id}-${i}`} href={act.href || '/dashboard'} className="flex gap-4 group hover:bg-slate-50/80 p-1.5 -m-1.5 rounded-2xl transition-colors">
                       <div className="relative">
                         {/* Garis konektor antar feed */}
                         {i !== recentActivities.length - 1 && (
@@ -318,7 +323,7 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       <div className="flex-1 min-w-0 pb-1">
-                        <p className="text-sm font-bold text-slate-800 leading-tight">{act.title}</p>
+                        <p className="text-sm font-bold text-slate-800 group-hover:text-blue-600 transition-colors leading-tight">{act.title}</p>
                         <p className="text-xs font-medium text-slate-500 mt-1 truncate">{act.subtitle}</p>
                         <div className="flex justify-between items-center mt-2.5">
                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{timeAgo(act.date)}</span>
@@ -331,7 +336,7 @@ export default function DashboardPage() {
                           </span>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   ))
                 )}
               </div>
@@ -347,10 +352,9 @@ export default function DashboardPage() {
 // ==========================================
 // KOMPONEN CARD STATISTIK
 // ==========================================
-function StatCard({ title, value, subValue, icon, trend, colorClass }: { title: string, value: string, subValue?: string, icon: React.ReactNode, trend: string, colorClass: string }) {
-  return (
-    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col hover:shadow-md transition-shadow relative overflow-hidden group">
-      
+function StatCard({ title, value, subValue, icon, trend, colorClass, href }: { title: string, value: string, subValue?: string, icon: React.ReactNode, trend: string, colorClass: string, href?: string }) {
+  const cardContent = (
+    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col hover:shadow-md hover:border-blue-200 transition-all relative overflow-hidden group h-full">
       {/* Efek Latar Glow */}
       <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-20 blur-2xl group-hover:scale-150 transition-transform duration-500 ${colorClass.split(' ')[0].replace('text-', 'bg-')}`}></div>
 
@@ -362,11 +366,16 @@ function StatCard({ title, value, subValue, icon, trend, colorClass }: { title: 
       </div>
       <div className="relative z-10 mt-auto">
         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5 truncate">{title}</p>
-        <h3 className="text-3xl font-black text-slate-800 tracking-tight">{value}</h3>
+        <h3 className="text-3xl font-black text-slate-800 tracking-tight group-hover:text-blue-600 transition-colors">{value}</h3>
         {subValue && (
           <p className="text-[11px] font-medium text-slate-500 mt-1">{subValue}</p>
         )}
       </div>
     </div>
   );
+
+  if (href) {
+    return <Link href={href} className="block h-full">{cardContent}</Link>;
+  }
+  return cardContent;
 }

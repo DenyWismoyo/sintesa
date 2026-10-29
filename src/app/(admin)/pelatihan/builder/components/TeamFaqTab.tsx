@@ -1,12 +1,13 @@
 // Lokasi file: src/app/pelatihan/builder/components/TeamFaqTab.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Training, Instructor, FAQ } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2, User, MessageCircleQuestion, Key, RefreshCw, Copy, Info, Loader2, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, User, MessageCircleQuestion, Key, RefreshCw, Copy, Info, Loader2, AlertCircle, UserCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { trainingService } from '@/services/training.service';
+import { stpEmployeeService, StpEmployeeSigner } from '@/services/stpEmployee.service';
 
 interface TabProps {
   form: Partial<Training>;
@@ -17,10 +18,37 @@ interface TabProps {
 
 export default function TeamFaqTab({ form, setForm, editId, isInstructor }: TabProps) {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [stpEmployees, setStpEmployees] = useState<StpEmployeeSigner[]>([]);
+  const [selectedEmpId, setSelectedEmpId] = useState<string>('');
+
+  useEffect(() => {
+    stpEmployeeService.getEmployees().then(setStpEmployees).catch(() => {});
+  }, []);
 
   const handleAddInstructor = () => {
     const newInst: Instructor = { id: Date.now().toString(), name: '', title: '', bio: '', photoUrl: '' };
     setForm({ ...form, instructors: [...(form.instructors || []), newInst] });
+  };
+
+  const handleAddFromStpDirectory = (empId: string) => {
+    const emp = stpEmployees.find(e => e.id === empId);
+    if (!emp) return;
+    const newInst: Instructor = {
+      id: emp.id,
+      name: emp.nama,
+      title: emp.jabatan || 'Instruktur Solo Technopark',
+      bio: `${emp.departmentName || 'Solo Technopark'}${emp.nip ? ` • NIP/ID: ${emp.nip}` : ''}`,
+      photoUrl: ''
+    };
+    const existingIds = form.authorizedInstructorIds || [];
+    const nextAuthIds = existingIds.includes(emp.id) ? existingIds : [...existingIds, emp.id];
+    setForm({
+      ...form,
+      instructors: [...(form.instructors || []), newInst],
+      authorizedInstructorIds: nextAuthIds
+    });
+    setSelectedEmpId('');
+    toast.success(`Instruktur "${emp.nama}" ditambahkan dari Direktori Pegawai STP!`);
   };
 
   const handleUpdateInstructor = (id: string, field: keyof Instructor, value: string) => {
@@ -131,14 +159,35 @@ export default function TeamFaqTab({ form, setForm, editId, isInstructor }: TabP
       )}
 
       <section>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
-            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><User className="text-amber-500"/> Profil Instruktur (Publik)</h2>
-            <p className="text-sm text-slate-500 mt-1">Siapa yang akan memandu kelas ini? Data ini akan ditampilkan di halaman depan.</p>
+            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><User className="text-amber-500"/> Profil Instruktur (Publik & Internal STP)</h2>
+            <p className="text-sm text-slate-500 mt-1">Pilih langsung dari Direktori Pegawai STP (/presensi) atau tambahkan pengajar secara manual.</p>
           </div>
-          <Button type="button" onClick={handleAddInstructor} size="sm" variant="outline" className="text-amber-600 border-amber-200 hover:bg-amber-50">
-            <Plus size={16} className="mr-1" /> Tambah Pengajar
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            {stpEmployees.length > 0 && (
+              <div className="flex items-center gap-1.5 bg-amber-50/70 border border-amber-200 rounded-xl px-2.5 py-1">
+                <UserCheck size={14} className="text-amber-600 shrink-0" />
+                <select
+                  value={selectedEmpId}
+                  onChange={(e) => {
+                    if (e.target.value) handleAddFromStpDirectory(e.target.value);
+                  }}
+                  className="bg-transparent text-xs font-bold text-amber-900 outline-none py-1 max-w-[230px]"
+                >
+                  <option value="">+ Pilih dari Pegawai / Instruktur STP</option>
+                  {stpEmployees.map(emp => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.nama} — {emp.jabatan}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <Button type="button" onClick={handleAddInstructor} size="sm" variant="outline" className="text-amber-600 border-amber-200 hover:bg-amber-50">
+              <Plus size={16} className="mr-1" /> Tambah Manual
+            </Button>
+          </div>
         </div>
         <hr className="border-slate-100 mb-6" />
 

@@ -3,43 +3,29 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { useTenants } from '@/hooks/useTenants';
-import { db } from '@/lib/firebase';
-import { collection, query, orderBy, onSnapshot, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { tenantService, TenantTicketItem } from '@/services/tenant.service';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Headset, Plus, Loader2, X, AlertCircle, Clock, 
-  CheckCircle2, MessageSquare, Trash2, Tag, ArrowRight,
+  Headset, Plus, Loader2, X, Clock, 
+  CheckCircle2, Trash2, ArrowRight,
   Wifi, ShieldCheck, Sparkles, Wrench
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-// --- Tipe Data Tiket ---
-export interface Ticket {
-  id?: string;
-  title: string;
-  category: 'Fasilitas' | 'Internet & IT' | 'Kebersihan' | 'Keamanan' | 'Lainnya';
-  priority: 'Rendah' | 'Sedang' | 'Tinggi' | 'Darurat';
-  description: string;
-  status: 'PENDING' | 'PROSES' | 'SELESAI';
-  createdAt: number;
-  adminReply?: string;
-}
+export type Ticket = TenantTicketItem;
 
 export default function TenantTicketsPage() {
   const { user } = useAuth();
   const { useTenantProfile } = useTenants();
   
-  // PERBAIKAN: Menggunakan fallback user?.uid jika email kosong
   const { data: profile, isLoading: isProfileLoading } = useTenantProfile(user?.email || user?.uid);
 
-  // Local State
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [isTicketsLoading, setIsTicketsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filter, setFilter] = useState<'SEMUA' | 'PENDING' | 'PROSES' | 'SELESAI'>('SEMUA');
 
-  // Form State
   const [newTicket, setNewTicket] = useState<Partial<Ticket>>({
     category: 'Fasilitas',
     priority: 'Sedang',
@@ -47,35 +33,28 @@ export default function TenantTicketsPage() {
     description: ''
   });
 
-  // --- Real-time Listener ke Sub-collection Tenant ---
   useEffect(() => {
     if (!profile?.id) {
       setIsTicketsLoading(false);
       return;
     }
 
-    const q = query(
-      collection(db, 'tenants', profile.id, 'tickets'), 
-      orderBy('createdAt', 'desc')
+    const unsubscribe = tenantService.subscribeTenantTickets(
+      profile.id,
+      (data) => {
+        setTickets(data);
+        setIsTicketsLoading(false);
+      },
+      (err) => {
+        console.error("Gagal memuat tiket:", err);
+        toast.error("Gagal terhubung ke server helpdesk.");
+        setIsTicketsLoading(false);
+      }
     );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Ticket[];
-      setTickets(data);
-      setIsTicketsLoading(false);
-    }, (err) => {
-      console.error("Gagal memuat tiket:", err);
-      toast.error("Gagal terhubung ke server helpdesk.");
-      setIsTicketsLoading(false);
-    });
 
     return () => unsubscribe();
   }, [profile?.id]);
 
-  // --- Handlers ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profile?.id) return;
@@ -86,10 +65,12 @@ export default function TenantTicketsPage() {
 
     setIsSubmitting(true);
     try {
-      await addDoc(collection(db, 'tenants', profile.id, 'tickets'), {
-        ...newTicket,
-        status: 'PENDING',
-        createdAt: Date.now(),
+      await tenantService.createTenantTicket(profile.id, {
+        title: newTicket.title,
+        category: (newTicket.category || 'Fasilitas') as any,
+        priority: (newTicket.priority || 'Sedang') as any,
+        description: newTicket.description,
+        tenantName: profile.name
       });
       toast.success("Tiket berhasil dikirim ke Admin!");
       setIsModalOpen(false);
@@ -105,7 +86,7 @@ export default function TenantTicketsPage() {
     if (!profile?.id) return;
     if (confirm("Hapus tiket ini? Tiket yang sudah diproses sebaiknya tidak dihapus.")) {
       try {
-        await deleteDoc(doc(db, 'tenants', profile.id, 'tickets', ticketId));
+        await tenantService.deleteTenantTicket(profile.id, ticketId);
         toast.success("Tiket dibatalkan.");
       } catch (error) {
         toast.error("Gagal menghapus tiket.");
@@ -116,7 +97,7 @@ export default function TenantTicketsPage() {
   const markAsResolved = async (ticketId: string) => {
      if (!profile?.id) return;
      try {
-       await updateDoc(doc(db, 'tenants', profile.id, 'tickets', ticketId), {
+       await tenantService.updateTenantTicket(profile.id, ticketId, {
          status: 'SELESAI'
        });
        toast.success("Terima kasih! Tiket ditutup.");
@@ -125,7 +106,6 @@ export default function TenantTicketsPage() {
      }
   };
 
-  // --- Render Helpers ---
   if (isProfileLoading || isTicketsLoading) {
     return (
       <div className="flex flex-col h-[70vh] items-center justify-center space-y-4">
@@ -271,7 +251,7 @@ export default function TenantTicketsPage() {
                       </div>
                       <div className="flex-1">
                         <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-0.5">Balasan Admin</p>
-                        <p className="text-sm text-indigo-900 font-medium italic">"{ticket.adminReply}"</p>
+                        <p className="text-sm text-indigo-900 font-medium italic">&quot;{ticket.adminReply}&quot;</p>
                       </div>
                     </div>
                     {ticket.status === 'PROSES' && (

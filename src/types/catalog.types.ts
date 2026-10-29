@@ -18,6 +18,7 @@ export const ProductCatalogSchema = z.object({
   ownerType: z.enum(['INTERNAL', 'TENANT']).default('INTERNAL'),
   tenantId: z.string().optional(),
   tenantName: z.string().optional().default(''),
+  sourceProductId: z.string().optional(),
   price: z.coerce.number().default(0),
   pricingType: z.string().default('Tetap'),
   isNegotiable: z.boolean().default(false),
@@ -38,4 +39,3 @@ export const ProductCatalogSchema = z.object({
   isPriceCalculated: z.boolean().default(false).optional(), 
 });
 export type ProductCatalog = z.infer<typeof ProductCatalogSchema>;
-

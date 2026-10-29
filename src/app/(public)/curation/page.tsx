@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useTenants } from '@/hooks/useTenants';
+import { storageService } from '@/services/storage.service';
 
 import CurationLanding from './components/CurationLanding';
 import TrackSelector, { TrackType } from './components/TrackSelector';
@@ -24,6 +25,11 @@ export default function CurationWizard() {
       const existing = localStorage.getItem('curation_history');
       const historyArr = existing ? JSON.parse(existing) : [];
       
+      const sanitizedData = { ...data };
+      delete sanitizedData.pitchDeckFile;
+      delete sanitizedData.legalitasFile;
+      delete sanitizedData.fotoProdukFile;
+
       const newEntry = {
         id: crypto.randomUUID(),
         date: new Date().toISOString(),
@@ -31,7 +37,7 @@ export default function CurationWizard() {
         namaUsaha: data.namaUsaha,
         score: Math.round(((result?.scoreBreakdown?.productAndTech || 0) + (result?.scoreBreakdown?.marketAndFinancial || 0) + (result?.scoreBreakdown?.legalAndCompliance || 0)) / 3),
         readinessLevel: result?.readinessLevel,
-        data: data,
+        data: sanitizedData,
         result: result
       };
       
@@ -46,8 +52,12 @@ export default function CurationWizard() {
     setFormData(finalData);
     setViewState('processing');
     try {
-      // FIX: Payload key diubah menjadi formData agar cocok dengan API backend
-      const payload = { trackType, formData: finalData };
+      const sanitizedForApi = { ...finalData };
+      delete sanitizedForApi.pitchDeckFile;
+      delete sanitizedForApi.legalitasFile;
+      delete sanitizedForApi.fotoProdukFile;
+
+      const payload = { trackType, formData: sanitizedForApi };
       const response = await fetch('/api/curation-ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -90,6 +100,25 @@ export default function CurationWizard() {
 
   const handleAjukanPendampingan = async () => {
     try {
+      let pitchDeckUrl: string | undefined = formData.pitchDeckUrl || undefined;
+      let legalDocUrl: string | undefined = formData.legalDocUrl || undefined;
+      let productImageUrl: string | undefined = undefined;
+
+      if (formData.pitchDeckFile instanceof File) {
+        pitchDeckUrl = await storageService.uploadFile(formData.pitchDeckFile, 'tenants/curation/documents');
+      }
+      if (formData.legalitasFile instanceof File) {
+        legalDocUrl = await storageService.uploadFile(formData.legalitasFile, 'tenants/curation/documents');
+      }
+      if (formData.fotoProdukFile instanceof File) {
+        productImageUrl = await storageService.uploadImage(formData.fotoProdukFile, 'tenants/curation/products');
+      }
+
+      const cleanSelfAssessment = { trackType, ...formData };
+      delete cleanSelfAssessment.pitchDeckFile;
+      delete cleanSelfAssessment.legalitasFile;
+      delete cleanSelfAssessment.fotoProdukFile;
+
       const averageScore = Math.round(((aiResult?.scoreBreakdown?.productAndTech || 0) + (aiResult?.scoreBreakdown?.marketAndFinancial || 0) + (aiResult?.scoreBreakdown?.legalAndCompliance || 0)) / 3);
       const newTenantDraft = {
         name: formData.namaUsaha || 'Bisnis Baru',
@@ -100,8 +129,10 @@ export default function CurationWizard() {
         status: 'Menunggu Review',
         pipelineStage: 'Pra-Inkubasi',
         joinedAt: new Date().toISOString().split('T')[0],
-        segment: trackType, 
-        selfAssessment: { trackType, ...formData }, 
+        segment: trackType === 'UMKM' ? 'UKM' : trackType,
+        pitchDeckUrl,
+        legalDocUrl,
+        selfAssessment: cleanSelfAssessment, 
         aiCurationData: {
           totalScore: averageScore,
           readinessLevel: aiResult?.readinessLevel,
@@ -114,9 +145,10 @@ export default function CurationWizard() {
       };
 
       const initialProductData = {
-        name: 'Produk Utama / Layanan Utama',
-        description: 'Detail terlampir di form self-assessment',
+        name: formData.namaProduk || `${formData.namaUsaha || 'Produk'} - Produk Utama`,
+        description: formData.deskripsi || formData.solusi || 'Detail terlampir di form self-assessment',
         category: newTenantDraft.sector,
+        images: productImageUrl ? [productImageUrl] : [],
         isCurated: true,
         curation: {
           totalScore: averageScore,
@@ -127,9 +159,10 @@ export default function CurationWizard() {
       };
 
       await submitCuration(newTenantDraft as any, initialProductData);
-      alert("Pengajuan Berhasil! Data asesmen telah masuk sistem inkubator.");
+      alert("Pengajuan Berhasil! Data asesmen dan lampiran dokumen telah masuk sistem inkubator.");
       window.location.href = '/'; 
     } catch (error) {
+      console.error("Error submitting curation:", error);
       alert("Terjadi kesalahan sistem saat menyimpan data.");
     }
   };

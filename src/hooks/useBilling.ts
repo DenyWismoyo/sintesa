@@ -111,11 +111,18 @@ export function useBilling(userEmail?: string | null) {
         piutangAcc
       );
 
-      if (newStatus === 'PAID') {
-        await billingService.syncBackToOrigin({ ...invoiceData, status: 'PAID' });
+      if (newStatus === 'PAID' || newStatus === 'PARTIAL') {
+        await billingService.syncBackToOrigin({ ...invoiceData, status: newStatus as any });
       }
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['invoices'] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['production_orders'] });
+      queryClient.invalidateQueries({ queryKey: ['tenants'] });
+      queryClient.invalidateQueries({ queryKey: ['trainings'] });
+      queryClient.invalidateQueries({ queryKey: ['affiliates'] });
+    }
   });
 
   const allocateInvoiceMutation = useMutation({
@@ -148,8 +155,11 @@ export function useBilling(userEmail?: string | null) {
             { accountId: defIncomeAcc.id, accountName: defIncomeAcc.name, type: 'DEBIT', amount: originalInvoice.totalAmount },
             { accountId: piutangAcc.id, accountName: piutangAcc.name, type: 'KREDIT', amount: originalInvoice.totalAmount }
          ]);
+         await billingService.syncBackToOrigin({ ...originalInvoice, status: 'CANCELLED' });
       }
       await updateInvoiceMutation.mutateAsync({ id, data }); 
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['production_orders'] });
       return { success: true }; 
     } catch (err: any) { return { success: false, error: err.message }; } 
   };

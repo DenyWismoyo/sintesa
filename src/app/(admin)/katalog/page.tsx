@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import TabDaftarKatalog from './components/TabDaftarKatalog';
 import ModalFormProduct from './components/ModalFormProduct';
-import { Tag, Settings, Info } from 'lucide-react';
+import DivisionInvoiceTracker from '@/components/finance/DivisionInvoiceTracker';
+import { Tag, Settings, Receipt, CheckCircle2, Share2, Building2 } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin';
 
 // Import Custom Hook Katalog
@@ -11,7 +12,7 @@ import { useCatalog } from '@/hooks/useCatalog';
 import { ProductCatalog } from '@/types';
 
 export default function KatalogAdminPage() {
-  const [activeTab, setActiveTab] = useState('daftar');
+  const [activeTab, setActiveTab] = useState<'daftar' | 'tagihan' | 'pengaturan'>('daftar');
 
   const { 
     products = [], 
@@ -21,7 +22,7 @@ export default function KatalogAdminPage() {
     editProduct,   
     deleteProduct, 
     removeProduct,
-    getProduct // PENTING: Diperlukan untuk memanggil data full sebelum edit
+    getProduct
   } = useCatalog() as any;
 
   // State untuk mengontrol Modal & Loading Fetching
@@ -38,9 +39,6 @@ export default function KatalogAdminPage() {
   const handleOpenEdit = async (product: ProductCatalog) => {
     if (!product.id) return;
 
-    // PENCEGAHAN BUG DATA HILANG:
-    // Karena tabel menggunakan data Cache (yang terkompresi/tidak lengkap),
-    // kita WAJIB mendownload dokumen aslinya terlebih dahulu agar form edit terisi penuh.
     setIsFetchingDetail(true);
     const result = await getProduct(product.id);
     setIsFetchingDetail(false);
@@ -107,13 +105,16 @@ export default function KatalogAdminPage() {
     }
   };
 
+  const stpProductsCount = products.filter((p: ProductCatalog) => p.ownerType !== 'TENANT').length;
+  const tenantProductsCount = products.filter((p: ProductCatalog) => p.ownerType === 'TENANT').length;
+
   return (
     <div className="w-full space-y-6 pb-24 animate-in fade-in duration-300"> 
       
       {/* 1. ADMIN PAGE HEADER */}
       <AdminPageHeader
         title="Manajemen E-Katalog"
-        subtitle="Kelola produk, layanan, ruangan, dan fasilitas untuk disewa atau dibeli publik."
+        subtitle="Kelola produk, layanan, ruangan, dan produk inovasi tenant binaan untuk disewa atau dibeli publik."
         badge={`${products.length} Produk Terdaftar`}
         breadcrumbs={[{ label: 'Katalog Produk' }]}
       >
@@ -126,6 +127,14 @@ export default function KatalogAdminPage() {
             }`}
           >
             <Tag size={16} /> Daftar Produk
+          </button>
+          <button
+            onClick={() => setActiveTab('tagihan')}
+            className={`flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
+              activeTab === 'tagihan' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+            }`}
+          >
+            <Receipt size={16} /> Tagihan & Order
           </button>
           <button
             onClick={() => setActiveTab('pengaturan')}
@@ -149,16 +158,55 @@ export default function KatalogAdminPage() {
           onDelete={handleDeleteProduct}
         />
       )}
+
+      {activeTab === 'tagihan' && (
+        <DivisionInvoiceTracker
+          division="KATALOG_PRODUK"
+          title="Pantauan Tagihan & Order E-Katalog"
+          subtitle="Pantau seluruh invoice checkout produk dari halaman publik /e-katalog beserta sinkronisasi omzet tenant."
+        />
+      )}
       
       {activeTab === 'pengaturan' && (
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-16 sm:p-20 text-center flex flex-col items-center">
-          <div className="h-16 w-16 bg-slate-50 text-slate-300 rounded-2xl flex items-center justify-center border border-slate-100 mb-4">
-            <Settings size={28} />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-6 space-y-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+              <CheckCircle2 size={20} />
+            </div>
+            <h3 className="text-base font-black text-slate-800">Integrasi Checkout & Billing BLUD</h3>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Setiap pemesanan dari halaman publik <code className="font-mono text-blue-600">/e-katalog</code> dengan metode <strong>Checkout Langsung</strong> otomatis menerbitkan Invoice divisi <strong>KATALOG_PRODUK (COA 4.1.05)</strong>.
+            </p>
+            <div className="pt-2 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
+              Status Sinkronisasi: Aktif ({stpProductsCount} Produk Internal STP)
+            </div>
           </div>
-          <h3 className="text-lg font-bold text-slate-800">Pengaturan Lanjutan</h3>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1.5 max-w-md mx-auto">
-            Fitur manajemen banner <em>carousel</em> dan pengaturan kategori custom sedang dalam pengembangan.
-          </p>
+
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-6 space-y-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+              <Building2 size={20} />
+            </div>
+            <h3 className="text-base font-black text-slate-800">Etalase Produk Inovasi Tenant</h3>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Produk milik Tenant Binaan yang telah lulus kurasi di menu <strong>Inkubasi Tenant &rarr; Kurasi UKM</strong> dapat langsung dipromosikan ke Master E-Katalog. Saat tagihan produk tenant lunas, omzet otomatis tercatat ke buku pendapatan tenant.
+            </p>
+            <div className="pt-2 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+              Produk Tenant Tayang: {tenantProductsCount} Produk
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-6 space-y-3">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <Share2 size={20} />
+            </div>
+            <h3 className="text-base font-black text-slate-800">Atribusi Referral & Komisi Afiliasi</h3>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Pembelian E-Katalog yang menggunakan tautan referral (<code className="font-mono text-indigo-600">?ref=KODE</code>) otomatis mencatat komisi berstatus <em>Pending Payment</em> dan mencairkannya ke saldo Mitra Afiliasi saat Kasir memverifikasi pelunasan invoice.
+            </p>
+            <div className="pt-2 text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-xl px-3 py-2">
+              Integrasi Afiliasi: Terhubung ke /afiliasi
+            </div>
+          </div>
         </div>
       )}
 

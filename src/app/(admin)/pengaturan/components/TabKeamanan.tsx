@@ -32,25 +32,42 @@ const ROLE_GROUPS: { label: string; roles: string[] }[] = [
     roles: [APP_ROLES.ADMIN_ASET, APP_ROLES.OPERATOR_ASET]
   },
   {
+    label: "Modul Jasa Produksi & Manufaktur",
+    roles: [APP_ROLES.ADMIN_PRODUKSI, APP_ROLES.OPERATOR_PRODUKSI]
+  },
+  {
     label: "Modul Ekosistem Tenant",
     roles: [APP_ROLES.ADMIN_TENANT, APP_ROLES.OPERATOR_TENANT]
   },
   {
     label: "Modul Pelatihan & LMS",
     roles: [APP_ROLES.ADMIN_PELATIHAN, APP_ROLES.OPERATOR_PELATIHAN]
+  },
+  {
+    label: "Kepegawaian Internal STP",
+    roles: [APP_ROLES.PEGAWAI]
   }
+];
+
+const EXTERNAL_ROLES: string[] = [
+  APP_ROLES.TENANT,
+  APP_ROLES.ALUMNI,
+  APP_ROLES.INDUSTRI,
+  APP_ROLES.INVESTOR,
+  APP_ROLES.KAMPUS,
 ];
 
 // FUNGSI UNTUK MENDAPATKAN WARNA BADGE BERDASARKAN KELOMPOK
 const getRoleBadgeStyle = (role: string) => {
-  if (role === APP_ROLES.PUBLIC || role === APP_ROLES.ALUMNI || role === APP_ROLES.TENANT) 
+  if (role === APP_ROLES.PUBLIC || EXTERNAL_ROLES.includes(role)) 
     return 'bg-slate-50 text-slate-600 border-slate-200';
   
   if (ROLE_GROUPS[0].roles.includes(role)) return 'bg-purple-50 text-purple-700 border-purple-200'; // Utama
   if (ROLE_GROUPS[1].roles.includes(role)) return 'bg-emerald-50 text-emerald-700 border-emerald-200'; // Keuangan
   if (ROLE_GROUPS[2].roles.includes(role)) return 'bg-amber-50 text-amber-700 border-amber-200'; // Aset
-  if (ROLE_GROUPS[3].roles.includes(role)) return 'bg-rose-50 text-rose-700 border-rose-200'; // Tenant
-  if (ROLE_GROUPS[4].roles.includes(role)) return 'bg-blue-50 text-blue-700 border-blue-200'; // Pelatihan
+  if (ROLE_GROUPS[3].roles.includes(role)) return 'bg-cyan-50 text-cyan-700 border-cyan-200'; // Produksi
+  if (ROLE_GROUPS[4].roles.includes(role)) return 'bg-rose-50 text-rose-700 border-rose-200'; // Tenant
+  if (ROLE_GROUPS[5].roles.includes(role)) return 'bg-blue-50 text-blue-700 border-blue-200'; // Pelatihan
 
   return 'bg-slate-50 text-slate-700 border-slate-200'; // Fallback
 };
@@ -80,8 +97,8 @@ export default function TabKeamanan() {
       const snapshot = await getDocs(q);
       
       const fetchedUsers: UserData[] = [];
-      snapshot.forEach((doc) => {
-        fetchedUsers.push({ id: doc.id, ...doc.data() } as UserData);
+      snapshot.forEach((docSnap) => {
+        fetchedUsers.push({ id: docSnap.id, ...docSnap.data() } as UserData);
       });
       
       setUsers(fetchedUsers);
@@ -152,11 +169,11 @@ export default function TabKeamanan() {
     const userRole = u.role || APP_ROLES.PUBLIC; 
     
     if (viewFilter === 'STAFF') {
-      matchView = userRole !== APP_ROLES.PUBLIC && userRole !== APP_ROLES.TENANT && userRole !== APP_ROLES.ALUMNI;
+      matchView = userRole !== APP_ROLES.PUBLIC && !EXTERNAL_ROLES.includes(userRole);
     } else if (viewFilter === 'PUBLIC') {
       matchView = userRole === APP_ROLES.PUBLIC;
     } else if (viewFilter === 'EXTERNAL') {
-      matchView = userRole === APP_ROLES.TENANT || userRole === APP_ROLES.ALUMNI;
+      matchView = EXTERNAL_ROLES.includes(userRole);
     }
 
     return matchSearch && matchView;
@@ -209,7 +226,7 @@ export default function TabKeamanan() {
           >
             <option value="STAFF">🏢 Hanya Staf Internal</option>
             <option value="PUBLIC">🌍 Pengguna Umum</option>
-            <option value="EXTERNAL">🤝 Eksternal Khusus (Tenant/Alumni)</option>
+            <option value="EXTERNAL">🤝 Eksternal Khusus (Tenant/Alumni/Mitra)</option>
             <option value="ALL">👥 Semua Pengguna</option>
           </select>
         </div>
@@ -290,9 +307,12 @@ export default function TabKeamanan() {
                               </optgroup>
                             ))}
 
-                            <optgroup label="── Eksternal Khusus ──">
-                              <option value={APP_ROLES.TENANT}>{ROLE_LABELS[APP_ROLES.TENANT]}</option>
-                              <option value={APP_ROLES.ALUMNI}>{ROLE_LABELS[APP_ROLES.ALUMNI]}</option>
+                            <optgroup label="── Eksternal Khusus & Mitra ──">
+                              {EXTERNAL_ROLES.map(roleKey => (
+                                <option key={roleKey} value={roleKey}>
+                                  {ROLE_LABELS[roleKey]}
+                                </option>
+                              ))}
                             </optgroup>
                           </select>
                         )}

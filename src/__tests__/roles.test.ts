@@ -24,6 +24,10 @@ describe('Role-Based Access Control (RBAC) System', () => {
       expect(hasAccess(APP_ROLES.ADMIN_KEUANGAN, '/dashboard')).toBe(true);
       expect(hasAccess(APP_ROLES.ADMIN_KEUANGAN, '/billing')).toBe(true);
       expect(hasAccess(APP_ROLES.ADMIN_KEUANGAN, '/billing/invoice/123')).toBe(true);
+      expect(hasAccess(APP_ROLES.ADMIN_KEUANGAN, '/pengaturan')).toBe(true);
+      expect(canPerformAction(APP_ROLES.ADMIN_KEUANGAN, PERMISSIONS.MANAGE_FINANCE_BAS)).toBe(true);
+      expect(hasAccess(APP_ROLES.ADMIN, '/pengaturan')).toBe(true);
+      expect(canPerformAction(APP_ROLES.ADMIN, PERMISSIONS.EDIT_INSTITUTION_PROFILE)).toBe(true);
       expect(hasAccess(APP_ROLES.ADMIN_KEUANGAN, '/aset')).toBe(false);
       expect(hasAccess(APP_ROLES.ADMIN_KEUANGAN, '/tenant')).toBe(false);
     });

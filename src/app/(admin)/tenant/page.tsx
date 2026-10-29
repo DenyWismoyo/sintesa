@@ -12,11 +12,12 @@ import TabKurasiProduk from './components/TabKurasiProduk';
 import ModalKurasiProduk from './components/ModalKurasiProduk';
 import TabValidasiTenant from './components/TabValidasiTenant';
 import ModalReviewTenant from './components/ModalReviewTenant';
+import TabHelpdeskTenant from './components/TabHelpdeskTenant';
 
 import ModalFormInvoice from '../billing/component/ModalFormInvoice';
 import ModalInvoiceDetail from '../billing/component/ModalInvoiceDetail';
 
-import { Building2, KanbanSquare, Network, Receipt, ShieldCheck, UserCheck, Plus } from 'lucide-react'; 
+import { Building2, KanbanSquare, Network, Receipt, ShieldCheck, UserCheck, Plus, Headset } from 'lucide-react'; 
 import { AdminPageHeader } from '@/components/admin'; 
 
 // Import Custom Hooks
@@ -115,8 +116,25 @@ export default function TenantAdminPage() {
 
   const handleBuatTagihanTenant = (tenant: Tenant) => {
     setInvoiceDraft({
-      customerType: 'Tenant', customerName: tenant.name, customerEmail: tenant.email || '',
-      customerPhone: tenant.contact || '', term: 'FULL_PAYMENT'
+      customerType: 'Tenant',
+      tenantId: tenant.id,
+      customerName: tenant.name,
+      customerEmail: tenant.email || '',
+      customerPhone: tenant.contact || '',
+      division: 'INKUBASI_TENANT',
+      term: 'FULL_PAYMENT',
+      items: [
+        {
+          id: `TNT-${Date.now()}`,
+          referenceId: tenant.id,
+          referenceType: 'TENANT',
+          description: `Tagihan Sewa Ruang / Inkubasi Tenant - ${tenant.name}`,
+          unit: 'Bulan',
+          quantity: 1,
+          unitPrice: 0,
+          total: 0
+        }
+      ]
     });
     setIsInvoiceModalOpen(true);
   };
@@ -142,7 +160,7 @@ export default function TenantAdminPage() {
       {/* 1. ADMIN PAGE HEADER */}
       <AdminPageHeader
         title="Manajemen Tenant & Inkubasi"
-        subtitle="Kelola direktori startup binaan, validasi pendaftar, progres inkubasi, dan kurasi produk UKM."
+        subtitle="Kelola direktori startup binaan, validasi pendaftar, progres inkubasi, kurasi produk UKM, dan helpdesk fasilitas."
         badge={`${allTenants.length} Tenant Terdaftar`}
         breadcrumbs={[{ label: 'Inkubasi Tenant' }]}
         actions={
@@ -179,6 +197,9 @@ export default function TenantAdminPage() {
           <button onClick={() => setActiveTab('tagihan')} className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${activeTab === 'tagihan' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
             <Receipt size={16} /> Tagihan
           </button>
+          <button onClick={() => setActiveTab('helpdesk')} className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${activeTab === 'helpdesk' ? 'bg-white text-amber-700 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
+            <Headset size={16} /> Helpdesk Keluhan
+          </button>
         </div>
       </AdminPageHeader>
 
@@ -204,6 +225,7 @@ export default function TenantAdminPage() {
         )}
         {activeTab === 'kurasi' && <TabKurasiProduk tenants={allTenants} onStartCuration={handleStartCuration} />}
         {activeTab === 'tagihan' && <TabTagihanTenant tenants={allTenants} invoices={invoices} onBuatTagihan={handleBuatTagihanTenant} onViewInvoice={handleViewInvoice} />}
+        {activeTab === 'helpdesk' && <TabHelpdeskTenant tenants={allTenants} />}
       </div>
 
       {/* Modals & Drawers */}
