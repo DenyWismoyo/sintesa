@@ -3,7 +3,7 @@ import { onDocumentWritten } from "firebase-functions/v2/firestore";
 import * as admin from "firebase-admin";
 
 if (!admin.apps.length) {
-  admin.initializeApp();
+  // lazy admin init handled inside handler
 }
 
 /**
@@ -12,6 +12,8 @@ if (!admin.apps.length) {
  * server akan otomatis menanamkan Custom Claim 'role: kasir' ke dalam token Auth user tersebut.
  */
 export const syncUserRoleToClaims = onDocumentWritten("users/{userId}", async (event) => {
+  if (!admin.apps.length) { admin.initializeApp(); }
+  const snapshotBefore = event.data?.before;
   const snapshotAfter = event.data?.after;
   const userId = event.params.userId;
 
@@ -45,6 +47,53 @@ export const syncUserRoleToClaims = onDocumentWritten("users/{userId}", async (e
         ...(userData?.alumniId ? { alumniId: userData.alumniId, isAlumni: true } : {}),
       });
       console.log(`[CUSTOM CLAIMS] Role untuk UID ${userId} berhasil diupdate menjadi: ${newRole}`);
+    }
+
+    const ROLE_DISPLAY_NAMES: Record<string, { label: string; path: string }> = {
+      super_admin: { label: "Super Administrator", path: "/dashboard" },
+      admin: { label: "Administrator Sistem", path: "/dashboard" },
+      admin_keuangan: { label: "Admin Keuangan & Billing", path: "/billing" },
+      kasir: { label: "Kasir Pendapatan (POS)", path: "/billing" },
+      kasir_pengeluaran: { label: "Kasir Pengeluaran (AP)", path: "/billing" },
+      admin_aset: { label: "Admin Aset & Booking", path: "/aset" },
+      operator_aset: { label: "Operator Aset", path: "/aset" },
+      admin_tenant: { label: "Admin Ekosistem Tenant", path: "/tenant" },
+      operator_tenant: { label: "Operator Tenant", path: "/tenant" },
+      admin_pelatihan: { label: "Admin Pelatihan (LMS)", path: "/pelatihan" },
+      operator_pelatihan: { label: "Operator Pelatihan", path: "/pelatihan" },
+      admin_produksi: { label: "Admin Layanan Jasa Produksi", path: "/jasa-produksi" },
+      operator_produksi: { label: "Operator Bengkel & Produksi", path: "/jasa-produksi" },
+      pegawai: { label: "Pegawai Solo Technopark", path: "/presensi" },
+      tenant: { label: "Akun Tenant Startup", path: "/tenant/dashboard" },
+      investor: { label: "Mitra Investor / VC", path: "/ekosistem" },
+      kampus: { label: "Mitra Perguruan Tinggi", path: "/ekosistem" },
+    };
+    const beforeData = snapshotBefore?.exists ? snapshotBefore.data() : null;
+    const beforeRole = beforeData?.role || null;
+    const roleMeta = ROLE_DISPLAY_NAMES[newRole];
+    const targetEmail = String(userData?.email || userRecord.email || "").trim().toLowerCase();
+
+    if (
+      snapshotBefore?.exists &&
+      beforeRole !== newRole &&
+      roleMeta &&
+      targetEmail &&
+      targetEmail.includes("@")
+    ) {
+      await admin.firestore().collection("mail_queue").add({
+        to: targetEmail,
+        template: "ROLE_PROMOTED",
+        subject: `Pembaruan Hak Akses Akun (${roleMeta.label}) - Solo Technopark`,
+        payload: {
+          userName: userData?.name || userRecord.displayName || "Pengguna",
+          email: targetEmail,
+          newRoleLabel: roleMeta.label,
+          dashboardPath: roleMeta.path,
+        },
+        status: "QUEUED",
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      // end role promotion mail
     }
 
   } catch (error) {

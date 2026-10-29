@@ -20,6 +20,7 @@ export * from './callables/assetCache';
 export * from './callables/jobCache';
 export * from './callables/alumniClaim';
 export * from './callables/partnerOnboarding';
+export * from './callables/authEmails';
 
 export * from './triggers/tenantAuth';
 export * from './triggers/purchaseAutomation';

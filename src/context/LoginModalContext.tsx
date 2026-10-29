@@ -6,6 +6,7 @@ import React, { createContext, useContext, useState, useCallback, ReactNode } fr
 export interface OpenLoginModalOptions {
   title?: string;
   subtitle?: string;
+  initialMode?: 'login' | 'register' | 'tenant';
   onSuccess?: () => void;
   redirectTo?: string;
 }

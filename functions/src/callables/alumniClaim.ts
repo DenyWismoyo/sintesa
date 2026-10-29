@@ -182,6 +182,35 @@ export const claimAlumniAccount = onCall(async (request) => {
     console.warn("[ALUMNI CLAIM] Lewati sinkronisasi parsial cache_alumnis:", cacheErr);
   }
 
+  // 6. Enqueue email konfirmasi klaim status alumni secara best-effort
+  const recipientEmail = (authEmail || alumniData.email || "").trim().toLowerCase();
+  if (recipientEmail && recipientEmail.includes("@")) {
+    try {
+      const originLabels: Record<string, string> = {
+        STP_VOKASI: "Diklat Vokasi Solo Technopark",
+        RSKB_SURAKARTA: "Rumah Siap Kerja Bersama (RSKB) Surakarta",
+        PEMKOT_PROGRAM: "Program Ketenagakerjaan Pemkot Surakarta",
+        MITRA_KAMPUS: "Kolaborasi Kampus & Akademi",
+      };
+      const originKey = String(alumniData.originSource || "STP_VOKASI");
+      await db.collection("mail_queue").add({
+        to: recipientEmail,
+        template: "ALUMNI_CLAIMED",
+        subject: "Selamat! Status Alumni Terverifikasi Anda Telah Aktif - Solo Technopark",
+        payload: {
+          userName: alumniData.name || request.auth.token?.name || "Alumni",
+          programTaken: alumniData.programTaken || "Program Pelatihan Vokasi",
+          originLabel: originLabels[originKey] || "Alumni Terverifikasi Solo Technopark",
+          registrationCode: cleanCode,
+        },
+        status: "QUEUED",
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    } catch (mailErr) {
+      console.warn("[ALUMNI CLAIM] Gagal menjadwalkan email konfirmasi alumni:", mailErr);
+    }
+  }
+
   return {
     success: true,
     alumniId,

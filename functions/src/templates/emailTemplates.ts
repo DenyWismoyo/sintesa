@@ -97,11 +97,11 @@ function wrapBaseTemplate(title: string, bodyContent: string): string {
             </p>
             <p style="margin: 0 0 12px; line-height: 1.5;">
               Jl. Ki Hajar Dewantara No.19, Jebres, Kota Surakarta, Jawa Tengah 57126<br/>
-              Website: <a href="https://solotechnopark.id" style="color: #2563eb; text-decoration: none;">solotechnopark.id</a> • Bantuan: <a href="mailto:info@solotechnopark.id" style="color: #2563eb; text-decoration: none;">info@solotechnopark.id</a>
+              Website: <a href="https://katalog.solotechnopark.id" style="color: #2563eb; text-decoration: none;">katalog.solotechnopark.id</a> • Kontak Resmi: <a href="mailto:marketing@solotechnopark.id" style="color: #2563eb; text-decoration: none;">marketing@solotechnopark.id</a>
             </p>
             <div style="background: #e2e8f0; height: 1px; width: 100%; margin: 12px 0;"></div>
             <p style="margin: 0; font-size: 10px; color: #94a3b8; line-height: 1.4;">
-              ⚠️ <strong>Pemberitahuan Otomatis (No-Reply):</strong> Email ini dibuat secara otomatis oleh sistem. Mohon tidak membalas email ini secara langsung. Jika Anda membutuhkan informasi atau bantuan, silakan kirim email ke <a href="mailto:info@solotechnopark.id" style="color: #64748b;">info@solotechnopark.id</a> atau hubungi WhatsApp resmi kami.
+              📧 <strong>Pemberitahuan Layanan Resmi:</strong> Email ini dikirimkan oleh Sistem Terpadu Solo Technopark. Jika Anda memerlukan bantuan lebih lanjut, silakan hubungi <a href="mailto:marketing@solotechnopark.id" style="color: #64748b;">marketing@solotechnopark.id</a> atau kanal WhatsApp layanan pelanggan kami.
             </p>
           </div>
 
@@ -384,4 +384,302 @@ export function renderPaymentReceiptEmail(data: {
   `;
 
   return wrapBaseTemplate(`Kuitansi Pembayaran ${data.receiptNumber} - Solo Technopark`, body);
+}
+
+function getBaseOrigin(): string {
+  const raw = (process.env.PUBLIC_PORTAL_URL || 'https://katalog.solotechnopark.id').trim();
+  return raw.replace(/\/portal\/?$/, '').replace(/\/$/, '');
+}
+
+/**
+ * 5. Template Selamat Datang & Verifikasi Email Pendaftaran Pengguna Baru
+ */
+export function renderWelcomeVerificationEmail(data: {
+  userName: string;
+  email: string;
+  verificationUrl?: string;
+  roleLabel?: string;
+  isGoogleAuth?: boolean;
+}): string {
+  const baseOrigin = getBaseOrigin();
+  const ctaUrl = data.verificationUrl || `${baseOrigin}/portal`;
+  const ctaLabel = data.verificationUrl
+    ? 'Konfirmasi & Verifikasi Email Saya'
+    : 'Buka Portal Personal Saya';
+
+  const body = `
+    <div style="text-align: center; margin-bottom: 24px;">
+      <span style="background: #eff6ff; color: #1d4ed8; font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 9999px; text-transform: uppercase; border: 1px solid #bfdbfe;">
+        ${data.isGoogleAuth ? 'Akun Aktif & Terhubung' : 'Konfirmasi Akun Baru'}
+      </span>
+      <h2 style="margin: 12px 0 6px; font-size: 22px; font-weight: 900; color: #0f172a;">
+        Selamat Datang di Ekosistem Solo Technopark!
+      </h2>
+      <p style="margin: 0; font-size: 14px; color: #64748b; line-height: 1.6;">
+        Halo <strong>${data.userName}</strong>, akun Anda dengan email <strong>${data.email}</strong> telah terdaftar sebagai <strong>${data.roleLabel || 'Pengguna Umum'}</strong>.
+      </p>
+    </div>
+
+    ${data.verificationUrl ? `
+    <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; padding: 18px; margin-bottom: 20px; text-align: center;">
+      <p style="margin: 0 0 12px; font-size: 13px; color: #0c4a6e; font-weight: 600; line-height: 1.5;">
+        Klik tombol di bawah ini untuk memverifikasi alamat email Anda dan mengaktifkan perlindungan penuh akun:
+      </p>
+      <a href="${ctaUrl}" class="btn-cta" style="background: #dc2626;">
+        ${ctaLabel}
+      </a>
+    </div>` : ''}
+
+    <div class="card-detail">
+      <p style="margin: 0 0 10px; font-size: 12px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">
+        Apa saja yang dapat Anda akses dengan akun ini?
+      </p>
+      <table width="100%" cellspacing="0" cellpadding="5" style="font-size: 13px; color: #334155;">
+        <tr>
+          <td width="24" valign="top">✅</td>
+          <td><strong>Layanan & E-Katalog:</strong> Pemesanan jasa produksi manufaktur, sewa ruangan, dan event kawasan.</td>
+        </tr>
+        <tr>
+          <td valign="top">✅</td>
+          <td><strong>Diklat & Akademi (LMS):</strong> Pendaftaran pelatihan vokasi, akses materi belajar, dan e-sertifikat.</td>
+        </tr>
+        <tr>
+          <td valign="top">🎓</td>
+          <td><strong>Jalur Klaim Alumni STP / RSKB:</strong> Punya kode lulusan diklat? Klaim di menu <em>Profil Saya</em> untuk membuka Bursa Karir & Forum Alumni Eksklusif.</td>
+        </tr>
+        <tr>
+          <td valign="top">🤝</td>
+          <td><strong>Kemitraan Industri:</strong> Ajukan kolaborasi rekrutmen talenta atau riset industri melalui halaman Kemitraan.</td>
+        </tr>
+      </table>
+    </div>
+
+    ${!data.verificationUrl ? `
+    <div style="text-align: center; margin-top: 24px;">
+      <a href="${ctaUrl}" class="btn-cta">
+        ${ctaLabel}
+      </a>
+    </div>` : `
+    <p style="margin: 16px 0 0; font-size: 11px; color: #94a3b8; text-align: center; word-break: break-all;">
+      Jika tombol di atas tidak berfungsi, salin tautan berikut ke peramban Anda:<br/>
+      <a href="${ctaUrl}" style="color: #2563eb;">${ctaUrl}</a>
+    </p>`}
+  `;
+
+  return wrapBaseTemplate('Selamat Datang di Portal Solo Technopark', body);
+}
+
+/**
+ * 6. Template Instruksi Atur Ulang Kata Sandi (Forgot Password)
+ */
+export function renderPasswordResetEmail(data: {
+  userName: string;
+  email: string;
+  resetUrl: string;
+}): string {
+  const body = `
+    <div style="text-align: center; margin-bottom: 24px;">
+      <span style="background: #fef3c7; color: #b45309; font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 9999px; text-transform: uppercase; border: 1px solid #fde68a;">
+        Keamanan Akun
+      </span>
+      <h2 style="margin: 12px 0 6px; font-size: 22px; font-weight: 900; color: #0f172a;">
+        Atur Ulang Kata Sandi Anda
+      </h2>
+      <p style="margin: 0; font-size: 14px; color: #64748b; line-height: 1.6;">
+        Halo <strong>${data.userName}</strong>, kami menerima permintaan pengaturan ulang kata sandi untuk akun <strong>${data.email}</strong>.
+      </p>
+    </div>
+
+    <div class="card-detail" style="text-align: center;">
+      <p style="margin: 0 0 14px; font-size: 13px; color: #334155; line-height: 1.6;">
+        Klik tombol di bawah ini untuk membuat kata sandi baru. Tautan keamanan ini hanya berlaku dalam waktu terbatas demi melindungi akun Anda.
+      </p>
+      <a href="${data.resetUrl}" class="btn-cta" style="background: #0f172a;">
+        Buat Kata Sandi Baru
+      </a>
+    </div>
+
+    <p style="margin: 16px 0 0; font-size: 12px; color: #64748b; text-align: center; line-height: 1.5;">
+      Apabila Anda tidak merasa melakukan permintaan ini, abaikan saja email ini. Kata sandi akun Anda tidak akan berubah.
+    </p>
+  `;
+
+  return wrapBaseTemplate('Atur Ulang Kata Sandi - Solo Technopark', body);
+}
+
+/**
+ * 7. Template Konfirmasi Klaim Status Alumni Terverifikasi (STP / RSKB Surakarta)
+ */
+export function renderAlumniClaimedEmail(data: {
+  userName: string;
+  programTaken: string;
+  originLabel: string;
+  registrationCode: string;
+}): string {
+  const baseOrigin = getBaseOrigin();
+
+  const body = `
+    <div style="text-align: center; margin-bottom: 24px;">
+      <span style="background: #ecfdf5; color: #047857; font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 9999px; text-transform: uppercase; border: 1px solid #a7f3d0;">
+        Status Alumni Terverifikasi
+      </span>
+      <h2 style="margin: 12px 0 6px; font-size: 22px; font-weight: 900; color: #0f172a;">
+        Selamat! Akses Eksklusif Alumni Anda Telah Aktif
+      </h2>
+      <p style="margin: 0; font-size: 14px; color: #64748b; line-height: 1.6;">
+        Halo <strong>${data.userName}</strong>, akun Anda kini resmi terhubung dengan basis data talenta terverifikasi Solo Technopark.
+      </p>
+    </div>
+
+    <div class="card-detail">
+      <table width="100%" cellspacing="0" cellpadding="6" style="font-size: 13px;">
+        <tr>
+          <td width="38%" style="color: #64748b; font-weight: 600;">Jalur Kelulusan</td>
+          <td style="font-weight: 800; color: #047857;">${data.originLabel}</td>
+        </tr>
+        <tr>
+          <td style="color: #64748b; font-weight: 600;">Program / Kejuruan</td>
+          <td style="font-weight: 700; color: #0f172a;">${data.programTaken || 'Program Pelatihan Vokasi'}</td>
+        </tr>
+        <tr>
+          <td style="color: #64748b; font-weight: 600;">Kode Registrasi</td>
+          <td style="font-weight: 800; font-family: monospace; color: #0f172a;">${data.registrationCode}</td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="text-align: center; margin-top: 24px;">
+      <a href="${baseOrigin}/alumni-portal" class="btn-cta" style="background: #059669; margin-right: 6px;">
+        Buka Forum Eksklusif Alumni
+      </a>
+      <a href="${baseOrigin}/karir" class="btn-cta" style="background: #0f172a;">
+        Eksplorasi Bursa Karir
+      </a>
+      <p style="margin: 14px 0 0; font-size: 12px; color: #64748b;">
+        Lengkapi juga CV & portofolio Anda di menu <strong>Profil Saya → Profil Alumni</strong> agar mudah direkrut oleh Mitra Industri Resmi.
+      </p>
+    </div>
+  `;
+
+  return wrapBaseTemplate('Aktivasi Status Alumni Terverifikasi - Solo Technopark', body);
+}
+
+/**
+ * 8. Template Aktivasi Akun Mitra Industri Resmi (/mitra/dashboard)
+ */
+export function renderPartnerOnboardedEmail(data: {
+  picName: string;
+  companyName: string;
+  tierLabel: string;
+  picEmail: string;
+  tempPassword?: string | null;
+  isNewAccount: boolean;
+}): string {
+  const baseOrigin = getBaseOrigin();
+
+  const body = `
+    <div style="text-align: center; margin-bottom: 24px;">
+      <span style="background: #ecfdf5; color: #0f766e; font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 9999px; text-transform: uppercase; border: 1px solid #99f6e4;">
+        Kemitraan Industri Disetujui
+      </span>
+      <h2 style="margin: 12px 0 6px; font-size: 22px; font-weight: 900; color: #0f172a;">
+        Akun Portal Mitra Resmi Telah Aktif
+      </h2>
+      <p style="margin: 0; font-size: 14px; color: #64748b; line-height: 1.6;">
+        Yth. <strong>${data.picName}</strong> (${data.companyName}), pengajuan kemitraan instansi Anda telah diverifikasi oleh Manajemen Solo Technopark.
+      </p>
+    </div>
+
+    <div class="card-detail">
+      <table width="100%" cellspacing="0" cellpadding="6" style="font-size: 13px;">
+        <tr>
+          <td width="38%" style="color: #64748b; font-weight: 600;">Nama Instansi / Mitra</td>
+          <td style="font-weight: 800; color: #0f172a;">${data.companyName}</td>
+        </tr>
+        <tr>
+          <td style="color: #64748b; font-weight: 600;">Kategori Kemitraan</td>
+          <td style="font-weight: 700; color: #0f766e;">${data.tierLabel}</td>
+        </tr>
+        <tr>
+          <td style="color: #64748b; font-weight: 600;">Email Login PIC</td>
+          <td style="font-weight: 700; color: #0f172a;">${data.picEmail}</td>
+        </tr>
+        ${data.isNewAccount && data.tempPassword ? `
+        <tr>
+          <td style="color: #64748b; font-weight: 600;">Kata Sandi Sementara</td>
+          <td>
+            <span style="background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 6px; font-family: monospace; font-weight: 900; font-size: 14px;">
+              ${data.tempPassword}
+            </span>
+          </td>
+        </tr>` : `
+        <tr>
+          <td style="color: #64748b; font-weight: 600;">Metode Masuk</td>
+          <td style="font-weight: 600; color: #334155;">Gunakan kata sandi akun Anda saat ini atau tombol Login Google (${data.picEmail}).</td>
+        </tr>`}
+      </table>
+    </div>
+
+    <div style="text-align: center; margin-top: 24px;">
+      <a href="${baseOrigin}/login" class="btn-cta" style="background: #0f766e;">
+        Masuk ke Dashboard Mitra Industri
+      </a>
+      <p style="margin: 12px 0 0; font-size: 12px; color: #64748b; line-height: 1.5;">
+        Melalui Dashboard Mitra, Anda dapat mempublikasikan lowongan prioritas, menelusuri direktori talenta STP & RSKB, serta berdiskusi di Zona Kolaborasi Industri.
+      </p>
+    </div>
+  `;
+
+  return wrapBaseTemplate(`Aktivasi Akun Mitra Resmi ${data.companyName} - Solo Technopark`, body);
+}
+
+/**
+ * 9. Template Pemberitahuan Pembaruan Hak Akses / Role Pengguna (Admin / Staf / Tenant)
+ */
+export function renderRolePromotedEmail(data: {
+  userName: string;
+  email: string;
+  newRoleLabel: string;
+  dashboardPath?: string;
+}): string {
+  const baseOrigin = getBaseOrigin();
+  const targetUrl = `${baseOrigin}${data.dashboardPath || '/dashboard'}`;
+
+  const body = `
+    <div style="text-align: center; margin-bottom: 24px;">
+      <span style="background: #eef2ff; color: #4338ca; font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 9999px; text-transform: uppercase; border: 1px solid #c7d2fe;">
+        Pembaruan Otorisasi Akun
+      </span>
+      <h2 style="margin: 12px 0 6px; font-size: 22px; font-weight: 900; color: #0f172a;">
+        Hak Akses Akun Anda Telah Diperbarui
+      </h2>
+      <p style="margin: 0; font-size: 14px; color: #64748b; line-height: 1.6;">
+        Halo <strong>${data.userName}</strong>, Administrator Sistem Solo Technopark telah memperbarui peran akses akun Anda.
+      </p>
+    </div>
+
+    <div class="card-detail">
+      <table width="100%" cellspacing="0" cellpadding="6" style="font-size: 13px;">
+        <tr>
+          <td width="38%" style="color: #64748b; font-weight: 600;">Email Akun</td>
+          <td style="font-weight: 700; color: #0f172a;">${data.email}</td>
+        </tr>
+        <tr>
+          <td style="color: #64748b; font-weight: 600;">Peran / Otorisasi Baru</td>
+          <td style="font-weight: 900; color: #4338ca;">${data.newRoleLabel}</td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="text-align: center; margin-top: 24px;">
+      <a href="${targetUrl}" class="btn-cta">
+        Buka Ruang Kerja Saya
+      </a>
+      <p style="margin: 12px 0 0; font-size: 12px; color: #94a3b8;">
+        Jika Anda sedang login di peramban, silakan muat ulang halaman untuk menerapkan hak akses terbaru.
+      </p>
+    </div>
+  `;
+
+  return wrapBaseTemplate(`Pembaruan Hak Akses: ${data.newRoleLabel} - Solo Technopark`, body);
 }

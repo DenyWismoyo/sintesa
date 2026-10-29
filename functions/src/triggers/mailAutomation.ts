@@ -6,17 +6,23 @@ import {
   renderTrainingRegistrationEmail, 
   renderBookingConfirmationEmail, 
   renderInvoiceEmail, 
-  renderPaymentReceiptEmail 
+  renderPaymentReceiptEmail,
+  renderWelcomeVerificationEmail,
+  renderPasswordResetEmail,
+  renderAlumniClaimedEmail,
+  renderPartnerOnboardedEmail,
+  renderRolePromotedEmail,
 } from '../templates/emailTemplates';
 
-// Inisialisasi Firebase Admin jika belum
-if (!admin.apps.length) {
-  admin.initializeApp();
+function ensureAdmin() {
+  if (!admin.apps.length) {
+    admin.initializeApp();
+  }
 }
 
 /**
  * Cloud Function Trigger: Otomatis mengirim email saat ada dokumen baru di koleksi `mail_queue`.
- * Desain non-blocking & aman dari loop.
+ * Desain non-blocking, idempoten (skip bila status sudah SENT), & aman dari loop.
  */
 export const onMailQueued = onDocumentCreated(
   {
@@ -26,16 +32,22 @@ export const onMailQueued = onDocumentCreated(
     timeoutSeconds: 60,
   },
   async (event) => {
+    ensureAdmin();
     const snap = event.data;
     if (!snap) return;
 
     const data = snap.data();
     const mailId = event.params.mailId;
 
+    // Idempotency guard: lewati jika sudah dikirim langsung oleh callable sinkron
+    if (data.status === 'SENT') {
+      return;
+    }
+
     const to = data.to;
     const template = data.template;
     const payload = data.payload || {};
-    let subject = data.subject || 'Pemberitahuan dari Solo Technopark';
+    let subject = data.subject || '';
     let html = data.html || '';
 
     if (!to) {
@@ -104,8 +116,61 @@ export const onMailQueued = onDocumentCreated(
           });
           break;
 
+        case 'WELCOME_VERIFICATION':
+          subject = subject || 'Selamat Datang di Portal Layanan & Ekosistem Solo Technopark';
+          html = renderWelcomeVerificationEmail({
+            userName: payload.userName || 'Pengguna',
+            email: payload.email || to,
+            verificationUrl: payload.verificationUrl,
+            roleLabel: payload.roleLabel || 'Pengguna Umum',
+            isGoogleAuth: Boolean(payload.isGoogleAuth),
+          });
+          break;
+
+        case 'PASSWORD_RESET':
+          subject = subject || 'Instruksi Atur Ulang Kata Sandi - Solo Technopark';
+          html = renderPasswordResetEmail({
+            userName: payload.userName || 'Pengguna',
+            email: payload.email || to,
+            resetUrl: payload.resetUrl || 'https://katalog.solotechnopark.id/login',
+          });
+          break;
+
+        case 'ALUMNI_CLAIMED':
+          subject = subject || 'Selamat! Status Alumni Terverifikasi Anda Telah Aktif - Solo Technopark';
+          html = renderAlumniClaimedEmail({
+            userName: payload.userName || 'Alumni',
+            programTaken: payload.programTaken || 'Program Pelatihan Vokasi',
+            originLabel: payload.originLabel || 'Solo Technopark',
+            registrationCode: payload.registrationCode || '-',
+          });
+          break;
+
+        case 'PARTNER_ONBOARDED':
+          subject = subject || `Aktivasi Akun Mitra Resmi: ${payload.companyName || 'Mitra Industri'} - Solo Technopark`;
+          html = renderPartnerOnboardedEmail({
+            picName: payload.picName || 'Bapak/Ibu PIC',
+            companyName: payload.companyName || 'Mitra Industri STP',
+            tierLabel: payload.tierLabel || 'Mitra Perekrutan (Hiring Partner)',
+            picEmail: payload.picEmail || to,
+            tempPassword: payload.tempPassword || null,
+            isNewAccount: Boolean(payload.isNewAccount),
+          });
+          break;
+
+        case 'ROLE_PROMOTED':
+          subject = subject || `Pembaruan Hak Akses Akun (${payload.newRoleLabel || 'Portal STP'}) - Solo Technopark`;
+          html = renderRolePromotedEmail({
+            userName: payload.userName || 'Pengguna',
+            email: payload.email || to,
+            newRoleLabel: payload.newRoleLabel || 'Pengguna Terotorisasi',
+            dashboardPath: payload.dashboardPath || '/dashboard',
+          });
+          break;
+
         case 'CUSTOM':
         default:
+          subject = subject || 'Pemberitahuan Resmi dari Solo Technopark';
           if (!html) {
             html = `<p>${data.message || 'Terima kasih telah menggunakan layanan Solo Technopark.'}</p>`;
           }

@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { Key, Loader2, Building, ArrowLeft, GraduationCap, Sparkles, Building2, Briefcase, Users, Radio, ClockCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { authService } from '@/services/auth.service';
+import AuthSplitShell from '@/components/auth/AuthSplitShell';
 
 // Mengambil sedikit data Pentahelix untuk hiasan UI di sisi kiri (opsional tapi bagus untuk branding)
 const PENTAHELIX_PREVIEW = [
@@ -18,6 +19,10 @@ const PENTAHELIX_PREVIEW = [
 ];
 
 export default function LoginPage() {
+  return <AuthSplitShell defaultTab="login" />;
+}
+
+function _LegacyLoginPageUnused() {
   // Toggle antara Login Utama (Google) dan Login Tenant (Kode Akses)
   const [showTenantForm, setShowTenantForm] = useState(false);
   const [showPartnerForm, setShowPartnerForm] = useState(false);

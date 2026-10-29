@@ -16,24 +16,38 @@ export interface SendMailResult {
   error?: string;
 }
 
+export interface SmtpDiagnostics {
+  configured: boolean;
+  verified: boolean;
+  host: string;
+  port: number;
+  user: string;
+  fromAddress: string;
+  error?: string;
+}
+
 /**
- * Service pengirim email Solo Technopark.
- * Menggunakan Nodemailer dengan fallback Dev/Mock jika SMTP belum dikonfigurasi.
+ * Service pengirim email resmi Solo Technopark (Hostinger SMTP SSL/TLS).
+ * Menggunakan lazy initialization agar proses Cloud Functions discovery tetap cepat
+ * dan variabel environment runtime dari functions/.env selalu terbaca akurat.
  */
 export class EmailService {
   private transporter: nodemailer.Transporter | null = null;
   private isConfigured: boolean = false;
+  private initialized: boolean = false;
 
-  constructor() {
-    this.initTransporter();
-  }
+  private ensureTransporter(): void {
+    if (this.initialized && this.transporter) {
+      return;
+    }
 
-  private initTransporter() {
-    const host = process.env.SMTP_HOST;
-    const user = process.env.SMTP_USER;
-    const pass = process.env.SMTP_PASS;
-    const port = Number(process.env.SMTP_PORT) || 587;
+    const host = (process.env.SMTP_HOST || '').trim();
+    const user = (process.env.SMTP_USER || '').trim();
+    const pass = process.env.SMTP_PASS || '';
+    const port = Number(process.env.SMTP_PORT) || 465;
     const secure = port === 465;
+
+    this.initialized = true;
 
     if (host && user && pass) {
       try {
@@ -50,25 +64,75 @@ export class EmailService {
           },
         });
         this.isConfigured = true;
-        console.log(`[EmailService] Transporter SMTP terinisialisasi untuk host: ${host}`);
+        console.log(`[EmailService] Transporter SMTP siap (${host}:${port}, secure=${secure}) sebagai ${user}`);
       } catch (err) {
         console.error('[EmailService] Gagal menginisialisasi SMTP transporter:', err);
         this.transporter = null;
         this.isConfigured = false;
       }
     } else {
-      console.log('[EmailService] SMTP credentials belum diset. Berjalan dalam mode SIMULASI (Dev/Staging).');
+      console.log('[EmailService] Kredensial SMTP belum lengkap. Berjalan dalam mode SIMULASI.');
+      this.transporter = null;
       this.isConfigured = false;
     }
   }
 
   /**
-   * Mengirim email dengan header From resmi dan Reply-To ke helpdesk.
+   * Memeriksa kesehatan koneksi autentikasi ke server SMTP (untuk panel Admin).
+   */
+  async verifyConnection(): Promise<SmtpDiagnostics> {
+    this.initialized = false; // Paksa evaluasi ulang env terbaru saat diagnostik
+    this.ensureTransporter();
+
+    const host = (process.env.SMTP_HOST || 'smtp.hostinger.com').trim();
+    const port = Number(process.env.SMTP_PORT) || 465;
+    const user = (process.env.SMTP_USER || '').trim();
+    const fromAddress = (process.env.SMTP_FROM || user || 'marketing@solotechnopark.id').trim();
+
+    if (!this.isConfigured || !this.transporter) {
+      return {
+        configured: false,
+        verified: false,
+        host,
+        port,
+        user,
+        fromAddress,
+        error: 'Variabel environment SMTP_HOST / SMTP_USER / SMTP_PASS belum terkonfigurasi.',
+      };
+    }
+
+    try {
+      await (this.transporter as any).verify();
+      return {
+        configured: true,
+        verified: true,
+        host,
+        port,
+        user,
+        fromAddress,
+      };
+    } catch (err: any) {
+      return {
+        configured: true,
+        verified: false,
+        host,
+        port,
+        user,
+        fromAddress,
+        error: err?.message || 'Verifikasi koneksi SMTP gagal.',
+      };
+    }
+  }
+
+  /**
+   * Mengirim email dengan header From resmi Solo Technopark dan Reply-To resmi.
    */
   async sendEmail(opts: SendMailOptions): Promise<SendMailResult> {
-    const fromAddress = process.env.SMTP_FROM || 'noreply@solotechnopark.id';
+    this.ensureTransporter();
+
+    const fromAddress = (process.env.SMTP_FROM || process.env.SMTP_USER || 'marketing@solotechnopark.id').trim();
     const fromName = opts.fromName || 'Solo Technopark';
-    const replyTo = opts.replyTo || process.env.SMTP_REPLY_TO || 'info@solotechnopark.id';
+    const replyTo = (opts.replyTo || process.env.SMTP_REPLY_TO || fromAddress).trim();
 
     const mailOptions = {
       from: `"${fromName}" <${fromAddress}>`,

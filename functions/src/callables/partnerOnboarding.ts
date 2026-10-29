@@ -190,6 +190,32 @@ export const convertInquiryToPartner = onCall(async (request) => {
     console.error(`[PARTNER ONBOARDING] Gagal setCustomUserClaims untuk ${userRecord.uid}:`, claimErr);
   }
 
+  // 7. Enqueue email aktivasi akun Mitra Resmi ke PIC perusahaan secara otomatis
+  try {
+    const tierLabels: Record<string, string> = {
+      STRATEGIC_PARTNER: "Strategic Partner Kawasan",
+      HIRING_PARTNER: "Hiring Partner Resmi",
+      RESEARCH_PARTNER: "Research & Innovation Partner",
+    };
+    await db.collection("mail_queue").add({
+      to: cleanEmail,
+      template: "PARTNER_ONBOARDED",
+      subject: `Aktivasi Akun Mitra Resmi: ${inquiry.agencyName || "Mitra Industri"} - Solo Technopark`,
+      payload: {
+        picName: inquiry.picName || inquiry.agencyName || "Bapak/Ibu PIC",
+        companyName: inquiry.agencyName || "Mitra Industri STP",
+        tierLabel: tierLabels[requestedTier] || "Hiring Partner Resmi",
+        picEmail: cleanEmail,
+        tempPassword,
+        isNewAccount,
+      },
+      status: "QUEUED",
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+  } catch (mailErr) {
+    console.warn("[PARTNER ONBOARDING] Gagal menjadwalkan email onboarding mitra:", mailErr);
+  }
+
   return {
     success: true,
     alreadyConverted: false,

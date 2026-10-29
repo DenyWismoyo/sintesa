@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { useRouter } from 'next/navigation';
-import { User, BookOpen, CreditCard, LogOut, ArrowLeft, Loader2, GraduationCap, Key, CheckCircle, Sparkles, ChevronRight, ArrowRight, Share2, Clock } from 'lucide-react';
+import { User, BookOpen, CreditCard, LogOut, ArrowLeft, Loader2, GraduationCap, Key, CheckCircle, Sparkles, ChevronRight, ArrowRight, Share2, Clock, MailCheck, RefreshCw, MessageSquare } from 'lucide-react';
 import SectionContainer from '@/components/ui/SectionContainer';
 import TabDataDiri from './components/TabDataDiri';
 import TabRiwayat from './components/TabRiwayat';
@@ -14,6 +14,7 @@ import AlumniInvitationsBox from '@/components/career/AlumniInvitationsBox';
 import { auth } from '@/lib/firebase';
 import { toast } from 'sonner';
 import { alumniService } from '@/services/alumni.service';
+import { authService } from '@/services/auth.service';
 import { Alumni, ALUMNI_ORIGIN_LABELS } from '@/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -27,10 +28,18 @@ export default function ProfilPage() {
   const [isCheckingAlumni, setIsCheckingAlumni] = useState(true);
   const [claimCode, setClaimCode] = useState('');
   const [isClaiming, setIsClaiming] = useState(false);
+  const [isResendingMail, setIsResendingMail] = useState(false);
+  const [emailVerifiedState, setEmailVerifiedState] = useState<boolean>(true);
 
   useEffect(() => {
     if (!authLoading && !user) router.push('/login');
   }, [user, authLoading, router]);
+
+  useEffect(() => {
+    if (user) {
+      setEmailVerifiedState(Boolean(user.emailVerified));
+    }
+  }, [user]);
 
   useEffect(() => {
     const checkAlumniStatus = async () => {
@@ -55,10 +64,45 @@ export default function ProfilPage() {
     );
   }
 
+  const handleResendVerification = async () => {
+    setIsResendingMail(true);
+    try {
+      const res = await authService.sendWelcomeVerificationEmail();
+      if (res.alreadyVerified) {
+        setEmailVerifiedState(true);
+        toast.success('Email Anda sudah terverifikasi!');
+      } else {
+        toast.success('Email Konfirmasi Terkirim!', {
+          description: `Silakan cek kotak masuk ${user.email} dari marketing@solotechnopark.id.`,
+        });
+      }
+    } catch (err: any) {
+      toast.error('Gagal mengirim ulang email', { description: err?.message });
+    } finally {
+      setIsResendingMail(false);
+    }
+  };
+
+  const handleCheckVerifiedStatus = async () => {
+    try {
+      await user.reload();
+      const verified = Boolean(auth.currentUser?.emailVerified);
+      setEmailVerifiedState(verified);
+      if (verified) {
+        toast.success('Selamat! Alamat email Anda kini telah terverifikasi.');
+      } else {
+        toast.info('Belum Terverifikasi', {
+          description: 'Klik tombol konfirmasi di dalam email yang kami kirimkan terlebih dahulu.',
+        });
+      }
+    } catch {
+      toast.error('Gagal memuat ulang status verifikasi.');
+    }
+  };
+
   const handleLogout = async () => {
     try {
-      await auth.signOut();
-      document.cookie = "userRole=; path=/; max-age=0;";
+      await authService.logout();
       toast.success("Berhasil keluar");
       router.push('/login');
     } catch (error) {
@@ -123,6 +167,42 @@ export default function ProfilPage() {
         </div>
       </motion.div>
 
+      {!emailVerifiedState && user.email && (
+        <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-amber-50 border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+              <MailCheck size={20} />
+            </div>
+            <div>
+              <h3 className="text-xs sm:text-sm font-black text-amber-950">Konfirmasi Alamat Email Anda</h3>
+              <p className="text-xs text-amber-800/90 mt-0.5 leading-relaxed">
+                Kami telah mengirimkan tautan konfirmasi ke <strong>{user.email}</strong> dari <strong>marketing@solotechnopark.id</strong>. Verifikasi email untuk mengaktifkan notifikasi transaksi & pemulihan akun.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              disabled={isResendingMail}
+              onClick={handleResendVerification}
+              className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
+            >
+              {isResendingMail ? <Loader2 size={14} className="animate-spin" /> : null}
+              <span>Kirim Ulang Email</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleCheckVerifiedStatus}
+              className="px-3 py-2 rounded-xl bg-white hover:bg-amber-100/60 border border-amber-200 text-amber-900 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+              title="Periksa kembali status setelah klik link di email"
+            >
+              <RefreshCw size={13} />
+              <span>Cek Status</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col lg:flex-row gap-8">
         {/* SIDEBAR NAVIGASI */}
         <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="w-full lg:w-80 shrink-0 space-y-6">
@@ -159,6 +239,13 @@ export default function ProfilPage() {
                   className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-slate-900 hover:bg-emerald-700 text-white text-xs font-bold transition-colors"
                 >
                   <span>Buka Bursa Karir Eksklusif</span>
+                  <ArrowRight size={14} />
+                </Link>
+                <Link
+                  href="/alumni-portal"
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors"
+                >
+                  <span className="flex items-center gap-1.5"><MessageSquare size={13} /> Forum Eksklusif Alumni</span>
                   <ArrowRight size={14} />
                 </Link>
               </div>

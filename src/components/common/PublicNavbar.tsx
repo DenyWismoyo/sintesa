@@ -335,14 +335,23 @@ export default function PublicNavbar() {
       }
 
       return (
-        <button
-          type="button"
-          onClick={() => openLoginModal()}
-          className="px-4 py-2 h-9 text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-full transition-all shadow-xs flex items-center gap-1.5 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
-        >
-          <span>Masuk Portal</span>
-          <ArrowUpRight size={14} className="opacity-70" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => openLoginModal({ initialMode: 'register' })}
+            className="px-3.5 py-2 h-9 text-xs font-bold bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-full transition-all shadow-2xs cursor-pointer"
+          >
+            Daftar
+          </button>
+          <button
+            type="button"
+            onClick={() => openLoginModal({ initialMode: 'login' })}
+            className="px-4 py-2 h-9 text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-full transition-all shadow-xs flex items-center gap-1.5 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+          >
+            <span>Masuk Portal</span>
+            <ArrowUpRight size={14} className="opacity-70" />
+          </button>
+        </div>
       );
     }
 
@@ -498,17 +507,29 @@ export default function PublicNavbar() {
       }
 
       return (
-        <button
-          type="button"
-          onClick={() => {
-            setIsMobileMenuOpen(false);
-            openLoginModal();
-          }}
-          className="w-full h-12 text-sm font-bold bg-gradient-to-r from-slate-900 to-slate-800 active:from-slate-800 active:to-slate-700 text-white rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <span>Masuk Portal Layanan</span>
-          <ArrowUpRight size={16} className="opacity-70" />
-        </button>
+        <div className="grid grid-cols-2 gap-2 w-full">
+          <button
+            type="button"
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+              openLoginModal({ initialMode: 'register' });
+            }}
+            className="w-full h-11 text-xs font-bold bg-white border border-slate-200 text-slate-800 rounded-xl shadow-2xs transition-all flex items-center justify-center cursor-pointer"
+          >
+            Daftar Akun Baru
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+              openLoginModal({ initialMode: 'login' });
+            }}
+            className="w-full h-11 text-xs font-bold bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <span>Masuk Portal</span>
+            <ArrowUpRight size={14} className="opacity-70" />
+          </button>
+        </div>
       );
     }
 
@@ -516,6 +537,10 @@ export default function PublicNavbar() {
       ? 'Pegawai Solo Technopark'
       : isInternalStaff(role)
       ? 'Staff Internal / Admin'
+      : role === APP_ROLES.INDUSTRI
+      ? 'Mitra Industri Resmi'
+      : role === APP_ROLES.ALUMNI
+      ? 'Alumni Terverifikasi STP / RSKB'
       : role === APP_ROLES.TENANT
       ? 'Tenant Startup'
       : 'Pengguna Publik';
