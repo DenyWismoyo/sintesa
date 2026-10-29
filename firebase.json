@@ -32,10 +32,15 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "*service-account*.json",
+      "*firebase-adminsdk*.json",
+      "*.zip",
+      "scripts/**",
+      "scratch/**"
     ],
     "frameworksBackend": {
-      "region": "asia-east1"
+      "region": "asia-southeast2"
     }
   },
   "functions": [

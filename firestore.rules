@@ -395,8 +395,10 @@ service cloud.firestore {
 
     // 14. Program Kemitraan Afiliasi & Referral Marketing
     match /affiliates/{userId} {
-      // Terbuka untuk membaca verifikasi kode referral aktif & direktori mitra
-      allow read: if true;
+      // Verifikasi kode referral tunggal
+      allow get: if true;
+      // Listing direktori mitra dibatasi untuk pemilik akun dan admin
+      allow list: if isAuth() && (request.auth.uid == userId || hasAnyRole(['admin', 'super_admin', 'admin_keuangan']));
       // Pendaftaran mitra baru oleh user terautentikasi untuk ID-nya sendiri
       allow create: if isAuth() && request.auth.uid == userId;
       // Update oleh mitra pemilik, admin, atau pembaca publik yang hanya menginkremen totalClicks
@@ -521,8 +523,10 @@ service cloud.firestore {
 
       // Invoices & Billing
       match /invoices/{invoiceId} {
-        // Terbuka untuk dibaca agar verifikasi nomor tagihan dan portal bukti bayar publik berfungsi
-        allow read: if true;
+        // Terbuka untuk verifikasi nomor tagihan dan portal bukti bayar publik via ID dokumen
+        allow get: if true;
+        // Dump/listing seluruh tagihan dibatasi hanya untuk staf berwenang atau pemilik tagihan terautentikasi
+        allow list: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan', 'kasir', 'admin_aset', 'admin_tenant', 'admin_pelatihan', 'admin_produksi']) || (isAuth() && resource.data.customerEmail == request.auth.token.email);
         // Pembuatan dan penghapusan tagihan oleh manajemen keuangan, kasir, dan seluruh admin sektoral (aset, tenant, pelatihan, produksi)
         allow create, delete: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan', 'kasir', 'admin_aset', 'admin_tenant', 'admin_pelatihan', 'admin_produksi']);
         allow update: if hasAnyRole(['admin', 'super_admin', 'admin_keuangan', 'kasir', 'admin_aset', 'admin_tenant', 'admin_pelatihan', 'admin_produksi']) ||

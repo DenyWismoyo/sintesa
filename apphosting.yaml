@@ -71,7 +71,7 @@ env:
     value: "StpUser2026!"
 
   - variable: CLARIO_BASE_URL
-    value: "http://api-direct.apicloud.my.id:8088/v1"
+    value: "https://clario.apicloud.my.id/v1"
 
   - variable: CLARIO_BACKUP_BASE_URL
     value: "https://clario.apicloud.my.id/v1"

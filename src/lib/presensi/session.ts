@@ -90,18 +90,20 @@ export async function getCurrentUserFromSession(): Promise<UserProfile | null> {
       }
     }
 
-    // 3. Decode payload JWT fallback jika dev mode atau mock token
-    try {
-      const parts = token.split(".");
-      if (parts.length === 3) {
-        const payloadJson = Buffer.from(parts[1], "base64").toString("utf-8");
-        const payload = JSON.parse(payloadJson);
-        if (payload.email) {
-          const profile = getStpUserProfileByEmail(payload.email);
-          if (profile) return { ...profile, id: payload.user_id || payload.sub || profile.id };
+    // 3. Decode payload JWT fallback jika dev mode atau testing lokal (DILARANG di production - CRIT-01)
+    if (process.env.NODE_ENV !== "production") {
+      try {
+        const parts = token.split(".");
+        if (parts.length === 3) {
+          const payloadJson = Buffer.from(parts[1], "base64").toString("utf-8");
+          const payload = JSON.parse(payloadJson);
+          if (payload.email) {
+            const profile = getStpUserProfileByEmail(payload.email);
+            if (profile) return { ...profile, id: payload.user_id || payload.sub || profile.id };
+          }
         }
-      }
-    } catch {}
+      } catch {}
+    }
 
     return null;
   } catch (error) {

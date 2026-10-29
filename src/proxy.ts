@@ -85,9 +85,25 @@ export function proxy(request: NextRequest) {
   if (isPresensiPath) {
     const presensiSession = request.cookies.get('techno_sign_session')?.value;
 
-    // A. Memiliki cookie sesi presensi aktif -> izinkan masuk
+    // A. Memiliki cookie sesi presensi aktif & belum kedaluwarsa -> izinkan masuk
     if (presensiSession) {
-      return NextResponse.next();
+      try {
+        const parts = presensiSession.split('.');
+        if (parts.length === 3) {
+          const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+          const payload = JSON.parse(atob(base64));
+          // Tolak jika token presensi terbukti sudah kedaluwarsa
+          if (payload.exp && payload.exp * 1000 < Date.now()) {
+            // Lanjut ke pengalihan login (expired)
+          } else {
+            return NextResponse.next();
+          }
+        } else {
+          return NextResponse.next();
+        }
+      } catch {
+        return NextResponse.next();
+      }
     }
 
     // B. Fallback: Admin / Super Admin utama di portal katalog yang ingin menginspeksi modul presensi
