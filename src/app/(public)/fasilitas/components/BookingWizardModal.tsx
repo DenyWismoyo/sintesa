@@ -10,7 +10,8 @@ import {
   Clock, 
   Users, 
   Building2, 
-  CheckCircle2, 
+  CheckCircle2,
+  AlertTriangle, 
   ArrowLeft, 
   ArrowRight, 
   Loader2, 
@@ -31,7 +32,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/lib/AuthContext';
-import { Asset } from '@/types';
+import { Asset } from '@/types';
+import { bookingService } from '@/services/booking.service';
 
 interface BookingWizardModalProps {
   isOpen: boolean;
@@ -51,7 +53,9 @@ export default function BookingWizardModal({
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [estimatedPrice, setEstimatedPrice] = useState(0);
-  const [durationInfo, setDurationInfo] = useState<{ count: number; unit: string }>({ count: 1, unit: 'Hari' });
+  const [durationInfo, setDurationInfo] = useState<{ count: number; unit: string }>({ count: 1, unit: 'Hari' });
+  const [occupiedSlots, setOccupiedSlots] = useState<{ startDate: string; endDate: string; timeSlot?: string }[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
   const [form, setForm] = useState({
     userName: '',
@@ -108,6 +112,17 @@ export default function BookingWizardModal({
     }
   }, [form, asset]);
 
+  const isScheduleConflict = React.useMemo(() => {
+    if (!form.startDate || !form.endDate) return false;
+    const sReq = new Date(form.startDate).getTime();
+    const eReq = new Date(form.endDate).getTime();
+    return occupiedSlots.some(slot => {
+      const sOcc = new Date(slot.startDate).getTime();
+      const eOcc = new Date(slot.endDate).getTime();
+      return sReq <= eOcc && eReq >= sOcc;
+    });
+  }, [form.startDate, form.endDate, occupiedSlots]);
+
   const handleNext = (e: React.FormEvent) => {
     e.preventDefault();
     if (step === 1) {
@@ -420,7 +435,7 @@ export default function BookingWizardModal({
           <Button 
             type="submit" 
             form="booking-wizard-form" 
-            disabled={isSubmitting} 
+            disabled={isSubmitting || (step === 1 && isScheduleConflict)} 
             className="rounded-full h-11 px-7 font-bold text-xs bg-sky-600 hover:bg-sky-700 text-white shadow-md shadow-sky-600/25 transition-all"
           >
             {isSubmitting ? (

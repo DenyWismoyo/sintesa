@@ -192,25 +192,10 @@ export default function PendaftaranKelasPage() {
 
       const selectedBatch = batches.find(b => b.id === selectedBatchId);
 
-      const regData = {
-        ...form,
-        batchId: selectedBatch?.id || undefined,
-        batchNumber: selectedBatch?.batchNumber || undefined,
-        registrationSource: appliedVoucher ? appliedVoucher.source : 'CATALOG_ONLINE',
-        customData: finalCustomData,
-        paymentStatus: isActuallyFree ? 'FREE' : 'PENDING',
-        status: isActuallyFree ? 'CONFIRMED' : 'PENDING',
-        referralCode: refCode || undefined
-      };
-
-      const regRes = await registerForTraining(training.id as string, regData);
-      
-      if (!regRes.success) {
-         throw new Error(regRes.error || "Gagal mendaftar ke server.");
-      }
+      let generatedInvoiceId: string | undefined = undefined;
 
       if (!isActuallyFree) {
-        // Buat Invoice Tagihan Resmi di Modul Billing
+        // 1. Buat Tagihan Resmi Terlebih Dahulu agar invoiceId tersimpan sejak dokumen pertama
         const today = new Date().toISOString().split('T')[0];
         const dueDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
         const invNumber = `INV-TRN-${Date.now().toString().slice(-6)}`;
@@ -225,7 +210,7 @@ export default function PendaftaranKelasPage() {
           items: [{
             id: Date.now().toString(),
             referenceType: 'TRAINING' as const,
-            referenceId: `${training.id}::${regRes.registrationId}`,
+            referenceId: training.id as string,
             description: `Pendaftaran Pelatihan: ${training.title}`,
             quantity: 1,
             unitPrice: price,
@@ -243,7 +228,7 @@ export default function PendaftaranKelasPage() {
           status: 'PENDING' as const,
           division: 'DIKLAT_PELATIHAN' as const,
           divisionPic: (training as any).instructor || 'Divisi Diklat STP',
-          divisionRefNumber: regRes.registrationId || (training.id as string),
+          divisionRefNumber: training.id as string,
           referralCode: refCode || undefined,
           issuerName: '',
           issuerRole: 'Kasir' as const,
@@ -252,16 +237,33 @@ export default function PendaftaranKelasPage() {
           history: []
         };
 
-        const invoiceId = await billingService.createInvoice(newInvoiceData);
+        const createdId = await billingService.createInvoice(newInvoiceData);
+        if (createdId) generatedInvoiceId = createdId;
+      }
 
-        // Update registration record dengan invoiceId
-        if (invoiceId && regRes.registrationId) {
-          await updateDoc(doc(db, 'trainings', training.id as string, 'registrations', regRes.registrationId), {
-            invoiceId
-          });
-        }
+      const regData = {
+        ...form,
+        batchId: selectedBatch?.id || undefined,
+        batchNumber: selectedBatch?.batchNumber || undefined,
+        registrationSource: appliedVoucher ? appliedVoucher.source : 'CATALOG_ONLINE',
+        customData: finalCustomData,
+        paymentStatus: isActuallyFree ? 'FREE' : 'PENDING',
+        status: isActuallyFree ? 'CONFIRMED' : 'PENDING',
+        referralCode: refCode || undefined,
+        invoiceId: generatedInvoiceId || undefined
+      };
 
+      const regRes = await registerForTraining(training.id as string, regData);
+      
+      if (!regRes.success) {
+         throw new Error(regRes.error || "Gagal mendaftar ke server.");
+      }
+
+      const invoiceId = generatedInvoiceId;
+
+      if (!isActuallyFree) {
         // Jika ada referralCode aktif, catat komisi pending untuk mitra afiliasi
+        const price = training.price || 0;
         if (refCode && price > 0 && invoiceId) {
           try {
             const partner = await affiliateService.getAffiliateByCode(refCode);
@@ -290,7 +292,7 @@ export default function PendaftaranKelasPage() {
         }
 
         toast.success("Pendaftaran Berhasil!", { 
-          description: `Tagihan #${invNumber} telah dibuat. Silakan selesaikan pembayaran di menu Tagihan Profil Anda.` 
+          description: "Tagihan telah diterbitkan. Silakan selesaikan pembayaran di menu Tagihan Profil Anda." 
         });
         router.push(`/profil`); 
       } else {

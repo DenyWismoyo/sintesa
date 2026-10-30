@@ -51,3 +51,12 @@ export * from './production.types';
 
 // 16. Exclusive Dual-Zone Alumni & Partner Forum + Job Application Tracker
 export * from './alumniForum.types';
+
+// 17. Facility Service Desk & Maintenance Work Order (SPK)
+export * from './serviceDesk.types';
+
+// 18. Incubation Mentoring, Virtual Deal Room & Ecosystem Subsidy
+export * from './incubationMentoring.types';
+
+// 19. Indeks Kepuasan Masyarakat (IKM PermenPAN-RB)
+export * from './ikm.types';

@@ -39,6 +39,48 @@ export const PartnershipInquirySchema = z.object({
 });
 export type PartnershipInquiry = z.infer<typeof PartnershipInquirySchema>;
 
+export const MouContractStatusEnum = z.enum([
+  'DRAFT',
+  'REVIEW_LEGAL',
+  'ACTIVE',
+  'EXPIRING_SOON',
+  'EXPIRED',
+  'TERMINATED',
+]);
+export type MouContractStatus = z.infer<typeof MouContractStatusEnum>;
+
+export const MouContractTypeEnum = z.enum([
+  'MOU',      // Nota Kesepahaman
+  'PKS',      // Perjanjian Kerja Sama
+  'NDA',      // Non-Disclosure Agreement
+  'KONTRAK',  // Kontrak Komersial / Layanan
+]);
+export type MouContractType = z.infer<typeof MouContractTypeEnum>;
+
+export const MouContractSchema = z.object({
+  id: z.string().optional(),
+  contractNumber: z.string().min(3, 'Nomor dokumen MoU/PKS wajib diisi'),
+  title: z.string().min(5, 'Judul kerjasama wajib diisi'),
+  contractType: MouContractTypeEnum.default('MOU'),
+  partnerId: z.string().optional(),
+  partnerName: z.string().min(2, 'Nama mitra wajib diisi'),
+  agencyType: z.string().default('Perusahaan Swasta / Multinasional'),
+  picPartnerName: z.string().min(2, 'PIC Mitra wajib diisi'),
+  picPartnerContact: z.string().min(5, 'Kontak PIC Mitra wajib diisi'),
+  picStpName: z.string().min(2, 'PIC Internal STP wajib diisi'),
+  scope: z.string().min(5, 'Ruang lingkup kerjasama wajib diisi'),
+  startDate: z.string(), // YYYY-MM-DD
+  endDate: z.string(),   // YYYY-MM-DD
+  commitmentBudget: z.number().default(0),
+  documentUrl: z.string().optional(),
+  status: MouContractStatusEnum.default('ACTIVE'),
+  notes: z.string().optional(),
+  realizationSummary: z.string().optional(),
+  createdAt: z.number().optional(),
+  updatedAt: z.number().optional(),
+});
+export type MouContract = z.infer<typeof MouContractSchema>;
+
 export const PartnerTierEnum = z.enum([
   'MOU_OFFICIAL',
   'CSR_PARTNER',

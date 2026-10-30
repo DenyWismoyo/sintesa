@@ -36,6 +36,7 @@ import { SocialShareBar } from '@/components/common/SocialShareBar';
 import { StickyActionBar } from '@/components/common/StickyActionBar';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import { toast } from 'sonner';
+import ModalEventRegistration from './components/ModalEventRegistration';
 
 interface EventDetailClientProps {
   eventId: string;
@@ -47,6 +48,7 @@ export default function EventDetailClient({ eventId, initialEvent }: EventDetail
   const [event, setEvent] = useState<AppEvent | null>(initialEvent);
   const [loading, setLoading] = useState(!initialEvent);
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
+  const [isRegModalOpen, setIsRegModalOpen] = useState(false);
 
   useEffect(() => {
     if (!initialEvent) {
@@ -422,9 +424,7 @@ export default function EventDetailClient({ eventId, initialEvent }: EventDetail
               ) : (
                 <button
                   type="button"
-                  onClick={() => {
-                    toast.success('Pendaftaran event berhasil dibuka! Menghubungkan ke verifikasi kehadiran.');
-                  }}
+                  onClick={() => setIsRegModalOpen(true)}
                   disabled={isCompleted}
                   className={`w-full h-12 rounded-full font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all ${
                     isCompleted
@@ -475,7 +475,7 @@ export default function EventDetailClient({ eventId, initialEvent }: EventDetail
             </a>
           ) : (
             <Button
-              onClick={() => toast.success('Membuka dialog registrasi tiket...')}
+              onClick={() => setIsRegModalOpen(true)}
               disabled={isCompleted}
               className={`h-10 px-5 rounded-full text-xs font-bold shadow-sm shrink-0 active:scale-95 ${
                 isCompleted ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-violet-600 hover:bg-violet-700 text-white'
@@ -486,6 +486,16 @@ export default function EventDetailClient({ eventId, initialEvent }: EventDetail
           )}
         </div>
       </StickyActionBar>
+
+      {/* MODAL REGISTRASI TIKET EVENT RESMI */}
+      {event && (
+        <ModalEventRegistration
+          isOpen={isRegModalOpen}
+          onClose={() => setIsRegModalOpen(false)}
+          event={event}
+          defaultTierId={selectedTier}
+        />
+      )}
     </SectionContainer>
   );
 }

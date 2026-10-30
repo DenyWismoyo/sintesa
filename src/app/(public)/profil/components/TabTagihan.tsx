@@ -12,6 +12,8 @@ import { Dialog, DialogContent, DialogClose } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { generateSipfPdf } from '@/lib/pdf/sipfPdf';
+import { FileCheck2 } from 'lucide-react';
 
 const staggerContainer: Variants = {
   hidden: { opacity: 0 },
@@ -49,6 +51,28 @@ export default function TabTagihan({ userEmail }: { userEmail: string }) {
     setProofMethod('');
     setProofFile(null);
     setIsModalOpen(true);
+  };
+
+    const handleDownloadSipf = () => {
+    if (!selectedInvoice) return;
+    const item = selectedInvoice.items?.[0];
+    const doc = generateSipfPdf({
+      sipfNumber: `SIPF/STP/${new Date().getFullYear()}/${selectedInvoice.invoiceNumber?.slice(-5) || '001'}`,
+      issueDate: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+      userName: selectedInvoice.customerName || 'Penyewa Kawasan',
+      agencyName: selectedInvoice.customerType || 'Instansi / Umum',
+      userPhone: selectedInvoice.customerPhone || '-',
+      userEmail: selectedInvoice.customerEmail || '-',
+      assetName: item?.description || 'Fasilitas Kawasan Solo Technopark',
+      startDate: selectedInvoice.date,
+      endDate: selectedInvoice.dueDate || selectedInvoice.date,
+      timeSlot: '08:00 - 17:00 WIB',
+      purpose: selectedInvoice.notes || 'Penyelenggaraan Kegiatan Resmi di Kawasan STP',
+      invoiceNumber: selectedInvoice.invoiceNumber,
+      totalAmount: selectedInvoice.totalAmount
+    });
+    doc.save(`SIPF_${selectedInvoice.invoiceNumber || 'Pass'}.pdf`);
+    toast.success('Surat Izin Pemakaian Fasilitas (SIPF) berhasil diunduh!');
   };
 
   const handleUploadProof = async (e: React.FormEvent) => {

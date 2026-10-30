@@ -250,7 +250,32 @@ export const billingService = {
                 hasUpdates = true;
               }
             }
+          } else {
+            // Jika referenceId hanya trainingId, cari registrasi yang terkait dengan invoiceId ini
+            const trainingId = item.referenceId;
+            const qReg = query(collection(db, 'trainings', trainingId, 'registrations'), where('invoiceId', '==', invoice.id || invoice.invoiceNumber));
+            const regSnaps = await getDocs(qReg);
+            regSnaps.forEach(rDoc => {
+              batch.update(rDoc.ref, { 
+                paymentStatus: invoice.status === 'PAID' ? 'PAID' : invoice.status === 'PARTIAL' ? 'PARTIAL' : 'UNPAID',
+                status: invoice.status === 'PAID' ? 'CONFIRMED' : 'PENDING',
+                updatedAt: Date.now()
+              });
+              hasUpdates = true;
+            });
           }
+        }
+        else if (item.referenceType === 'EVENT' && item.referenceId) {
+          const eventId = item.referenceId;
+          const qEventReg = query(collection(db, 'events', eventId, 'registrations'), where('invoiceId', '==', invoice.id || invoice.invoiceNumber));
+          const eRegSnaps = await getDocs(qEventReg);
+          eRegSnaps.forEach(eDoc => {
+            batch.update(eDoc.ref, {
+              status: invoice.status === 'PAID' ? 'CONFIRMED' : 'PENDING',
+              updatedAt: Date.now()
+            });
+            hasUpdates = true;
+          });
         }
         else if (item.referenceType === 'PRODUCTION' && item.referenceId) {
           const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'production_orders', item.referenceId);

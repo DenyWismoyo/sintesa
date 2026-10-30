@@ -20,6 +20,7 @@ export const APP_ROLES = {
   // --- ROLE BARU JASA PRODUKSI & MANUFAKTUR STP ---
   ADMIN_PRODUKSI: 'admin_produksi',
   OPERATOR_PRODUKSI: 'operator_produksi',
+  DIREKTUR: 'direktur',
   
   PUBLIC: 'public',
   TENANT: 'tenant',
@@ -48,6 +49,7 @@ export const ROLE_LABELS: Record<string, string> = {
   [APP_ROLES.OPERATOR_PELATIHAN]: 'Operator Pelatihan',
   [APP_ROLES.ADMIN_PRODUKSI]: 'Admin Layanan Jasa Produksi',
   [APP_ROLES.OPERATOR_PRODUKSI]: 'Operator Bengkel & Produksi',
+  [APP_ROLES.DIREKTUR]: 'Direktur / Kepala UPTD BLUD',
   [APP_ROLES.PEGAWAI]: 'Pegawai Solo Technopark',
   [APP_ROLES.PUBLIC]: 'Pengguna Umum / Instruktur',
   [APP_ROLES.TENANT]: 'Akun Tenant',
@@ -60,22 +62,23 @@ export const ROLE_LABELS: Record<string, string> = {
 // 1. DAFTAR AKSES HALAMAN UMUM (ROUTE LEVEL)
 export const ROLE_ACCESS_MAP: Record<string, string[]> = {
   [APP_ROLES.SUPER_ADMIN]: ['*'], 
-  [APP_ROLES.ADMIN]: ['/dashboard', '/aset', '/booking', '/jasa-produksi', '/billing', '/katalog', '/afiliasi', '/tenant', '/manajemen-event', '/manajemen-krenova', '/pelatihan', '/lms', '/manajemen-faq', '/manajemen-artikel', '/karir', '/manajemen-karir', '/pengaturan'],
+  [APP_ROLES.DIREKTUR]: ['/dashboard', '/eksekutif', '/aset', '/booking', '/jasa-produksi', '/billing', '/tenant', '/manajemen-kemitraan', '/service-desk', '/pelatihan', '/manajemen-ikm', '/karir'], 
+  [APP_ROLES.ADMIN]: ['/dashboard', '/aset', '/booking', '/jasa-produksi', '/billing', '/katalog', '/afiliasi', '/tenant', '/manajemen-event', '/manajemen-krenova', '/pelatihan', '/lms', '/manajemen-faq', '/manajemen-artikel', '/karir', '/manajemen-karir', '/pengaturan', '/manajemen-kemitraan', '/service-desk', '/manajemen-ikm', '/eksekutif'],
   [APP_ROLES.ADMIN_KEUANGAN]: ['/dashboard', '/billing', '/katalog', '/afiliasi', '/manajemen-faq', '/karir', '/pengaturan'], 
   [APP_ROLES.KASIR]: ['/dashboard', '/billing', '/karir'],
   [APP_ROLES.KASIR_PENGELUARAN]: ['/dashboard', '/billing', '/karir'],
-  [APP_ROLES.ADMIN_ASET]: ['/dashboard', '/aset', '/booking', '/manajemen-faq', '/karir'],
-  [APP_ROLES.OPERATOR_ASET]: ['/dashboard', '/aset', '/booking', '/karir'],
+  [APP_ROLES.ADMIN_ASET]: ['/dashboard', '/aset', '/booking', '/manajemen-faq', '/karir', '/service-desk', '/manajemen-ikm'],
+  [APP_ROLES.OPERATOR_ASET]: ['/dashboard', '/aset', '/booking', '/karir', '/service-desk'],
   [APP_ROLES.ADMIN_PRODUKSI]: ['/dashboard', '/jasa-produksi', '/billing', '/karir'],
   [APP_ROLES.OPERATOR_PRODUKSI]: ['/dashboard', '/jasa-produksi', '/karir'],
   [APP_ROLES.PEGAWAI]: ['/presensi', '/karir'],
-  [APP_ROLES.ADMIN_TENANT]: ['/dashboard', '/tenant', '/manajemen-event', '/manajemen-krenova', '/manajemen-faq', '/manajemen-artikel', '/karir'],
+  [APP_ROLES.ADMIN_TENANT]: ['/dashboard', '/tenant', '/manajemen-event', '/manajemen-krenova', '/manajemen-faq', '/manajemen-artikel', '/karir', '/manajemen-kemitraan', '/manajemen-ikm'],
   [APP_ROLES.OPERATOR_TENANT]: ['/dashboard', '/tenant', '/manajemen-event', '/karir'],
-  [APP_ROLES.ADMIN_PELATIHAN]: ['/dashboard', '/pelatihan', '/lms', '/manajemen-faq', '/manajemen-artikel', '/karir', '/manajemen-karir'],
+  [APP_ROLES.ADMIN_PELATIHAN]: ['/dashboard', '/pelatihan', '/lms', '/manajemen-faq', '/manajemen-artikel', '/karir', '/manajemen-karir', '/manajemen-ikm'],
   [APP_ROLES.OPERATOR_PELATIHAN]: ['/dashboard', '/pelatihan', '/lms', '/karir', '/manajemen-karir'],
   [APP_ROLES.ALUMNI]: ['/lms', '/alumni-portal', '/karir'],
   [APP_ROLES.TENANT]: ['/tenant', '/lms', '/ekosistem'], // Tenant diberi akses ke ekosistem (hub)
-  [APP_ROLES.INVESTOR]: ['/ekosistem', '/portfolio'],
+  [APP_ROLES.INVESTOR]: ['/ekosistem', '/portfolio', '/investor-room'],
   [APP_ROLES.KAMPUS]: ['/ekosistem', '/riset'],
   [APP_ROLES.INDUSTRI]: ['/mitra', '/ekosistem', '/kebutuhan'],
 };
@@ -106,7 +109,13 @@ export const PERMISSIONS = {
   MANAGE_FAQ: 'manage_faq',
   MANAGE_ARTICLE: 'manage_article',
   MANAGE_AFFILIATE: 'manage_affiliate',
-  VIEW_SETTINGS_MENU: 'view_settings_menu', EDIT_INSTITUTION_PROFILE: 'edit_institution_profile', MANAGE_FINANCE_BAS: 'manage_finance_bas', MANAGE_ROLES_USERS: 'manage_roles_users', 
+  VIEW_SETTINGS_MENU: 'view_settings_menu', EDIT_INSTITUTION_PROFILE: 'edit_institution_profile', MANAGE_FINANCE_BAS: 'manage_finance_bas', MANAGE_ROLES_USERS: 'manage_roles_users',
+  MANAGE_MOU: 'manage_mou',
+  MANAGE_SERVICE_DESK: 'manage_service_desk',
+  APPROVE_WORK_ORDER: 'approve_work_order',
+  MANAGE_DEAL_ROOM: 'manage_deal_room',
+  VIEW_EXECUTIVE_BI: 'view_executive_bi',
+  MANAGE_IKM: 'manage_ikm', 
 } as const;
 
 export type Permission = typeof PERMISSIONS[keyof typeof PERMISSIONS];
@@ -114,6 +123,17 @@ export type Permission = typeof PERMISSIONS[keyof typeof PERMISSIONS];
 // 3. PEMETAAN PERMISSIONS KE ROLE
 const ACTION_PERMISSIONS: Record<string, Permission[]> = {
   [APP_ROLES.SUPER_ADMIN]: Object.values(PERMISSIONS), 
+  [APP_ROLES.DIREKTUR]: [
+    PERMISSIONS.VIEW_EXECUTIVE_BI,
+    PERMISSIONS.VIEW_FINANCE_REPORTS,
+    PERMISSIONS.VIEW_ASSET,
+    PERMISSIONS.VIEW_TENANT,
+    PERMISSIONS.VIEW_EVENT,
+    PERMISSIONS.VIEW_BILLING,
+    PERMISSIONS.ACCESS_CAREER,
+    PERMISSIONS.MANAGE_MOU,
+    PERMISSIONS.MANAGE_IKM,
+  ], 
   [APP_ROLES.ADMIN]: [
     PERMISSIONS.VIEW_ASSET, PERMISSIONS.CREATE_ASSET, PERMISSIONS.EDIT_ASSET, PERMISSIONS.DELETE_ASSET, PERMISSIONS.MANAGE_BOOKING, PERMISSIONS.APPROVE_BOOKING, 
     PERMISSIONS.VIEW_BILLING, PERMISSIONS.CREATE_INVOICE, PERMISSIONS.DELETE_INVOICE, PERMISSIONS.CREATE_EXPENSE, PERMISSIONS.APPROVE_EXPENSE, PERMISSIONS.MANAGE_CATALOG, PERMISSIONS.VIEW_FINANCE_REPORTS, PERMISSIONS.MANAGE_CASH_TRANSFER, 
@@ -121,10 +141,11 @@ const ACTION_PERMISSIONS: Record<string, Permission[]> = {
     PERMISSIONS.MANAGE_PRODUCTION, PERMISSIONS.CREATE_PRODUCTION_ORDER, PERMISSIONS.APPROVE_PRODUCTION, PERMISSIONS.GENERATE_DELIVERY_ORDER,
     PERMISSIONS.MANAGE_LMS, PERMISSIONS.MANAGE_ALUMNI, PERMISSIONS.MANAGE_TALENT, PERMISSIONS.MANAGE_KRENOVA,
     PERMISSIONS.ACCESS_CAREER, PERMISSIONS.MANAGE_CAREER, PERMISSIONS.MANAGE_PARTNERSHIP, PERMISSIONS.MODERATE_FORUM,
-    PERMISSIONS.MANAGE_FAQ, PERMISSIONS.MANAGE_ARTICLE, PERMISSIONS.MANAGE_AFFILIATE, PERMISSIONS.VIEW_SETTINGS_MENU, PERMISSIONS.EDIT_INSTITUTION_PROFILE
+    PERMISSIONS.MANAGE_FAQ, PERMISSIONS.MANAGE_ARTICLE, PERMISSIONS.MANAGE_AFFILIATE, PERMISSIONS.VIEW_SETTINGS_MENU, PERMISSIONS.EDIT_INSTITUTION_PROFILE,
+    PERMISSIONS.MANAGE_MOU, PERMISSIONS.MANAGE_SERVICE_DESK, PERMISSIONS.APPROVE_WORK_ORDER, PERMISSIONS.MANAGE_DEAL_ROOM, PERMISSIONS.VIEW_EXECUTIVE_BI, PERMISSIONS.MANAGE_IKM
   ],
-  [APP_ROLES.ADMIN_ASET]: [PERMISSIONS.VIEW_ASSET, PERMISSIONS.CREATE_ASSET, PERMISSIONS.EDIT_ASSET, PERMISSIONS.DELETE_ASSET, PERMISSIONS.MANAGE_BOOKING, PERMISSIONS.APPROVE_BOOKING, PERMISSIONS.ACCESS_CAREER, PERMISSIONS.MANAGE_PARTNERSHIP, PERMISSIONS.MANAGE_FAQ],
-  [APP_ROLES.OPERATOR_ASET]: [PERMISSIONS.VIEW_ASSET, PERMISSIONS.CREATE_ASSET, PERMISSIONS.EDIT_ASSET, PERMISSIONS.MANAGE_BOOKING, PERMISSIONS.ACCESS_CAREER],
+  [APP_ROLES.ADMIN_ASET]: [PERMISSIONS.VIEW_ASSET, PERMISSIONS.CREATE_ASSET, PERMISSIONS.EDIT_ASSET, PERMISSIONS.DELETE_ASSET, PERMISSIONS.MANAGE_BOOKING, PERMISSIONS.APPROVE_BOOKING, PERMISSIONS.ACCESS_CAREER, PERMISSIONS.MANAGE_PARTNERSHIP, PERMISSIONS.MANAGE_FAQ, PERMISSIONS.MANAGE_SERVICE_DESK, PERMISSIONS.APPROVE_WORK_ORDER, PERMISSIONS.MANAGE_IKM],
+  [APP_ROLES.OPERATOR_ASET]: [PERMISSIONS.VIEW_ASSET, PERMISSIONS.CREATE_ASSET, PERMISSIONS.EDIT_ASSET, PERMISSIONS.MANAGE_BOOKING, PERMISSIONS.ACCESS_CAREER, PERMISSIONS.MANAGE_SERVICE_DESK],
   [APP_ROLES.ADMIN_PRODUKSI]: [
     PERMISSIONS.MANAGE_PRODUCTION, 
     PERMISSIONS.CREATE_PRODUCTION_ORDER, 
@@ -141,7 +162,7 @@ const ACTION_PERMISSIONS: Record<string, Permission[]> = {
   [APP_ROLES.ADMIN_KEUANGAN]: [PERMISSIONS.VIEW_BILLING, PERMISSIONS.CREATE_INVOICE, PERMISSIONS.DELETE_INVOICE, PERMISSIONS.CREATE_EXPENSE, PERMISSIONS.APPROVE_EXPENSE, PERMISSIONS.MANAGE_CATALOG, PERMISSIONS.VIEW_FINANCE_REPORTS, PERMISSIONS.MANAGE_CASH_TRANSFER, PERMISSIONS.ACCESS_CAREER, PERMISSIONS.MANAGE_FAQ, PERMISSIONS.MANAGE_AFFILIATE, PERMISSIONS.VIEW_SETTINGS_MENU, PERMISSIONS.MANAGE_FINANCE_BAS],
   [APP_ROLES.KASIR]: [PERMISSIONS.VIEW_BILLING, PERMISSIONS.CREATE_INVOICE, PERMISSIONS.ACCESS_CAREER],
   [APP_ROLES.KASIR_PENGELUARAN]: [PERMISSIONS.VIEW_BILLING, PERMISSIONS.CREATE_EXPENSE, PERMISSIONS.ACCESS_CAREER],
-  [APP_ROLES.ADMIN_TENANT]: [PERMISSIONS.VIEW_TENANT, PERMISSIONS.MANAGE_TENANT, PERMISSIONS.APPROVE_TENANT, PERMISSIONS.VIEW_EVENT, PERMISSIONS.MANAGE_EVENT, PERMISSIONS.MANAGE_KRENOVA, PERMISSIONS.ACCESS_CAREER, PERMISSIONS.MANAGE_PARTNERSHIP, PERMISSIONS.MODERATE_FORUM, PERMISSIONS.MANAGE_FAQ, PERMISSIONS.MANAGE_ARTICLE],
+  [APP_ROLES.ADMIN_TENANT]: [PERMISSIONS.VIEW_TENANT, PERMISSIONS.MANAGE_TENANT, PERMISSIONS.APPROVE_TENANT, PERMISSIONS.VIEW_EVENT, PERMISSIONS.MANAGE_EVENT, PERMISSIONS.MANAGE_KRENOVA, PERMISSIONS.ACCESS_CAREER, PERMISSIONS.MANAGE_PARTNERSHIP, PERMISSIONS.MODERATE_FORUM, PERMISSIONS.MANAGE_FAQ, PERMISSIONS.MANAGE_ARTICLE, PERMISSIONS.MANAGE_MOU, PERMISSIONS.MANAGE_DEAL_ROOM, PERMISSIONS.MANAGE_IKM],
   [APP_ROLES.OPERATOR_TENANT]: [PERMISSIONS.VIEW_TENANT, PERMISSIONS.MANAGE_TENANT, PERMISSIONS.VIEW_EVENT, PERMISSIONS.MANAGE_EVENT, PERMISSIONS.ACCESS_CAREER],
   [APP_ROLES.ADMIN_PELATIHAN]: [PERMISSIONS.MANAGE_LMS, PERMISSIONS.MANAGE_ALUMNI, PERMISSIONS.MANAGE_TALENT, PERMISSIONS.ACCESS_CAREER, PERMISSIONS.MANAGE_CAREER, PERMISSIONS.MANAGE_PARTNERSHIP, PERMISSIONS.MODERATE_FORUM, PERMISSIONS.MANAGE_FAQ, PERMISSIONS.MANAGE_ARTICLE],
   [APP_ROLES.OPERATOR_PELATIHAN]: [PERMISSIONS.MANAGE_LMS, PERMISSIONS.MANAGE_ALUMNI, PERMISSIONS.MANAGE_TALENT, PERMISSIONS.ACCESS_CAREER, PERMISSIONS.MANAGE_CAREER, PERMISSIONS.MODERATE_FORUM],
@@ -211,7 +232,7 @@ export const hasAccess = (role: string | null, pathname: string): boolean => {
     return pathname.startsWith('/tenant/') || pathname.startsWith('/lms') || pathname.startsWith('/ekosistem'); 
   }
   if (role === APP_ROLES.ALUMNI) return pathname.startsWith('/lms') || pathname.startsWith('/alumni-portal') || pathname.startsWith('/karir'); 
-  if (role === APP_ROLES.INVESTOR) return pathname.startsWith('/ekosistem') || pathname.startsWith('/portfolio');
+  if (role === APP_ROLES.INVESTOR) return pathname.startsWith('/ekosistem') || pathname.startsWith('/portfolio') || pathname.startsWith('/investor-room');
   if (role === APP_ROLES.KAMPUS) return pathname.startsWith('/ekosistem') || pathname.startsWith('/riset');
   if (role === APP_ROLES.INDUSTRI) return pathname === '/mitra' || pathname.startsWith('/mitra/') || pathname.startsWith('/ekosistem') || pathname.startsWith('/kebutuhan');
   

@@ -10,6 +10,8 @@ import TabRiwayat from './components/TabRiwayat';
 import TabTagihan from './components/TabTagihan';
 import TabAlumni from './components/TabAlumni';
 import TabAfiliasi from './components/TabAfiliasi';
+import TabKarirAlumni from './components/TabKarirAlumni';
+import { Briefcase } from 'lucide-react';
 import AlumniInvitationsBox from '@/components/career/AlumniInvitationsBox';
 import { auth } from '@/lib/firebase';
 import { toast } from 'sonner';
@@ -22,7 +24,7 @@ import Link from 'next/link';
 export default function ProfilPage() {
   const { user, loading: authLoading, refreshAuth } = useAuth();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'data-diri' | 'riwayat' | 'tagihan' | 'alumni' | 'afiliasi'>('data-diri');
+  const [activeTab, setActiveTab] = useState<'data-diri' | 'riwayat' | 'tagihan' | 'alumni' | 'afiliasi' | 'karir'>('data-diri');
   
   const [alumniData, setAlumniData] = useState<Alumni | null>(null);
   const [isCheckingAlumni, setIsCheckingAlumni] = useState(true);
@@ -140,6 +142,7 @@ export default function ProfilPage() {
     { id: 'riwayat', label: 'Riwayat Aktivitas', icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
     { id: 'tagihan', label: 'Tagihan & Pembayaran', icon: CreditCard, color: 'text-indigo-600', bg: 'bg-indigo-50' },
     { id: 'afiliasi', label: 'Program Afiliasi', icon: Share2, color: 'text-violet-600', bg: 'bg-violet-50' },
+    { id: 'karir', label: 'Bursa Karir & Loker', icon: Briefcase, color: 'text-teal-600', bg: 'bg-teal-50' },
   ];
 
   if (!isCheckingAlumni && alumniData) {
@@ -337,6 +340,7 @@ export default function ProfilPage() {
                 </>
               )}
               {activeTab === 'afiliasi' && <TabAfiliasi user={user} />}
+              {activeTab === 'karir' && <TabKarirAlumni userEmail={user.email!} alumniProgram={alumniData?.programTaken} />}
             </motion.div>
           </AnimatePresence>
         </motion.div>

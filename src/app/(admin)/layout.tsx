@@ -31,7 +31,11 @@ import {
   Share2,
   Briefcase,
   ClockCheck,
-  Hammer
+  Hammer,
+  Crown,
+  Wrench,
+  Handshake,
+  Award
 } from 'lucide-react';
 
 // --- KONFIGURASI MENU ---
@@ -40,6 +44,7 @@ const MENU_GROUPS = [
     group: 'Utama',
     items: [
       { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+      { name: 'Executive Command', href: '/eksekutif', icon: Crown },
     ]
   },
   {
@@ -54,6 +59,7 @@ const MENU_GROUPS = [
       { name: 'Manajemen Aset', href: '/aset', icon: Building2 },
       { name: 'Booking & Jadwal', href: '/booking', icon: CalendarDays },
       { name: 'Jasa Produksi', href: '/jasa-produksi', icon: Hammer },
+      { name: 'Service Desk & SPK', href: '/service-desk', icon: Wrench },
     ]
   },
   {
@@ -61,6 +67,7 @@ const MENU_GROUPS = [
     items: [
       { name: 'Katalog Produk', href: '/katalog', icon: ShoppingBag },
       { name: 'Billing & Invoice', href: '/billing', icon: Receipt },
+      { name: 'Kemitraan & MoU', href: '/manajemen-kemitraan', icon: Handshake },
       { name: 'Program Afiliasi', href: '/afiliasi', icon: Share2 },
     ]
   },
@@ -73,6 +80,7 @@ const MENU_GROUPS = [
       { name: 'Manajemen Event', href: '/manajemen-event', icon: Ticket },
       { name: 'Artikel & Warta', href: '/manajemen-artikel', icon: Newspaper },
       { name: 'Manajemen KRENOVA', href: '/manajemen-krenova', icon: Video },
+      { name: 'Survei IKM', href: '/manajemen-ikm', icon: Award },
     ]
   },
   {

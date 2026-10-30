@@ -13,6 +13,7 @@ import {
   AlignLeft, Ticket, Settings, Users, Globe, ShieldAlert, Sparkles, UploadCloud
 } from 'lucide-react';
 import { AdminPageHeader, AdminFilterBar, AdminResponsiveView } from '@/components/admin';
+import ModalPesertaEvent from './components/ModalPesertaEvent';
 
 export default function ManajemenEventPage() {
   const { events, loading, error, addEvent, updateEvent, removeEvent } = useEvents();
@@ -24,6 +25,7 @@ export default function ManajemenEventPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [pesertaModalEvent, setPesertaModalEvent] = useState<AppEvent | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -289,6 +291,9 @@ export default function ManajemenEventPage() {
                   </td>
                   <td className="px-6 py-4 text-center">
                     <div className="flex items-center justify-center gap-2">
+                      <button onClick={() => setPesertaModalEvent(evt)} className="p-2 text-violet-600 hover:text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-200 rounded-lg transition-all shadow-sm" title="Daftar Peserta">
+                        <Users size={16} />
+                      </button>
                       <button onClick={() => handleOpenModal(evt)} className="p-2 text-slate-500 hover:text-blue-600 bg-white border border-slate-200 hover:border-blue-200 hover:bg-blue-50 rounded-lg transition-all shadow-sm" title="Edit">
                         <Edit size={16} />
                       </button>
@@ -353,6 +358,12 @@ export default function ManajemenEventPage() {
                 {evt.registrationType === 'EXTERNAL' ? 'Platform Luar' : `${evt.ticketingTiers?.length || 0} Tier Tiket`}
               </span>
               <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setPesertaModalEvent(evt)}
+                  className="min-h-[40px] px-3 flex items-center gap-1 text-xs font-bold text-violet-700 bg-violet-50 hover:bg-violet-100 rounded-xl border border-violet-200 transition-colors"
+                >
+                  <Users size={14} /> Peserta
+                </button>
                 <button
                   onClick={() => handleOpenModal(evt)}
                   className="min-h-[40px] px-3 flex items-center gap-1 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-blue-50 hover:text-blue-600 rounded-xl border border-slate-200 transition-colors"
@@ -718,6 +729,13 @@ export default function ManajemenEventPage() {
           </div>
         </div>
       )}
+
+      {/* MODAL DAFTAR PESERTA & CHECK-IN EVENT */}
+      <ModalPesertaEvent
+        isOpen={Boolean(pesertaModalEvent)}
+        onClose={() => setPesertaModalEvent(null)}
+        event={pesertaModalEvent}
+      />
     </div>
   );
 }

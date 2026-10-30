@@ -29,6 +29,9 @@ import {
   Handshake,
   MapPin,
   ClockCheck,
+  Hammer,
+  Award,
+  Rocket,
 } from 'lucide-react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { useAuth } from '@/lib/AuthContext';
@@ -79,6 +82,13 @@ export const PUBLIC_NAV_GROUPS: NavGroup[] = [
         path: '/peta-kawasan',
         description: 'Denah & navigasi virtual gedung kawasan STP',
         icon: MapPin,
+      },
+      {
+        name: 'Jasa Manufaktur & Lab',
+        path: '/layanan-produksi',
+        description: 'Pemesinan CNC 5-Axis, 3D printing & fabrikasi logam',
+        icon: Hammer,
+        badge: 'Workshop',
       },
     ],
   },
@@ -142,8 +152,17 @@ export const PUBLIC_NAV_GROUPS: NavGroup[] = [
       {
         name: 'Artikel & Warta',
         path: '/artikel',
+
         description: 'Publikasi sains terapan & kabar terkini kawasan',
         icon: Newspaper,
+
+      },
+      {
+        name: 'Deal Room Investor',
+        path: '/investor-room',
+        description: 'Kurasi startup binaan & akses dokumen privat investasi',
+        icon: Rocket,
+        badge: 'Deal Flow',
       },
     ],
   },
@@ -162,6 +181,13 @@ export const PUBLIC_NAV_GROUPS: NavGroup[] = [
         path: '/faq',
         description: 'Informasi operasional & panduan layanan',
         icon: HelpCircle,
+      },
+      {
+        name: 'Survei Kepuasan (IKM)',
+        path: '/survei-ikm',
+        description: 'Kuesioner evaluasi mutu pelayanan PermenPAN-RB',
+        icon: Award,
+        badge: 'PermenPAN',
       },
     ],
   },

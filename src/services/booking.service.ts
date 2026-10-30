@@ -132,6 +132,35 @@ export const bookingService = {
   },
 
   /**
+   * Mengambil slot waktu/tanggal yang sudah dipesan (Approved/Completed) untuk satu aset
+   * Tanpa mengekspos data pribadi pemesan demi privasi publik.
+   */
+  async getOccupiedSlots(assetId: string): Promise<{ startDate: string; endDate: string; timeSlot?: string }[]> {
+    try {
+      const q = query(
+        collection(db, getBasePath()),
+        where('assetId', '==', assetId)
+      );
+      const snap = await getDocs(q);
+      const list: { startDate: string; endDate: string; timeSlot?: string }[] = [];
+      snap.docs.forEach(d => {
+        const data = d.data();
+        if (['approved', 'completed'].includes(data.status)) {
+          list.push({
+            startDate: data.startDate,
+            endDate: data.endDate || data.startDate,
+            timeSlot: data.timeSlot || `${data.startTime || '08:00'} - ${data.endTime || '17:00'}`
+          });
+        }
+      });
+      return list;
+    } catch (err) {
+      console.warn('Gagal membaca occupied slots:', err);
+      return [];
+    }
+  },
+
+  /**
    * Menyuntikkan paket mock data booking fasilitas kawasan ke Firestore untuk demo
    */
   async seedMockBookings(): Promise<number> {

@@ -36,6 +36,7 @@ export const EventTicketTierSchema = z.object({
   targetAudience: z.enum(['ALL', 'TENANT_ONLY', 'PUBLIC_ONLY']).default('ALL'),
   description: z.string().optional()
 });
+export type EventTicketTier = z.infer<typeof EventTicketTierSchema>;
 
 export const EventSponsorSchema = z.object({
   id: z.string().optional(),
@@ -99,6 +100,25 @@ export const EventSchema = z.object({
   createdAt: z.number().optional()
 });
 export type AppEvent = z.infer<typeof EventSchema>;
+
+export const EventRegistrationSchema = z.object({
+  id: z.string().optional(),
+  eventId: z.string(),
+  ticketCode: z.string(),
+  name: z.string().min(1, 'Nama lengkap wajib diisi'),
+  email: z.string().email('Format email tidak valid'),
+  phone: z.string().min(8, 'Nomor WhatsApp wajib diisi'),
+  agency: z.string().optional(),
+  ticketTierId: z.string().optional(),
+  ticketTierName: z.string().optional(),
+  price: z.number().default(0),
+  status: z.enum(['CONFIRMED', 'PENDING', 'CANCELLED', 'ATTENDED']).default('CONFIRMED'),
+  invoiceId: z.string().optional(),
+  customResponses: z.record(z.string(), z.any()).optional(),
+  registeredAt: z.number().default(() => Date.now()),
+  attendedAt: z.number().optional()
+});
+export type EventRegistration = z.infer<typeof EventRegistrationSchema>;
 
 export const AICacheSchema = z.object({
   id: z.string(),
