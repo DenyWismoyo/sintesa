@@ -149,74 +149,74 @@ export default function DashboardPage() {
       ) : (
         <>
           {/* BARIS 1: 4 METRIK KUNCI (OPERASIONAL) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <StatCard 
-              title="Total Pengguna Sistem" 
+              title="Pengguna Sistem" 
               value={stats?.users?.total?.toString() || "0"} 
-              icon={<UserPlus size={22} />} 
+              icon={<UserPlus size={18} />} 
               trend="Akun Terdaftar" colorClass="text-blue-600 bg-blue-50 border-blue-100"
               href="/pengaturan"
             />
             <StatCard 
-              title="Inkubasi Tenant Aktif" 
+              title="Tenant Aktif" 
               value={stats?.tenants?.active?.toString() || "0"} 
               subValue={`dari total ${stats?.tenants?.total || 0} pendaftar`}
-              icon={<Rocket size={22} />} 
+              icon={<Rocket size={18} />} 
               trend="Mitra Startup" colorClass="text-purple-600 bg-purple-50 border-purple-100"
               href="/tenant"
             />
             <StatCard 
-              title="Aset Sedang Dipakai" 
+              title="Aset Disewa" 
               value={stats?.assets?.rented?.toString() || "0"} 
               subValue={`dari total ${stats?.assets?.total || 0} unit/ruangan`}
-              icon={<Building2 size={22} />} 
+              icon={<Building2 size={18} />} 
               trend="Utilisasi Aset" colorClass="text-emerald-600 bg-emerald-50 border-emerald-100"
               href="/booking"
             />
             <StatCard 
-              title="Total Peserta Pelatihan" 
+              title="Peserta Pelatihan" 
               value={stats?.training?.totalRegistrants?.toString() || "0"} 
-              subValue={`di dalam ${stats?.training?.totalEvents || 0} program kelas`}
-              icon={<GraduationCap size={22} />} 
+              subValue={`di dalam ${stats?.training?.totalEvents || 0} program`}
+              icon={<GraduationCap size={18} />} 
               trend="Siswa LMS" colorClass="text-amber-600 bg-amber-50 border-amber-100"
               href="/pelatihan"
             />
           </div>
 
           {/* BARIS 2: ANALITIK GRAFIK & FEED AKTIVITAS */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
             
             {/* Kolom Kiri: Analitik (Porsi 2/3) */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-4 sm:space-y-5">
               
               {/* Grafik Tren Peminjaman Aset (6 Bulan) */}
-              <div className="bg-white p-7 rounded-3xl shadow-sm border border-slate-200">
-                <div className="flex items-center justify-between mb-8">
+              <div className="bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-2xs">
+                <div className="flex items-center justify-between mb-5">
                   <div>
-                    <h3 className="font-black text-slate-800 text-lg flex items-center gap-2">
-                      <TrendingUp className="text-indigo-500" size={22} /> Tren Permintaan Fasilitas
+                    <h3 className="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                      <TrendingUp className="text-indigo-500" size={17} /> Tren Permintaan Fasilitas
                     </h3>
-                    <p className="text-sm text-slate-500 mt-1">Akumulasi pengajuan (booking) selama 6 bulan terakhir</p>
+                    <p className="text-xs text-slate-500 mt-0.5">Akumulasi pengajuan (booking) selama 6 bulan terakhir</p>
                   </div>
                 </div>
                 
-                <div className="flex items-end gap-3 h-56 pt-6">
+                <div className="flex items-end gap-2.5 sm:gap-3 h-44 sm:h-52 pt-4">
                   {stats?.charts?.bookings6Months?.map((data: any, index: number) => {
-                    const maxCount = Math.max(...stats.charts.bookings6Months.map((d: any) => d.count), 10); // Minimal 10 agar bar tidak kepenuhan
+                    const maxCount = Math.max(...stats.charts.bookings6Months.map((d: any) => d.count), 10);
                     const heightPct = data.count > 0 ? (data.count / maxCount) * 100 : 0;
                     
                     return (
                       <div key={index} className="flex-1 flex flex-col items-center justify-end group relative h-full">
                         {/* Tooltip */}
-                        <div className="opacity-0 group-hover:opacity-100 transition-all text-xs font-bold bg-slate-800 text-white px-3 py-1.5 rounded-lg absolute -top-10 pointer-events-none whitespace-nowrap z-10 shadow-lg translate-y-2 group-hover:translate-y-0">
+                        <div className="opacity-0 group-hover:opacity-100 transition-all text-xs font-bold bg-slate-800 text-white px-2 py-1 rounded-md absolute -top-8 pointer-events-none whitespace-nowrap z-10 shadow-md translate-y-1 group-hover:translate-y-0">
                           {data.count} Pengajuan
                         </div>
                         
                         {/* Bar */}
-                        <div className="w-full bg-indigo-100 rounded-t-xl hover:bg-indigo-300 transition-colors relative overflow-hidden" style={{ height: `${Math.max(heightPct, 5)}%` }}>
+                        <div className="w-full bg-indigo-100 rounded-t-lg hover:bg-indigo-300 transition-colors relative overflow-hidden" style={{ height: `${Math.max(heightPct, 5)}%` }}>
                           <div className="absolute bottom-0 w-full bg-indigo-500" style={{ height: '30%', opacity: 0.8 }}></div>
                         </div>
-                        <span className="text-xs font-bold text-slate-500 mt-3 uppercase tracking-wider">{data.month}</span>
+                        <span className="text-[10px] sm:text-xs font-bold text-slate-500 mt-2 uppercase tracking-wider">{data.month}</span>
                       </div>
                     );
                   })}
@@ -224,38 +224,38 @@ export default function DashboardPage() {
               </div>
 
               {/* Grid 2 Kolom di dalam Analitik: Progress Bar Peminjaman & Kondisi Aset */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
                 
                 {/* Status Peminjaman Bulan Ini */}
-                <div className="bg-white p-7 rounded-3xl shadow-sm border border-slate-200">
-                  <h3 className="font-black text-slate-800 mb-6 flex items-center gap-2">
-                    <BarChart3 className="text-blue-500" size={20} /> Rasio Booking ({MONTHS[selectedMonth]})
+                <div className="bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-2xs">
+                  <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2 text-xs sm:text-sm">
+                    <BarChart3 className="text-blue-500" size={16} /> Rasio Booking ({MONTHS[selectedMonth]})
                   </h3>
-                  <div className="space-y-6">
+                  <div className="space-y-3.5">
                     <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="font-bold text-slate-600">Disetujui / Sukses</span>
-                        <span className="font-black text-emerald-600">{stats?.bookings?.approved + stats?.bookings?.completed || 0}</span>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="font-medium text-slate-600">Disetujui / Sukses</span>
+                        <span className="font-bold text-emerald-600">{stats?.bookings?.approved + stats?.bookings?.completed || 0}</span>
                       </div>
-                      <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                      <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
                         <div className="bg-emerald-500 h-full rounded-full transition-all" style={{ width: `${bookingApprovedPct}%` }}></div>
                       </div>
                     </div>
                     <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="font-bold text-slate-600">Antrean (Pending)</span>
-                        <span className="font-black text-amber-600">{stats?.bookings?.pending || 0}</span>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="font-medium text-slate-600">Antrean (Pending)</span>
+                        <span className="font-bold text-amber-600">{stats?.bookings?.pending || 0}</span>
                       </div>
-                      <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                      <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
                         <div className="bg-amber-400 h-full rounded-full transition-all" style={{ width: `${bookingPendingPct}%` }}></div>
                       </div>
                     </div>
                     <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="font-bold text-slate-600">Ditolak / Batal</span>
-                        <span className="font-black text-red-600">{stats?.bookings?.rejected || 0}</span>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="font-medium text-slate-600">Ditolak / Batal</span>
+                        <span className="font-bold text-red-600">{stats?.bookings?.rejected || 0}</span>
                       </div>
-                      <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                      <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
                         <div className="bg-red-400 h-full rounded-full transition-all" style={{ width: `${bookingRejectedPct}%` }}></div>
                       </div>
                     </div>
@@ -263,32 +263,32 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Kondisi Aset & Fasilitas */}
-                <div className="bg-white p-7 rounded-3xl shadow-sm border border-slate-200 flex flex-col justify-between">
-                  <h3 className="font-black text-slate-800 mb-6 flex items-center gap-2">
-                    <Layers className="text-sky-500" size={20} /> Kondisi Infrastruktur
+                <div className="bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col justify-between">
+                  <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2 text-xs sm:text-sm">
+                    <Layers className="text-sky-500" size={16} /> Kondisi Infrastruktur
                   </h3>
                   
-                  <div className="space-y-4">
-                    <Link href="/aset" className="p-4 bg-red-50 hover:bg-red-100/80 border border-red-100 rounded-2xl flex items-center justify-between transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-red-100 text-red-600 rounded-xl flex items-center justify-center">
-                          <Wrench size={20} />
+                  <div className="space-y-2.5">
+                    <Link href="/aset" className="p-3 bg-red-50 hover:bg-red-100/80 border border-red-100 rounded-xl flex items-center justify-between transition-colors">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 bg-red-100 text-red-600 rounded-lg flex items-center justify-center shrink-0">
+                          <Wrench size={15} />
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-red-700 uppercase tracking-wider">Aset Rusak / Perbaikan</p>
-                          <p className="text-xl font-black text-red-800 mt-0.5">{stats?.assets?.openReports || 0} <span className="text-sm font-medium">Tiket Terbuka</span></p>
+                          <p className="text-[10px] font-bold text-red-700 uppercase tracking-wider">Aset Rusak / Perbaikan</p>
+                          <p className="text-xs sm:text-sm font-bold text-red-800 mt-0.5">{stats?.assets?.openReports || 0} <span className="text-[11px] font-normal text-red-600">Tiket Terbuka</span></p>
                         </div>
                       </div>
                     </Link>
 
-                    <Link href="/katalog" className="p-4 bg-slate-50 hover:bg-slate-100 border border-slate-100 rounded-2xl flex items-center justify-between transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-white border border-slate-200 text-slate-600 rounded-xl flex items-center justify-center">
-                          <PackageSearch size={20} />
+                    <Link href="/katalog" className="p-3 bg-slate-50/80 hover:bg-slate-100 border border-slate-100 rounded-xl flex items-center justify-between transition-colors">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 bg-white border border-slate-200 text-slate-600 rounded-lg flex items-center justify-center shrink-0">
+                          <PackageSearch size={15} />
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Produk Tenant (Katalog)</p>
-                          <p className="text-xl font-black text-slate-800 mt-0.5">{stats?.tenants?.products || 0} <span className="text-sm font-medium">Item Tayang</span></p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Produk Tenant (Katalog)</p>
+                          <p className="text-xs sm:text-sm font-bold text-slate-800 mt-0.5">{stats?.tenants?.products || 0} <span className="text-[11px] font-normal text-slate-500">Item Tayang</span></p>
                         </div>
                       </div>
                     </Link>
@@ -299,35 +299,34 @@ export default function DashboardPage() {
             </div>
 
             {/* Kolom Kanan: Live Feed (Porsi 1/3) */}
-            <div className="bg-white p-7 rounded-3xl shadow-sm border border-slate-200 h-full max-h-[640px] flex flex-col">
-              <h3 className="font-black text-slate-800 mb-6 flex items-center gap-2 border-b border-slate-100 pb-4">
-                <Bell className="text-amber-500" size={22} /> Monitor Aktivitas
+            <div className="bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-2xs h-full max-h-[580px] flex flex-col">
+              <h3 className="font-bold text-slate-800 mb-3.5 flex items-center gap-2 border-b border-slate-100 pb-3 text-xs sm:text-sm">
+                <Bell className="text-amber-500" size={16} /> Monitor Aktivitas
               </h3>
               
-              <div className="flex-1 overflow-y-auto pr-2 space-y-5 custom-scrollbar">
+              <div className="flex-1 overflow-y-auto pr-1 space-y-3.5 custom-scrollbar">
                 {recentActivities.length === 0 ? (
                   <div className="text-center py-10">
-                    <Activity className="w-12 h-12 text-slate-200 mx-auto mb-3" />
-                    <p className="text-slate-500 font-medium text-sm">Belum ada aktivitas operasional baru.</p>
+                    <Activity className="w-10 h-10 text-slate-200 mx-auto mb-2" />
+                    <p className="text-slate-500 font-medium text-xs">Belum ada aktivitas operasional baru.</p>
                   </div>
                 ) : (
                   recentActivities.map((act, i) => (
-                    <Link key={`${act.id}-${i}`} href={act.href || '/dashboard'} className="flex gap-4 group hover:bg-slate-50/80 p-1.5 -m-1.5 rounded-2xl transition-colors">
+                    <Link key={`${act.id}-${i}`} href={act.href || '/dashboard'} className="flex gap-2.5 group hover:bg-slate-50/80 p-1.5 -m-1.5 rounded-xl transition-colors">
                       <div className="relative">
-                        {/* Garis konektor antar feed */}
                         {i !== recentActivities.length - 1 && (
-                           <div className="absolute left-1/2 top-10 bottom-[-20px] w-0.5 bg-slate-100 -translate-x-1/2"></div>
+                           <div className="absolute left-1/2 top-7 bottom-[-14px] w-0.5 bg-slate-100 -translate-x-1/2"></div>
                         )}
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 border-4 border-white shadow-sm relative z-10 ${act.color}`}>
-                          <act.icon size={16} />
+                        <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 border-2 border-white shadow-2xs relative z-10 ${act.color}`}>
+                          <act.icon size={13} />
                         </div>
                       </div>
-                      <div className="flex-1 min-w-0 pb-1">
-                        <p className="text-sm font-bold text-slate-800 group-hover:text-blue-600 transition-colors leading-tight">{act.title}</p>
-                        <p className="text-xs font-medium text-slate-500 mt-1 truncate">{act.subtitle}</p>
-                        <div className="flex justify-between items-center mt-2.5">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{timeAgo(act.date)}</span>
-                          <span className={`text-[9px] font-black px-2 py-1 rounded-md uppercase tracking-wider border
+                      <div className="flex-1 min-w-0 pb-0.5">
+                        <p className="text-xs font-bold text-slate-800 group-hover:text-blue-600 transition-colors leading-tight line-clamp-1">{act.title}</p>
+                        <p className="text-[11px] text-slate-500 mt-0.5 truncate">{act.subtitle}</p>
+                        <div className="flex justify-between items-center mt-1.5">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{timeAgo(act.date)}</span>
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wider border
                             ${act.status === 'approved' || act.status === 'Aktif' || act.status === 'completed' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 
                               act.status === 'pending' ? 'bg-amber-50 text-amber-600 border-amber-100' : 
                               'bg-slate-50 text-slate-500 border-slate-200'}`}
@@ -354,21 +353,21 @@ export default function DashboardPage() {
 // ==========================================
 function StatCard({ title, value, subValue, icon, trend, colorClass, href }: { title: string, value: string, subValue?: string, icon: React.ReactNode, trend: string, colorClass: string, href?: string }) {
   const cardContent = (
-    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col hover:shadow-md hover:border-blue-200 transition-all relative overflow-hidden group h-full">
+    <div className="bg-white p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col hover:border-blue-200 transition-all relative overflow-hidden group h-full">
       {/* Efek Latar Glow */}
-      <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-20 blur-2xl group-hover:scale-150 transition-transform duration-500 ${colorClass.split(' ')[0].replace('text-', 'bg-')}`}></div>
+      <div className={`absolute -right-6 -top-6 w-20 h-20 rounded-full opacity-15 blur-xl group-hover:scale-125 transition-transform duration-500 ${colorClass.split(' ')[0].replace('text-', 'bg-')}`}></div>
 
-      <div className="flex justify-between items-start mb-4 relative z-10">
-        <div className={`p-3 rounded-2xl border ${colorClass}`}>{icon}</div>
-        <span className="text-[10px] font-bold text-slate-500 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg uppercase tracking-wider">
+      <div className="flex justify-between items-start mb-2.5 sm:mb-3 relative z-10">
+        <div className={`p-2 sm:p-2.5 rounded-xl border ${colorClass}`}>{icon}</div>
+        <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-md uppercase tracking-wider">
           {trend}
         </span>
       </div>
       <div className="relative z-10 mt-auto">
-        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5 truncate">{title}</p>
-        <h3 className="text-3xl font-black text-slate-800 tracking-tight group-hover:text-blue-600 transition-colors">{value}</h3>
+        <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5 truncate">{title}</p>
+        <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-800 tracking-tight group-hover:text-blue-600 transition-colors">{value}</h3>
         {subValue && (
-          <p className="text-[11px] font-medium text-slate-500 mt-1">{subValue}</p>
+          <p className="text-[10px] sm:text-[11px] font-medium text-slate-500 mt-0.5 truncate">{subValue}</p>
         )}
       </div>
     </div>

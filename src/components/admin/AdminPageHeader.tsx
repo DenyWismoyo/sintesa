@@ -32,10 +32,10 @@ export default function AdminPageHeader({
 }: AdminPageHeaderProps) {
   const displaySubtitle = subtitle || description;
   return (
-    <div className={`space-y-4 mb-6 ${className}`}>
+    <div className={`space-y-3 mb-5 sm:mb-6 ${className}`}>
       {/* 1. BREADCRUMBS (JIKA ADA) */}
       {breadcrumbs && breadcrumbs.length > 0 && (
-        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
+        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold text-slate-400">
           <Link href="/dashboard" className="hover:text-slate-700 transition-colors">
             Admin
           </Link>
@@ -55,15 +55,15 @@ export default function AdminPageHeader({
       )}
 
       {/* 2. TITLE BAR & ACTIONS */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center flex-wrap gap-2.5">
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight leading-tight">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="space-y-0.5 sm:space-y-1 min-w-0">
+          <div className="flex items-center flex-wrap gap-2">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 tracking-tight leading-snug">
               {title}
             </h1>
             {badge && (
               typeof badge === 'string' ? (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200/80">
                   {badge}
                 </span>
               ) : (
@@ -72,7 +72,7 @@ export default function AdminPageHeader({
             )}
           </div>
           {displaySubtitle && (
-            <div className="text-xs sm:text-sm text-slate-500 font-medium">
+            <div className="text-xs sm:text-sm text-slate-500 font-normal leading-relaxed">
               {displaySubtitle}
             </div>
           )}
@@ -80,7 +80,7 @@ export default function AdminPageHeader({
 
         {/* ACTIONS BUTTONS */}
         {actions && (
-          <div className="flex items-center flex-wrap gap-2.5 w-full md:w-auto shrink-0">
+          <div className="flex items-center flex-wrap gap-2 w-full sm:w-auto shrink-0 justify-start sm:justify-end">
             {actions}
           </div>
         )}
@@ -88,7 +88,7 @@ export default function AdminPageHeader({
 
       {/* 3. OPTIONAL TABS / SUBHEADER */}
       {children && (
-        <div className="pt-1">
+        <div className="pt-0.5">
           {children}
         </div>
       )}

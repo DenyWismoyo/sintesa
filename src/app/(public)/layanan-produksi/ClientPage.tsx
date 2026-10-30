@@ -185,9 +185,14 @@ export default function JasaProduksiPublicClient() {
   };
 
   return (
-    <div className="space-y-12 pb-24">
+    <SectionContainer accent="sky" width="default">
       {/* 1. HERO HEADER */}
       <PageHero
+        breadcrumbs={[
+          { label: 'Beranda', href: '/' },
+          { label: 'Fasilitas', href: '/fasilitas' },
+          { label: 'Layanan Jasa Produksi' },
+        ]}
         title="Layanan Jasa Produksi & Manufaktur Presisi"
         subtitle="Solusi terpadu permesinan CNC 5-Axis, prototyping 3D, reverse engineering, dan fabrikasi logam berstandar industri dengan fasilitas modern Solo Technopark."
         badge={{
@@ -197,10 +202,9 @@ export default function JasaProduksiPublicClient() {
         accentColor="sky"
       />
 
-      <SectionContainer accent="sky">
-        <div className="space-y-16">
+      <div className="space-y-16 pt-6 sm:pt-8">
 
-          {/* 2. GRID SHOWCASE KAPABILITAS BENGKEL */}
+        {/* 2. GRID SHOWCASE KAPABILITAS BENGKEL */}
           <div className="space-y-6">
             <div className="text-center max-w-2xl mx-auto space-y-2">
               <span className="text-xs font-bold text-sky-600 uppercase tracking-widest">Kapabilitas Workshop STP</span>
@@ -467,8 +471,7 @@ export default function JasaProduksiPublicClient() {
           </div>
 
         </div>
-      </SectionContainer>
-    </div>
+    </SectionContainer>
   );
 }
 

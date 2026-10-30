@@ -176,16 +176,21 @@ export default function SurveiIkmClientPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans pb-24">
+    <SectionContainer accent="sky" width="narrow">
       <PageHero
+        breadcrumbs={[
+          { label: 'Beranda', href: '/' },
+          { label: 'Survei IKM', href: '/survei-ikm' },
+        ]}
         badge={{ label: 'Standar PermenPAN-RB No. 14/2017', variant: 'sky' }}
         title="Survei Kepuasan Masyarakat (IKM)"
         subtitle="Bantu kami meningkatkan kualitas tata kelola, fasilitas kawasan, program inkubasi, dan pelayanan publik Solo Technopark dengan memberikan penilaian objektif Anda."
+        accentColor="sky"
       />
 
-      <SectionContainer className="max-w-4xl -mt-8 relative z-20">
+      <div className="pt-2 sm:pt-4">
         {isSuccess ? (
-          <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-xl border border-emerald-100 text-center space-y-5">
+          <div className="public-card p-8 sm:p-12 text-center space-y-5">
             <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
               <CheckCircle2 size={36} />
             </div>
@@ -196,18 +201,18 @@ export default function SurveiIkmClientPage() {
             </p>
             <div className="pt-4">
               <Link href="/">
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8">
+                <Button className="bg-sky-600 hover:bg-sky-700 text-white font-bold px-8 shadow-sm">
                   Kembali ke Beranda
                 </Button>
               </Link>
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 sm:p-10 shadow-xl border border-slate-200/60 space-y-8">
+          <form onSubmit={handleSubmit} className="public-card p-5 sm:p-8 space-y-6">
             {/* IDENTITAS RESPONDEN */}
             <div>
               <h3 className="text-base font-black text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Building2 size={20} className="text-blue-600" />
+                <Building2 size={20} className="text-sky-600" />
                 Data Penerima Layanan / Responden
               </h3>
 
@@ -246,7 +251,7 @@ export default function SurveiIkmClientPage() {
                   <select
                     value={serviceType}
                     onChange={(e) => setServiceType(e.target.value as IkmServiceType)}
-                    className="w-full h-10 px-3 bg-white border border-slate-200 rounded-md text-sm font-medium"
+                    className="public-select w-full"
                   >
                     {Object.entries(IKM_SERVICE_LABELS).map(([k, lbl]) => (
                       <option key={k} value={k}>
@@ -261,7 +266,7 @@ export default function SurveiIkmClientPage() {
             {/* 9 UNSUR KUESIONER */}
             <div className="space-y-6 pt-4 border-t border-slate-100">
               <h3 className="text-base font-black text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Award size={20} className="text-blue-600" />
+                <Award size={20} className="text-sky-600" />
                 Penilaian 9 Unsur Mutu Pelayanan
               </h3>
 
@@ -284,8 +289,8 @@ export default function SurveiIkmClientPage() {
                             onClick={() => handleScoreChange(q.key, opt.val)}
                             className={`p-3 rounded-xl border text-xs font-bold text-left transition-all ${
                               isSelected
-                                ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-200 scale-[1.02]'
-                                : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300 hover:bg-blue-50/30'
+                                ? 'bg-sky-600 text-white border-sky-600 shadow-md shadow-sky-200 scale-[1.02]'
+                                : 'bg-white text-slate-700 border-slate-200 hover:border-sky-300 hover:bg-sky-50/30'
                             }`}
                           >
                             <span className="block text-base mb-1 font-mono">{opt.val}</span>
@@ -307,7 +312,7 @@ export default function SurveiIkmClientPage() {
               <textarea
                 value={feedback}
                 onChange={(e) => setFeedback(e.target.value)}
-                className="w-full h-28 p-3 bg-white border border-slate-200 rounded-xl text-sm"
+                className="w-full h-28 p-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"
                 placeholder="Bagikan pengalaman atau saran Anda untuk kemajuan pelayanan Solo Technopark ke depan..."
               />
             </div>
@@ -317,7 +322,7 @@ export default function SurveiIkmClientPage() {
               <Button
                 type="submit"
                 disabled={submitSurveyMutation.isPending}
-                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm gap-2 shadow-lg shadow-blue-200"
+                className="w-full h-12 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl text-sm gap-2 shadow-lg shadow-sky-200"
               >
                 <Send size={18} />
                 {submitSurveyMutation.isPending ? 'Mengirimkan Evaluasi...' : 'Kirimkan Penilaian IKM'}
@@ -325,8 +330,8 @@ export default function SurveiIkmClientPage() {
             </div>
           </form>
         )}
-      </SectionContainer>
-    </div>
+      </div>
+    </SectionContainer>
   );
 }
 

@@ -51,3 +51,13 @@ export const IkmSurveySchema = z.object({
 });
 export type IkmSurvey = z.infer<typeof IkmSurveySchema>;
 
+export interface IkmStats {
+  totalRespondents: number;
+  overallAverageScore: number;
+  convertedScore: number;
+  grade: 'A' | 'B' | 'C' | 'D';
+  gradeLabel: string;
+  averageScores: Record<string, number>;
+}
+
+

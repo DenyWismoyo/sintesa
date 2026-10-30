@@ -129,46 +129,46 @@ export default function AdminFormDrawer({
         aria-hidden="true"
       />
 
-      {/* 2. MODAL DIALOG (DESKTOP) / BORDERLESS FULL-WIDTH SHEET (MOBILE) */}
+      {/* 2. MODAL DIALOG (DESKTOP) / BORDERLESS BOTTOM SHEET (MOBILE) */}
       <div 
-        className={`relative w-full ${MAX_WIDTH_CLASSES[maxWidth] || 'sm:max-w-2xl'} bg-white rounded-none sm:rounded-3xl border-x-0 sm:border border-slate-200/80 shadow-none sm:shadow-2xl flex flex-col max-h-[95vh] sm:max-h-[88vh] z-10 overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-300`}
+        className={`relative w-full ${MAX_WIDTH_CLASSES[maxWidth] || 'sm:max-w-2xl'} bg-white rounded-t-2xl sm:rounded-2xl border-x-0 sm:border border-slate-200/90 shadow-none sm:shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] z-10 overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-200`}
         role="dialog"
         aria-modal="true"
       >
         {/* Mobile Drag Indicator */}
-        <div className="sm:hidden flex justify-center pt-2.5 pb-1">
-          <div className="w-10 h-1 bg-slate-300 rounded-full" />
+        <div className="sm:hidden flex justify-center pt-2 pb-0.5">
+          <div className="w-9 h-1 bg-slate-300 rounded-full" />
         </div>
 
         {/* HEADER BAR (STICKY) */}
-        <div className="px-4 py-3.5 sm:px-6 sm:py-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
-          <div className="min-w-0">
-            <h2 className="text-base sm:text-xl font-bold text-slate-800 tracking-tight truncate">
+        <div className="px-4 py-3 sm:px-6 sm:py-3.5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
+          <div className="min-w-0 pr-2">
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">
               {title}
             </h2>
             {subtitle && (
-              <p className="text-xs text-slate-500 mt-0.5 font-medium truncate">
+              <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 font-normal truncate">
                 {subtitle}
               </p>
             )}
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors shrink-0"
+            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors shrink-0"
             title="Tutup Form"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
 
         {/* BODY SCROLLABLE CONTENT */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 text-slate-700 font-sans custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 md:p-6 space-y-4 text-slate-700 font-sans custom-scrollbar">
           {children}
         </div>
 
         {/* FOOTER ACTIONS (STICKY DI BAWAH) */}
         {footer && (
-          <div className="px-4 py-3 sm:px-6 sm:py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3 shrink-0">
+          <div className="px-4 py-2.5 sm:px-6 sm:py-3 bg-slate-50/90 border-t border-slate-100 flex items-center justify-end gap-2.5 shrink-0">
             {footer}
           </div>
         )}
