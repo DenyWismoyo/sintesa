@@ -451,6 +451,16 @@ export default function AlumniTab() {
           <Button onClick={handleExportExcel} variant="outline" className="rounded-xl border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 font-bold" title="Export data yang tampil">
             <DownloadCloud size={18} className="mr-2" /> Export Data
           </Button>
+          <a 
+            href="/docs/DAFTAR_KODE_KLAIM_ALUMNI_P3MI_WELDER_2026.pdf" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            download="DAFTAR_KODE_KLAIM_ALUMNI_P3MI_WELDER_2026.pdf"
+            className="inline-flex items-center justify-center rounded-xl border border-teal-200 text-teal-800 bg-teal-50 hover:bg-teal-100 font-bold px-4 py-2 text-sm shadow-xs transition-colors cursor-pointer"
+            title="Unduh Dokumen Resmi Daftar Kode & Panduan Aktivasi Alumni BP3MI (PDF)"
+          >
+            <FileText size={18} className="mr-2 text-teal-600" /> Unduh PDF BP3MI
+          </a>
           <Button onClick={() => setIsImportModalOpen(true)} variant="outline" className="rounded-xl border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 font-bold">
             <FileSpreadsheet size={18} className="mr-2" /> Import Excel
           </Button>
