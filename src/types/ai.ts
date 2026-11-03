@@ -221,3 +221,48 @@ export const CurationAIResponseSchema = z.object({
 });
 
 export type CurationAIResponse = z.infer<typeof CurationAIResponseSchema>;
+
+/**
+ * ============================================================================
+ * 5. AI STRATEGIC PARTNERSHIP MATCHMAKING SCHEMA (/api/ai/partnership-match)
+ * ============================================================================
+ */
+export const PartnershipMatchRequestSchema = z.object({
+  agencyName: z.string().min(2, 'Nama instansi wajib diisi'),
+  agencyType: z.string().default('Perusahaan Swasta / Multinasional'),
+  subject: z.string().min(3, 'Perihal kerjasama wajib diisi'),
+  proposalSummary: z.string().default(''),
+  partnershipType: z.string().default('FINANCING_TRAINING'),
+  estimatedBudget: z.number().optional(),
+  targetParticipants: z.number().optional(),
+});
+
+export type PartnershipMatchRequest = z.infer<typeof PartnershipMatchRequestSchema>;
+
+export const PartnershipMatchResponseSchema = z.object({
+  success: z.boolean(),
+  isFallback: z.boolean().optional(),
+  analysis: z
+    .object({
+      partnershipFitScore: z.number().min(0).max(100),
+      summaryInsight: z.string(),
+      recommendedSchemes: z.array(
+        z.object({
+          code: z.string(),
+          title: z.string(),
+          relevanceScore: z.number(),
+          reasoning: z.string(),
+        })
+      ),
+      relevantVocationalPrograms: z.array(z.string()),
+      potentialFinancingPartners: z.array(z.string()),
+      projectMarketplaceFit: z.boolean(),
+      actionPlan: z.array(z.string()),
+      expectedOutcome: z.string(),
+    })
+    .optional(),
+  error: z.string().optional(),
+});
+
+export type PartnershipMatchResponse = z.infer<typeof PartnershipMatchResponseSchema>;
+

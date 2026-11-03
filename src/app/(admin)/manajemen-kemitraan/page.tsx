@@ -30,15 +30,20 @@ import {
   ShieldCheck,
   TrendingUp,
   Printer,
+  Briefcase,
+  Landmark,
 } from 'lucide-react';
 import ModalPrintMou from './components/ModalPrintMou';
+import ModalAiMatch from './components/ModalAiMatch';
+import TabOpenProjectAdmin from './components/TabOpenProjectAdmin';
+import TabFinancingAdmin from './components/TabFinancingAdmin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 
-type TabView = 'MOU_LIST' | 'INQUIRIES_PIPELINE';
+type TabView = 'MOU_LIST' | 'INQUIRIES_PIPELINE' | 'OPEN_PROJECTS' | 'FINANCING_SCHEMES';
 
 export default function ManajemenKemitraanPage() {
   const { role } = useAuth();
@@ -65,6 +70,15 @@ export default function ManajemenKemitraanPage() {
   const [isPrintOpen, setIsPrintOpen] = useState(false);
   const [printContract, setPrintContract] = useState<MouContract | null>(null);
   const [printMode, setPrintMode] = useState<'MOU' | 'DISPOSISI'>('MOU');
+
+  // AI Match Modal
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [selectedInquiryForAi, setSelectedInquiryForAi] = useState<PartnershipInquiry | null>(null);
+
+  const handleOpenAiMatch = (inq: PartnershipInquiry) => {
+    setSelectedInquiryForAi(inq);
+    setIsAiModalOpen(true);
+  };
 
   const handleOpenPrint = (contract: MouContract, mode: 'MOU' | 'DISPOSISI') => {
     setPrintContract(contract);
@@ -210,7 +224,7 @@ export default function ManajemenKemitraanPage() {
 
       {/* TAB NAVIGATION */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
           <Button
             variant={activeTab === 'MOU_LIST' ? 'default' : 'outline'}
             size="sm"
@@ -228,6 +242,24 @@ export default function ManajemenKemitraanPage() {
           >
             <Mail size={14} />
             Pipeline Calon Mitra ({inquiries.length})
+          </Button>
+          <Button
+            variant={activeTab === 'OPEN_PROJECTS' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setActiveTab('OPEN_PROJECTS')}
+            className="gap-2 font-bold text-xs h-8 px-3 whitespace-nowrap"
+          >
+            <Briefcase size={14} />
+            Kurasi Open Project
+          </Button>
+          <Button
+            variant={activeTab === 'FINANCING_SCHEMES' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setActiveTab('FINANCING_SCHEMES')}
+            className="gap-2 font-bold text-xs h-8 px-3 whitespace-nowrap"
+          >
+            <Landmark size={14} />
+            Pembiayaan & Bank
           </Button>
         </div>
 
@@ -527,22 +559,34 @@ export default function ManajemenKemitraanPage() {
                         </Badge>
                       </td>
                       <td className="py-3 px-4 text-right">
-                        <select
-                          value={inq.status}
-                          onChange={(e) =>
-                            updateInquiryStatusMutation.mutateAsync({
-                              id: inq.id!,
-                              status: e.target.value as any,
-                            })
-                          }
-                          className="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white font-medium focus:outline-blue-500"
-                        >
-                          <option value="PENDING">PENDING</option>
-                          <option value="CONTACTED">DIHUBUNGI</option>
-                          <option value="MEETING_SCHEDULED">RAPAT TERJADWAL</option>
-                          <option value="MOU_DRAFTED">DRAFT MOU</option>
-                          <option value="CLOSED">SELESAI (CLOSED)</option>
-                        </select>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleOpenAiMatch(inq)}
+                            className="h-7 px-2 text-indigo-700 hover:bg-indigo-50 hover:text-indigo-800 font-bold text-[10px] gap-1"
+                          >
+                            <Sparkles size={12} className="text-purple-600" />
+                            <span>AI Sinergi</span>
+                          </Button>
+                          <select
+                            value={inq.status}
+                            onChange={(e) =>
+                              updateInquiryStatusMutation.mutateAsync({
+                                id: inq.id!,
+                                status: e.target.value as any,
+                              })
+                            }
+                            className="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white font-medium focus:outline-blue-500"
+                          >
+                            <option value="PENDING">PENDING</option>
+                            <option value="CONTACTED">DIHUBUNGI</option>
+                            <option value="MEETING_SCHEDULED">RAPAT TERJADWAL</option>
+                            <option value="MOU_DRAFTED">DRAFT MOU</option>
+                            <option value="CLOSED">SELESAI (CLOSED)</option>
+                          </select>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -552,6 +596,12 @@ export default function ManajemenKemitraanPage() {
           </div>
         </div>
       )}
+
+      {/* TAB CONTENT: KURASI OPEN PROJECT */}
+      {activeTab === 'OPEN_PROJECTS' && <TabOpenProjectAdmin />}
+
+      {/* TAB CONTENT: SKEMA PEMBIAYAAN & PERBANKAN */}
+      {activeTab === 'FINANCING_SCHEMES' && <TabFinancingAdmin />}
 
       {/* DRAWER / MODAL BUAT / EDIT MOU */}
       <AdminFormDrawer
@@ -705,6 +755,13 @@ export default function ManajemenKemitraanPage() {
         onClose={() => setIsPrintOpen(false)}
         contract={printContract}
         mode={printMode}
+      />
+
+      {/* MODAL AI MATCHMAKING ANALYSIS */}
+      <ModalAiMatch
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        inquiry={selectedInquiryForAi}
       />
     </div>
   );

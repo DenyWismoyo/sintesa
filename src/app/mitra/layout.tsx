@@ -13,6 +13,10 @@ import {
   X,
   ShieldCheck,
   Lock,
+  Briefcase,
+  Landmark,
+  GraduationCap,
+  FileText,
 } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { authService } from '@/services/auth.service';
@@ -119,17 +123,65 @@ export default function MitraLayout({ children }: { children: React.ReactNode })
           </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1.5">
+        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
           <Link
             href="/mitra/dashboard"
-            className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition-all ${
-              pathname.startsWith('/mitra/dashboard')
-                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/70'
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
+              pathname === '/mitra/dashboard' || pathname === '/mitra'
+                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/70 shadow-2xs'
                 : 'text-slate-600 hover:bg-slate-50'
             }`}
           >
-            <LayoutDashboard className="w-4 h-4 text-emerald-600" />
-            <span>Dashboard Rekrutmen & Talenta</span>
+            <LayoutDashboard className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>Dashboard & Rekrutmen</span>
+          </Link>
+
+          <Link
+            href="/mitra/open-project"
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
+              pathname.startsWith('/mitra/open-project')
+                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/70 shadow-2xs'
+                : 'text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            <Briefcase className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>Open Project Alumni</span>
+          </Link>
+
+          <Link
+            href="/mitra/financing"
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
+              pathname.startsWith('/mitra/financing')
+                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/70 shadow-2xs'
+                : 'text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            <Landmark className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>Fasilitas Pembiayaan</span>
+          </Link>
+
+          <Link
+            href="/mitra/program-kerjasama"
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
+              pathname.startsWith('/mitra/program-kerjasama')
+                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/70 shadow-2xs'
+                : 'text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            <GraduationCap className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>Program & Pelatihan</span>
+          </Link>
+
+          <Link
+            href="/mitra/dokumen"
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
+              pathname.startsWith('/mitra/dokumen')
+                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/70 shadow-2xs'
+                : 'text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            <FileText className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>Dokumen & MoU</span>
           </Link>
         </nav>
 
@@ -159,18 +211,46 @@ export default function MitraLayout({ children }: { children: React.ReactNode })
         </div>
 
         {isMobileMenuOpen && (
-          <div className="md:hidden bg-white border-b border-slate-200 p-4 space-y-2">
+          <div className="md:hidden bg-white border-b border-slate-200 p-4 space-y-1.5">
             <Link
               href="/mitra/dashboard"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="block px-4 py-3 rounded-xl bg-emerald-50 text-emerald-800 text-xs font-bold"
+              className="block px-4 py-2.5 rounded-xl bg-slate-50 text-slate-800 text-xs font-bold"
             >
-              Dashboard Rekrutmen & Talenta
+              Dashboard & Rekrutmen
+            </Link>
+            <Link
+              href="/mitra/open-project"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block px-4 py-2.5 rounded-xl bg-slate-50 text-slate-800 text-xs font-bold"
+            >
+              Open Project Alumni
+            </Link>
+            <Link
+              href="/mitra/financing"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block px-4 py-2.5 rounded-xl bg-slate-50 text-slate-800 text-xs font-bold"
+            >
+              Fasilitas Pembiayaan
+            </Link>
+            <Link
+              href="/mitra/program-kerjasama"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block px-4 py-2.5 rounded-xl bg-slate-50 text-slate-800 text-xs font-bold"
+            >
+              Program & Pelatihan
+            </Link>
+            <Link
+              href="/mitra/dokumen"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block px-4 py-2.5 rounded-xl bg-slate-50 text-slate-800 text-xs font-bold"
+            >
+              Dokumen & MoU
             </Link>
             <button
               type="button"
               onClick={handleLogout}
-              className="w-full text-left px-4 py-3 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold"
+              className="w-full text-left px-4 py-2.5 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold"
             >
               Keluar Portal Mitra
             </button>

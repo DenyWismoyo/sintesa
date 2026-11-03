@@ -7,6 +7,11 @@ export const PartnershipTypeEnum = z.enum([
   'TALENT_RECRUITMENT',     // Penyerapan Talenta & Rekrutmen Lulusan Vokasi STP
   'STARTUP_INCUBATION',     // Inkubasi Startup, CSR Venture & Joint Investment
   'MOU_GENERAL',            // Nota Kesepahaman (MoU) & Kerjasama Kelembagaan Umum
+  'FINANCING_TRAINING',    // Skema Kredit/Pembiayaan/Beasiswa Pelatihan (Bank/Fintech/CSR)
+  'OPEN_PROJECT',          // Pelemparan Proyek Industri ke Ekosistem Alumni STP
+  'CONTENT_CO_BRANDING',   // Co-branding Program Pelatihan & Kurikulum Industri
+  'RESEARCH_APPLIED',      // Riset Terapan Bersama (Joint R&D)
+  'SUPPLIER_ECOSYSTEM',    // Ekosistem Vendor & Pengadaan
 ]);
 export type PartnershipType = z.infer<typeof PartnershipTypeEnum>;
 
@@ -113,6 +118,7 @@ export const PartnerProfileSchema = z.object({
   picUserId: z.string().optional(),
   tier: PartnerTierEnum.default('HIRING_PARTNER'),
   isVerified: z.boolean().default(true),
+  isFinancingPartner: z.boolean().default(false),
   status: z.enum(['ACTIVE', 'SUSPENDED']).default('ACTIVE'),
   createdAt: z.number().optional(),
   updatedAt: z.number().optional(),
@@ -137,3 +143,203 @@ export const TalentInvitationSchema = z.object({
   createdAt: z.number().optional(),
 });
 export type TalentInvitation = z.infer<typeof TalentInvitationSchema>;
+
+// ==========================================
+// 1. SKEMA PEMBIAYAAN & PERBANKAN PELATIHAN
+// ==========================================
+export const FinancingSchemeTypeEnum = z.enum([
+  'KUR_BANK',          // Kredit Usaha Rakyat / Kredit Pelatihan Bank
+  'CICILAN_0_PERSEN',  // Cicilan tanpa bunga (Fintech/Bank Mitra)
+  'BEASISWA_PENUH',    // Beasiswa 100% dari Mitra Korporasi
+  'BEASISWA_PARSIAL',  // Subsidi sebagian dari CSR / Dana Abadi
+  'VOUCHER_PELATIHAN', // Voucher / Subsidi Khusus Pemerintah & RSKB
+]);
+export type FinancingSchemeType = z.infer<typeof FinancingSchemeTypeEnum>;
+
+export const FINANCING_SCHEME_LABELS: Record<FinancingSchemeType, string> = {
+  KUR_BANK: 'Kredit Pelatihan / KUR Perbankan',
+  CICILAN_0_PERSEN: 'Cicilan 0% Syariah / Fintech',
+  BEASISWA_PENUH: 'Beasiswa Penuh Mitra Industri',
+  BEASISWA_PARSIAL: 'Subsidi Beasiswa Parsial',
+  VOUCHER_PELATIHAN: 'Voucher RSKB Surakarta',
+};
+
+export const FinancingSchemeSchema = z.object({
+  id: z.string().optional(),
+  partnerId: z.string().min(1, 'ID Mitra Perbankan/Fintech wajib terisi'),
+  partnerName: z.string().min(2, 'Nama Institusi Keuangan wajib diisi'),
+  partnerLogo: z.string().optional(),
+  schemeType: FinancingSchemeTypeEnum,
+  title: z.string().min(5, 'Nama skema pembiayaan wajib diisi'),
+  description: z.string().min(10, 'Deskripsi skema pembiayaan wajib diisi'),
+  maxAmount: z.number().default(0),            // Plafon maksimal pembiayaan (Rp)
+  tenorMonths: z.number().default(6),           // Tenor cicilan (bulan)
+  interestRate: z.number().default(0),          // Suku bunga % per tahun (0 untuk 0%)
+  eligiblePrograms: z.array(z.string()).default([]), // ID program pelatihan / nama bidang
+  eligibilityCriteria: z.string().min(5, 'Kriteria kelayakan wajib diisi'),
+  applicationUrl: z.string().optional(),        // Tautan eksternal (bila ada)
+  contactPerson: z.string().optional(),
+  contactPhone: z.string().optional(),
+  quotaTotal: z.number().default(50),           // Kuota total kupon/kursi
+  quotaUsed: z.number().default(0),             // Kuota yang telah terpakai
+  isActive: z.boolean().default(true),
+  isFeatured: z.boolean().default(false),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  createdAt: z.number().optional(),
+  updatedAt: z.number().optional(),
+});
+export type FinancingScheme = z.infer<typeof FinancingSchemeSchema>;
+export type FinancingSchemeInput = z.input<typeof FinancingSchemeSchema>;
+
+export const FinancingApplicationStatusEnum = z.enum([
+  'SUBMITTED',       // Baru dikirim calon peserta
+  'STP_REVIEWED',    // Diverifikasi kelayakan awal oleh STP
+  'FORWARDED_BANK',  // Diteruskan ke verifikator Bank Mitra
+  'BANK_PROCESSING', // Proses scoring / wawancara bank
+  'APPROVED',        // Disetujui pihak bank/mitra
+  'REJECTED',        // Ditolak
+  'DISBURSED',       // Dana/Beasiswa dicairkan ke biaya pelatihan
+]);
+export type FinancingApplicationStatus = z.infer<typeof FinancingApplicationStatusEnum>;
+
+export const FinancingApplicationSchema = z.object({
+  id: z.string().optional(),
+  schemeId: z.string().min(1, 'ID Skema pembiayaan wajib diisi'),
+  schemeTitle: z.string().optional(),
+  partnerId: z.string().min(1, 'ID Mitra Keuangan wajib diisi'),
+  partnerName: z.string().optional(),
+  applicantName: z.string().min(2, 'Nama lengkap wajib diisi'),
+  applicantEmail: z.string().email('Email tidak valid'),
+  applicantPhone: z.string().min(8, 'Nomor WhatsApp wajib diisi'),
+  applicantNik: z.string().optional(),
+  applicantAddress: z.string().optional(),
+  programId: z.string().optional(),
+  programTitle: z.string().min(2, 'Program pelatihan yang diminati wajib dipilih'),
+  trainingFee: z.number().default(0),
+  requestedAmount: z.number().default(0),
+  preferredTenor: z.number().default(6),
+  monthlyIncomeRange: z.string().optional(),
+  employmentStatus: z.string().optional(), // 'Fresh Graduate', 'Pekerja Lepas', 'Karyawan', dll.
+  proposalNote: z.string().optional(),
+  ktpFileUrl: z.string().optional(),
+  status: FinancingApplicationStatusEnum.default('SUBMITTED'),
+  stpReviewNotes: z.string().optional(),
+  bankReviewNotes: z.string().optional(),
+  approvedAmount: z.number().optional(),
+  approvedTenor: z.number().optional(),
+  createdAt: z.number().optional(),
+  updatedAt: z.number().optional(),
+});
+export type FinancingApplication = z.infer<typeof FinancingApplicationSchema>;
+
+// ==========================================
+// 2. OPEN PROJECT MARKETPLACE UNTUK ALUMNI
+// ==========================================
+export const OpenProjectCategoryEnum = z.enum([
+  'WEB_MOBILE_DEV',     // Pengembangan Web / Aplikasi Mobile
+  'DATA_ANALYTICS',     // Data Analytics & Business Intelligence
+  'GRAPHIC_BRANDING',   // Desain Grafis, UI/UX & Creative Media
+  'INDUSTRIAL_DESIGN',  // Manufaktur Presisi, CAD/CAM & 3D Modeling
+  'CONTENT_DIGITAL',    // Produksi Video & Digital Marketing
+  'AUTOMATION_IOT',     // IoT, PLC & Otomasi Pabrik
+  'CYBERSECURITY',      // Audit Keamanan Siber & IT Support
+  'RESEARCH_SURVEY',    // Survei Lapangan & Riset Terapan
+  'OTHER',
+]);
+export type OpenProjectCategory = z.infer<typeof OpenProjectCategoryEnum>;
+
+export const OPEN_PROJECT_CATEGORY_LABELS: Record<OpenProjectCategory, string> = {
+  WEB_MOBILE_DEV: 'Web & Mobile App Development',
+  DATA_ANALYTICS: 'Data Analytics & AI Automation',
+  GRAPHIC_BRANDING: 'UI/UX & Desain Grafis Kreatif',
+  INDUSTRIAL_DESIGN: 'Manufaktur Presisi & CAD/CAM',
+  CONTENT_DIGITAL: 'Produksi Media & Digital Ads',
+  AUTOMATION_IOT: 'IoT & Otomasi Industri',
+  CYBERSECURITY: 'Keamanan Siber & Jaringan',
+  RESEARCH_SURVEY: 'Riset Pasar & Survei Lapangan',
+  OTHER: 'Proyek Teknologi Lainnya',
+};
+
+export const OpenProjectStatusEnum = z.enum([
+  'DRAFT',           // Draft oleh Mitra
+  'PENDING_REVIEW',  // Menunggu Verifikasi/Kurasi Admin STP
+  'ACTIVE',          // Tayang di Publik / Portal Alumni
+  'IN_PROGRESS',     // Pelamar Terpilih Sedang Mengerjakan
+  'COMPLETED',       // Proyek Selesai & Dinilai
+  'CANCELLED',       // Dibatalkan
+]);
+export type OpenProjectStatus = z.infer<typeof OpenProjectStatusEnum>;
+
+export const OpenProjectSchema = z.object({
+  id: z.string().optional(),
+  partnerId: z.string().min(1, 'ID Mitra Industri wajib diisi'),
+  partnerName: z.string().min(2, 'Nama Instansi/Perusahaan wajib diisi'),
+  partnerLogo: z.string().optional(),
+  partnerSector: z.string().optional(),
+  picName: z.string().optional(),
+  picContact: z.string().optional(),
+  
+  // Konten Proyek
+  title: z.string().min(5, 'Judul proyek wajib diisi'),
+  category: OpenProjectCategoryEnum,
+  description: z.string().min(20, 'Deskripsi proyek minimal 20 karakter'),
+  deliverables: z.array(z.string()).default([]),
+  requiredSkills: z.array(z.string()).default([]),
+  preferredPrograms: z.array(z.string()).default([]), // Lulusan program mana yang diprioritaskan
+  
+  // Nilai & Waktu
+  projectType: z.enum(['FREELANCE', 'MAGANG_PROYEK', 'KOLABORASI_RISET', 'CSR_COMMUNITY']).default('FREELANCE'),
+  budgetType: z.enum(['FIXED', 'NEGOTIABLE', 'SPONSORED', 'REWARD_BASED']).default('FIXED'),
+  budgetAmount: z.number().default(0),
+  budgetRangeMax: z.number().optional(),
+  durationEstimate: z.string().default('1 Bulan'),
+  workSetup: z.enum(['REMOTE', 'HYBRID', 'ONSITE_STP', 'ONSITE_COMPANY']).default('REMOTE'),
+  maxApplicants: z.number().default(10),
+  
+  // Kurasi & Status
+  status: OpenProjectStatusEnum.default('PENDING_REVIEW'),
+  stpCurationNotes: z.string().optional(),
+  isFeatured: z.boolean().default(false),
+  selectedAlumniId: z.string().optional(),
+  selectedAlumniName: z.string().optional(),
+  
+  // Linimasa
+  submissionDeadline: z.string().optional(), // YYYY-MM-DD
+  startDate: z.string().optional(),
+  completionDate: z.string().optional(),
+  createdAt: z.number().optional(),
+  updatedAt: z.number().optional(),
+});
+export type OpenProject = z.infer<typeof OpenProjectSchema>;
+export type OpenProjectInput = z.input<typeof OpenProjectSchema>;
+
+export const ProjectApplicationStatusEnum = z.enum([
+  'PENDING',
+  'SHORTLISTED',
+  'ACCEPTED',
+  'REJECTED',
+  'WITHDRAWN',
+]);
+export type ProjectApplicationStatus = z.infer<typeof ProjectApplicationStatusEnum>;
+
+export const ProjectApplicationSchema = z.object({
+  id: z.string().optional(),
+  projectId: z.string().min(1, 'ID Proyek wajib terisi'),
+  projectTitle: z.string().optional(),
+  partnerId: z.string().min(1, 'ID Mitra wajib terisi'),
+  alumniId: z.string().min(1, 'ID Alumni/Pelamar wajib terisi'),
+  alumniName: z.string().min(2, 'Nama alumni wajib diisi'),
+  alumniProgram: z.string().optional(),
+  alumniEmail: z.string().email().optional(),
+  alumniPhone: z.string().optional(),
+  proposalLetter: z.string().min(20, 'Surat proposal/pengantar minimal 20 karakter'),
+  portfolioLinks: z.array(z.string()).default([]),
+  proposedBudget: z.number().optional(),
+  proposedTimeline: z.string().optional(),
+  status: ProjectApplicationStatusEnum.default('PENDING'),
+  partnerFeedback: z.string().optional(),
+  createdAt: z.number().optional(),
+  updatedAt: z.number().optional(),
+});
+export type ProjectApplication = z.infer<typeof ProjectApplicationSchema>;

@@ -230,6 +230,14 @@ export default function AlumniPortalClientPage() {
           </select>
 
           <Link
+            href="/kemitraan#open-project"
+            className="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-xs font-bold text-emerald-800 inline-flex items-center gap-1.5 border border-emerald-200/80"
+          >
+            <Briefcase className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Open Project Industri</span>
+          </Link>
+
+          <Link
             href="/karir"
             className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/70 text-xs font-bold text-slate-700 inline-flex items-center gap-1.5"
           >
