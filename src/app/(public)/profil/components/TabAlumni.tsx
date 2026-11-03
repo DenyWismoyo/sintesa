@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { Alumni, Project } from '@/types';
+import { Alumni, Project, ALUMNI_ORIGIN_LABELS, ALUMNI_ORIGIN_BADGES, AlumniOriginSource } from '@/types';
 import { alumniService } from '@/services/alumni.service';
 import { storageService } from '@/services/storage.service';
 import { toast } from 'sonner';
@@ -314,6 +314,59 @@ export default function TabAlumni({ initialData }: TabAlumniProps) {
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nama Lengkap Sesuai Sertifikat</span>
                     <p className="font-bold text-slate-800 bg-white px-4 py-3 rounded-xl border border-slate-100 shadow-sm">{data.name}</p>
                   </div>
+
+                  {data.nik && (
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">NIK (KTP)</span>
+                      <p className="font-mono font-bold text-slate-700 bg-white px-4 py-2.5 rounded-xl border border-slate-100 shadow-sm text-sm">{data.nik}</p>
+                    </div>
+                  )}
+
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jalur Program & Kemitraan</span>
+                    <div className="bg-white p-3.5 rounded-xl border border-slate-100 shadow-sm space-y-2">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border ${
+                        ALUMNI_ORIGIN_BADGES[(data.originSource || 'STP_VOKASI') as AlumniOriginSource] || 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                      }`}>
+                        {ALUMNI_ORIGIN_LABELS[(data.originSource || 'STP_VOKASI') as AlumniOriginSource] || 'Diklat Vokasi STP'}
+                      </span>
+                      {data.partnerInstitution && (
+                        <p className="text-xs font-semibold text-slate-600">
+                          Mitra: <span className="font-bold text-slate-800">{data.partnerInstitution}</span>
+                        </p>
+                      )}
+                      {data.targetPlacement && (
+                        <p className="text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100">
+                          🎯 Target Penempatan: {data.targetPlacement}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {(data.domicile || data.district) && (
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Domisili / Wilayah Asal</span>
+                      <p className="font-bold text-slate-700 bg-white px-4 py-2.5 rounded-xl border border-slate-100 shadow-sm text-sm">
+                        {data.domicile || `Kecamatan ${data.district}`}
+                      </p>
+                    </div>
+                  )}
+
+                  {(data.uniformSize || data.shoeSize) && (
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ukuran Perlengkapan Kerja</span>
+                      <div className="grid grid-cols-2 gap-2 bg-white p-3 rounded-xl border border-slate-100 shadow-sm text-xs">
+                        <div>
+                          <span className="text-slate-400 block text-[10px]">Wearpack/Seragam</span>
+                          <span className="font-bold text-slate-800">{data.uniformSize || '-'}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block text-[10px]">Sepatu Safety</span>
+                          <span className="font-bold text-slate-800">{data.shoeSize || '-'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {data.birthInfo && (
                     <div className="space-y-1.5">

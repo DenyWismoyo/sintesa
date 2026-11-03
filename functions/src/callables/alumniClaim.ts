@@ -40,31 +40,45 @@ export const claimAlumniAccount = onCall(async (request) => {
 
   const uid = request.auth.uid;
   const authEmail = request.auth.token?.email || "";
-  const rawCode = typeof request.data?.registrationCode === "string"
+  const rawInput = typeof request.data?.registrationCode === "string"
     ? request.data.registrationCode
+    : typeof request.data?.identifier === "string"
+    ? request.data.identifier
+    : typeof request.data?.nik === "string"
+    ? request.data.nik
     : "";
-  const cleanCode = rawCode.trim().toUpperCase();
+  const cleanInput = rawInput.trim();
+  const cleanCode = cleanInput.toUpperCase();
   const appId = process.env.APP_ID || request.data?.appId || "blud-app-dev";
 
-  if (!cleanCode || cleanCode.length < 6) {
+  if (!cleanInput || cleanInput.length < 5) {
     throw new HttpsError(
       "invalid-argument",
-      "Format kode klaim tidak valid. Masukkan kode resmi seperti AL-2026-XXXXXX atau RSKB-2026-XXXXXX."
+      "Format klaim tidak valid. Masukkan Kode Registrasi (AL-... / P3MI-... / RSKB-...) atau NIK KTP Anda."
     );
   }
 
-  // 2. Cari dokumen alumni berdasarkan registrationCode
+  // 2. Cari dokumen alumni berdasarkan registrationCode (atau NIK sebagai alternatif opsional)
   const db = getDb();
-  const snap = await db
+  let snap = await db
     .collection("alumnis")
     .where("registrationCode", "==", cleanCode)
     .limit(1)
     .get();
 
+  // Jika belum ditemukan, periksa kecocokan NIK (opsional jika pengguna memasukkan nomor NIK)
+  if (snap.empty && /^\d{10,18}$/.test(cleanInput)) {
+    snap = await db
+      .collection("alumnis")
+      .where("nik", "==", cleanInput)
+      .limit(1)
+      .get();
+  }
+
   if (snap.empty) {
     throw new HttpsError(
       "not-found",
-      "Kode registrasi tidak ditemukan. Pastikan penulisan kode sesuai dengan yang diberikan oleh Admin Pelatihan / RSKB."
+      "Data alumni tidak ditemukan. Pastikan Kode Registrasi atau NIK yang Anda masukkan sudah terdaftar resmi di Solo Technopark / Mitra Pelatihan."
     );
   }
 

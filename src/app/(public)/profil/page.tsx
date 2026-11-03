@@ -27,6 +27,7 @@ export default function ProfilPage() {
   const [activeTab, setActiveTab] = useState<'data-diri' | 'riwayat' | 'tagihan' | 'alumni' | 'afiliasi' | 'karir'>('data-diri');
   
   const [alumniData, setAlumniData] = useState<Alumni | null>(null);
+  const [detectedDormantAlumni, setDetectedDormantAlumni] = useState<Alumni | null>(null);
   const [isCheckingAlumni, setIsCheckingAlumni] = useState(true);
   const [claimCode, setClaimCode] = useState('');
   const [isClaiming, setIsClaiming] = useState(false);
@@ -48,7 +49,19 @@ export default function ProfilPage() {
       if (!user) return;
       try {
         const data = await alumniService.getAlumniByUserId(user.uid);
-        setAlumniData(data as Alumni);
+        if (data) {
+          setAlumniData(data as Alumni);
+          setDetectedDormantAlumni(null);
+        } else if (user.email) {
+          // Cek secara organik jika email pengguna cocok dengan alumni yang belum diklaim (DORMANT)
+          const dormant = await alumniService.findUnclaimedAlumniByEmail(user.email);
+          if (dormant) {
+            setDetectedDormantAlumni(dormant);
+            if (dormant.registrationCode) {
+              setClaimCode(dormant.registrationCode);
+            }
+          }
+        }
       } catch (error) {
         console.error("Gagal mengecek status alumni:", error);
       } finally {
@@ -112,13 +125,14 @@ export default function ProfilPage() {
     }
   };
 
-  const handleClaimCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!claimCode.trim() || !user.uid) return toast.error("Data tidak valid");
+  const handleClaimCode = async (e?: React.FormEvent, directCode?: string) => {
+    if (e) e.preventDefault();
+    const codeToUse = (directCode || claimCode).trim();
+    if (!codeToUse || !user.uid) return toast.error("Masukkan Kode Registrasi atau NIK KTP Anda.");
     
     setIsClaiming(true);
     try {
-      const result = await alumniService.claimAlumni(claimCode.trim().toUpperCase(), user.uid);
+      const result = await alumniService.claimAlumni(codeToUse, user.uid);
       if (result.success) {
         await refreshAuth();
         toast.success("Klaim Status Alumni Berhasil!", {
@@ -126,9 +140,10 @@ export default function ProfilPage() {
         });
         const refreshed = await alumniService.getAlumniByUserId(user.uid);
         setAlumniData(refreshed as Alumni);
+        setDetectedDormantAlumni(null);
         setActiveTab('alumni');
       } else {
-        toast.error("Klaim Gagal", { description: result.error || "Kode registrasi tidak ditemukan." });
+        toast.error("Klaim Gagal", { description: result.error || "Kode registrasi atau NIK tidak ditemukan." });
       }
     } catch (error: any) {
       toast.error("Terjadi Kesalahan", { description: error.message });
@@ -201,6 +216,41 @@ export default function ProfilPage() {
             >
               <RefreshCw size={13} />
               <span>Cek Status</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Banner Deteksi Otomatis Riwayat Alumni (1-Click Claim Organik) */}
+      {detectedDormantAlumni && !alumniData && (
+        <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-100/50 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-start gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+              <GraduationCap size={22} />
+            </div>
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest bg-emerald-100 text-emerald-800 mb-1">
+                <Sparkles size={12} /> Data Pelatihan Terdeteksi
+              </div>
+              <h3 className="text-sm font-black text-slate-900">
+                Halo, {detectedDormantAlumni.name}!
+              </h3>
+              <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                Email Anda terdaftar sebagai peserta <strong>{detectedDormantAlumni.programTaken}</strong>
+                {detectedDormantAlumni.partnerInstitution ? ` (${detectedDormantAlumni.partnerInstitution})` : ''}
+                {detectedDormantAlumni.nik ? ` • NIK: ${detectedDormantAlumni.nik}` : ''}.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              disabled={isClaiming}
+              onClick={() => handleClaimCode(undefined, detectedDormantAlumni.registrationCode)}
+              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-sm hover:shadow-md disabled:opacity-60"
+            >
+              {isClaiming ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
+              <span>Aktifkan Akun Alumni (1-Klik)</span>
             </button>
           </div>
         </div>
@@ -293,7 +343,7 @@ export default function ProfilPage() {
             </button>
           </div>
 
-          {/* Form Klaim Kode */}
+          {/* Form Klaim Kode / NIK */}
           {!isCheckingAlumni && !alumniData && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="public-card p-6 bg-gradient-to-br from-emerald-50/60 to-teal-50/20 relative overflow-hidden group">
               <div className="absolute -top-4 -right-4 p-4 opacity-10 group-hover:scale-110 transition-transform duration-700">
@@ -302,13 +352,15 @@ export default function ProfilPage() {
               <h3 className="text-xs font-black text-emerald-900 flex items-center gap-2 mb-1.5 relative z-10">
                 <Key size={14}/> Klaim Status Alumni
               </h3>
-              <p className="text-[11px] text-emerald-700/80 mb-4 font-medium leading-relaxed relative z-10">
-                Masukkan kode registrasi resmi dari Admin STP atau RSKB Surakarta untuk membuka akses Bursa Karir & Katalog Talenta.
+              <p className="text-[11px] text-emerald-700/80 mb-3.5 font-medium leading-relaxed relative z-10">
+                Masukkan Kode Registrasi (AL-... / P3MI-... / RSKB-...) atau NIK KTP Anda (opsional) untuk membuka akses Bursa Karir & Portofolio Talenta.
               </p>
               <form onSubmit={handleClaimCode} className="flex gap-2 relative z-10">
                 <input 
-                  value={claimCode} onChange={(e) => setClaimCode(e.target.value)} placeholder="AL-2026-XXXXXX / RSKB-..."
-                  className="flex-1 w-full bg-white text-emerald-900 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-emerald-500/20 placeholder:text-emerald-300 font-mono uppercase shadow-xs"
+                  value={claimCode} 
+                  onChange={(e) => setClaimCode(e.target.value)} 
+                  placeholder="Kode Registrasi / NIK KTP"
+                  className="flex-1 w-full bg-white text-emerald-900 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-emerald-500/20 placeholder:text-emerald-400 font-mono uppercase shadow-xs"
                 />
                 <button disabled={isClaiming || !claimCode.trim()} type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white w-10 rounded-xl flex items-center justify-center transition-all shadow-sm hover:shadow-md disabled:opacity-50">
                   {isClaiming ? <Loader2 size={16} className="animate-spin" /> : <ArrowRight size={16} />}

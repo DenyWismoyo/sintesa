@@ -164,20 +164,64 @@ export const ProjectSchema = z.object({
 export type Project = z.infer<typeof ProjectSchema>;
 
 export const AlumniOriginSourceEnum = z.enum([
-  'STP_VOKASI',
-  'RSKB_SURAKARTA',
-  'OPD_PEMKOT',
-  'CSR_INDUSTRI',
-  'INKUBASI_WIRAUSAHA',
+  'STP_VOKASI',          // Diklat Vokasi Solo Technopark (Reguler)
+  'PELATIHAN_MANDIRI',   // Pelatihan Mandiri / Reguler STP
+  'KERJASAMA_P3MI',      // Program SMK Go Global BP3MI Jawa Tengah / Penempatan Migran
+  'RSKB_SURAKARTA',      // Rumah Siap Kerja Bersama (RSKB) Kota Surakarta
+  'CSR_INDUSTRI',        // Program Kemitraan CSR / Corporate Sponsored Batch
+  'OPD_PEMKOT',          // Program OPD Pemkot / Pemda
+  'INKUBASI_WIRAUSAHA',  // Inkubasi Wirausaha Mandiri
+  'KERJASAMA_LEMBAGA',   // Kerjasama Lembaga / Kampus / Asosiasi Luar
 ]);
 export type AlumniOriginSource = z.infer<typeof AlumniOriginSourceEnum>;
 
 export const ALUMNI_ORIGIN_LABELS: Record<AlumniOriginSource, string> = {
   STP_VOKASI: 'Diklat Vokasi Solo Technopark',
+  PELATIHAN_MANDIRI: 'Pelatihan Mandiri STP',
+  KERJASAMA_P3MI: 'BP3MI Jateng (SMK Go Global)',
   RSKB_SURAKARTA: 'RSKB Kota Surakarta',
-  OPD_PEMKOT: 'Program OPD Pemkot Surakarta',
-  CSR_INDUSTRI: 'Program Kemitraan / CSR Industri',
+  CSR_INDUSTRI: 'Kemitraan CSR Industri',
+  OPD_PEMKOT: 'Program OPD Pemda',
   INKUBASI_WIRAUSAHA: 'Inkubasi Wirausaha Mandiri',
+  KERJASAMA_LEMBAGA: 'Kerjasama Lembaga Luar',
+};
+
+export const ALUMNI_ORIGIN_BADGES: Record<
+  AlumniOriginSource,
+  { label: string; className: string }
+> = {
+  KERJASAMA_P3MI: {
+    label: 'BP3MI Jateng (Go Global)',
+    className: 'bg-blue-100 text-blue-800 border-blue-200',
+  },
+  PELATIHAN_MANDIRI: {
+    label: 'Diklat Mandiri STP',
+    className: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+  },
+  STP_VOKASI: {
+    label: 'Diklat Vokasi STP',
+    className: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+  },
+  RSKB_SURAKARTA: {
+    label: 'RSKB Surakarta',
+    className: 'bg-purple-100 text-purple-800 border-purple-200',
+  },
+  CSR_INDUSTRI: {
+    label: 'CSR Industri',
+    className: 'bg-amber-100 text-amber-800 border-amber-200',
+  },
+  OPD_PEMKOT: {
+    label: 'OPD Pemda',
+    className: 'bg-teal-100 text-teal-800 border-teal-200',
+  },
+  INKUBASI_WIRAUSAHA: {
+    label: 'Inkubasi Wirausaha',
+    className: 'bg-orange-100 text-orange-800 border-orange-200',
+  },
+  KERJASAMA_LEMBAGA: {
+    label: 'Kerjasama Lembaga',
+    className: 'bg-slate-100 text-slate-800 border-slate-200',
+  },
 };
 
 export const AlumniSchema = z.object({
@@ -185,7 +229,15 @@ export const AlumniSchema = z.object({
   name: z.string().min(1, "Nama wajib diisi"),
   email: z.string().email("Format email tidak valid").optional().or(z.literal('')),
   phone: z.string().optional().or(z.literal('')),
-  nik: z.string().optional(),
+  nik: z.string().optional().or(z.literal('')),
+  gender: z.enum(['Laki-Laki', 'Perempuan']).optional().or(z.literal('')),
+  domicile: z.string().optional().or(z.literal('')),
+  age: z.number().optional(),
+  uniformSize: z.string().optional().or(z.literal('')),
+  shoeSize: z.string().optional().or(z.literal('')),
+  partnerInstitution: z.string().optional().or(z.literal('')),
+  targetPlacement: z.string().optional().or(z.literal('')),
+  targetCountry: z.string().optional().or(z.literal('')),
   birthInfo: z.string().optional(), 
   birthPlace: z.string().optional(), 
   birthDate: z.string().optional(),

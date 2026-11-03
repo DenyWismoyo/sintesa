@@ -82,8 +82,13 @@ export const alumniService = {
   addAlumni: async (data: Omit<Alumni, 'id' | 'createdAt' | 'registrationCode'>) => {
     try {
       const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
-      const prefix = data.originSource === 'RSKB_SURAKARTA' ? 'RSKB' : 'AL';
-      const registrationCode = `${prefix}-${data.graduationYear || data.trainingYear || new Date().getFullYear()}-${randomCode}`;
+      let prefix = 'AL';
+      if (data.originSource === 'KERJASAMA_P3MI') prefix = 'P3MI';
+      else if (data.originSource === 'RSKB_SURAKARTA') prefix = 'RSKB';
+      else if (data.originSource === 'CSR_INDUSTRI') prefix = 'CSR';
+
+      const year = data.graduationYear || data.trainingYear || new Date().getFullYear();
+      const registrationCode = `${prefix}-${year}-${randomCode}`;
       
       const payload = {
         ...data,
@@ -161,16 +166,26 @@ export const alumniService = {
           const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
           const yearTag = row.tahun_pelatihan || row.training_year || new Date().getFullYear().toString();
           const rawOrigin = String(row.jalur_program || row.origin_source || '').toUpperCase().trim();
-          const normalizedOrigin = rawOrigin.includes('RSKB')
+          const normalizedOrigin = rawOrigin.includes('P3MI') || rawOrigin.includes('BP3MI')
+            ? 'KERJASAMA_P3MI'
+            : rawOrigin.includes('RSKB')
             ? 'RSKB_SURAKARTA'
             : rawOrigin.includes('OPD') || rawOrigin.includes('PEMKOT') || rawOrigin.includes('DINAS')
             ? 'OPD_PEMKOT'
             : rawOrigin.includes('CSR')
             ? 'CSR_INDUSTRI'
+            : rawOrigin.includes('MANDIRI')
+            ? 'PELATIHAN_MANDIRI'
             : rawOrigin.includes('INKUBASI') || rawOrigin.includes('WIRAUSAHA')
             ? 'INKUBASI_WIRAUSAHA'
+            : rawOrigin.includes('LEMBAGA')
+            ? 'KERJASAMA_LEMBAGA'
             : 'STP_VOKASI';
-          const codePrefix = normalizedOrigin === 'RSKB_SURAKARTA' ? 'RSKB' : 'AL';
+          const codePrefix = normalizedOrigin === 'KERJASAMA_P3MI'
+            ? 'P3MI'
+            : normalizedOrigin === 'RSKB_SURAKARTA'
+            ? 'RSKB'
+            : 'AL';
           const regCode = `${codePrefix}-${yearTag}-${randomCode}`;
 
           const newAlumni: any = {
@@ -178,6 +193,12 @@ export const alumniService = {
             name: row.name_of_participants || 'Tanpa Nama',
             email: row.email_address || '',
             phone: row.phone_number || '',
+            nik: row.nik || row.no_ktp || '',
+            gender: row.jenis_kelamin || row.gender || '',
+            domicile: row.domisili || row.domicile || '',
+            age: row.usia ? Number(row.usia) : undefined,
+            uniformSize: row.ukuran_seragam || row.uniform_size || '',
+            shoeSize: row.ukuran_sepatu || row.shoe_size || '',
             batch: row.batch || '',
             programTaken: row.program || '',
             trainingYear: row.tahun_pelatihan || row.training_year || '',
@@ -195,6 +216,9 @@ export const alumniService = {
             registrationCode: regCode,
             originSource: normalizedOrigin,
             originInstitution: row.instansi_penyelenggara || row.origin_institution || '',
+            partnerInstitution: row.institusi_mitra || row.partner_institution || '',
+            targetPlacement: row.target_penempatan || row.target_placement || '',
+            targetCountry: row.target_negara || row.target_country || '',
             district: row.kecamatan || row.district || '',
             status: 'DORMANT',
             internalStatus: 'AVAILABLE',
@@ -237,26 +261,49 @@ export const alumniService = {
     }
   },
 
-  claimAlumni: async (registrationCode: string, userId: string) => {
+  claimAlumni: async (identifier: string, userId: string) => {
     try {
-      const cleanCode = registrationCode.trim().toUpperCase();
-      const claimFn = httpsCallable(functions, 'claimAlumniAccount');
-      const callableRes: any = await claimFn({ registrationCode: cleanCode, appId: getAppId() });
-      if (callableRes?.data?.success) {
-        return { success: true, data: callableRes.data };
+      const cleanInput = identifier.trim();
+      const cleanCode = cleanInput.toUpperCase();
+
+      // 1. Coba via Cloud Function (atomik + sematkan Custom Claims)
+      try {
+        const claimFn = httpsCallable(functions, 'claimAlumniAccount');
+        const callableRes: any = await claimFn({ registrationCode: cleanInput, appId: getAppId() });
+        if (callableRes?.data?.success) {
+          return { success: true, data: callableRes.data };
+        }
+      } catch (cfErr: any) {
+        console.warn("[CLAIM ALUMNI CALLABLE NOTICE]", cfErr?.message);
+        // Jika callable mengembalikan error bisnis eksplisit, teruskan pesan
+        if (cfErr?.message && !cfErr.message.includes('internal') && !cfErr.message.includes('not-found')) {
+          return { success: false, error: cfErr.message.replace(/^FirebaseError:\s*/i, '') };
+        }
       }
-      if (cleanCode.length > 0) {
-        return { success: false, error: callableRes?.data?.message || 'Kode registrasi tidak ditemukan.' };
-      }
-      const q = query(
+
+      // 2. Fallback Direct Firestore: cari berdasarkan registrationCode
+      let q = query(
         collection(db, COLLECTION_NAME), 
-        where('registrationCode', '==', registrationCode),
+        where('registrationCode', '==', cleanCode),
         where('status', '==', 'DORMANT')
       );
-      const snapshot = await getDocs(q);
+      let snapshot = await getDocs(q);
+
+      // 3. Fallback: jika bukan kode, cari berdasarkan NIK (opsional jika user menginputkan NIK)
+      if (snapshot.empty && /^\d{10,18}$/.test(cleanInput)) {
+        const qNik = query(
+          collection(db, COLLECTION_NAME),
+          where('nik', '==', cleanInput),
+          where('status', '==', 'DORMANT')
+        );
+        snapshot = await getDocs(qNik);
+      }
 
       if (snapshot.empty) {
-        return { success: false, error: "Kode Registrasi tidak ditemukan atau profil sudah pernah diklaim." };
+        return {
+          success: false,
+          error: "Kode Registrasi atau NIK tidak ditemukan dalam database atau profil sudah pernah diklaim."
+        };
       }
 
       const alumniDoc = snapshot.docs[0];
@@ -276,8 +323,32 @@ export const alumniService = {
         success: false,
         error:
           error?.message?.replace(/^FirebaseError:\s*/i, '') ||
-          'Kode Registrasi tidak ditemukan atau telah diklaim oleh akun lain.',
+          'Kode Registrasi / NIK tidak ditemukan atau telah diklaim oleh akun lain.',
       };
+    }
+  },
+
+  /**
+   * Cari profil alumni DORMANT berdasarkan email yang sedang login
+   * Membantu proses claiming organik (1-click link)
+   */
+  findUnclaimedAlumniByEmail: async (email: string): Promise<Alumni | null> => {
+    try {
+      const cleanEmail = email.trim().toLowerCase();
+      if (!cleanEmail) return null;
+      const q = query(
+        collection(db, COLLECTION_NAME),
+        where('email', '==', cleanEmail),
+        where('status', '==', 'DORMANT'),
+        limit(1)
+      );
+      const snap = await getDocs(q);
+      if (snap.empty) return null;
+      const docSnap = snap.docs[0];
+      return { id: docSnap.id, ...docSnap.data() } as Alumni;
+    } catch (err) {
+      console.warn("Error finding dormant alumni by email:", err);
+      return null;
     }
   },
 
@@ -297,6 +368,12 @@ export const alumniService = {
         compressed.push({
           id: d.id,
           name: data.name || '',
+          nik: data.nik || '',
+          gender: data.gender || '',
+          domicile: data.domicile || '',
+          age: data.age || undefined,
+          uniformSize: data.uniformSize || '',
+          shoeSize: data.shoeSize || '',
           phone: data.phone || '',
           email: data.email || '',
           programTaken: data.programTaken || '',
@@ -304,7 +381,13 @@ export const alumniService = {
           batch: data.batch || '',
           originSource: data.originSource || 'STP_VOKASI',
           originInstitution: data.originInstitution || '',
+          partnerInstitution: data.partnerInstitution || '',
+          targetPlacement: data.targetPlacement || '',
+          targetCountry: data.targetCountry || '',
+          courseStartDate: data.courseStartDate || '',
+          courseEndDate: data.courseEndDate || '',
           district: data.district || '',
+          photoUrl: data.photoUrl || '',
           isVerified: Boolean(data.isVerified),
           status: data.status || 'DORMANT',
           registrationCode: data.registrationCode || '',

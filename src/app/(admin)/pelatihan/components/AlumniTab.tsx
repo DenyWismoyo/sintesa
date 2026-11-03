@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Alumni, ALUMNI_ORIGIN_LABELS, AlumniOriginSource } from '@/types';
+import { Alumni, ALUMNI_ORIGIN_LABELS, ALUMNI_ORIGIN_BADGES, AlumniOriginSource } from '@/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Users, UploadCloud, Plus, Search, FileText, 
@@ -21,7 +21,18 @@ import * as XLSX from 'xlsx';
 import { useAlumni } from '@/hooks/useAlumni';
 
 // Extend type sementara untuk menampung field tambahan di form manual
-type AlumniFormState = Partial<Alumni> & { trainingYear?: string };
+type AlumniFormState = Partial<Alumni> & { 
+  trainingYear?: string;
+  nik?: string;
+  gender?: string;
+  domicile?: string;
+  age?: number;
+  uniformSize?: string;
+  shoeSize?: string;
+  partnerInstitution?: string;
+  targetPlacement?: string;
+  targetCountry?: string;
+};
 
 // Helper cerdas untuk memformat nomor WhatsApp Indonesia
 const formatWhatsAppNumber = (phone?: string) => {
@@ -100,7 +111,9 @@ export default function AlumniTab() {
     name: '', email: '', phone: '', batch: '', programTaken: '', trainingYear: '',
     courseStartDate: '', courseEndDate: '', birthInfo: '', address: '', 
     certificationResult: '', employmentStatus: 'Proses Verifikasi', company: '', currentJob: '',
-    originSource: 'STP_VOKASI', originInstitution: '', district: ''
+    originSource: 'STP_VOKASI', originInstitution: '', district: '',
+    nik: '', gender: 'Laki-Laki', domicile: '', age: undefined,
+    uniformSize: '', shoeSize: '', partnerInstitution: '', targetPlacement: '', targetCountry: ''
   };
   const [manualForm, setManualForm] = useState<AlumniFormState>(initialManualForm);
 
@@ -147,6 +160,9 @@ export default function AlumniTab() {
         (a.name || '').toLowerCase().includes(search.toLowerCase()) || 
         (a.programTaken || '').toLowerCase().includes(search.toLowerCase()) ||
         (a.registrationCode || '').toLowerCase().includes(search.toLowerCase()) ||
+        (a.nik || '').toLowerCase().includes(search.toLowerCase()) ||
+        (a.domicile || '').toLowerCase().includes(search.toLowerCase()) ||
+        (a.partnerInstitution || '').toLowerCase().includes(search.toLowerCase()) ||
         (a.trainingYear || '').toLowerCase().includes(search.toLowerCase());
 
       // 2. Filter Dropdown
@@ -282,11 +298,19 @@ export default function AlumniTab() {
       "Total of Participants": "1",
       "Jalur Program": ALUMNI_ORIGIN_LABELS[(a.originSource || 'STP_VOKASI') as AlumniOriginSource] || a.originSource || "STP_VOKASI",
       "Instansi Penyelenggara": a.originInstitution || "Solo Technopark",
-      "Kecamatan": a.district || "",
+      "Mitra Kerjasama": a.partnerInstitution || "",
       "Program": a.programTaken || "",
       "Course Start Date": a.courseStartDate || "",
       "Course End Date": a.courseEndDate || "",
       "Name of Participants": a.name || "",
+      "NIK (KTP)": a.nik || "",
+      "Jenis Kelamin": a.gender || "",
+      "Domisili": a.domicile || a.district || "",
+      "Usia": a.age || "",
+      "Ukuran Seragam": a.uniformSize || "",
+      "Ukuran Sepatu": a.shoeSize || "",
+      "Target Penempatan": a.targetPlacement || "",
+      "Kecamatan": a.district || "",
       "Date of Birth": a.birthInfo || "",
       "Home Address": a.address || "",
       "Post Code": a.postCode || "",
@@ -481,12 +505,15 @@ export default function AlumniTab() {
                     onChange={e => setFilterOrigin(e.target.value)}
                     className="w-full h-10 px-3 border border-slate-200 rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-amber-500"
                   >
-                    <option value="ALL">Semua Jalur (STP & RSKB)</option>
+                    <option value="ALL">Semua Jalur Pelatihan</option>
                     <option value="STP_VOKASI">Diklat Vokasi STP</option>
+                    <option value="PELATIHAN_MANDIRI">Pelatihan Mandiri / Reguler</option>
+                    <option value="KERJASAMA_P3MI">BP3MI Jateng (SMK Go Global)</option>
                     <option value="RSKB_SURAKARTA">RSKB Kota Surakarta</option>
-                    <option value="OPD_PEMKOT">Program OPD Pemkot</option>
                     <option value="CSR_INDUSTRI">Kemitraan / CSR Industri</option>
+                    <option value="OPD_PEMKOT">Program OPD Pemkot</option>
                     <option value="INKUBASI_WIRAUSAHA">Inkubasi Wirausaha</option>
+                    <option value="KERJASAMA_LEMBAGA">Kerjasama Lembaga Lain</option>
                   </select>
                 </div>
                 <div className="space-y-1.5">
@@ -662,18 +689,51 @@ export default function AlumniTab() {
                         />
                       </td>
                       <td className="p-4">
-                        <div className="font-black text-slate-900">{alumni.name}</div>
-                        <div className="text-xs font-medium text-slate-500 mt-0.5">{alumni.phone || alumni.email || 'Tidak Ada Kontak'}{alumni.district ? ` • Kec. ${alumni.district}` : ''}</div>
-                        <div className="mt-1">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border ${
-                            alumni.originSource === 'RSKB_SURAKARTA'
-                              ? 'bg-teal-50 text-teal-800 border-teal-200'
-                              : alumni.originSource === 'OPD_PEMKOT'
-                              ? 'bg-sky-50 text-sky-800 border-sky-200'
-                              : 'bg-indigo-50/70 text-indigo-700 border-indigo-200/70'
-                          }`}>
-                            {ALUMNI_ORIGIN_LABELS[(alumni.originSource || 'STP_VOKASI') as AlumniOriginSource] || 'Diklat Vokasi STP'}
-                          </span>
+                        <div className="flex items-start gap-3">
+                          {alumni.photoUrl ? (
+                            <img 
+                              src={alumni.photoUrl} 
+                              alt={alumni.name} 
+                              className="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-xs shrink-0" 
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 font-bold flex items-center justify-center shrink-0 border border-slate-200 text-xs">
+                              {(alumni.name || 'A').slice(0, 2).toUpperCase()}
+                            </div>
+                          )}
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-black text-slate-900">{alumni.name}</span>
+                              {alumni.nik && (
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-100 text-slate-700 border border-slate-200">
+                                  NIK: {alumni.nik}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs font-medium text-slate-500 mt-0.5">
+                              {alumni.phone || alumni.email || 'Tidak Ada Kontak'}
+                              {alumni.domicile ? ` • ${alumni.domicile}` : alumni.district ? ` • Kec. ${alumni.district}` : ''}
+                            </div>
+                            <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border ${
+                                ALUMNI_ORIGIN_BADGES[(alumni.originSource || 'STP_VOKASI') as AlumniOriginSource] || 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                              }`}>
+                                {ALUMNI_ORIGIN_LABELS[(alumni.originSource || 'STP_VOKASI') as AlumniOriginSource] || 'Diklat Vokasi STP'}
+                              </span>
+                              {alumni.partnerInstitution && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                  {alumni.partnerInstitution}
+                                </span>
+                              )}
+                              {(alumni.uniformSize || alumni.shoeSize) && (
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] bg-slate-50 text-slate-600 border border-slate-200">
+                                  {alumni.uniformSize ? `Baju: ${alumni.uniformSize}` : ''}
+                                  {alumni.uniformSize && alumni.shoeSize ? ' • ' : ''}
+                                  {alumni.shoeSize ? `Sepatu: ${alumni.shoeSize}` : ''}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </td>
                       <td className="p-4">
@@ -890,22 +950,53 @@ export default function AlumniTab() {
                         <Input required value={manualForm.name} onChange={e=>setManualForm({...manualForm, name: e.target.value})} className="h-10 rounded-xl text-sm" placeholder="Sesuai sertifikat"/>
                       </div>
                       <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-slate-500">NIK KTP (Opsional - 16 Digit)</Label>
+                        <Input 
+                          value={manualForm.nik || ''} 
+                          onChange={e=>setManualForm({...manualForm, nik: e.target.value.replace(/[^0-9]/g, '')})} 
+                          className="h-10 rounded-xl text-sm font-mono" 
+                          placeholder="3324..."
+                          maxLength={16}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-slate-500">Jenis Kelamin</Label>
+                        <select
+                          value={manualForm.gender || 'Laki-Laki'}
+                          onChange={e => setManualForm({ ...manualForm, gender: e.target.value as 'Laki-Laki' | 'Perempuan' })}
+                          className="w-full h-10 px-3 border border-slate-200 rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-amber-500"
+                        >
+                          <option value="Laki-Laki">Laki-Laki</option>
+                          <option value="Perempuan">Perempuan</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1.5">
                         <Label className="text-xs font-bold text-slate-500">Tempat, Tanggal Lahir</Label>
                         <Input value={manualForm.birthInfo} onChange={e=>setManualForm({...manualForm, birthInfo: e.target.value})} className="h-10 rounded-xl text-sm" placeholder="Contoh: Surakarta, 12 Mei 2000"/>
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-xs font-bold text-slate-500">Email (Opsional)</Label>
-                        <Input type="email" value={manualForm.email} onChange={e=>setManualForm({...manualForm, email: e.target.value})} className="h-10 rounded-xl text-sm" placeholder="Email aktif"/>
+                        <Label className="text-xs font-bold text-slate-500">Usia (Tahun)</Label>
+                        <Input 
+                          type="number"
+                          value={manualForm.age || ''} 
+                          onChange={e=>setManualForm({...manualForm, age: e.target.value ? Number(e.target.value) : undefined})} 
+                          className="h-10 rounded-xl text-sm" 
+                          placeholder="Contoh: 21"
+                        />
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs font-bold text-slate-500">Nomor Telepon / WA</Label>
                         <Input value={manualForm.phone} onChange={e=>setManualForm({...manualForm, phone: e.target.value})} className="h-10 rounded-xl text-sm" placeholder="08..."/>
                       </div>
                       <div className="space-y-1.5 sm:col-span-2">
-                        <Label className="text-xs font-bold text-slate-500">Alamat Rumah Lengkap</Label>
-                        <Input value={manualForm.address} onChange={e=>setManualForm({...manualForm, address: e.target.value})} className="h-10 rounded-xl text-sm" placeholder="Alamat asal/domisili"/>
+                        <Label className="text-xs font-bold text-slate-500">Email (Opsional)</Label>
+                        <Input type="email" value={manualForm.email} onChange={e=>setManualForm({...manualForm, email: e.target.value})} className="h-10 rounded-xl text-sm" placeholder="Email aktif"/>
                       </div>
-                      <div className="space-y-1.5 sm:col-span-2">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-slate-500">Domisili (Kabupaten / Kota Asal)</Label>
+                        <Input value={manualForm.domicile || ''} onChange={e=>setManualForm({...manualForm, domicile: e.target.value})} className="h-10 rounded-xl text-sm" placeholder="Contoh: Kabupaten Kendal / Surakarta"/>
+                      </div>
+                      <div className="space-y-1.5">
                         <Label className="text-xs font-bold text-slate-500">Kecamatan Domisili (Khusus Surakarta / RSKB)</Label>
                         <select
                           value={manualForm.district || ''}
@@ -920,12 +1011,24 @@ export default function AlumniTab() {
                           <option value="Serengan">Kecamatan Serengan</option>
                         </select>
                       </div>
+                      <div className="space-y-1.5 sm:col-span-2">
+                        <Label className="text-xs font-bold text-slate-500">Alamat Rumah Lengkap</Label>
+                        <Input value={manualForm.address} onChange={e=>setManualForm({...manualForm, address: e.target.value})} className="h-10 rounded-xl text-sm" placeholder="Alamat asal/domisili"/>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-slate-500">Ukuran Wearpack / Seragam</Label>
+                        <Input value={manualForm.uniformSize || ''} onChange={e=>setManualForm({...manualForm, uniformSize: e.target.value})} className="h-10 rounded-xl text-sm" placeholder="Contoh: M / L / XL / XXL"/>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-slate-500">Ukuran Sepatu Safety</Label>
+                        <Input value={manualForm.shoeSize || ''} onChange={e=>setManualForm({...manualForm, shoeSize: e.target.value})} className="h-10 rounded-xl text-sm" placeholder="Contoh: 40 / 41 / 42"/>
+                      </div>
                     </div>
                   </div>
 
                   {/* Blok Pelatihan */}
                   <div>
-                    <h4 className="font-bold text-slate-800 border-b border-slate-100 pb-2 mb-3 sm:mb-4 text-sm sm:text-base">Rekam Pelatihan STP & Jejaring RSKB Kota Surakarta</h4>
+                    <h4 className="font-bold text-slate-800 border-b border-slate-100 pb-2 mb-3 sm:mb-4 text-sm sm:text-base">Rekam Pelatihan & Kemitraan</h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mb-4">
                       <div className="space-y-1.5">
                         <Label className="text-xs font-bold text-slate-500">Jalur Asal Program <span className="text-red-500">*</span></Label>
@@ -935,19 +1038,40 @@ export default function AlumniTab() {
                           className="w-full h-10 px-3 border border-slate-200 rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-amber-500"
                         >
                           <option value="STP_VOKASI">Diklat Vokasi Solo Technopark (Kode AL-...)</option>
+                          <option value="PELATIHAN_MANDIRI">Pelatihan Mandiri / Reguler (Kode AL-...)</option>
+                          <option value="KERJASAMA_P3MI">Kerjasama BP3MI Jateng / SMK Go Global (Kode P3MI-...)</option>
                           <option value="RSKB_SURAKARTA">Rumah Siap Kerja Bersama / RSKB Surakarta (Kode RSKB-...)</option>
                           <option value="OPD_PEMKOT">Program OPD Pemerintah Kota Surakarta</option>
                           <option value="CSR_INDUSTRI">Program Kemitraan / CSR Industri</option>
                           <option value="INKUBASI_WIRAUSAHA">Inkubasi Wirausaha Mandiri</option>
+                          <option value="KERJASAMA_LEMBAGA">Kerjasama Lembaga Lain</option>
                         </select>
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-xs font-bold text-slate-500">Instansi Penyelenggara / OPD Pengampu</Label>
+                        <Label className="text-xs font-bold text-slate-500">Mitra Kerjasama / Lembaga Eksternal</Label>
+                        <Input
+                          value={manualForm.partnerInstitution || ''}
+                          onChange={e => setManualForm({ ...manualForm, partnerInstitution: e.target.value })}
+                          className="h-10 rounded-xl text-sm"
+                          placeholder="Contoh: BP3MI Jawa Tengah / PT Danareksa"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-slate-500">Instansi Penyelenggara / Pengampu</Label>
                         <Input
                           value={manualForm.originInstitution || ''}
                           onChange={e => setManualForm({ ...manualForm, originInstitution: e.target.value })}
                           className="h-10 rounded-xl text-sm"
-                          placeholder="Contoh: BLUD Solo Technopark / Disnaker Surakarta"
+                          placeholder="Contoh: Solo Technopark / Disnaker Surakarta"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-slate-500">Target Penempatan Kerja</Label>
+                        <Input
+                          value={manualForm.targetPlacement || ''}
+                          onChange={e => setManualForm({ ...manualForm, targetPlacement: e.target.value })}
+                          className="h-10 rounded-xl text-sm"
+                          placeholder="Contoh: Luar Negeri / SMK Go Global / Industri Nasional"
                         />
                       </div>
                     </div>
