@@ -135,25 +135,6 @@ export default function PresensiLoginPage() {
     }
   };
 
-  const handleQuickFillSync = (emailOrCode: string) => {
-    setSyncCode(emailOrCode);
-    setSyncPassword("StpUser2026!");
-  };
-
-  const handleQuickLogin = async (emailOrCode: string) => {
-    setNipOrEmail(emailOrCode);
-    setPassword("StpUser2026!");
-    setIsSubmitting(true);
-    try {
-      await loginWithCredentials(emailOrCode, "StpUser2026!");
-      router.push("/presensi");
-    } catch (err: unknown) {
-      setErrorMsg(`Quick Login gagal: ${(err as Error).message}`);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
     <main className="min-h-screen flex flex-col justify-between bg-[#FAFAFA] text-slate-900 relative overflow-hidden antialiased selection:bg-emerald-600 selection:text-white">
       {/* Background Ambience khas katalog Solo Technopark */}
@@ -259,7 +240,7 @@ export default function PresensiLoginPage() {
                     <Input
                       id="syncCode"
                       type="text"
-                      placeholder="Contoh: STP-22757 atau agus.jatmiko@solotechnopark.id"
+                      placeholder="Contoh: STP-22757 atau email kedinasan"
                       value={syncCode}
                       onChange={(e) => setSyncCode(e.target.value)}
                       className="bg-slate-50/70 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-emerald-600 focus:ring-emerald-500/10 text-sm h-11 rounded-xl"
@@ -414,80 +395,6 @@ export default function PresensiLoginPage() {
               </>
             )}
           </div>
-
-          {process.env.NODE_ENV !== "production" ? (
-            <div className="flex flex-col gap-3 pt-3 border-t border-slate-100 mt-2 p-3 sm:p-4">
-              <div className="w-full">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-[11px] text-slate-500 font-semibold flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-amber-500" />
-                    {isSyncMode ? "Isi Otomatis Kredensial Uji Coba:" : "Akses Cepat Pengembang (Dev Mode):"}
-                  </p>
-                  <span className="text-[9px] font-mono uppercase bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold">
-                    DEV ONLY
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      isSyncMode
-                        ? handleQuickFillSync("agus.jatmiko@solotechnopark.id")
-                        : handleQuickLogin("agus.jatmiko@solotechnopark.id")
-                    }
-                    className="text-left p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50/80 border border-slate-200/80 hover:border-emerald-400/50 transition-all cursor-pointer group"
-                  >
-                    <p className="text-[11px] font-bold text-slate-900 group-hover:text-emerald-700 truncate">
-                      Kepala Divisi IT
-                    </p>
-                    <p className="text-[10px] text-slate-500 truncate">Agus Jatmiko, S.Kom</p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      isSyncMode
-                        ? handleQuickFillSync("admin.blud@solotechnopark.id")
-                        : handleQuickLogin("admin.blud@solotechnopark.id")
-                    }
-                    className="text-left p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50/80 border border-slate-200/80 hover:border-emerald-400/50 transition-all cursor-pointer group"
-                  >
-                    <p className="text-[11px] font-bold text-slate-900 group-hover:text-emerald-700 truncate">
-                      Admin BLUD
-                    </p>
-                    <p className="text-[10px] text-slate-500 truncate">Pusat Kendali STP</p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      isSyncMode
-                        ? handleQuickFillSync("yudit.cahyantoro@solotechnopark.id")
-                        : handleQuickLogin("yudit.cahyantoro@solotechnopark.id")
-                    }
-                    className="text-left p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50/80 border border-slate-200/80 hover:border-emerald-400/50 transition-all cursor-pointer group"
-                  >
-                    <p className="text-[11px] font-bold text-slate-900 group-hover:text-emerald-700 truncate">
-                      Pemimpin BLUD
-                    </p>
-                    <p className="text-[10px] text-slate-500 truncate">Yudit C. N. Saputro</p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      isSyncMode
-                        ? handleQuickFillSync("restu.choiri@solotechnopark.id")
-                        : handleQuickLogin("restu.choiri@solotechnopark.id")
-                    }
-                    className="text-left p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50/80 border border-slate-200/80 hover:border-emerald-400/50 transition-all cursor-pointer group"
-                  >
-                    <p className="text-[11px] font-bold text-slate-900 group-hover:text-emerald-700 truncate">
-                      Staf IT & Pegawai
-                    </p>
-                    <p className="text-[10px] text-slate-500 truncate">M. Restu Choiri</p>
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : null}
 
           {/* Bantuan Akses Akun */}
           <div className="pt-3 border-t border-slate-100 mt-2 p-2 text-center">

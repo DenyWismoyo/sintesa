@@ -5,7 +5,6 @@ import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '@/lib/firebase';
 import { getAppId } from '@/lib/appId';
 import { Booking, BookingSchema } from '@/types';
-import { MOCK_BOOKINGS } from '@/data/mock/bookingMockData';
 
 const getBasePath = () => `artifacts/${getAppId()}/public/data/bookings`;
 
@@ -54,12 +53,12 @@ export const bookingService = {
       });
 
       if (bookings.length === 0) {
-        return MOCK_BOOKINGS;
+        return [];
       }
       return bookings;
     } catch (error) {
-      console.warn("[BOOKING SERVICE] Memakai mock data booking sebagai fallback:", error);
-      return MOCK_BOOKINGS;
+      console.warn("[BOOKING SERVICE] Gagal memuat data booking dari Firestore:", error);
+      return [];
     }
   },
 
@@ -164,6 +163,7 @@ export const bookingService = {
    * Menyuntikkan paket mock data booking fasilitas kawasan ke Firestore untuk demo
    */
   async seedMockBookings(): Promise<number> {
+    const { MOCK_BOOKINGS } = await import('@/data/mock/bookingMockData');
     let count = 0;
     for (const b of MOCK_BOOKINGS) {
       const docRef = doc(db, getBasePath(), b.id!);

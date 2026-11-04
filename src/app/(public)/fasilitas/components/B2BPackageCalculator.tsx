@@ -788,7 +788,7 @@ export default function B2BPackageCalculator({
                   </label>
                   <input
                     type="email"
-                    placeholder="nama@instansi.go.id"
+                    placeholder="contoh@instansi.id"
                     value={picEmail}
                     onChange={(e) => setPicEmail(e.target.value)}
                     className="w-full h-9.5 px-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"

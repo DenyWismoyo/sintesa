@@ -10,11 +10,6 @@ export default function robots(): MetadataRoute.Robots {
         allow: '/',
         disallow: [
           '/api/',
-          '/admin/',
-          '/pelatihan/builder',
-          '/pos/',
-          '/tenant/',
-          '/lms/dashboard',
         ],
       },
     ],

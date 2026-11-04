@@ -64,15 +64,63 @@ function getVerifiedRoleFromToken(tokenString: string | undefined): string | nul
   }
 }
 
+/**
+ * Membubuhkan header perlindungan privasi (X-Robots-Tag) pada seluruh rute privat internal
+ */
+function withProtectedHeaders(response: NextResponse, isProtected: boolean): NextResponse {
+  if (isProtected) {
+    response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+  }
+  return response;
+}
+
 export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
+  const method = request.method;
 
-  // 0. Izinkan halaman login presensi & aset manifest terbuka untuk umum
+  // --- HARDENING FORTIS (LANGKAH 2): EARLY EDGE GUARDS ---
+
+  // 1. Tolak HTTP Verb Tampering yang tidak aman (TRACE, TRACK, DEBUG)
+  if (['TRACE', 'TRACK', 'DEBUG'].includes(method)) {
+    return new NextResponse('Method Not Allowed', { status: 405 });
+  }
+
+  // 2. Blokir URI Traversal, Windows Drive Colon, Null Bytes, & Sensitive Dotfiles
+  // Menghindari 500 Internal Server Error (Envoy unhandled exception) saat security scanner melakukan fuzzing
+  const rawUrl = request.url || '';
+  const isMalformedPath = 
+    /(?:^|\/)[a-zA-Z]:/i.test(path) ||               // Windows drive colon (e.g. /c:/, /c:/windows)
+    path.includes('..') ||                           // Path traversal /..
+    rawUrl.includes('%2e%2e') || rawUrl.includes('%2E%2E') ||
+    rawUrl.includes('%00') || path.includes('\0') || // Null bytes
+    /(?:^|\/)\.(git|env|svn|hg|bzr)(?:\/|$)/i.test(path); // Hidden VCS/Config repos
+
+  if (isMalformedPath) {
+    return new NextResponse('Not Found', { status: 404 });
+  }
+
+  // 3. Static Files & Media Assets: Method Guard
+  // Fuzzing Fortis: POST /_next/static/media/*.woff2 memicu HTTP 500 jika tidak difilter
+  const isStaticAsset = 
+    path.startsWith('/_next/static/') ||
+    /\.(woff2?|ttf|otf|eot|png|jpe?g|gif|webp|svg|ico|css|js|map|webmanifest)$/i.test(path);
+
+  if (isStaticAsset) {
+    if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+      return new NextResponse('Method Not Allowed', { 
+        status: 405, 
+        headers: { Allow: 'GET, HEAD, OPTIONS' } 
+      });
+    }
+    return NextResponse.next();
+  }
+
+  // 4. Izinkan halaman login presensi & aset manifest terbuka untuk umum
   if (path === '/presensi/login' || path.startsWith('/presensi/login')) {
     return NextResponse.next();
   }
 
-  // 1. Cek apakah rute ini termasuk rute yang diproteksi
+  // 5. Cek apakah rute ini termasuk rute yang diproteksi
   const isProtected = PROTECTED_PREFIXES.some(prefix => path === prefix || path.startsWith(`${prefix}/`));
   if (!isProtected) {
     return NextResponse.next();
@@ -80,7 +128,7 @@ export function proxy(request: NextRequest) {
 
   const isPresensiPath = path === '/presensi' || path.startsWith('/presensi/');
 
-  // 2. Khusus Rute Presensi Pegawai STP (Techno Sign)
+  // 6. Khusus Rute Presensi Pegawai STP (Techno Sign)
   // Menggunakan sesi terisolasi (techno_sign_session) tanpa mencampuri sesi Admin/Katalog
   if (isPresensiPath) {
     const presensiSession = request.cookies.get('techno_sign_session')?.value;
@@ -96,13 +144,13 @@ export function proxy(request: NextRequest) {
           if (payload.exp && payload.exp * 1000 < Date.now()) {
             // Lanjut ke pengalihan login (expired)
           } else {
-            return NextResponse.next();
+            return withProtectedHeaders(NextResponse.next(), true);
           }
         } else {
-          return NextResponse.next();
+          return withProtectedHeaders(NextResponse.next(), true);
         }
       } catch {
-        return NextResponse.next();
+        return withProtectedHeaders(NextResponse.next(), true);
       }
     }
 
@@ -111,7 +159,7 @@ export function proxy(request: NextRequest) {
     if (adminSession) {
       const adminRole = getVerifiedRoleFromToken(adminSession);
       if (adminRole === APP_ROLES.SUPER_ADMIN || adminRole === APP_ROLES.ADMIN) {
-        return NextResponse.next();
+        return withProtectedHeaders(NextResponse.next(), true);
       }
     }
 
@@ -120,10 +168,10 @@ export function proxy(request: NextRequest) {
     if (path !== '/presensi') {
       presensiLoginUrl.searchParams.set('redirect', path);
     }
-    return NextResponse.redirect(presensiLoginUrl);
+    return withProtectedHeaders(NextResponse.redirect(presensiLoginUrl), true);
   }
 
-  // 3. Rute Admin / Portal Bisnis (di luar presensi)
+  // 7. Rute Admin / Portal Bisnis (di luar presensi)
   // Hanya membaca cookie sesi katalog (__session), terisolasi dari sesi presensi
   // KEAMANAN (VULN-02): Role WAJIB diekstrak dari JWT token bertanda tangan valid (tokenRole).
   // Jangan gunakan cookieRole mentah dari browser sebagai fallback untuk mencegah cookie role spoofing.
@@ -134,33 +182,33 @@ export function proxy(request: NextRequest) {
   if (!role) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', path);
-    return NextResponse.redirect(loginUrl);
+    return withProtectedHeaders(NextResponse.redirect(loginUrl), true);
   }
 
-  // 4. Validasi hak akses rute menggunakan Single Source of Truth dari roles.ts
+  // 8. Validasi hak akses rute menggunakan Single Source of Truth dari roles.ts
   const isAllowed = hasAccess(role, path);
 
   if (!isAllowed) {
     // Akun tenant dialihkan ke portal tenant mereka sendiri
     if (role === APP_ROLES.TENANT) {
-      return NextResponse.redirect(new URL('/tenant/dashboard', request.url));
+      return withProtectedHeaders(NextResponse.redirect(new URL('/tenant/dashboard', request.url)), true);
     }
     // Akun mitra industri dialihkan ke portal mitra resmi
     if (role === APP_ROLES.INDUSTRI) {
-      return NextResponse.redirect(new URL('/mitra/dashboard', request.url));
+      return withProtectedHeaders(NextResponse.redirect(new URL('/mitra/dashboard', request.url)), true);
     }
     // Staf internal berizin terbatas dialihkan ke dashboard mereka
     if (isInternalStaff(role)) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      return withProtectedHeaders(NextResponse.redirect(new URL('/dashboard', request.url)), true);
     }
     // Pengguna umum / publik dialihkan ke halaman utama
-    return NextResponse.redirect(new URL('/', request.url));
+    return withProtectedHeaders(NextResponse.redirect(new URL('/', request.url)), true);
   }
 
-  return NextResponse.next();
+  return withProtectedHeaders(NextResponse.next(), true);
 }
 
 export const config = {
-  // Hanya jalankan proxy pada rute halaman web (abaikan API internal, static assets, images, icons PWA)
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|manifest.webmanifest|icons|icon-).*)'],
+  // Jalankan proxy pada rute halaman web dan aset statis untuk memvalidasi method & fuzzing
+  matcher: ['/((?!api|_next/image).*)'],
 };

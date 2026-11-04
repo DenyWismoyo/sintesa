@@ -249,7 +249,7 @@ export default function AuthFormCard({ defaultTab = 'login' }: AuthFormCardProps
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="nama@email.com"
+                  placeholder="email.anda@domain.com"
                   className="w-full pl-10 pr-4 py-3 bg-slate-50 focus:bg-white border border-slate-200 focus:border-blue-500 rounded-xl text-sm font-semibold text-slate-900 outline-none transition-all"
                 />
               </div>
@@ -437,7 +437,7 @@ export default function AuthFormCard({ defaultTab = 'login' }: AuthFormCardProps
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="nama@email.com"
+                    placeholder="email.anda@domain.com"
                     className="w-full pl-9 pr-3 py-2.5 bg-slate-50 focus:bg-white border border-slate-200 focus:border-blue-500 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 outline-none"
                   />
                 </div>

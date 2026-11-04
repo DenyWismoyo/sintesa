@@ -243,7 +243,7 @@ export default function SurveiIkmClientPage() {
                     type="email"
                     value={respondentEmail}
                     onChange={(e) => setRespondentEmail(e.target.value)}
-                    placeholder="email@instansi.com"
+                    placeholder="contoh@instansi.id"
                   />
                 </div>
                 <div>

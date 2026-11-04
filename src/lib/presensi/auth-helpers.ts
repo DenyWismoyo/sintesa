@@ -15,7 +15,6 @@ import {
 } from "firebase/firestore";
 import { presensiAuth as auth, presensiDb as db } from "@/lib/firebase";
 import { UserProfile } from "@/types/presensi";
-import { getStpUserProfileByEmail } from "@/data/presensi/stpUsers";
 
 /**
  * Mengambil profil pegawai dari Firestore named database `presensi-pegawai` koleksi `users/{uid}`
@@ -47,20 +46,7 @@ export async function getUserProfileFromFirestore(
     console.warn("[Presensi] Gagal mengambil profil dari Client Firestore:", error);
   }
 
-  // 3. Fallback: Pencocokan dengan master data STP
-  if (userEmail) {
-    const profile = getStpUserProfileByEmail(userEmail);
-    if (profile) {
-      const fullProfile = { ...profile, id: uid, googleEmail: userEmail };
-      try {
-        await setDoc(doc(db, "users", uid), fullProfile, { merge: true });
-      } catch (err) {
-        console.warn("[Presensi] Client setDoc profil STP gagal (terhalang rules):", err);
-      }
-      return fullProfile;
-    }
-  }
-
+  // 3. Fallback: Profil tidak ditemukan
   return null;
 }
 
@@ -115,11 +101,6 @@ export function normalizeNipOrCodeToEmail(input: string): string {
 
   // Jika berupa access code e.g. STP-22757 atau STP22757
   const cleanCode = trimmed.toUpperCase().replace(/[^A-Z0-9-]/g, "");
-  // Cari di stpUsers
-  const found = getStpUserProfileByEmail(cleanCode);
-  if (found) return found.email;
-
-  // Fallback pattern
   return `${cleanCode.toLowerCase()}@solotechnopark.id`;
 }
 
@@ -155,29 +136,15 @@ export async function loginWithNipOrEmail(
   // 2. Fallback: Autentikasi langsung via client SDK (presensiAuth)
   let email = nipOrEmail.trim();
   if (!email.includes("@")) {
-    const { STP_CREDENTIALS_LIST } = await import("@/data/presensi/stpUsers");
-    const found = STP_CREDENTIALS_LIST.find(
-      (u) => u.accessCode.toLowerCase() === email.toLowerCase() || u.accessCode.replace("-", "").toLowerCase() === email.replace("-", "").toLowerCase()
-    );
-    if (found) {
-      email = found.email;
-    } else {
-      email = `${email.toLowerCase()}@solotechnopark.id`;
-    }
+    email = `${email.toLowerCase()}@solotechnopark.id`;
   }
 
   const credential = await signInWithEmailAndPassword(auth, email, password);
   const fbUser = credential.user;
 
-  let profile = await getUserProfileFromFirestore(fbUser.uid, email);
+  const profile = await getUserProfileFromFirestore(fbUser.uid, email);
   if (!profile) {
-    const stpData = getStpUserProfileByEmail(email);
-    if (stpData) {
-      profile = { ...stpData, id: fbUser.uid };
-      await upsertUserProfileToFirestore(profile);
-    } else {
-      throw new Error("Akun Anda belum terdaftar di database pegawai Solo Technopark.");
-    }
+    throw new Error("Akun Anda belum terdaftar di database pegawai Solo Technopark.");
   }
 
   return { user: fbUser, profile };

@@ -551,7 +551,18 @@ service cloud.firestore {
 
       // Peminjaman / Bookings
       match /bookings/{bookingId} {
-        allow read: if true;
+        // Pembatasan PII (Anti Data Leakage): Dokumen individual hanya dapat diakses oleh staf aset,
+        // pemilik booking terautentikasi, atau booking berstatus publik terkonfirmasi (approved/completed)
+        allow get: if hasAnyRole(['admin', 'super_admin', 'admin_aset', 'operator_aset']) ||
+          (isAuth() && resource.data.userEmail == request.auth.token.email) ||
+          (resource.data.status in ['approved', 'completed']);
+
+        // Listing dibatasi untuk staf aset, pemfilteran booking milik sendiri oleh pengguna terautentikasi,
+        // atau pemfilteran query kalender publik untuk status terkonfirmasi (approved/completed)
+        allow list: if hasAnyRole(['admin', 'super_admin', 'admin_aset', 'operator_aset']) ||
+          (isAuth() && resource.data.userEmail == request.auth.token.email) ||
+          (resource.data.status in ['approved', 'completed']);
+
         allow create: if isAuth();
         allow update, delete: if hasAnyRole(['admin', 'super_admin', 'admin_aset', 'operator_aset']);
       }

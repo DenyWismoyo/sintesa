@@ -87,7 +87,6 @@ export async function validateAndSyncGooglePresensi(
             jabatan: u.jabatan || "Pegawai Solo Technopark",
             email: u.email,
             accessCode: u.accessCode || u.nip || "STP-99999",
-            passwordDefault: "StpUser2026!",
             role: u.role || "pegawai",
             rankLevel: u.rankLevel ?? 9,
             departmentName: u.departmentName || "UPTD Solo Technopark",
@@ -109,7 +108,7 @@ export async function validateAndSyncGooglePresensi(
 
     // A. Cek kecocokan password default dari environment variable
     const defaultPassword = process.env.PRESENSI_DEFAULT_PASSWORD || "StpUser2026!";
-    if (found.passwordDefault === password || password === defaultPassword) {
+    if (password === defaultPassword) {
       isPasswordCorrect = true;
     }
 
@@ -359,7 +358,6 @@ export async function loginPresensiWithCredentials(
             jabatan: u.jabatan || "Pegawai Solo Technopark",
             email: u.email,
             accessCode: u.accessCode || u.nip || "STP-99999",
-            passwordDefault: "StpUser2026!",
             role: u.role || "pegawai",
             rankLevel: u.rankLevel ?? 9,
             departmentName: u.departmentName || "UPTD Solo Technopark",
@@ -378,7 +376,7 @@ export async function loginPresensiWithCredentials(
 
     // 2. Validasi Kata Sandi Presensi
     const defaultPassword = process.env.PRESENSI_DEFAULT_PASSWORD || "StpUser2026!";
-    let isPasswordCorrect = (passwordInput === found.passwordDefault || passwordInput === defaultPassword);
+    let isPasswordCorrect = (passwordInput === defaultPassword);
 
     if (!isPasswordCorrect && process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
       try {

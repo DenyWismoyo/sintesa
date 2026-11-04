@@ -349,7 +349,7 @@ export default function ModalEventRegistration({ isOpen, onClose, event, default
                   <Input
                     id="reg-email"
                     type="email"
-                    placeholder="nama@email.com"
+                    placeholder="email.anda@domain.com"
                     value={formData.email}
                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                     required

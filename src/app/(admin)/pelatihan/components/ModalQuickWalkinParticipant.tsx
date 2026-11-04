@@ -171,7 +171,7 @@ export default function ModalQuickWalkinParticipant({
             <Label className="text-xs font-bold text-slate-700">Alamat Email</Label>
             <Input
               type="email"
-              placeholder="nama@email.com (Kosongkan bila dibuat otomatis)"
+              placeholder="email.peserta@domain.com (Kosongkan bila dibuat otomatis)"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="h-10 text-xs rounded-xl"

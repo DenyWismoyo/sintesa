@@ -360,7 +360,7 @@ export default function BookingWizardModal({
                               value={form.userEmail} 
                               onChange={e => setForm({...form, userEmail: e.target.value})} 
                               className="h-11 pl-10 rounded-2xl bg-slate-50 border-slate-200 text-xs font-semibold focus:bg-white" 
-                              placeholder="email@instansi.com"
+                              placeholder="contoh@instansi.id"
                             />
                           </div>
                         </div>

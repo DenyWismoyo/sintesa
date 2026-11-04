@@ -46,7 +46,7 @@ export async function seedStpDatabaseAction(): Promise<{ success: boolean; count
         try {
           const newAuthUser = await adminPresensiAuth.createUser({
             email: cred.email,
-            password: cred.passwordDefault,
+            password: process.env.PRESENSI_DEFAULT_PASSWORD || "StpUser2026!",
             displayName: cred.nama,
           });
           uid = newAuthUser.uid;
