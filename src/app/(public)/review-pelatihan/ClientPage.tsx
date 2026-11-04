@@ -59,6 +59,7 @@ export default function ReviewPelatihanClientPage() {
   // Form State
   const [formData, setFormData] = useState({
     reviewerName: '',
+    isAnonymous: true, // Default anonim demi privasi pengulas
     reviewerRole: 'PESERTA' as ReviewerRole,
     reviewerRoleCustom: '',
     reviewerEmail: '',
@@ -142,13 +143,13 @@ export default function ReviewPelatihanClientPage() {
     });
   }, [reviews, filterRole, filterRating]);
 
-  // Handler Kirim Review Publik (Tanpa Perlu Login)
+  // Handler Kirim Review Publik (Tanpa Perlu Login & Anonim-First)
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentProgram) return;
 
-    if (!formData.reviewerName.trim()) {
-      toast.error('Mohon isi nama Anda (bisa inisial atau nama lengkap).');
+    if (!formData.isAnonymous && !formData.reviewerName.trim()) {
+      toast.error('Mohon isi nama Anda jika tidak memilih opsi anonim.');
       return;
     }
     if (!formData.headline.trim()) {
@@ -166,6 +167,7 @@ export default function ReviewPelatihanClientPage() {
         programId: currentProgram.id,
         programTitle: currentProgram.title,
         reviewerName: formData.reviewerName.trim(),
+        isAnonymous: formData.isAnonymous,
         reviewerRole: formData.reviewerRole,
         reviewerRoleCustom: formData.reviewerRoleCustom.trim(),
         reviewerEmail: formData.reviewerEmail.trim(),
@@ -551,7 +553,14 @@ export default function ReviewPelatihanClientPage() {
                 {/* Footer Kartu Review */}
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
                   <div>
-                    <span className="font-black text-slate-800 block text-xs">{rev.reviewerName}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-black text-slate-800 text-xs">{rev.reviewerName}</span>
+                      {rev.isAnonymous !== false && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                          <ShieldCheck size={10} className="text-emerald-600" /> Anonim Terverifikasi
+                        </span>
+                      )}
+                    </div>
                     <span className="text-[10px] text-slate-400">
                       {new Date(rev.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </span>
@@ -638,35 +647,52 @@ export default function ReviewPelatihanClientPage() {
                       ))}
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                    {/* Opsi Kirim Sebagai Anonim (Default Aktif) */}
+                    <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 flex items-start gap-3">
+                      <input 
+                        type="checkbox"
+                        id="anon-checkbox"
+                        checked={formData.isAnonymous}
+                        onChange={e => setFormData({ ...formData, isAnonymous: e.target.checked })}
+                        className="w-4 h-4 mt-0.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                      />
+                      <label htmlFor="anon-checkbox" className="text-xs text-emerald-950 font-medium cursor-pointer">
+                        <strong className="block text-emerald-900 font-bold">Kirim Ulasan Secara Anonim (Disarankan)</strong>
+                        Identitas asli Anda dirahasiakan untuk kenyamanan dan kebebasan evaluasi. Ulasan akan ditampilkan di publik dengan nama peran (misal: <em>Peserta Welder • Anonim</em>).
+                      </label>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                       <div className="space-y-1.5">
-                        <Label className="text-xs font-bold text-slate-700">Nama Anda / Inisial <span className="text-red-500">*</span></Label>
+                        <Label className="text-xs font-bold text-slate-700">
+                          Nama Anda / Inisial {!formData.isAnonymous && <span className="text-red-500">*</span>}
+                        </Label>
                         <Input 
-                          required
+                          required={!formData.isAnonymous}
                           value={formData.reviewerName}
                           onChange={e => setFormData({ ...formData, reviewerName: e.target.value })}
-                          placeholder="Contoh: Budi Santoso / Aurel"
+                          placeholder={formData.isAnonymous ? "Opsional (disamarkan otomatis)" : "Contoh: Budi Santoso"}
                           className="h-10 rounded-xl text-xs"
                         />
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label className="text-xs font-bold text-slate-700">Asal Sekolah / Instansi / Perusahaan</Label>
+                        <Label className="text-xs font-bold text-slate-700">Keterangan Asal / Lembaga (Opsional)</Label>
                         <Input 
                           value={formData.reviewerInstitution}
                           onChange={e => setFormData({ ...formData, reviewerInstitution: e.target.value })}
-                          placeholder="Contoh: SMK N 2 Kendal / PT Duta Mas"
+                          placeholder="Contoh: Lulusan Welder Kendal / Mitra API"
                           className="h-10 rounded-xl text-xs"
                         />
                       </div>
 
                       <div className="space-y-1.5 sm:col-span-2">
-                        <Label className="text-xs font-bold text-slate-700">Alamat Email (Opsional, tidak dipublikasikan)</Label>
+                        <Label className="text-xs font-bold text-slate-700">Alamat Email (Opsional, 100% tidak dipublikasikan)</Label>
                         <Input 
                           type="email"
                           value={formData.reviewerEmail}
                           onChange={e => setFormData({ ...formData, reviewerEmail: e.target.value })}
-                          placeholder="emailanda@example.com"
+                          placeholder="emailanda@example.com (hanya untuk arsip internal panitia)"
                           className="h-10 rounded-xl text-xs"
                         />
                       </div>

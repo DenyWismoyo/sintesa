@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   TrainingReviewProgram, 
   TrainingReviewItem, 
@@ -34,7 +34,10 @@ import {
   Loader2, 
   X,
   MessageSquare,
-  Award
+  Award,
+  UploadCloud,
+  RotateCcw,
+  Image as ImageIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -62,6 +65,10 @@ export default function ManajemenReviewPelatihanPage() {
   const [isProgramModalOpen, setIsProgramModalOpen] = useState(false);
   const [isSavingProgram, setIsSavingProgram] = useState(false);
   const [editingProgram, setEditingProgram] = useState<Partial<TrainingReviewProgram> | null>(null);
+
+  // Banner Upload State
+  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+  const bannerFileRef = useRef<HTMLInputElement>(null);
 
   // Modal Respon Admin
   const [responseModalReview, setResponseModalReview] = useState<TrainingReviewItem | null>(null);
@@ -252,6 +259,53 @@ export default function ManajemenReviewPelatihanPage() {
     }
   };
 
+  // Upload Banner Program Fisik ke Firebase Storage
+  const handleBannerFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('File yang dipilih harus berupa gambar (JPG, PNG, WebP).');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Ukuran gambar maksimal 5MB.');
+      return;
+    }
+
+    setIsUploadingBanner(true);
+    const toastId = toast.loading('Mengompres dan mengunggah gambar banner...');
+
+    try {
+      const downloadUrl = await learningReviewService.uploadProgramBanner(file);
+      setEditingProgram(prev => ({
+        ...prev,
+        imageUrl: downloadUrl
+      }));
+      toast.success('Banner program berhasil diunggah!', { id: toastId });
+    } catch (err: any) {
+      toast.error(err.message || 'Gagal mengunggah banner.', { id: toastId });
+    } finally {
+      setIsUploadingBanner(false);
+      if (bannerFileRef.current) bannerFileRef.current.value = '';
+    }
+  };
+
+  // Reset Semua Ulasan Pengulas
+  const handleResetReviews = async () => {
+    if (!confirm('⚠️ PERINGATAN: Apakah Anda yakin ingin mereset dan mengosongkan seluruh kotak masuk ulasan pengulas? Seluruh ulasan publik akan dihapus dan statistik program kembali bersih (0 ulasan).')) return;
+
+    const toastId = toast.loading('Mereset database ulasan pengulas...');
+    try {
+      const res = await learningReviewService.resetAllReviews('smk-go-global-welder-2026');
+      toast.success(`Kotak ulasan berhasil direset! (${res.deletedCount} ulasan dihapus)`, { id: toastId });
+      await fetchData();
+    } catch (err: any) {
+      toast.error(err.message || 'Gagal mereset ulasan.', { id: toastId });
+    }
+  };
+
   // Export Excel Ulasan
   const handleExportExcel = () => {
     if (filteredReviews.length === 0) {
@@ -308,6 +362,14 @@ export default function ManajemenReviewPelatihanPage() {
               className="rounded-xl border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 font-bold text-xs h-9 px-3.5"
             >
               <DownloadCloud size={14} className="mr-1.5" /> Export Excel
+            </Button>
+            <Button 
+              onClick={handleResetReviews} 
+              variant="outline" 
+              className="rounded-xl border-rose-200 text-rose-700 bg-rose-50 hover:bg-rose-100 font-bold text-xs h-9 px-3.5"
+              title="Bersihkan seluruh ulasan lama"
+            >
+              <RotateCcw size={14} className="mr-1.5 text-rose-600" /> Reset Ulasan
             </Button>
             <Button 
               onClick={handleOpenAddProgram} 
@@ -812,14 +874,97 @@ export default function ManajemenReviewPelatihanPage() {
                         />
                       </div>
 
-                      <div className="space-y-1.5 sm:col-span-2">
-                        <Label className="text-xs font-bold text-slate-700">URL Foto / Banner Program</Label>
-                        <Input 
-                          value={editingProgram.imageUrl || ''}
-                          onChange={e => setEditingProgram({ ...editingProgram, imageUrl: e.target.value })}
-                          placeholder="https://images.unsplash.com/..."
-                          className="h-10 rounded-xl text-xs"
+                      <div className="space-y-2 sm:col-span-2">
+                        <Label className="text-xs font-bold text-slate-700 flex items-center justify-between">
+                          <span>Banner Gambar Program Pelatihan</span>
+                          {editingProgram.imageUrl && (
+                            <span className="text-[10px] text-emerald-600 font-bold">✓ Banner Terpasang</span>
+                          )}
+                        </Label>
+                        
+                        {/* Hidden File Input */}
+                        <input 
+                          type="file" 
+                          ref={bannerFileRef}
+                          onChange={handleBannerFileChange}
+                          accept="image/png, image/jpeg, image/webp"
+                          className="hidden"
                         />
+
+                        {/* Banner Preview & Upload Area */}
+                        <div className="flex flex-col sm:flex-row items-center gap-4 p-3.5 rounded-2xl border border-slate-200 bg-slate-50/60">
+                          {editingProgram.imageUrl ? (
+                            <div className="relative w-full sm:w-44 h-24 rounded-xl overflow-hidden bg-slate-900 border border-slate-200 shrink-0 shadow-2xs group">
+                              <img 
+                                src={editingProgram.imageUrl} 
+                                alt="Preview Banner" 
+                                className="w-full h-full object-cover"
+                              />
+                              <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <button
+                                  type="button"
+                                  onClick={() => bannerFileRef.current?.click()}
+                                  className="text-[10px] font-bold text-white bg-slate-900/80 px-2.5 py-1 rounded-lg"
+                                >
+                                  Ganti Gambar
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="w-full sm:w-44 h-24 rounded-xl border-2 border-dashed border-slate-300 bg-white flex flex-col items-center justify-center text-slate-400 shrink-0">
+                              <ImageIcon size={24} className="mb-1" />
+                              <span className="text-[10px] font-medium">Belum ada banner</span>
+                            </div>
+                          )}
+
+                          <div className="flex-1 space-y-2 w-full">
+                            <div className="flex items-center gap-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                disabled={isUploadingBanner}
+                                onClick={() => bannerFileRef.current?.click()}
+                                className="rounded-xl text-xs font-bold border-emerald-200 text-emerald-800 bg-emerald-50 hover:bg-emerald-100 h-9 gap-1.5 shadow-2xs cursor-pointer"
+                              >
+                                {isUploadingBanner ? (
+                                  <>
+                                    <Loader2 size={14} className="animate-spin" />
+                                    <span>Mengunggah...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <UploadCloud size={14} />
+                                    <span>Upload Banner dari Perangkat</span>
+                                  </>
+                                )}
+                              </Button>
+                              
+                              {editingProgram.imageUrl && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setEditingProgram(prev => ({ ...prev, imageUrl: '' }))}
+                                  className="text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 h-9 rounded-xl"
+                                >
+                                  Hapus Banner
+                                </Button>
+                              )}
+                            </div>
+
+                            <p className="text-[11px] text-slate-500">
+                              Format: JPG, PNG, WebP (Rekomendasi rasio 16:9 atau 1200×630px, maksimal 5MB).
+                            </p>
+
+                            <Input 
+                              value={editingProgram.imageUrl || ''}
+                              onChange={e => setEditingProgram({ ...editingProgram, imageUrl: e.target.value })}
+                              placeholder="Atau tempel URL gambar eksternal di sini..."
+                              className="h-8 rounded-lg text-[11px] bg-white border-slate-200"
+                            />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>

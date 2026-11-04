@@ -1,5 +1,6 @@
 // Lokasi file: src/services/learningReview.service.ts
 import { db } from '@/lib/firebase';
+import { storageService } from '@/services/storage.service';
 import { 
   collection, 
   doc, 
@@ -25,10 +26,10 @@ import {
 const PROGRAMS_COLLECTION = 'training_review_programs';
 const REVIEWS_COLLECTION = 'training_reviews';
 
-// Data Default / Seed Awal Program SMK Go Global BP3MI
+// Data Default Program SMK Go Global BP3MI (Satu-satunya Target Ulasan Utama)
 export const DEFAULT_SMK_GO_GLOBAL_PROGRAM: TrainingReviewProgram = {
   id: 'smk-go-global-welder-2026',
-  title: 'Pelatihan dan Sertifikasi Welder (SMK Go Global)',
+  title: 'Pelatihan dan Sertifikasi Welder (SMK Go Global × BP3MI)',
   slug: 'smk-go-global-welder',
   shortDescription: 'Program percepatan kompetensi teknis pengelasan (Welder) bersertifikasi internasional hasil kolaborasi BP3MI Jawa Tengah dan BLUD Solo Technopark untuk penempatan kerja global.',
   category: 'Manufaktur & Vokasi',
@@ -48,84 +49,23 @@ export const DEFAULT_SMK_GO_GLOBAL_PROGRAM: TrainingReviewProgram = {
     { id: 'pelayanan', label: 'Pelayanan & Fasilitas Penunjang', description: 'Kenyamanan lingkungan belajar, asrama, katering, serta keramahan panitia Solo Technopark', weight: 1 },
   ],
   stats: {
-    averageRating: 4.9,
-    totalReviews: 8,
+    averageRating: 0,
+    totalReviews: 0,
     aspectScores: {
-      kurikulum: 4.9,
-      instruktur: 5.0,
-      fasilitas: 4.8,
-      kesiapan_kerja: 4.9,
-      pelayanan: 4.8,
+      kurikulum: 0,
+      instruktur: 0,
+      fasilitas: 0,
+      kesiapan_kerja: 0,
+      pelayanan: 0,
     },
-    ratingCounts: { '5': 7, '4': 1, '3': 0, '2': 0, '1': 0 },
+    ratingCounts: { '5': 0, '4': 0, '3': 0, '2': 0, '1': 0 },
   },
   createdAt: Date.now() - 15 * 86400 * 1000,
   updatedAt: Date.now(),
 };
 
-// Seed Contoh Review Awal untuk SMK Go Global
-export const DEFAULT_INITIAL_REVIEWS: TrainingReviewItem[] = [
-  {
-    id: 'rev-001',
-    programId: 'smk-go-global-welder-2026',
-    programTitle: 'Pelatihan dan Sertifikasi Welder (SMK Go Global)',
-    reviewerName: 'Aurel Rizka Affandi',
-    reviewerRole: 'PESERTA',
-    reviewerRoleCustom: 'Peserta Welder Batch II (Kendal)',
-    reviewerInstitution: 'SMK N Kendal',
-    overallRating: 5,
-    aspectRatings: { kurikulum: 5, instruktur: 5, fasilitas: 5, kesiapan_kerja: 5, pelayanan: 5 },
-    headline: 'Pelatihan Sangat Intensif, Peralatan Las Sesuai Standar Pabrik Jepang',
-    feedback: 'Instruktur di Solo Technopark sangat teliti mengajarkan sudut elektroda dan penetrasi las. Booth praktiknya bersih, exhaust ventilasi bagus sehingga aman untuk pernapasan. Saya merasa jauh lebih percaya diri menghadapi tes kerja di luar negeri.',
-    suggestions: 'Semoga durasi praktik malam hari bisa ditambah untuk memperbanyak jam terbang sebelum ujian sertifikasi BNSP.',
-    isRecommended: true,
-    status: 'PUBLISHED',
-    adminResponse: 'Terima kasih Aurel atas ulasannya! Kami bangga dengan dedikasi Anda selama pelatihan. Terus asah keterampilan dan sukses dalam penempatan kerja luar negeri.',
-    adminResponseAt: Date.now() - 5 * 86400 * 1000,
-    likesCount: 14,
-    createdAt: Date.now() - 7 * 86400 * 1000,
-  },
-  {
-    id: 'rev-002',
-    programId: 'smk-go-global-welder-2026',
-    programTitle: 'Pelatihan dan Sertifikasi Welder (SMK Go Global)',
-    reviewerName: 'Bambang Supriyanto, S.T., M.Eng.',
-    reviewerRole: 'MENTOR',
-    reviewerRoleCustom: 'Instruktur Penguji Las Asosiasi Pengelasan Indonesia',
-    reviewerInstitution: 'Asosiasi Pengelasan Indonesia (API)',
-    overallRating: 5,
-    aspectRatings: { kurikulum: 5, instruktur: 5, fasilitas: 4, kesiapan_kerja: 5, pelayanan: 5 },
-    headline: 'Peserta Memiliki Disiplin Kerja Tinggi dan Mentalitas Siap Bersaing Global',
-    feedback: 'Program SMK Go Global ini menjadi jembatan yang sangat efektif antara lulusan SMK Jawa Tengah dengan kebutuhan industri galangan kapal dan manufaktur internasional. Tingkat kelulusan tes visual dan bending peserta angkatan ini mencapai di atas 90%.',
-    suggestions: 'Perlu terus memperbarui modul welding otomatis (orbital welding) untuk mengantisipasi teknologi masa depan.',
-    isRecommended: true,
-    status: 'PUBLISHED',
-    adminResponse: 'Masukan yang sangat berharga Bapak Bambang. Kurikulum orbital welding sedang kami rancang bersama mitra industri untuk batch mendatang.',
-    adminResponseAt: Date.now() - 3 * 86400 * 1000,
-    likesCount: 21,
-    createdAt: Date.now() - 4 * 86400 * 1000,
-  },
-  {
-    id: 'rev-003',
-    programId: 'smk-go-global-welder-2026',
-    programTitle: 'Pelatihan dan Sertifikasi Welder (SMK Go Global)',
-    reviewerName: 'PT Danareksa Global Talent (Mitra Rekruter)',
-    reviewerRole: 'INDUSTRI',
-    reviewerRoleCustom: 'Agency Rekrutmen Tenaga Terampil Luar Negeri',
-    reviewerInstitution: 'PT Danareksa Global Talent',
-    overallRating: 5,
-    aspectRatings: { kurikulum: 5, instruktur: 5, fasilitas: 5, kesiapan_kerja: 5, pelayanan: 4 },
-    headline: 'Lulusan Memiliki Sertifikat Resmi dan Sikap Kerja (Attitude) yang Matang',
-    feedback: 'Sebagai mitra penyalur tenaga kerja ke Asia Timur, kami melihat lulusan welder dari Solo Technopark yang bekerjasama dengan BP3MI memiliki keunggulan pada kedisiplinan K3 dan kemampuan membaca diagram ISO welding symbols.',
-    suggestions: 'Pertahankan pembekalan bahasa asing (Jepang/Korea/Inggris teknis) secara paralel selama pelatihan.',
-    isRecommended: true,
-    status: 'PUBLISHED',
-    adminResponse: 'Terima kasih atas kepercayaan PT Danareksa. Kami berkomitmen terus menyuplai talenta terbaik Indonesia ke kancah global.',
-    adminResponseAt: Date.now() - 1 * 86400 * 1000,
-    likesCount: 18,
-    createdAt: Date.now() - 2 * 86400 * 1000,
-  },
-];
+// Reset Ulasan Awal Menjadi Kosong (Bersih / Organik)
+export const DEFAULT_INITIAL_REVIEWS: TrainingReviewItem[] = [];
 
 export const learningReviewService = {
   /**
@@ -300,15 +240,105 @@ export const learningReviewService = {
   },
 
   /**
-   * Kirim review baru dari publik (Akses Publik Tanpa Perlu Login)
+   * Helper cerdas penyamaran nama anonim pengulas
+   */
+  getAnonymousReviewerName: (role?: string, customDetail?: string): string => {
+    switch (role) {
+      case 'PESERTA':
+        return customDetail ? `Peserta Welder (${customDetail}) • Anonim` : 'Peserta Pelatihan • Anonim';
+      case 'MENTOR':
+        return customDetail ? `Instruktur Penguji (${customDetail}) • Anonim` : 'Instruktur / Mentor • Anonim';
+      case 'INDUSTRI':
+        return customDetail ? `Mitra Industri (${customDetail}) • Anonim` : 'Mitra Industri / Perusahaan • Anonim';
+      case 'PUBLIK':
+      default:
+        return 'Masyarakat / Pengamat Vokasi • Anonim';
+    }
+  },
+
+  /**
+   * Upload Banner Gambar Program Pelatihan ke Firebase Storage
+   */
+  uploadProgramBanner: async (file: File): Promise<string> => {
+    return await storageService.uploadImage(file, 'training_reviews/banners');
+  },
+
+  /**
+   * Reset / Kosongkan Seluruh Ulasan Pengulas (Admin Action)
+   */
+  resetAllReviews: async (programId: string = DEFAULT_SMK_GO_GLOBAL_PROGRAM.id): Promise<{ success: boolean; deletedCount: number }> => {
+    try {
+      const q = programId === 'ALL'
+        ? collection(db, REVIEWS_COLLECTION)
+        : query(collection(db, REVIEWS_COLLECTION), where('programId', '==', programId));
+        
+      const snap = await getDocs(q);
+      let count = 0;
+      for (const d of snap.docs) {
+        await deleteDoc(doc(db, REVIEWS_COLLECTION, d.id));
+        count++;
+      }
+
+      // Reset juga agregat statistik program terkait
+      if (programId && programId !== 'ALL') {
+        try {
+          await updateDoc(doc(db, PROGRAMS_COLLECTION, programId), {
+            'stats.averageRating': 0,
+            'stats.totalReviews': 0,
+            'stats.aspectScores': {
+              kurikulum: 0,
+              instruktur: 0,
+              fasilitas: 0,
+              kesiapan_kerja: 0,
+              pelayanan: 0,
+            },
+            'stats.ratingCounts': { '5': 0, '4': 0, '3': 0, '2': 0, '1': 0 },
+            updatedAt: Date.now(),
+          });
+        } catch (e) {
+          console.warn('Gagal reset stats program:', e);
+        }
+      }
+
+      return { success: true, deletedCount: count };
+    } catch (err: any) {
+      console.error('Error resetting reviews:', err);
+      throw new Error(err.message || 'Gagal mereset ulasan.');
+    }
+  },
+
+  /**
+   * Kirim review baru dari publik (Akses Publik Tanpa Perlu Login & Anonim-First)
    */
   submitPublicReview: async (reviewInput: Partial<TrainingReviewItem>): Promise<{ success: boolean; id: string }> => {
     try {
       const programId = reviewInput.programId || DEFAULT_SMK_GO_GLOBAL_PROGRAM.id;
+      const isAnon = reviewInput.isAnonymous !== false; // Default anonim
+      let finalReviewerName = (reviewInput.reviewerName || '').trim();
+
+      if (isAnon) {
+        // Jika nama kosong atau memilih anonim, gunakan nama aman
+        if (!finalReviewerName || finalReviewerName.toLowerCase().includes('anonim')) {
+          finalReviewerName = learningReviewService.getAnonymousReviewerName(
+            reviewInput.reviewerRole,
+            reviewInput.reviewerRoleCustom || reviewInput.reviewerInstitution
+          );
+        } else {
+          // Samarkan inisial jika user menulis nama
+          const parts = finalReviewerName.split(' ');
+          const masked = parts.map(p => p.length > 2 ? p[0] + '*'.repeat(p.length - 1) : p).join(' ');
+          finalReviewerName = `${masked} (Anonim)`;
+        }
+      } else if (!finalReviewerName) {
+        finalReviewerName = 'Pengulas Terverifikasi';
+      }
+
       const parsed = TrainingReviewItemSchema.parse({
         ...reviewInput,
         programId,
-        programTitle: reviewInput.programTitle || 'Program Pelatihan',
+        programTitle: reviewInput.programTitle || 'Pelatihan dan Sertifikasi Welder (SMK Go Global × BP3MI)',
+        reviewerName: finalReviewerName,
+        isAnonymous: isAnon,
         status: 'PUBLISHED', // Default dipublikasikan
         likesCount: 0,
         createdAt: Date.now(),

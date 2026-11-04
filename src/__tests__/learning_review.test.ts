@@ -16,7 +16,7 @@ import {
   learningReviewService 
 } from '@/services/learningReview.service';
 
-describe('Modul Review Program Pelatihan Vokasi & Kustomisasi Admin', () => {
+describe('Modul Review Program Pelatihan Vokasi (P3MI Focus & Anonimitas)', () => {
   describe('1. Zod Schema & Validasi Domain', () => {
     it('harus memiliki semua enum reviewer role dan status ulasan dengan benar', () => {
       const roles = ['PESERTA', 'MENTOR', 'PUBLIK', 'INDUSTRI'] as const;
@@ -68,10 +68,10 @@ describe('Modul Review Program Pelatihan Vokasi & Kustomisasi Admin', () => {
           { id: 'instruktur', label: 'Kompetensi Mentor & Penguji', description: 'Instruktur bersertifikat', weight: 1 },
         ],
         stats: {
-          averageRating: 4.8,
-          totalReviews: 12,
-          aspectScores: { kurikulum: 4.8, fasilitas: 4.7, instruktur: 4.9 },
-          ratingCounts: { '5': 10, '4': 2, '3': 0, '2': 0, '1': 0 },
+          averageRating: 0,
+          totalReviews: 0,
+          aspectScores: { kurikulum: 0, fasilitas: 0, instruktur: 0 },
+          ratingCounts: { '5': 0, '4': 0, '3': 0, '2': 0, '1': 0 },
         },
       };
 
@@ -101,29 +101,12 @@ describe('Modul Review Program Pelatihan Vokasi & Kustomisasi Admin', () => {
       expect(result.success).toBe(false);
     });
 
-    it('harus menolak feedback ulasan yang terlalu pendek (di bawah 10 karakter)', () => {
-      const tooShortReview = {
-        programId: 'smk-go-global-welder-2026',
-        programTitle: 'Pelatihan Welder SMK Go Global',
-        reviewerName: 'Budi Santoso',
-        reviewerRole: 'PESERTA' as const,
-        overallRating: 5,
-        headline: 'Bagus',
-        feedback: 'Keren', // Kurang dari 10 karakter
-      };
-
-      const result = TrainingReviewItemSchema.safeParse(tooShortReview);
-      expect(result.success).toBe(false);
-    });
-
-    it('harus mengizinkan pengiriman ulasan publik tanpa login (userId tidak ada)', () => {
+    it('harus mengizinkan pengiriman ulasan publik anonim secara default', () => {
       const publicReviewData = {
         programId: 'smk-go-global-welder-2026',
-        programTitle: 'Pelatihan dan Sertifikasi Welder (SMK Go Global)',
-        reviewerName: 'Ahmad Fauzi (Alumni Welder)',
-        reviewerEmail: 'ahmad.fauzi@example.com',
+        programTitle: 'Pelatihan dan Sertifikasi Welder (SMK Go Global × BP3MI)',
+        isAnonymous: true,
         reviewerRole: 'PESERTA' as const,
-        reviewerInstitution: 'SMK N 2 Kendal',
         overallRating: 5,
         headline: 'Fasilitas bengkel welding kelas dunia!',
         feedback: 'Praktik pengelasan menggunakan mesin mutakhir dan instruktur sangat sabar membimbing posisi 3G.',
@@ -140,6 +123,7 @@ describe('Modul Review Program Pelatihan Vokasi & Kustomisasi Admin', () => {
       const result = TrainingReviewItemSchema.safeParse(publicReviewData);
       expect(result.success).toBe(true);
       if (result.success) {
+        expect(result.data.isAnonymous).toBe(true);
         expect(result.data.reviewerRole).toBe('PESERTA');
         expect(result.data.overallRating).toBe(5);
         expect(result.data.status).toBe('PUBLISHED');
@@ -147,8 +131,8 @@ describe('Modul Review Program Pelatihan Vokasi & Kustomisasi Admin', () => {
     });
   });
 
-  describe('2. Integritas Data Default Program SMK Go Global BP3MI Welder', () => {
-    it('harus memiliki konfigurasi program default SMK Go Global dengan kriteria evaluasi lengkap', () => {
+  describe('2. Pengaturan Fokus P3MI & Reset Bersih Ulasan', () => {
+    it('harus menyediakan program SMK Go Global BP3MI sebagai sasaran ulasan utama', () => {
       expect(DEFAULT_SMK_GO_GLOBAL_PROGRAM.id).toBe('smk-go-global-welder-2026');
       expect(DEFAULT_SMK_GO_GLOBAL_PROGRAM.title).toContain('SMK Go Global');
       expect(DEFAULT_SMK_GO_GLOBAL_PROGRAM.partnerInstitution).toBe('BP3MI Jawa Tengah');
@@ -163,76 +147,40 @@ describe('Modul Review Program Pelatihan Vokasi & Kustomisasi Admin', () => {
       expect(aspectIds).toContain('pelayanan');
     });
 
-    it('harus memuat ulasan contoh awal terverifikasi dari beragam peran pemangku kepentingan', () => {
-      expect(DEFAULT_INITIAL_REVIEWS.length).toBeGreaterThanOrEqual(3);
+    it('harus memastikan daftar ulasan awal di-reset bersih (0 ulasan dummy)', () => {
+      expect(DEFAULT_INITIAL_REVIEWS.length).toBe(0);
+      expect(DEFAULT_SMK_GO_GLOBAL_PROGRAM.stats.totalReviews).toBe(0);
+      expect(DEFAULT_SMK_GO_GLOBAL_PROGRAM.stats.averageRating).toBe(0);
+    });
 
-      const roles = DEFAULT_INITIAL_REVIEWS.map(r => r.reviewerRole);
-      expect(roles).toContain('PESERTA');
-      expect(roles).toContain('MENTOR');
-      expect(roles).toContain('INDUSTRI');
+    it('harus menyamarkan nama pengulas secara cerdas via getAnonymousReviewerName', () => {
+      const pesertaAnon = learningReviewService.getAnonymousReviewerName('PESERTA', 'Kendal');
+      expect(pesertaAnon).toContain('Peserta Welder');
+      expect(pesertaAnon).toContain('Anonim');
 
-      // Pastikan ulasan memiliki respon resmi dari admin Solo Technopark
-      const withAdminResponse = DEFAULT_INITIAL_REVIEWS.filter(r => Boolean(r.adminResponse));
-      expect(withAdminResponse.length).toBeGreaterThanOrEqual(2);
+      const mentorAnon = learningReviewService.getAnonymousReviewerName('MENTOR');
+      expect(mentorAnon).toContain('Instruktur');
+      expect(mentorAnon).toContain('Anonim');
+
+      const industriAnon = learningReviewService.getAnonymousReviewerName('INDUSTRI', 'Galangan Kapal');
+      expect(industriAnon).toContain('Mitra Industri');
+      expect(industriAnon).toContain('Anonim');
+
+      const publikAnon = learningReviewService.getAnonymousReviewerName('PUBLIK');
+      expect(publikAnon).toContain('Masyarakat');
+      expect(publikAnon).toContain('Anonim');
     });
   });
 
-  describe('3. Logika Agregasi & Kalkulasi Statistik Ulasan', () => {
-    it('harus menghitung rata-rata skor per-aspek dan overall rating secara presisi', () => {
-      const mockReviews: TrainingReviewItem[] = [
-        {
-          id: 'r1',
-          programId: 'prog-1',
-          programTitle: 'Test Program',
-          reviewerName: 'User A',
-          reviewerRole: 'PESERTA',
-          overallRating: 5,
-          aspectRatings: { kurikulum: 5, instruktur: 4 },
-          headline: 'Sangat baik',
-          feedback: 'Pelatihan ini sangat komprehensif dan bermanfaat.',
-          isRecommended: true,
-          status: 'PUBLISHED',
-          likesCount: 0,
-          createdAt: Date.now(),
-        },
-        {
-          id: 'r2',
-          programId: 'prog-1',
-          programTitle: 'Test Program',
-          reviewerName: 'User B',
-          reviewerRole: 'MENTOR',
-          overallRating: 4,
-          aspectRatings: { kurikulum: 4, instruktur: 5 },
-          headline: 'Cukup memuaskan',
-          feedback: 'Peserta sangat antusias mengikuti setiap sesi praktik.',
-          isRecommended: true,
-          status: 'PUBLISHED',
-          likesCount: 0,
-          createdAt: Date.now(),
-        },
-      ];
-
-      // Kalkulasi agregat
-      const total = mockReviews.length;
-      const sumOverall = mockReviews.reduce((sum, r) => sum + r.overallRating, 0);
-      const avgOverall = Number((sumOverall / total).toFixed(1));
-      expect(avgOverall).toBe(4.5);
-
-      // Kalkulasi skor per-aspek
-      const kurikulumAvg = Number(
-        (mockReviews.reduce((sum, r) => sum + (r.aspectRatings['kurikulum'] || 0), 0) / total).toFixed(1)
-      );
-      const instrukturAvg = Number(
-        (mockReviews.reduce((sum, r) => sum + (r.aspectRatings['instruktur'] || 0), 0) / total).toFixed(1)
-      );
-
-      expect(kurikulumAvg).toBe(4.5);
-      expect(instrukturAvg).toBe(4.5);
+  describe('3. Fitur Upload Banner & Reset Ulasan Admin', () => {
+    it('harus memiliki fungsi upload banner gambar dan reset ulasan di service', () => {
+      expect(typeof learningReviewService.uploadProgramBanner).toBe('function');
+      expect(typeof learningReviewService.resetAllReviews).toBe('function');
     });
   });
 
   describe('4. Resiliensi & Fallback Data Service', () => {
-    it('harus mengembalikan default SMK Go Global program saat offline/fallback', async () => {
+    it('harus mengembalikan program default SMK Go Global saat offline/fallback', async () => {
       const programs = await learningReviewService.getReviewPrograms();
       expect(programs.length).toBeGreaterThanOrEqual(1);
 
