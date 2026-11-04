@@ -104,6 +104,13 @@ service firebase.storage {
       allow write: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']) &&
                    isUnderSize(50);
     }
+    // 4b. Ulasan & Banner Pelatihan (training_reviews/*)
+    match /training_reviews/{allPaths=**} {
+      allow read: if true;
+      allow create, update: if (hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']) || isAuth()) &&
+                               isImage() && isUnderSize(10);
+      allow delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']) || isAuth();
+    }
 
     // 5. Event Kawasan (events/*)
     match /events/{fileName} {

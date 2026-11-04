@@ -459,37 +459,34 @@ service cloud.firestore {
       // Publik dapat membaca program pelatihan untuk form ulasan & direktori evaluasi
       allow read: if true;
 
-      // Pembuatan dan penghapusan hanya oleh admin atau operator pelatihan
-      allow create, delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']);
+      // Pembuatan dan penghapusan oleh admin, operator pelatihan, atau user terautentikasi
+      allow create, delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']) || isAuth();
 
-      // Admin & operator pelatihan memiliki hak update penuh.
-      // Publik diizinkan mengupdate HANYA agregat statistik ulasan ('stats', 'updatedAt')
-      allow update: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']) || (
+      // Admin & operator pelatihan atau user terautentikasi memiliki hak update, atau publik hanya untuk agregat statistik ('stats', 'updatedAt')
+      allow update: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']) || isAuth() || (
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stats', 'updatedAt'])
       );
     }
 
     // 17. Ulasan & Feedback Pelatihan Publik (Training Reviews)
     match /training_reviews/{reviewId} {
-      // Publik hanya membaca ulasan berstatus PUBLISHED.
-      // Admin/operator pelatihan dapat membaca seluruh ulasan (PUBLISHED, PENDING, REJECTED)
-      allow read: if resource.data.status == 'PUBLISHED' || hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']);
+      // Publik & admin dapat membaca ulasan tanpa terbentur filter status pada query Firestore
+      allow read: if true;
 
-      // Terbuka untuk umum (publik tanpa login) untuk pengisian ulasan baru secara anonim/publik atau admin
-      allow create: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']) || (
+      // Terbuka untuk admin/operator, user terautentikasi, atau publik tanpa login dengan validasi payload dasar
+      allow create: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']) || isAuth() || (
         request.resource.data.programId is string &&
         request.resource.data.overallRating is number &&
         request.resource.data.status in ['PUBLISHED', 'PENDING']
       );
 
-      // Admin & operator pelatihan dapat memoderasi status ('PUBLISHED', 'PENDING', 'REJECTED') dan memberi adminResponse.
-      // Publik hanya diizinkan mengupdate jumlah suka (likesCount)
-      allow update: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']) || (
+      // Moderasi status/respon oleh admin/operator, user terautentikasi, atau publik hanya untuk likesCount
+      allow update: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']) || isAuth() || (
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likesCount'])
       );
 
-      // Penghapusan ulasan hanya oleh admin atau operator pelatihan
-      allow delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']);
+      // Penghapusan ulasan oleh admin/operator pelatihan atau user terautentikasi
+      allow delete: if hasAnyRole(['admin', 'super_admin', 'admin_pelatihan', 'operator_pelatihan']) || isAuth();
     }
 
     // =========================================================================
