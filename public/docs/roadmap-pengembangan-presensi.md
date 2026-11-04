@@ -87,7 +87,7 @@ Okt 2026   Nov 2026   Des 2026   Jan 2027   Feb 2027   Mar 2027
 - **Solusi:**
   ```bash
   # .env.local
-  PRESENSI_DEFAULT_PASSWORD=StpUser2026!
+  PRESENSI_DEFAULT_PASSWORD=<password_rahasia>
   ```
   ```typescript
   // auth.ts

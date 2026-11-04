@@ -107,8 +107,8 @@ export async function validateAndSyncGooglePresensi(
     let isPasswordCorrect = false;
 
     // A. Cek kecocokan password default dari environment variable
-    const defaultPassword = process.env.PRESENSI_DEFAULT_PASSWORD || "StpUser2026!";
-    if (password === defaultPassword) {
+    const defaultPassword = process.env.PRESENSI_DEFAULT_PASSWORD;
+    if (defaultPassword && password === defaultPassword) {
       isPasswordCorrect = true;
     }
 
@@ -375,8 +375,8 @@ export async function loginPresensiWithCredentials(
     }
 
     // 2. Validasi Kata Sandi Presensi
-    const defaultPassword = process.env.PRESENSI_DEFAULT_PASSWORD || "StpUser2026!";
-    let isPasswordCorrect = (passwordInput === defaultPassword);
+    const defaultPassword = process.env.PRESENSI_DEFAULT_PASSWORD;
+    let isPasswordCorrect = Boolean(defaultPassword && passwordInput === defaultPassword);
 
     if (!isPasswordCorrect && process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
       try {

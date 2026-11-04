@@ -67,9 +67,6 @@ env:
   - variable: FIREBASE_ADMIN_CLIENT_EMAIL
     value: "firebase-adminsdk-fbsvc@katalog-solo-technopark.iam.gserviceaccount.com"
 
-  - variable: PRESENSI_DEFAULT_PASSWORD
-    value: "StpUser2026!"
-
   - variable: CLARIO_BASE_URL
     value: "https://clario.apicloud.my.id/v1"
 

@@ -1,7 +1,7 @@
 /**
  * Script Provisioning Seluruh User Presensi Solo Technopark ke Firebase Auth & Firestore
  * - Membaca 46 profil pegawai dari named database 'presensi-pegawai'
- * - Memasukkan / Mengupdate akun di Firebase Authentication dengan password resmi: StpUser2026!
+ * - Memasukkan / Mengupdate akun di Firebase Authentication dengan password dari PRESENSI_DEFAULT_PASSWORD
  * - Menetapkan displayName, emailVerified = true
  * - Custom claims MENGGUNAKAN 'presensiRole' (BUKAN 'role') agar tidak bentrok dengan catalog admin
  * - Menyinkronkan dokumen users/{uid} di Firestore 'presensi-pegawai'
@@ -12,7 +12,11 @@ const admin = require(path.join(__dirname, '../functions/node_modules/firebase-a
 const { Firestore } = require(path.join(__dirname, '../functions/node_modules/@google-cloud/firestore'));
 const sa = require(path.join(__dirname, '../service-account-katalog.json'));
 
-const DEFAULT_PASSWORD = 'StpUser2026!';
+const DEFAULT_PASSWORD = process.env.PRESENSI_DEFAULT_PASSWORD;
+if (!DEFAULT_PASSWORD) {
+  console.error("FATAL: Environment variable PRESENSI_DEFAULT_PASSWORD wajib disetel sebelum menjalankan script.");
+  process.exit(1);
+}
 
 admin.initializeApp({
   credential: admin.credential.cert(sa),

@@ -185,9 +185,9 @@ Komentar "akan diintegrasikan dengan modul kalender libur" sudah ada lama, belum
 
 ### [TD-08] Password Default Hardcoded di Source Code
 ```typescript
-if (found.passwordDefault === password || password === "StpUser2026!") {
+if (found.passwordDefault === password || password === "<DEFAULT_PASSWORD>") {
 ```
-Password `StpUser2026!` terekspos di source code. Pindahkan ke env variable `PRESENSI_DEFAULT_PASSWORD`.
+Password default sebelumnya terekspos di source code. Telah dipindahkan ke env variable `PRESENSI_DEFAULT_PASSWORD`.
 
 ---
 

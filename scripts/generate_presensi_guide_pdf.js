@@ -287,7 +287,7 @@ async function generatePresensiGuidePdf() {
   doc.text("Kata Sandi Awal Default:", col1Left, col1Y);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...colors.primary);
-  doc.text("StpUser2026!  (Wajib diperbarui di profil)", col1Left, col1Y + 3.8);
+  doc.text("(Kata sandi awal diberikan oleh Admin Kepegawaian)", col1Left, col1Y + 3.8);
 
   // Kolom 2
   let col2Y = heroLineY + 5;
@@ -343,7 +343,7 @@ async function generatePresensiGuidePdf() {
     "Otentikasi Akun Pegawai (Login Menggunakan Kode Akses Pegawai)",
     [
       "• Buka aplikasi Techno Sign, lalu masukkan Kode Akses Pegawai Anda (Contoh: STP-50120 atau STP-53851).",
-      "• Masukkan kata sandi awal: StpUser2026! kemudian klik tombol 'Masuk ke Presensi'.",
+      "• Masukkan kata sandi awal yang diterbitkan oleh Admin kemudian klik tombol 'Masuk ke Presensi'.",
       "• Jika lupa kode akses, silakan periksa tabel direktori pegawai pada lembar lampiran dokumen ini.",
       "• Demi menjaga keamanan privasi dan akun, segera perbarui kata sandi Anda di menu pengaturan profil.",
     ],

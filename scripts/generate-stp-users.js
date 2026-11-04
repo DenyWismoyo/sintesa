@@ -32,7 +32,6 @@ async function updateStpUsers() {
       jabatan: u.jabatan || 'Pegawai Solo Technopark',
       email: u.email.trim().toLowerCase(),
       accessCode: accessCode,
-      passwordDefault: 'StpUser2026!',
       role: u.role || 'pegawai',
       departmentName: u.departmentName || 'UPTD KST Solo Technopark'
     };

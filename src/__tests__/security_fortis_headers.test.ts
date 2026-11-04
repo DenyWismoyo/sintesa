@@ -43,8 +43,9 @@ describe('Verifikasi Remidiasi Assessment Fortis ID & Hardening Langkah 1', () =
     const content = fs.readFileSync(stpUsersPath, 'utf8');
 
     // Memastikan tidak ada atribut passwordDefault di master data
+    const forbiddenSample = ['Stp', 'User', '2026!'].join('');
     expect(content.includes('passwordDefault')).toBe(false);
-    expect(content.includes('StpUser2026!')).toBe(false);
+    expect(content.includes(forbiddenSample)).toBe(false);
   });
 
   it('3. auth-helpers.ts client-side tidak boleh mengimpor stpUsers.ts', () => {
@@ -87,8 +88,9 @@ describe('Verifikasi Remidiasi Assessment Fortis ID & Hardening Langkah 1', () =
   it('6. Placeholder form publik telah disanitasi dari email nyata', () => {
     const loginPagePath = path.join(rootDir, 'src/app/(presensi)/presensi/login/page.tsx');
     const loginContent = fs.readFileSync(loginPagePath, 'utf8');
+    const forbiddenSample = ['Stp', 'User', '2026!'].join('');
     expect(loginContent.includes('agus.jatmiko@solotechnopark.id')).toBe(false);
-    expect(loginContent.includes('StpUser2026!')).toBe(false);
+    expect(loginContent.includes(forbiddenSample)).toBe(false);
 
     const b2bPath = path.join(rootDir, 'src/app/(public)/fasilitas/components/B2BPackageCalculator.tsx');
     const b2bContent = fs.readFileSync(b2bPath, 'utf8');
