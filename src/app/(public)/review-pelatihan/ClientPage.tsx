@@ -11,34 +11,27 @@ import {
   REVIEWER_ROLE_BADGES 
 } from '@/types';
 import { learningReviewService } from '@/services/learningReview.service';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   Star, 
   Sparkles, 
   GraduationCap, 
-  Building2, 
-  CheckCircle2, 
   ThumbsUp, 
   MessageSquareQuote, 
   Plus, 
-  Filter, 
   ArrowRight, 
-  Send, 
   Loader2, 
   ShieldCheck, 
-  HelpCircle, 
   Award,
-  ChevronDown,
-  X,
   ExternalLink,
   Share2,
   Copy,
   Check,
+  CheckCircle2,
   ArrowLeft,
   MessageCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import Link from 'next/link';
