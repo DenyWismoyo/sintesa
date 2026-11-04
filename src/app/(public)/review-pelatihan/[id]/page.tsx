@@ -1,7 +1,7 @@
 // Lokasi file: src/app/(public)/review-pelatihan/[id]/page.tsx
 import React, { Suspense } from 'react';
 import { Metadata } from 'next';
-import ReviewPelatihanClientPage from '../ClientPage';
+import ProgramReviewClientPage from './ProgramReviewClientPage';
 import { Loader2 } from 'lucide-react';
 import { learningReviewService } from '@/services/learningReview.service';
 
@@ -45,7 +45,7 @@ export default function DirectProgramReviewPage({ params }: Props) {
         </div>
       }
     >
-      <ReviewPelatihanClientPage initialProgramId={params.id} isDirectProgramPage={true} />
+      <ProgramReviewClientPage programId={params.id} />
     </Suspense>
   );
 }

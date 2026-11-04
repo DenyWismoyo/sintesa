@@ -54,7 +54,6 @@ export default function ReviewPelatihanClientPage({
 }: ReviewPelatihanClientPageProps = {}) {
   const searchParams = useSearchParams();
   const initialProgramQuery = searchParams.get('program');
-  const shouldOpenWriteModal = searchParams.get('write') === 'true';
 
   const [programs, setPrograms] = useState<TrainingReviewProgram[]>([]);
   const [selectedProgramId, setSelectedProgramId] = useState<string>('');
@@ -64,41 +63,13 @@ export default function ReviewPelatihanClientPage({
 
   // Share States
   const [copiedLink, setCopiedLink] = useState(false);
-  const [copiedFormLink, setCopiedFormLink] = useState(false);
 
   // Filter Ulasan Publik
   const [filterRole, setFilterRole] = useState<string>('ALL');
   const [filterRating, setFilterRating] = useState<string>('ALL');
 
-  // Modal Tulis Review
-  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Form State
-  const [formData, setFormData] = useState({
-    reviewerName: '',
-    isAnonymous: true, // Default anonim demi privasi pengulas
-    reviewerRole: 'PESERTA' as ReviewerRole,
-    reviewerRoleCustom: '',
-    reviewerEmail: '',
-    reviewerInstitution: '',
-    overallRating: 5,
-    aspectRatings: {} as Record<string, number>,
-    headline: '',
-    feedback: '',
-    suggestions: '',
-    isRecommended: true,
-  });
-
   // State liked reviews local
   const [likedReviews, setLikedReviews] = useState<Set<string>>(new Set());
-
-  // Auto buka modal pengisian jika query ?write=true aktif
-  useEffect(() => {
-    if (shouldOpenWriteModal) {
-      setIsReviewModalOpen(true);
-    }
-  }, [shouldOpenWriteModal]);
 
   const targetId = initialProgramId || initialProgramQuery;
 
@@ -158,20 +129,6 @@ export default function ReviewPelatihanClientPage({
     fetchReviews();
   }, [selectedProgramId]);
 
-  // Inisialisasi aspectRatings saat program berganti
-  useEffect(() => {
-    if (currentProgram && currentProgram.aspects) {
-      const initialAspects: Record<string, number> = {};
-      currentProgram.aspects.forEach(asp => {
-        initialAspects[asp.id] = 5;
-      });
-      setFormData(prev => ({
-        ...prev,
-        aspectRatings: initialAspects,
-      }));
-    }
-  }, [currentProgram]);
-
   // Filter Ulasan
   const filteredReviews = useMemo(() => {
     return reviews.filter(rev => {
@@ -180,76 +137,6 @@ export default function ReviewPelatihanClientPage({
       return matchRole && matchRating;
     });
   }, [reviews, filterRole, filterRating]);
-
-  // Handler Kirim Review Publik (Tanpa Perlu Login & Anonim-First)
-  const handleSubmitReview = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!currentProgram) return;
-
-    if (!formData.isAnonymous && !formData.reviewerName.trim()) {
-      toast.error('Mohon isi nama Anda jika tidak memilih opsi anonim.');
-      return;
-    }
-    if (!formData.headline.trim()) {
-      toast.error('Mohon isi judul ringkasan ulasan Anda.');
-      return;
-    }
-    if (!formData.feedback.trim() || formData.feedback.trim().length < 10) {
-      toast.error('Ulasan pengalaman minimal 10 karakter.');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      await learningReviewService.submitPublicReview({
-        programId: currentProgram.id,
-        programTitle: currentProgram.title,
-        reviewerName: formData.reviewerName.trim(),
-        isAnonymous: formData.isAnonymous,
-        reviewerRole: formData.reviewerRole,
-        reviewerRoleCustom: formData.reviewerRoleCustom.trim(),
-        reviewerEmail: formData.reviewerEmail.trim(),
-        reviewerInstitution: formData.reviewerInstitution.trim(),
-        overallRating: formData.overallRating,
-        aspectRatings: formData.aspectRatings,
-        headline: formData.headline.trim(),
-        feedback: formData.feedback.trim(),
-        suggestions: formData.suggestions.trim(),
-        isRecommended: formData.isRecommended,
-      });
-
-      toast.success('Ulasan Anda Berhasil Terkirim!', {
-        description: 'Terima kasih atas kontribusi nyata Anda untuk kemajuan vokasi di Solo Technopark.',
-      });
-
-      setIsReviewModalOpen(false);
-      // Reset form
-      setFormData(prev => ({
-        ...prev,
-        reviewerName: '',
-        reviewerRoleCustom: '',
-        reviewerEmail: '',
-        reviewerInstitution: '',
-        overallRating: 5,
-        headline: '',
-        feedback: '',
-        suggestions: '',
-        isRecommended: true,
-      }));
-
-      // Refresh data ulasan & program
-      const [updatedRevs, updatedProgs] = await Promise.all([
-        learningReviewService.getProgramReviews(currentProgram.id, 'PUBLISHED'),
-        learningReviewService.getReviewPrograms('ACTIVE'),
-      ]);
-      setReviews(updatedRevs);
-      setPrograms(updatedProgs);
-    } catch (err: any) {
-      toast.error(err.message || 'Gagal mengirim ulasan.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   // Handler Like / Apresiasi Ulasan
   const handleLike = async (revId: string) => {
@@ -261,40 +148,31 @@ export default function ReviewPelatihanClientPage({
   };
 
   // Helper URL & Share
-  const getDirectUrl = (withWriteForm = false) => {
+  const getDirectUrl = () => {
     if (typeof window === 'undefined') return '';
     const base = window.location.origin;
     const identifier = currentProgram?.slug || currentProgram?.id || 'smk-go-global-welder-2026';
-    const path = `${base}/review-pelatihan/${identifier}`;
-    return withWriteForm ? `${path}?write=true` : path;
+    return `${base}/review-pelatihan/${identifier}`;
   };
 
-  const handleCopyLink = async (withWriteForm = false) => {
-    const url = getDirectUrl(withWriteForm);
+  const handleCopyLink = async () => {
+    const url = getDirectUrl();
     if (!url) return;
     try {
       await navigator.clipboard.writeText(url);
-      if (withWriteForm) {
-        setCopiedFormLink(true);
-        setTimeout(() => setCopiedFormLink(false), 2500);
-        toast.success('Tautan Form Langsung Disalin!', {
-          description: 'Penerima link akan langsung diarahkan ke form pengisian ulasan.',
-        });
-      } else {
-        setCopiedLink(true);
-        setTimeout(() => setCopiedLink(false), 2500);
-        toast.success('Tautan Halaman Ulasan Disalin!', {
-          description: 'Siap dibagikan ke WhatsApp grup peserta, mentor, atau mitra.',
-        });
-      }
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+      toast.success('Tautan Halaman Ulasan Disalin!', {
+        description: 'Siap dibagikan ke WhatsApp grup peserta, mentor, atau mitra.',
+      });
     } catch {
       toast.error('Gagal menyalin tautan. Silakan salin URL dari address bar browser.');
     }
   };
 
-  const handleShareWhatsApp = (withWriteForm = false) => {
+  const handleShareWhatsApp = () => {
     if (!currentProgram) return;
-    const url = getDirectUrl(withWriteForm);
+    const url = getDirectUrl();
     const text = `Halo rekan peserta & mentor, yuk berikan ulasan dan evaluasi mutu untuk pelatihan *${currentProgram.title}* di Solo Technopark. Pengisian mudah, cepat, dan bisa anonim melalui tautan ini:\n\n${url}`;
     const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
     window.open(waUrl, '_blank');
@@ -339,14 +217,14 @@ export default function ReviewPelatihanClientPage({
           </p>
 
           <div className="pt-2 flex flex-wrap items-center gap-3">
-            <Button
-              onClick={() => setIsReviewModalOpen(true)}
-              className="rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs sm:text-sm px-6 h-11 shadow-lg hover:shadow-emerald-500/25 transition-all"
+            <Link
+              href={`/review-pelatihan/${currentProgram?.slug || currentProgram?.id || 'smk-go-global-welder-2026'}#form-ulasan`}
+              className="inline-flex items-center justify-center rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs sm:text-sm px-6 h-11 shadow-lg hover:shadow-emerald-500/25 transition-all"
             >
               <Plus size={16} className="mr-2" /> Tulis Review Pelatihan
-            </Button>
+            </Link>
             <Button
-              onClick={() => handleCopyLink(false)}
+              onClick={handleCopyLink}
               variant="outline"
               className="rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm px-4 h-11 border border-white/15 backdrop-blur-md transition-colors"
             >
@@ -383,7 +261,7 @@ export default function ReviewPelatihanClientPage({
 
           <div className="flex flex-wrap items-center justify-center md:justify-end gap-2 w-full md:w-auto">
             <Button
-              onClick={() => handleCopyLink(false)}
+              onClick={handleCopyLink}
               variant="outline"
               size="sm"
               className="rounded-xl h-9 text-xs font-bold bg-white border-slate-200 hover:bg-slate-50 hover:text-emerald-700 shadow-2xs"
@@ -392,19 +270,16 @@ export default function ReviewPelatihanClientPage({
               {copiedLink ? 'Tersalin!' : 'Salin Tautan'}
             </Button>
 
-            <Button
-              onClick={() => handleCopyLink(true)}
-              variant="outline"
-              size="sm"
-              className="rounded-xl h-9 text-xs font-bold bg-white border-slate-200 hover:bg-slate-50 hover:text-emerald-700 shadow-2xs"
-              title="Salin tautan yang langsung membuka form ulasan saat diklik oleh penerima"
+            <Link
+              href={`/review-pelatihan/${currentProgram.slug || currentProgram.id}`}
+              className="inline-flex items-center rounded-xl h-9 text-xs font-bold bg-white border border-slate-200 px-3 hover:bg-slate-50 hover:text-emerald-700 shadow-2xs"
             >
-              {copiedFormLink ? <Check size={14} className="mr-1.5 text-emerald-600" /> : <Copy size={14} className="mr-1.5" />}
-              {copiedFormLink ? 'Tersalin (+Form)!' : 'Salin Link Form'}
-            </Button>
+              <span>Halaman Ulasan Khusus</span>
+              <ExternalLink size={13} className="ml-1.5" />
+            </Link>
 
             <Button
-              onClick={() => handleShareWhatsApp(false)}
+              onClick={handleShareWhatsApp}
               size="sm"
               className="rounded-xl h-9 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs"
             >
@@ -513,12 +388,12 @@ export default function ReviewPelatihanClientPage({
                   <p className="text-[11px] text-slate-500 font-medium">Berdasarkan {currentProgram.stats?.totalReviews || 0} ulasan resmi</p>
                 </div>
 
-                <Button
-                  onClick={() => setIsReviewModalOpen(true)}
-                  className="rounded-xl bg-slate-900 hover:bg-emerald-700 text-white font-bold text-xs h-10 px-4"
+                <Link
+                  href={`/review-pelatihan/${currentProgram.slug || currentProgram.id}#form-ulasan`}
+                  className="inline-flex items-center justify-center rounded-xl bg-slate-900 hover:bg-emerald-700 text-white font-bold text-xs h-10 px-4 transition-colors"
                 >
                   <Plus size={14} className="mr-1.5" /> Beri Ulasan
-                </Button>
+                </Link>
               </div>
             </div>
 
@@ -624,12 +499,14 @@ export default function ReviewPelatihanClientPage({
             <MessageSquareQuote className="w-12 h-12 mx-auto mb-3 text-slate-300" />
             <p className="font-bold text-slate-700 text-sm">Belum ada ulasan yang sesuai filter.</p>
             <p className="text-xs text-slate-400 mt-1">Jadilah yang pertama memberikan ulasan untuk program ini!</p>
-            <Button
-              onClick={() => setIsReviewModalOpen(true)}
-              className="mt-4 rounded-xl bg-slate-900 text-white font-bold text-xs"
-            >
-              <Plus size={14} className="mr-1.5" /> Tulis Review Sekarang
-            </Button>
+            {currentProgram && (
+              <Link
+                href={`/review-pelatihan/${currentProgram.slug || currentProgram.id}#form-ulasan`}
+                className="mt-4 inline-flex items-center rounded-xl bg-slate-900 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 transition-colors"
+              >
+                <Plus size={14} className="mr-1.5" /> Tulis Review Sekarang
+              </Link>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -743,277 +620,6 @@ export default function ReviewPelatihanClientPage({
         )}
       </div>
 
-      {/* MODAL FORM TULIS REVIEW (AKSES PUBLIK TANPA LOGIN) */}
-      <AnimatePresence>
-        {isReviewModalOpen && currentProgram && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-slate-900/60 backdrop-blur-xs">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh] my-auto overflow-hidden"
-            >
-              {/* Header Modal */}
-              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 shrink-0">
-                <div>
-                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 mb-1">
-                    <Sparkles size={11} /> Bebas Akses Publik
-                  </div>
-                  <h3 className="text-base sm:text-lg font-black text-slate-900">
-                    Beri Ulasan Program Pelatihan
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    {currentProgram.title} ({currentProgram.batch})
-                  </p>
-                </div>
-                <button 
-                  onClick={() => setIsReviewModalOpen(false)}
-                  className="text-slate-400 hover:text-slate-600 p-2 rounded-full hover:bg-slate-100 transition-colors"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              {/* Form Body */}
-              <form onSubmit={handleSubmitReview} className="flex flex-col flex-1 overflow-hidden">
-                <div className="p-6 space-y-6 overflow-y-auto custom-scrollbar flex-1">
-                  {/* Bagian 1: Peran & Identitas */}
-                  <div className="space-y-4">
-                    <Label className="text-xs font-black text-slate-800 uppercase tracking-wider block">
-                      1. Siapa Anda dalam Program Ini? <span className="text-red-500">*</span>
-                    </Label>
-                    
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {(['PESERTA', 'MENTOR', 'INDUSTRI', 'PUBLIK'] as ReviewerRole[]).map((r) => (
-                        <button
-                          key={r}
-                          type="button"
-                          onClick={() => setFormData({ ...formData, reviewerRole: r })}
-                          className={`p-3 rounded-xl border text-xs font-bold text-center transition-all cursor-pointer flex flex-col items-center gap-1.5 ${
-                            formData.reviewerRole === r
-                              ? 'bg-emerald-50 text-emerald-900 border-emerald-400 shadow-xs ring-2 ring-emerald-500/20'
-                              : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                          }`}
-                        >
-                          <span className="text-sm">
-                            {r === 'PESERTA' ? '🎓' : r === 'MENTOR' ? '👨‍🏫' : r === 'INDUSTRI' ? '🏭' : '👥'}
-                          </span>
-                          <span className="text-[11px] leading-tight">
-                            {r === 'PESERTA' ? 'Peserta / Siswa' : r === 'MENTOR' ? 'Instruktur / Mentor' : r === 'INDUSTRI' ? 'Mitra Industri' : 'Publik / Umum'}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Opsi Kirim Sebagai Anonim (Default Aktif) */}
-                    <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 flex items-start gap-3">
-                      <input 
-                        type="checkbox"
-                        id="anon-checkbox"
-                        checked={formData.isAnonymous}
-                        onChange={e => setFormData({ ...formData, isAnonymous: e.target.checked })}
-                        className="w-4 h-4 mt-0.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
-                      />
-                      <label htmlFor="anon-checkbox" className="text-xs text-emerald-950 font-medium cursor-pointer">
-                        <strong className="block text-emerald-900 font-bold">Kirim Ulasan Secara Anonim (Disarankan)</strong>
-                        Identitas asli Anda dirahasiakan untuk kenyamanan dan kebebasan evaluasi. Ulasan akan ditampilkan di publik dengan nama peran (misal: <em>Peserta Welder • Anonim</em>).
-                      </label>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-bold text-slate-700">
-                          Nama Anda / Inisial {!formData.isAnonymous && <span className="text-red-500">*</span>}
-                        </Label>
-                        <Input 
-                          required={!formData.isAnonymous}
-                          value={formData.reviewerName}
-                          onChange={e => setFormData({ ...formData, reviewerName: e.target.value })}
-                          placeholder={formData.isAnonymous ? "Opsional (disamarkan otomatis)" : "Contoh: Budi Santoso"}
-                          className="h-10 rounded-xl text-xs"
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-bold text-slate-700">Keterangan Asal / Lembaga (Opsional)</Label>
-                        <Input 
-                          value={formData.reviewerInstitution}
-                          onChange={e => setFormData({ ...formData, reviewerInstitution: e.target.value })}
-                          placeholder="Contoh: Lulusan Welder Kendal / Mitra API"
-                          className="h-10 rounded-xl text-xs"
-                        />
-                      </div>
-
-                      <div className="space-y-1.5 sm:col-span-2">
-                        <Label className="text-xs font-bold text-slate-700">Alamat Email (Opsional, 100% tidak dipublikasikan)</Label>
-                        <Input 
-                          type="email"
-                          value={formData.reviewerEmail}
-                          onChange={e => setFormData({ ...formData, reviewerEmail: e.target.value })}
-                          placeholder="emailanda@example.com (hanya untuk arsip internal panitia)"
-                          className="h-10 rounded-xl text-xs"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Bagian 2: Rating Bintang Keseluruhan */}
-                  <div className="space-y-3 pt-3 border-t border-slate-100">
-                    <Label className="text-xs font-black text-slate-800 uppercase tracking-wider block">
-                      2. Berapa Bintang Rating Keseluruhan Anda? <span className="text-red-500">*</span>
-                    </Label>
-
-                    <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-2xl border border-slate-200 justify-center">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          type="button"
-                          onClick={() => setFormData({ ...formData, overallRating: star })}
-                          className="p-1.5 transition-transform hover:scale-125 cursor-pointer focus:outline-none"
-                        >
-                          <Star 
-                            size={28} 
-                            className={star <= formData.overallRating ? 'fill-amber-400 text-amber-400' : 'text-slate-300'} 
-                          />
-                        </button>
-                      ))}
-                      <span className="ml-3 font-black text-slate-900 text-sm">
-                        {formData.overallRating} dari 5 Bintang
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Bagian 3: Rating Per Aspek Kustom yang Dikonfigurasi Admin */}
-                  {currentProgram.aspects && currentProgram.aspects.length > 0 && (
-                    <div className="space-y-3 pt-3 border-t border-slate-100">
-                      <div>
-                        <Label className="text-xs font-black text-slate-800 uppercase tracking-wider block">
-                          3. Penilaian Aspek Spesifik Program:
-                        </Label>
-                        <p className="text-[11px] text-slate-500 mt-0.5">
-                          Berikan rating 1 sampai 5 bintang untuk tiap aspek berikut:
-                        </p>
-                      </div>
-
-                      <div className="space-y-2.5">
-                        {currentProgram.aspects.map((aspect) => (
-                          <div 
-                            key={aspect.id}
-                            className="p-3 bg-slate-50/80 rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2"
-                          >
-                            <div>
-                              <span className="text-xs font-black text-slate-800 block">{aspect.label}</span>
-                              {aspect.description && (
-                                <span className="text-[10px] text-slate-500">{aspect.description}</span>
-                              )}
-                            </div>
-
-                            <div className="flex items-center gap-1 shrink-0">
-                              {[1, 2, 3, 4, 5].map((st) => (
-                                <button
-                                  key={st}
-                                  type="button"
-                                  onClick={() => setFormData(prev => ({
-                                    ...prev,
-                                    aspectRatings: { ...prev.aspectRatings, [aspect.id]: st }
-                                  }))}
-                                  className="p-1 hover:scale-115 transition-transform cursor-pointer"
-                                >
-                                  <Star 
-                                    size={18} 
-                                    className={(formData.aspectRatings[aspect.id] || 5) >= st ? 'fill-amber-400 text-amber-400' : 'text-slate-200'} 
-                                  />
-                                </button>
-                              ))}
-                              <span className="text-xs font-bold text-slate-700 ml-1.5 w-6 text-center">
-                                {formData.aspectRatings[aspect.id] || 5}★
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Bagian 4: Ulasan & Saran */}
-                  <div className="space-y-4 pt-3 border-t border-slate-100">
-                    <Label className="text-xs font-black text-slate-800 uppercase tracking-wider block">
-                      4. Ulasan & Pengalaman Nyata Anda:
-                    </Label>
-
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-bold text-slate-700">Judul Ringkasan Ulasan <span className="text-red-500">*</span></Label>
-                      <Input 
-                        required
-                        value={formData.headline}
-                        onChange={e => setFormData({ ...formData, headline: e.target.value })}
-                        placeholder="Contoh: Sangat puas dengan booth las dan bimbingan instruktur"
-                        className="h-10 rounded-xl text-xs"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-bold text-slate-700">Ceritakan Pengalaman Anda Selama Pelatihan <span className="text-red-500">*</span></Label>
-                      <textarea 
-                        required
-                        rows={4}
-                        value={formData.feedback}
-                        onChange={e => setFormData({ ...formData, feedback: e.target.value })}
-                        placeholder="Bagaimana metode pengajaran, fasilitas bengkel, dan apakah materi membantu kesiapan kerja Anda..."
-                        className="w-full p-3 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-bold text-slate-700">Saran & Masukan untuk Solo Technopark / Mitra</Label>
-                      <textarea 
-                        rows={2}
-                        value={formData.suggestions}
-                        onChange={e => setFormData({ ...formData, suggestions: e.target.value })}
-                        placeholder="Apa yang perlu diperbaiki atau ditambah untuk angkatan berikutnya..."
-                        className="w-full p-3 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
-                      />
-                    </div>
-
-                    <div className="flex items-center gap-3 pt-1">
-                      <input 
-                        type="checkbox"
-                        id="recommendCheck"
-                        checked={formData.isRecommended}
-                        onChange={e => setFormData({ ...formData, isRecommended: e.target.checked })}
-                        className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 cursor-pointer"
-                      />
-                      <label htmlFor="recommendCheck" className="text-xs font-bold text-slate-800 cursor-pointer">
-                        Saya merekomendasikan program pelatihan ini kepada rekan / calon peserta lain.
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Footer Modal */}
-                <div className="p-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50/50 shrink-0">
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    onClick={() => setIsReviewModalOpen(false)}
-                    className="rounded-xl font-bold text-xs"
-                  >
-                    Batal
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    disabled={isSubmitting}
-                    className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-6 shadow-md"
-                  >
-                    {isSubmitting ? <Loader2 size={14} className="animate-spin mr-1.5" /> : <Send size={14} className="mr-1.5" />}
-                    Kirim Ulasan Sekarang
-                  </Button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </SectionContainer>
   );
 }
