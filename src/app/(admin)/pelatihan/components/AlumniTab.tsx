@@ -639,7 +639,7 @@ export default function AlumniTab() {
 
         {/* --- TABEL DATA --- */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
+          <table className="w-full min-w-[850px] text-left text-sm text-slate-600">
             <thead className="bg-slate-50/80 text-slate-500 font-bold text-xs uppercase tracking-wider border-b border-slate-100">
               <tr>
                 <th className="p-4 pl-6 w-12 text-center">

@@ -83,7 +83,7 @@ export default function TabDirektoriTenant({ tenants, loading, fetchNextPage, ha
       {/* Table Data */}
       <div className="bg-white rounded-2xl shadow-2xs border border-slate-200/90 overflow-hidden">
         <div className="overflow-x-auto min-h-[400px]">
-          <table className="w-full text-sm text-left border-collapse">
+          <table className="w-full min-w-[700px] text-sm text-left border-collapse">
             <thead className="text-xs text-slate-500 uppercase bg-slate-50/80 border-b border-slate-150 font-bold tracking-wider">
               <tr>
                 <th className="px-5 py-3.5 w-[35%]">Profil Startup</th>

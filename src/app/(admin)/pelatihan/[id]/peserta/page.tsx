@@ -450,7 +450,7 @@ export default function KelolaPesertaPage() {
 
           {/* Tabel Peserta */}
           <div className="overflow-x-auto min-h-[480px]">
-            <table className="w-full text-sm text-left border-collapse">
+            <table className="w-full min-w-[760px] text-sm text-left border-collapse">
               <thead className="text-[11px] text-slate-500 uppercase bg-white border-b border-slate-100 font-bold tracking-wider">
                 <tr>
                   {canManageLMS && (

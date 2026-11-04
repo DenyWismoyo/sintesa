@@ -272,7 +272,7 @@ export default function AfiliasPage() {
                   </div>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
+                  <table className="w-full min-w-[650px] text-xs">
                     <thead>
                       <tr className="text-left text-slate-500 border-b border-slate-100">
                         <th className="pb-2 font-semibold">Mitra</th>
@@ -317,7 +317,7 @@ export default function AfiliasPage() {
               <div>
                 <h2 className="font-black text-slate-800 mb-4">Buku Besar Komisi</h2>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
+                  <table className="w-full min-w-[650px] text-xs">
                     <thead>
                       <tr className="text-left text-slate-500 border-b border-slate-100">
                         <th className="pb-2 font-semibold">Domain</th>

@@ -43,6 +43,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 import Link from 'next/link';
+import { AdminPageHeader } from '@/components/admin';
 
 export default function ManajemenReviewPelatihanPage() {
   const [activeTab, setActiveTab] = useState<'programs' | 'reviews'>('programs');
@@ -285,123 +286,117 @@ export default function ManajemenReviewPelatihanPage() {
   };
 
   return (
-    <div className="space-y-8">
-      {/* HEADER UTAMA */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200 mb-2">
-            <Sparkles size={14} className="text-emerald-600" /> Pusat Evaluasi & Kepuasan Pelatihan
+    <div className="space-y-6 pb-20 animate-in fade-in">
+      {/* 1. ADMIN PAGE HEADER RESMI */}
+      <AdminPageHeader
+        title="Review & Evaluasi Program Pelatihan"
+        subtitle="Kelola program pelatihan yang dibuka untuk direview oleh peserta, mentor, dan industri. Sesuaikan kriteria evaluasi serta kurasi testimoni nyata."
+        badge={`${programs.filter(p => p.status === 'ACTIVE').length} Program Aktif`}
+        breadcrumbs={[{ label: 'Review Pelatihan' }]}
+        actions={
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <Link 
+              href="/review-pelatihan" 
+              target="_blank"
+              className="inline-flex items-center justify-center rounded-xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 font-bold px-3.5 py-2 text-xs shadow-xs transition-colors"
+            >
+              <ExternalLink size={14} className="mr-1.5 text-slate-500" /> Portal Publik
+            </Link>
+            <Button 
+              onClick={handleExportExcel} 
+              variant="outline" 
+              className="rounded-xl border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 font-bold text-xs h-9 px-3.5"
+            >
+              <DownloadCloud size={14} className="mr-1.5" /> Export Excel
+            </Button>
+            <Button 
+              onClick={handleOpenAddProgram} 
+              className="rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs h-9 px-3.5"
+            >
+              <Plus size={14} className="mr-1.5" /> Tambah Program Review
+            </Button>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            Review & Evaluasi Program Pelatihan
-          </h1>
-          <p className="text-sm text-slate-500 max-w-2xl mt-1">
-            Kelola program pelatihan yang dibuka untuk direview oleh peserta, mentor, dan publik. Sesuaikan aspek penilaian serta kurasi testimoni nyata untuk meningkatkan kepercayaan industri.
-          </p>
-        </div>
+        }
+      >
+        {/* Navigasi Pill Tabs Admin */}
+        <div className="flex bg-slate-100/80 p-1.5 rounded-xl overflow-x-auto w-full sm:w-auto hide-scrollbar">
+          <button
+            onClick={() => setActiveTab('programs')}
+            className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+              activeTab === 'programs'
+                ? 'bg-white text-emerald-700 shadow-xs'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+            }`}
+          >
+            <GraduationCap size={16} />
+            <span>Program & Kriteria ({programs.length})</span>
+          </button>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <Link 
-            href="/review-pelatihan" 
-            target="_blank"
-            className="inline-flex items-center justify-center rounded-xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 font-bold px-4 py-2.5 text-xs shadow-xs transition-colors"
+          <button
+            onClick={() => setActiveTab('reviews')}
+            className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+              activeTab === 'reviews'
+                ? 'bg-white text-emerald-700 shadow-xs'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+            }`}
           >
-            <ExternalLink size={15} className="mr-2 text-slate-500" /> Lihat Portal Publik
-          </Link>
-          <Button 
-            onClick={handleExportExcel} 
-            variant="outline" 
-            className="rounded-xl border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 font-bold text-xs"
-          >
-            <DownloadCloud size={15} className="mr-2" /> Export Excel
-          </Button>
-          <Button 
-            onClick={handleOpenAddProgram} 
-            className="rounded-xl bg-slate-900 text-white font-bold text-xs shadow-md"
-          >
-            <Plus size={15} className="mr-2" /> Tambah Program Review
-          </Button>
+            <MessageSquareQuote size={16} />
+            <span>Kotak Masuk Ulasan ({reviews.length})</span>
+          </button>
         </div>
-      </div>
+      </AdminPageHeader>
 
       {/* KARTU STATISTIK RINGKASAN */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Program Aktif</p>
-            <h3 className="text-2xl font-black text-slate-900 mt-1">{programs.filter(p => p.status === 'ACTIVE').length} Program</h3>
-            <p className="text-[11px] text-emerald-600 font-bold mt-0.5">Siap direview publik</p>
+            <p className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Program Aktif</p>
+            <h3 className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5 sm:mt-1">{programs.filter(p => p.status === 'ACTIVE').length} Program</h3>
+            <p className="text-[10px] sm:text-[11px] text-emerald-600 font-bold mt-0.5">Siap direview publik</p>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-            <GraduationCap size={24} />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <GraduationCap size={22} />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Ulasan Masuk</p>
-            <h3 className="text-2xl font-black text-slate-900 mt-1">{totalReviewsCount} Ulasan</h3>
-            <p className="text-[11px] text-slate-500 font-medium mt-0.5">{publishedReviews.length} telah dipublikasikan</p>
+            <p className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Total Ulasan</p>
+            <h3 className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5 sm:mt-1">{totalReviewsCount} Ulasan</h3>
+            <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium mt-0.5">{publishedReviews.length} telah dipublikasi</p>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-            <MessageSquareQuote size={24} />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+            <MessageSquareQuote size={22} />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Rata-rata Rating</p>
-            <div className="flex items-center gap-2 mt-1">
-              <h3 className="text-2xl font-black text-slate-900">{avgGlobalRating}</h3>
+            <p className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Rata-rata Rating</p>
+            <div className="flex items-center gap-1.5 mt-0.5 sm:mt-1">
+              <h3 className="text-xl sm:text-2xl font-black text-slate-900">{avgGlobalRating}</h3>
               <div className="flex text-amber-400">
-                <Star size={16} fill="currentColor" />
+                <Star size={15} fill="currentColor" />
               </div>
-              <span className="text-xs font-bold text-slate-400">/ 5.0</span>
+              <span className="text-[10px] sm:text-xs font-bold text-slate-400">/ 5.0</span>
             </div>
-            <p className="text-[11px] text-amber-600 font-bold mt-0.5">Indeks Kepuasan Vokasi</p>
+            <p className="text-[10px] sm:text-[11px] text-amber-600 font-bold mt-0.5">Indeks Kepuasan</p>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
-            <Star size={24} fill="currentColor" />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+            <Star size={22} fill="currentColor" />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tingkat Rekomendasi</p>
-            <h3 className="text-2xl font-black text-slate-900 mt-1">{recommendPercent}%</h3>
-            <p className="text-[11px] text-emerald-600 font-bold mt-0.5">Merekomendasikan pelatihan</p>
+            <p className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Tingkat Rekomendasi</p>
+            <h3 className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5 sm:mt-1">{recommendPercent}%</h3>
+            <p className="text-[10px] sm:text-[11px] text-emerald-600 font-bold mt-0.5">Direkomendasikan</p>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center">
-            <ThumbsUp size={24} />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+            <ThumbsUp size={22} />
           </div>
         </div>
-      </div>
-
-      {/* TAB NAVIGASI PANEL */}
-      <div className="border-b border-slate-200 flex gap-4">
-        <button
-          onClick={() => setActiveTab('programs')}
-          className={`pb-3 text-sm font-black flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
-            activeTab === 'programs'
-              ? 'border-emerald-600 text-emerald-800'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <GraduationCap size={18} />
-          <span>Program Pelatihan & Aspek Penilaian ({programs.length})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('reviews')}
-          className={`pb-3 text-sm font-black flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
-            activeTab === 'reviews'
-              ? 'border-emerald-600 text-emerald-800'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <MessageSquareQuote size={18} />
-          <span>Moderasi & Kotak Masuk Ulasan ({reviews.length})</span>
-        </button>
       </div>
 
       {/* KONTEN TAB 1: DAFTAR PROGRAM PELATIHAN */}

@@ -436,7 +436,7 @@ export default function JasaProduksiPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full min-w-[760px] text-left text-xs">
               <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[11px] tracking-wider">
                 <tr>
                   <th className="p-4">No. SPK & Kategori</th>
