@@ -6,11 +6,12 @@ import { Loader2 } from 'lucide-react';
 import { learningReviewService } from '@/services/learningReview.service';
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const program = await learningReviewService.getReviewProgramById(params.id);
+  const { id } = await params;
+  const program = await learningReviewService.getReviewProgramById(id);
   const title = program
     ? `Ulasan: ${program.title} | Solo Technopark`
     : 'Ulasan Program Pelatihan Vokasi | Solo Technopark';
@@ -35,7 +36,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function DirectProgramReviewPage({ params }: Props) {
+export default async function DirectProgramReviewPage({ params }: Props) {
+  const { id } = await params;
   return (
     <Suspense
       fallback={
@@ -45,7 +47,7 @@ export default function DirectProgramReviewPage({ params }: Props) {
         </div>
       }
     >
-      <ProgramReviewClientPage programId={params.id} />
+      <ProgramReviewClientPage programId={id} />
     </Suspense>
   );
 }

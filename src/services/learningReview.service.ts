@@ -107,10 +107,12 @@ export const learningReviewService = {
   /**
    * Ambil detail program berdasarkan ID atau Slug
    */
-  getReviewProgramById: async (idOrSlug: string): Promise<TrainingReviewProgram | null> => {
+  getReviewProgramById: async (idOrSlug?: string): Promise<TrainingReviewProgram | null> => {
     try {
+      const cleanId = (idOrSlug ? decodeURIComponent(idOrSlug).trim() : '') || DEFAULT_SMK_GO_GLOBAL_PROGRAM.id;
+
       // 1. Coba cari berdasarkan Document ID
-      const snap = await getDoc(doc(db, PROGRAMS_COLLECTION, idOrSlug));
+      const snap = await getDoc(doc(db, PROGRAMS_COLLECTION, cleanId));
       if (snap.exists()) {
         return { id: snap.id, ...snap.data() } as TrainingReviewProgram;
       }
@@ -118,7 +120,7 @@ export const learningReviewService = {
       // 2. Jika tidak ada dokumen dengan ID tersebut, coba cari berdasarkan field 'slug'
       const q = query(
         collection(db, PROGRAMS_COLLECTION),
-        where('slug', '==', idOrSlug),
+        where('slug', '==', cleanId),
         limit(1)
       );
       const slugSnap = await getDocs(q);
@@ -127,23 +129,32 @@ export const learningReviewService = {
         return { id: d.id, ...d.data() } as TrainingReviewProgram;
       }
 
-      // 3. Fallback jika default program
+      // 3. Fallback jika default program SMK Go Global
       if (
-        idOrSlug === DEFAULT_SMK_GO_GLOBAL_PROGRAM.id ||
-        idOrSlug === DEFAULT_SMK_GO_GLOBAL_PROGRAM.slug
+        cleanId === DEFAULT_SMK_GO_GLOBAL_PROGRAM.id ||
+        cleanId === DEFAULT_SMK_GO_GLOBAL_PROGRAM.slug ||
+        cleanId.includes('welder') ||
+        cleanId.includes('smk-go-global') ||
+        cleanId === 'default'
       ) {
+        try {
+          await setDoc(doc(db, PROGRAMS_COLLECTION, DEFAULT_SMK_GO_GLOBAL_PROGRAM.id), DEFAULT_SMK_GO_GLOBAL_PROGRAM, { merge: true });
+        } catch {
+          // ignore
+        }
         return DEFAULT_SMK_GO_GLOBAL_PROGRAM;
       }
-      return null;
+
+      // 4. Jika ID lain tidak ditemukan, fallback ke program aktif pertama
+      const fallbackList = await learningReviewService.getReviewPrograms('ACTIVE');
+      if (fallbackList.length > 0) {
+        return fallbackList[0];
+      }
+
+      return DEFAULT_SMK_GO_GLOBAL_PROGRAM;
     } catch (err) {
       console.error('Error fetching review program by id/slug:', err);
-      if (
-        idOrSlug === DEFAULT_SMK_GO_GLOBAL_PROGRAM.id ||
-        idOrSlug === DEFAULT_SMK_GO_GLOBAL_PROGRAM.slug
-      ) {
-        return DEFAULT_SMK_GO_GLOBAL_PROGRAM;
-      }
-      return null;
+      return DEFAULT_SMK_GO_GLOBAL_PROGRAM;
     }
   },
 

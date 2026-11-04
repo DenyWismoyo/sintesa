@@ -44,12 +44,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { DEFAULT_SMK_GO_GLOBAL_PROGRAM } from '@/services/learningReview.service';
 
 interface ProgramReviewClientPageProps {
-  programId: string;
+  programId?: string;
 }
 
 export default function ProgramReviewClientPage({ programId }: ProgramReviewClientPageProps) {
+  const routeParams = useParams();
+  const rawId = programId || (routeParams?.id as string) || '';
+  const effectiveProgramId = rawId ? decodeURIComponent(rawId).trim() : 'smk-go-global-welder-2026';
+
   const [program, setProgram] = useState<TrainingReviewProgram | null>(null);
   const [reviews, setReviews] = useState<TrainingReviewItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,37 +91,37 @@ export default function ProgramReviewClientPage({ programId }: ProgramReviewClie
   // State liked reviews local
   const [likedReviews, setLikedReviews] = useState<Set<string>>(new Set());
 
-  // 1. Fetch Program Data by ID/Slug
+  // 1. Fetch Program Data by ID/Slug (Dengan Fail-Safe Fallback SMK Go Global)
   useEffect(() => {
     const fetchProgramData = async () => {
       setLoading(true);
       try {
-        const prog = await learningReviewService.getReviewProgramById(programId);
-        setProgram(prog);
+        const prog = await learningReviewService.getReviewProgramById(effectiveProgramId);
+        const targetProg = prog || DEFAULT_SMK_GO_GLOBAL_PROGRAM;
+        setProgram(targetProg);
 
-        if (prog) {
-          // Inisialisasi aspect ratings
-          const initialAspects: Record<string, number> = {};
-          prog.aspects?.forEach(asp => {
-            initialAspects[asp.id] = 5;
-          });
-          setFormData(prev => ({
-            ...prev,
-            aspectRatings: initialAspects,
-          }));
+        // Inisialisasi aspect ratings
+        const initialAspects: Record<string, number> = {};
+        targetProg.aspects?.forEach(asp => {
+          initialAspects[asp.id] = 5;
+        });
+        setFormData(prev => ({
+          ...prev,
+          aspectRatings: initialAspects,
+        }));
 
-          // Fetch ulasan program
-          fetchProgramReviews(prog.id);
-        }
+        // Fetch ulasan program
+        fetchProgramReviews(targetProg.id);
       } catch (err) {
         console.error('Error fetching program:', err);
+        setProgram(DEFAULT_SMK_GO_GLOBAL_PROGRAM);
       } finally {
         setLoading(false);
       }
     };
 
     fetchProgramData();
-  }, [programId]);
+  }, [effectiveProgramId]);
 
   // Fetch Reviews
   const fetchProgramReviews = async (id: string) => {
