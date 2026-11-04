@@ -3,11 +3,12 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { useTraining } from '@/hooks/useTraining';
 import { motion, Variants, AnimatePresence } from 'framer-motion';
 
 import { 
-  SlidersHorizontal, GraduationCap 
+  SlidersHorizontal, GraduationCap, MessageSquareQuote, Sparkles, ArrowRight
 } from 'lucide-react';
 import SectionContainer from '@/components/ui/SectionContainer';
 import PageHero from '@/components/ui/PageHero';
@@ -114,6 +115,36 @@ export default function ProgramPelatihanPublik() {
         searchPlaceholder="Cari nama kelas atau topik pelatihan..."
         isLoadingSearch={loading}
       />
+
+      {/* Banner CTA Review Program Pelatihan Publik */}
+      <div className="mb-6 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-emerald-500/10 border border-amber-200/70 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+        <div className="flex items-start gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/20">
+            <MessageSquareQuote size={20} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-amber-700 bg-amber-100/80 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                <Sparkles size={11} /> Suara Peserta & Transparansi Vokasi
+              </span>
+              <span className="text-[11px] text-slate-500 hidden sm:inline">• Tanpa Perlu Login</span>
+            </div>
+            <h3 className="text-sm sm:text-base font-bold text-slate-900 mt-1">
+              Pernah Mengikuti Program Pelatihan di Solo Technopark?
+            </h3>
+            <p className="text-xs text-slate-600 mt-0.5 max-w-xl">
+              Peserta, mentor, dan industri dapat memberikan evaluasi transparan (seperti program SMK Go Global Welder) untuk penyempurnaan fasilitas dan kurikulum.
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/review-pelatihan"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shrink-0 transition-all hover:gap-2.5 shadow-sm"
+        >
+          <span>Lihat & Tulis Ulasan</span>
+          <ArrowRight size={14} />
+        </Link>
+      </div>
 
       {/* Filter Bar Minimalist Borderless */}
       <div className="flex flex-wrap items-center justify-between gap-2.5 mb-3 sm:mb-4">

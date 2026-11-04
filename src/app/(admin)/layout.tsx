@@ -35,7 +35,8 @@ import {
   Crown,
   Wrench,
   Handshake,
-  Award
+  Award,
+  MessageSquareQuote
 } from 'lucide-react';
 
 // --- KONFIGURASI MENU ---
@@ -76,6 +77,7 @@ const MENU_GROUPS = [
     items: [
       { name: 'Inkubasi Tenant', href: '/tenant', icon: Rocket },
       { name: 'Pelatihan', href: '/pelatihan', icon: GraduationCap },
+      { name: 'Review Pelatihan', href: '/manajemen-review-pelatihan', icon: MessageSquareQuote },
       { name: 'Bursa Karir', href: '/manajemen-karir', icon: Briefcase },
       { name: 'Manajemen Event', href: '/manajemen-event', icon: Ticket },
       { name: 'Artikel & Warta', href: '/manajemen-artikel', icon: Newspaper },

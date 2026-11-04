@@ -32,6 +32,7 @@ import {
   Hammer,
   Award,
   Rocket,
+  Star,
 } from 'lucide-react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { useAuth } from '@/lib/AuthContext';
@@ -101,6 +102,13 @@ export const PUBLIC_NAV_GROUPS: NavGroup[] = [
         path: '/program-pelatihan',
         description: 'Akademi vokasi industri manufaktur & teknologi digital',
         icon: GraduationCap,
+      },
+      {
+        name: 'Review Pelatihan',
+        path: '/review-pelatihan',
+        description: 'Ulasan terbuka & evaluasi mutu program vokasi',
+        icon: Star,
+        badge: 'Publik',
       },
       {
         name: 'Ruang Belajar',

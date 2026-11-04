@@ -60,3 +60,6 @@ export * from './incubationMentoring.types';
 
 // 19. Indeks Kepuasan Masyarakat (IKM PermenPAN-RB)
 export * from './ikm.types';
+
+// 20. Evaluasi & Review Program Pelatihan (Public & Multi-Stakeholder)
+export * from './learningReview.types';
