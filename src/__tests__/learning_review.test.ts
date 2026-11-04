@@ -195,5 +195,13 @@ describe('Modul Review Program Pelatihan Vokasi (P3MI Focus & Anonimitas)', () =
       expect(program?.id).toBe('smk-go-global-welder-2026');
       expect(program?.batch).toBe('Batch II');
     });
+
+    it('harus mampu menemukan program pelatihan berdasarkan slug (smk-go-global-welder)', async () => {
+      const program = await learningReviewService.getReviewProgramById('smk-go-global-welder');
+      expect(program).toBeDefined();
+      expect(program?.id).toBe('smk-go-global-welder-2026');
+      expect(program?.slug).toBe('smk-go-global-welder');
+      expect(program?.title).toContain('SMK Go Global');
+    });
   });
 });

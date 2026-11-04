@@ -105,21 +105,42 @@ export const learningReviewService = {
   },
 
   /**
-   * Ambil detail program berdasarkan ID
+   * Ambil detail program berdasarkan ID atau Slug
    */
-  getReviewProgramById: async (id: string): Promise<TrainingReviewProgram | null> => {
+  getReviewProgramById: async (idOrSlug: string): Promise<TrainingReviewProgram | null> => {
     try {
-      const snap = await getDoc(doc(db, PROGRAMS_COLLECTION, id));
-      if (!snap.exists()) {
-        if (id === DEFAULT_SMK_GO_GLOBAL_PROGRAM.id) {
-          return DEFAULT_SMK_GO_GLOBAL_PROGRAM;
-        }
-        return null;
+      // 1. Coba cari berdasarkan Document ID
+      const snap = await getDoc(doc(db, PROGRAMS_COLLECTION, idOrSlug));
+      if (snap.exists()) {
+        return { id: snap.id, ...snap.data() } as TrainingReviewProgram;
       }
-      return { id: snap.id, ...snap.data() } as TrainingReviewProgram;
+
+      // 2. Jika tidak ada dokumen dengan ID tersebut, coba cari berdasarkan field 'slug'
+      const q = query(
+        collection(db, PROGRAMS_COLLECTION),
+        where('slug', '==', idOrSlug),
+        limit(1)
+      );
+      const slugSnap = await getDocs(q);
+      if (!slugSnap.empty) {
+        const d = slugSnap.docs[0];
+        return { id: d.id, ...d.data() } as TrainingReviewProgram;
+      }
+
+      // 3. Fallback jika default program
+      if (
+        idOrSlug === DEFAULT_SMK_GO_GLOBAL_PROGRAM.id ||
+        idOrSlug === DEFAULT_SMK_GO_GLOBAL_PROGRAM.slug
+      ) {
+        return DEFAULT_SMK_GO_GLOBAL_PROGRAM;
+      }
+      return null;
     } catch (err) {
-      console.error('Error fetching review program by id:', err);
-      if (id === DEFAULT_SMK_GO_GLOBAL_PROGRAM.id) {
+      console.error('Error fetching review program by id/slug:', err);
+      if (
+        idOrSlug === DEFAULT_SMK_GO_GLOBAL_PROGRAM.id ||
+        idOrSlug === DEFAULT_SMK_GO_GLOBAL_PROGRAM.slug
+      ) {
         return DEFAULT_SMK_GO_GLOBAL_PROGRAM;
       }
       return null;

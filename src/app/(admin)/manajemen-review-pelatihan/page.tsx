@@ -37,7 +37,9 @@ import {
   Award,
   UploadCloud,
   RotateCcw,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Share2,
+  Copy
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -256,6 +258,20 @@ export default function ManajemenReviewPelatihanPage() {
       toast.error(err.message || 'Gagal menyimpan tanggapan.');
     } finally {
       setIsSubmittingResponse(false);
+    }
+  };
+
+  // Salin Tautan Program Langsung untuk Dibagikan ke Peserta / WhatsApp
+  const handleCopyProgramLink = async (prog: TrainingReviewProgram) => {
+    if (typeof window === 'undefined') return;
+    const url = `${window.location.origin}/review-pelatihan/${prog.slug || prog.id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Tautan ulasan program berhasil disalin!', {
+        description: `${url} (Siap dibagikan ke WhatsApp grup peserta atau mentor).`,
+      });
+    } catch {
+      toast.error('Gagal menyalin tautan.');
     }
   };
 
@@ -531,15 +547,26 @@ export default function ManajemenReviewPelatihanPage() {
                 </div>
 
                 {/* Footer Kartu & Aksi */}
-                <div className="p-5 pt-0 flex items-center justify-between gap-2 border-t border-slate-100 mt-4">
-                  <Link 
-                    href={`/review-pelatihan?program=${prog.id}`}
-                    target="_blank"
-                    className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
-                  >
-                    <span>Buka Form Publik</span>
-                    <ExternalLink size={13} />
-                  </Link>
+                <div className="p-5 pt-0 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 mt-4">
+                  <div className="flex items-center gap-2">
+                    <Link 
+                      href={`/review-pelatihan/${prog.slug || prog.id}`}
+                      target="_blank"
+                      className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200"
+                    >
+                      <span>Buka Halaman Khusus</span>
+                      <ExternalLink size={13} />
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyProgramLink(prog)}
+                      className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer border border-slate-200"
+                      title="Salin tautan ulasan program untuk dibagikan"
+                    >
+                      <Copy size={13} />
+                      <span>Salin Link</span>
+                    </button>
+                  </div>
                   <div className="flex items-center gap-1.5">
                     <Button 
                       variant="outline" 

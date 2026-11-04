@@ -30,7 +30,12 @@ import {
   Award,
   ChevronDown,
   X,
-  ExternalLink
+  ExternalLink,
+  Share2,
+  Copy,
+  Check,
+  ArrowLeft,
+  MessageCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,15 +43,28 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
-export default function ReviewPelatihanClientPage() {
+interface ReviewPelatihanClientPageProps {
+  initialProgramId?: string;
+  isDirectProgramPage?: boolean;
+}
+
+export default function ReviewPelatihanClientPage({
+  initialProgramId,
+  isDirectProgramPage = false,
+}: ReviewPelatihanClientPageProps = {}) {
   const searchParams = useSearchParams();
   const initialProgramQuery = searchParams.get('program');
+  const shouldOpenWriteModal = searchParams.get('write') === 'true';
 
   const [programs, setPrograms] = useState<TrainingReviewProgram[]>([]);
   const [selectedProgramId, setSelectedProgramId] = useState<string>('');
   const [reviews, setReviews] = useState<TrainingReviewItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingReviews, setLoadingReviews] = useState(false);
+
+  // Share States
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedFormLink, setCopiedFormLink] = useState(false);
 
   // Filter Ulasan Publik
   const [filterRole, setFilterRole] = useState<string>('ALL');
@@ -75,19 +93,39 @@ export default function ReviewPelatihanClientPage() {
   // State liked reviews local
   const [likedReviews, setLikedReviews] = useState<Set<string>>(new Set());
 
-  // 1. Fetch Program List
+  // Auto buka modal pengisian jika query ?write=true aktif
+  useEffect(() => {
+    if (shouldOpenWriteModal) {
+      setIsReviewModalOpen(true);
+    }
+  }, [shouldOpenWriteModal]);
+
+  const targetId = initialProgramId || initialProgramQuery;
+
+  // 1. Fetch Program List & Target Program
   useEffect(() => {
     const fetchPrograms = async () => {
       setLoading(true);
       try {
         const progs = await learningReviewService.getReviewPrograms('ACTIVE');
         setPrograms(progs);
-        if (progs.length > 0) {
-          if (initialProgramQuery && progs.some(p => p.id === initialProgramQuery)) {
-            setSelectedProgramId(initialProgramQuery);
+
+        if (targetId) {
+          const matched = progs.find(p => p.id === targetId || p.slug === targetId);
+          if (matched) {
+            setSelectedProgramId(matched.id);
           } else {
-            setSelectedProgramId(progs[0].id);
+            // Ambil langsung by ID/Slug (misal jika non-active atau id baru)
+            const directProg = await learningReviewService.getReviewProgramById(targetId);
+            if (directProg) {
+              setPrograms(prev => prev.some(p => p.id === directProg.id) ? prev : [directProg, ...prev]);
+              setSelectedProgramId(directProg.id);
+            } else if (progs.length > 0) {
+              setSelectedProgramId(progs[0].id);
+            }
           }
+        } else if (progs.length > 0) {
+          setSelectedProgramId(progs[0].id);
         }
       } catch (err) {
         console.error('Error fetching programs:', err);
@@ -96,7 +134,7 @@ export default function ReviewPelatihanClientPage() {
       }
     };
     fetchPrograms();
-  }, [initialProgramQuery]);
+  }, [targetId]);
 
   // Program yang sedang aktif dipilih
   const currentProgram = useMemo(() => {
@@ -222,8 +260,66 @@ export default function ReviewPelatihanClientPage() {
     toast.success('Terima kasih atas apresiasi Anda!');
   };
 
+  // Helper URL & Share
+  const getDirectUrl = (withWriteForm = false) => {
+    if (typeof window === 'undefined') return '';
+    const base = window.location.origin;
+    const identifier = currentProgram?.slug || currentProgram?.id || 'smk-go-global-welder-2026';
+    const path = `${base}/review-pelatihan/${identifier}`;
+    return withWriteForm ? `${path}?write=true` : path;
+  };
+
+  const handleCopyLink = async (withWriteForm = false) => {
+    const url = getDirectUrl(withWriteForm);
+    if (!url) return;
+    try {
+      await navigator.clipboard.writeText(url);
+      if (withWriteForm) {
+        setCopiedFormLink(true);
+        setTimeout(() => setCopiedFormLink(false), 2500);
+        toast.success('Tautan Form Langsung Disalin!', {
+          description: 'Penerima link akan langsung diarahkan ke form pengisian ulasan.',
+        });
+      } else {
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 2500);
+        toast.success('Tautan Halaman Ulasan Disalin!', {
+          description: 'Siap dibagikan ke WhatsApp grup peserta, mentor, atau mitra.',
+        });
+      }
+    } catch {
+      toast.error('Gagal menyalin tautan. Silakan salin URL dari address bar browser.');
+    }
+  };
+
+  const handleShareWhatsApp = (withWriteForm = false) => {
+    if (!currentProgram) return;
+    const url = getDirectUrl(withWriteForm);
+    const text = `Halo rekan peserta & mentor, yuk berikan ulasan dan evaluasi mutu untuk pelatihan *${currentProgram.title}* di Solo Technopark. Pengisian mudah, cepat, dan bisa anonim melalui tautan ini:\n\n${url}`;
+    const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(waUrl, '_blank');
+  };
+
   return (
     <SectionContainer accent="emerald" width="default" className="py-8 sm:py-12">
+      {/* BREADCRUMB / NAVIGASI KEMBALI JIKA DI HALAMAN DIRECT PROGRAM */}
+      {isDirectProgramPage && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <Link
+            href="/review-pelatihan"
+            className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-700 hover:text-emerald-700 bg-white px-4 py-2.5 rounded-xl border border-slate-200 shadow-2xs transition-all hover:bg-slate-50"
+          >
+            <ArrowLeft size={16} />
+            <span>Lihat Semua Program Pelatihan</span>
+          </Link>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-lg">
+              Tautan Khusus Program
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* HERO SECTION */}
       <div className="relative mb-10 overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 p-6 sm:p-10 md:p-12 text-white shadow-xl">
         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
@@ -232,29 +328,91 @@ export default function ReviewPelatihanClientPage() {
             <Sparkles size={14} className="text-emerald-400" /> Portal Ulasan & Evaluasi Terbuka
           </div>
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
-            Transparansi Kualitas Pelatihan Vokasi
+            {isDirectProgramPage && currentProgram ? (
+              <>Ulasan: {currentProgram.title}</>
+            ) : (
+              'Transparansi Kualitas Pelatihan Vokasi'
+            )}
           </h1>
           <p className="text-sm sm:text-base text-slate-300 leading-relaxed font-medium">
             Dengar langsung testimoni dan evaluasi otentik dari <strong>Peserta Pelatihan</strong>, <strong>Instruktur Penguji</strong>, dan <strong>Mitra Industri Kerja</strong>. Terbuka bagi siapa saja untuk memberi ulasan tanpa perlu login akun.
           </p>
 
-          <div className="pt-2 flex flex-wrap gap-3">
+          <div className="pt-2 flex flex-wrap items-center gap-3">
             <Button
               onClick={() => setIsReviewModalOpen(true)}
               className="rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs sm:text-sm px-6 h-11 shadow-lg hover:shadow-emerald-500/25 transition-all"
             >
               <Plus size={16} className="mr-2" /> Tulis Review Pelatihan
             </Button>
+            <Button
+              onClick={() => handleCopyLink(false)}
+              variant="outline"
+              className="rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm px-4 h-11 border border-white/15 backdrop-blur-md transition-colors"
+            >
+              {copiedLink ? <Check size={15} className="mr-2 text-emerald-400" /> : <Share2 size={15} className="mr-2" />}
+              {copiedLink ? 'Link Tersalin!' : 'Bagikan Program'}
+            </Button>
             <Link
               href="/program-pelatihan"
-              className="inline-flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm px-5 h-11 border border-white/15 backdrop-blur-md transition-colors"
+              className="inline-flex items-center justify-center rounded-xl bg-transparent hover:bg-white/10 text-slate-300 hover:text-white font-bold text-xs sm:text-sm px-4 h-11 transition-colors"
             >
-              <span>Katalog Semua Program</span>
-              <ArrowRight size={15} className="ml-2" />
+              <span>Katalog Pelatihan</span>
+              <ArrowRight size={15} className="ml-1.5" />
             </Link>
           </div>
         </div>
       </div>
+
+      {/* WIDGET BAGIKAN LINK KHUSUS & AKSES CEPAT PENGISIAN */}
+      {currentProgram && (
+        <div className="mb-8 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-50/90 via-teal-50/60 to-slate-50 border border-emerald-200 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="space-y-1 text-center md:text-left w-full md:w-auto">
+            <div className="flex items-center justify-center md:justify-start gap-2">
+              <span className="p-1.5 rounded-lg bg-emerald-600 text-white shrink-0">
+                <Share2 size={14} />
+              </span>
+              <h4 className="text-xs sm:text-sm font-black text-slate-900">
+                Tautan Khusus Program: {currentProgram.title}
+              </h4>
+            </div>
+            <p className="text-[11px] sm:text-xs text-slate-600 font-medium">
+              Bagikan tautan langsung ini ke grup WhatsApp peserta atau mentor agar mudah diakses tanpa harus mencari.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center md:justify-end gap-2 w-full md:w-auto">
+            <Button
+              onClick={() => handleCopyLink(false)}
+              variant="outline"
+              size="sm"
+              className="rounded-xl h-9 text-xs font-bold bg-white border-slate-200 hover:bg-slate-50 hover:text-emerald-700 shadow-2xs"
+            >
+              {copiedLink ? <Check size={14} className="mr-1.5 text-emerald-600" /> : <Copy size={14} className="mr-1.5" />}
+              {copiedLink ? 'Tersalin!' : 'Salin Tautan'}
+            </Button>
+
+            <Button
+              onClick={() => handleCopyLink(true)}
+              variant="outline"
+              size="sm"
+              className="rounded-xl h-9 text-xs font-bold bg-white border-slate-200 hover:bg-slate-50 hover:text-emerald-700 shadow-2xs"
+              title="Salin tautan yang langsung membuka form ulasan saat diklik oleh penerima"
+            >
+              {copiedFormLink ? <Check size={14} className="mr-1.5 text-emerald-600" /> : <Copy size={14} className="mr-1.5" />}
+              {copiedFormLink ? 'Tersalin (+Form)!' : 'Salin Link Form'}
+            </Button>
+
+            <Button
+              onClick={() => handleShareWhatsApp(false)}
+              size="sm"
+              className="rounded-xl h-9 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs"
+            >
+              <MessageCircle size={14} className="mr-1.5" /> WhatsApp
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* SELECTOR PROGRAM PELATIHAN */}
       <div className="mb-8">
