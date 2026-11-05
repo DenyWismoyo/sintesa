@@ -31,16 +31,16 @@ export default function AlumniQuickMatchBanner() {
 
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/20 border border-sky-400/30 text-sky-200 text-xs font-medium">
               <CheckCircle2 className="w-3.5 h-3.5 text-sky-400" />
-              <span>Mitra Industri Resmi & Lowongan Terverifikasi</span>
+              <span>Jejaring Industri & Peluang Karir Terverifikasi</span>
             </div>
           </div>
 
           <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight leading-tight">
-            Jembatan Karir Resmi Antara <span className="text-emerald-300">Alumni Terverifikasi</span> & <span className="text-teal-300">Mitra Industri Kawasan</span>
+            Jembatan Karir Antara <span className="text-emerald-300">Alumni Terverifikasi</span> & <span className="text-teal-300">Dunia Usaha & Industri</span>
           </h2>
 
           <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-            Pastikan status <strong className="text-emerald-300">Open to Work</strong> dan portofolio proyek pada profil alumni Anda aktif agar Mitra Industri Resmi serta Startup Tenant Solo Technopark dapat mengirimkan undangan wawancara langsung.
+            Pastikan status <strong className="text-emerald-300">Open to Work</strong> dan portofolio proyek pada profil alumni Anda aktif agar Perusahaan Rekruter serta Startup Tenant Kawasan dapat mengirimkan undangan wawancara langsung.
           </p>
 
           <div className="flex flex-wrap items-center gap-4 text-xs text-slate-300 pt-1">

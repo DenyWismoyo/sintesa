@@ -150,7 +150,7 @@ export default function JobDetailModal({
                 ) : job.isStpPartner ? (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                    Mitra Terverifikasi Solo Technopark
+                    Mitra Resmi Solo Technopark
                   </span>
                 ) : null}
                 <Badge variant="outline" className="text-[10px] font-semibold text-slate-600">

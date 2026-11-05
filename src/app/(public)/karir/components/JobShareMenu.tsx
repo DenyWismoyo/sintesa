@@ -59,14 +59,14 @@ export function generateJobShareText(job: JobListing, url: string): string {
       : '';
 
   const partnerBadge =
-    job.companyType === 'Mitra Industri STP'
+    job.isStpPartner
       ? ' ⭐ Mitra Resmi Solo Technopark'
       : job.companyType === 'BUMN & Pemerintah'
       ? ' 🏛️ BUMN / Instansi Pemerintah'
       : '';
 
   return (
-    `🚀 *LOWONGAN KERJA RESMI — SOLO TECHNOPARK*\n` +
+    `🚀 *BURSA KARIR TERVERIFIKASI — SOLO TECHNOPARK*\n` +
     `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
     `📌 *Posisi*: ${job.title}\n` +
     `🏢 *Perusahaan*: ${job.company}${partnerBadge}\n` +

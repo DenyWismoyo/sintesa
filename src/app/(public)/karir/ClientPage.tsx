@@ -14,6 +14,8 @@ import {
   ArrowRight,
   ShieldCheck,
   Building2,
+  ArrowUp,
+  Globe,
 } from 'lucide-react';
 import { SectionContainer } from '@/components/ui/SectionContainer';
 import PageHero from '@/components/ui/PageHero';
@@ -64,6 +66,7 @@ export default function KarirClientPage() {
   const [locationRegion, setLocationRegion] = useState(() => searchParams.get('wilayah') || 'all');
   const [freshness, setFreshness] = useState(() => searchParams.get('periode') || 'all');
   const [sort, setSort] = useState(() => searchParams.get('sort') || 'newest');
+  const [showBackToTop, setShowBackToTop] = useState(false);
 
   // Pagination States
   const [currentPage, setCurrentPage] = useState(() => {
@@ -191,6 +194,23 @@ export default function KarirClientPage() {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
+
+  // 4b. Scroll Listener untuk Floating Back-to-Top (Mobile Ergonomics)
+  useEffect(() => {
+    const handleScroll = () => {
+      if (typeof window !== 'undefined') {
+        setShowBackToTop(window.scrollY > 400);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   const { data, isLoading } = useJobs(filterParams, { enabled: hasCareerAccess });
   const jobs = data?.jobs || [];
@@ -354,13 +374,13 @@ export default function KarirClientPage() {
             <div className="space-y-1.5">
               <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-[11px] font-semibold text-emerald-300">
                 <Briefcase className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Pusat Karir & Rekrutmen Resmi Solo Technopark</span>
+                <span>Pusat Karir & Rekrutmen Terverifikasi Solo Technopark</span>
               </div>
               <h3 className="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
                 <span>{total} Lowongan Pekerjaan Aktif & Terverifikasi</span>
               </h3>
               <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
-                Temukan peluang karir terpercaya dari Mitra Industri Kawasan Solo Technopark, perusahaan teknologi nasional, dan jaringan kerja profesional yang siap menyerap talenta Anda.
+                Temukan peluang karir terpercaya dari korporasi nasional, industri manufaktur terverifikasi, dan jaringan kerja global yang siap menyerap talenta Anda.
               </p>
             </div>
 
@@ -375,17 +395,19 @@ export default function KarirClientPage() {
           </div>
         </div>
 
-        {/* ─── Baris Pilihan Jalur Rekrutmen Multi-Tier ─── */}
+        {/* ─── Baris Pilihan Jalur Rekrutmen Multi-Tier (Porsi 60% Indonesia / 40% Luar Negeri) ─── */}
         <div className="flex flex-wrap items-center gap-2 pt-1">
           <button
             type="button"
             onClick={() => {
               setIsStpPartnerOnly(false);
               setSourceFilter('all');
+              setLocationRegion('all');
+              setWorkSetup('all');
               setCurrentPage(1);
             }}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              !isStpPartnerOnly && sourceFilter === 'all'
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+              !isStpPartnerOnly && sourceFilter === 'all' && locationRegion === 'all' && workSetup === 'all'
                 ? 'bg-slate-900 text-white shadow-xs'
                 : 'bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50'
             }`}
@@ -395,50 +417,55 @@ export default function KarirClientPage() {
           <button
             type="button"
             onClick={() => {
-              setIsStpPartnerOnly(true);
+              setIsStpPartnerOnly(false);
               setSourceFilter('all');
+              setLocationRegion('indonesia');
+              setWorkSetup('all');
               setCurrentPage(1);
             }}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-              isStpPartnerOnly
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              locationRegion === 'indonesia'
                 ? 'bg-emerald-600 text-white shadow-xs'
                 : 'bg-white text-emerald-800 border border-emerald-200 hover:bg-emerald-50/60'
             }`}
           >
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Mitra Resmi STP & Kawasan</span>
+            <span>🇮🇩 Indonesia (Nasional)</span>
           </button>
           <button
             type="button"
             onClick={() => {
               setIsStpPartnerOnly(false);
-              setSourceFilter('ats_public');
+              setSourceFilter('all');
+              setLocationRegion('asean');
+              setWorkSetup('all');
               setCurrentPage(1);
             }}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-              sourceFilter === 'ats_public'
-                ? 'bg-indigo-600 text-white shadow-xs'
-                : 'bg-white text-indigo-700 border border-indigo-200 hover:bg-indigo-50/60'
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              locationRegion === 'asean' || locationRegion === 'east_asia' || locationRegion === 'global' || locationRegion === 'luar_negeri'
+                ? 'bg-sky-600 text-white shadow-xs'
+                : 'bg-white text-sky-700 border border-sky-200 hover:bg-sky-50/60'
             }`}
           >
-            <Building2 className="w-3.5 h-3.5 text-indigo-600" />
-            <span>Perusahaan & Korporasi</span>
+            <Globe className="w-3.5 h-3.5 text-sky-600" />
+            <span>🌏 ASEAN & Luar Negeri</span>
           </button>
           <button
             type="button"
             onClick={() => {
               setIsStpPartnerOnly(false);
-              setSourceFilter('open_api');
+              setSourceFilter('all');
+              setLocationRegion('all');
+              setWorkSetup('Remote / WFH');
               setCurrentPage(1);
             }}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-              sourceFilter === 'open_api'
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              workSetup === 'Remote / WFH'
                 ? 'bg-teal-600 text-white shadow-xs'
                 : 'bg-white text-teal-700 border border-teal-200 hover:bg-teal-50/60'
             }`}
           >
             <Sparkles className="w-3.5 h-3.5 text-teal-600" />
-            <span>Peluang Remote / WFH</span>
+            <span>🌐 Peluang Remote / WFH</span>
           </button>
         </div>
 
@@ -634,6 +661,19 @@ export default function KarirClientPage() {
           <AlumniQuickMatchBanner />
         </div>
       </div>
+
+      {/* ─── Floating Back-to-Top Button (Mobile-First Ergonomics) ─── */}
+      {showBackToTop && (
+        <button
+          type="button"
+          onClick={scrollToTop}
+          className="fixed bottom-6 right-5 z-40 w-12 h-12 rounded-2xl bg-slate-900/90 hover:bg-slate-900 text-white shadow-xl backdrop-blur-xs flex items-center justify-center transition-all duration-300 active:scale-90 border border-slate-700/50"
+          aria-label="Kembali ke atas"
+          title="Kembali ke atas"
+        >
+          <ArrowUp className="w-5 h-5 text-emerald-400" />
+        </button>
+      )}
     </SectionContainer>
   );
 }

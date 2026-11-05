@@ -295,10 +295,18 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
 
     switch (job.companyType) {
       case 'Mitra Industri STP':
+        if (job.isStpPartner) {
+          return (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              Mitra Industri Resmi Solo Technopark
+            </span>
+          );
+        }
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            Mitra Industri Resmi Solo Technopark
+            <Building2 className="w-4 h-4 text-emerald-600" />
+            Industri Rekruter Terverifikasi
           </span>
         );
       case 'Tenant Inkubasi Startup STP':
@@ -1003,7 +1011,15 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
               <div className="pt-2 flex justify-between">
                 <span className="text-slate-500">Penyedia Informasi</span>
                 <span className="font-bold text-slate-800 text-right">
-                  {job.source === 'jsearch_realtime' ? 'JSearch RapidAPI' : 'Mitra Solo Technopark'}
+                  {job.source === 'jsearch_realtime'
+                    ? 'JSearch RapidAPI'
+                    : job.source === 'ats_public'
+                    ? 'Direktori Industri Terverifikasi'
+                    : job.source === 'open_api'
+                    ? 'Agregator Karir Global'
+                    : job.isStpPartner
+                    ? 'Mitra Resmi Solo Technopark'
+                    : 'Jejaring Industri Terverifikasi'}
                 </span>
               </div>
             </div>

@@ -13,9 +13,13 @@ import {
   X,
   ChevronDown,
   ChevronUp,
+  Globe,
+  Briefcase,
+  Clock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TrainingProgramSelector } from './TrainingProgramSelector';
+import FilterDrawer, { FilterGroup } from '@/components/ui/FilterDrawer';
 
 interface JobFilterToolbarProps {
   workType: string;
@@ -86,8 +90,6 @@ export default function JobFilterToolbar({
   setSearchQuery,
   availableTrainings,
 }: JobFilterToolbarProps) {
-  const [isMobileExpanded, setIsMobileExpanded] = useState(false);
-
   const activeFiltersCount = [
     workType !== 'all',
     workSetup !== 'all',
@@ -102,6 +104,88 @@ export default function JobFilterToolbar({
   ].filter(Boolean).length;
 
   const hasActiveFilter = activeFiltersCount > 0;
+
+  // Filter groups untuk Mobile Bottom Sheet Drawer
+  const filterGroups: FilterGroup[] = [
+    {
+      id: 'region',
+      title: 'Wilayah & Penempatan',
+      selectedValue: locationRegion,
+      onChange: (val) => setLocationRegion(val),
+      options: [
+        { id: 'all', label: 'Semua Wilayah' },
+        { id: 'indonesia', label: '🇮🇩 Indonesia (Nasional)' },
+        { id: 'solo_raya', label: 'Solo Raya & STP' },
+        { id: 'jabodetabek', label: 'Jabodetabek' },
+        { id: 'jawa', label: 'Pulau Jawa' },
+        { id: 'luar_jawa', label: 'Luar Jawa' },
+        { id: 'asean', label: '🌏 ASEAN' },
+        { id: 'east_asia', label: '🇯🇵/🇰🇷 Asia Timur' },
+        { id: 'luar_negeri', label: '🌐 Global Remote' },
+      ],
+    },
+    {
+      id: 'workSetup',
+      title: 'Model Kerja (Work Setup)',
+      selectedValue: workSetup,
+      onChange: (val) => setWorkSetup(val),
+      options: [
+        { id: 'all', label: 'Semua Model' },
+        { id: 'Remote / WFH', label: '🌐 Remote / WFH' },
+        { id: 'Hybrid', label: '🏢 Hybrid' },
+        { id: 'On-site (Solo Technopark)', label: '📍 On-site STP' },
+        { id: 'On-site', label: '🏙️ On-site Umum' },
+      ],
+    },
+    {
+      id: 'workType',
+      title: 'Tipe Kontrak Kerja',
+      selectedValue: workType,
+      onChange: (val) => setWorkType(val),
+      options: [
+        { id: 'all', label: 'Semua Tipe' },
+        { id: 'Full-time', label: 'Full-time' },
+        { id: 'Internship / Magang', label: 'Magang / Internship' },
+        { id: 'Contract', label: 'Kontrak' },
+        { id: 'Freelance / Project', label: 'Freelance / Proyek' },
+        { id: 'Part-time', label: 'Part-time' },
+      ],
+    },
+    {
+      id: 'experienceLevel',
+      title: 'Tingkat Pengalaman',
+      selectedValue: experienceLevel,
+      onChange: (val) => setExperienceLevel(val),
+      options: [
+        { id: 'all', label: 'Semua Level' },
+        { id: 'Fresh Graduate / Alumni Pelatihan', label: '🎓 Fresh Grad / Alumni' },
+        { id: 'Junior (0-2 Tahun)', label: 'Junior (0-2 Thn)' },
+        { id: 'Mid-Level (2-4 Tahun)', label: 'Mid-Level' },
+        { id: 'Senior (4+ Tahun)', label: 'Senior (4+ Thn)' },
+      ],
+    },
+    {
+      id: 'freshness',
+      title: 'Waktu Posting Lowongan',
+      selectedValue: freshness,
+      onChange: (val) => setFreshness(val),
+      options: [
+        { id: 'all', label: 'Semua Waktu' },
+        { id: 'week', label: 'Baru Minggu Ini' },
+        { id: 'month', label: '30 Hari Terakhir' },
+      ],
+    },
+    {
+      id: 'sort',
+      title: 'Urutan Penampilan',
+      selectedValue: sort,
+      onChange: (val) => setSort(val),
+      options: [
+        { id: 'newest', label: 'Terbaru' },
+        { id: 'salary_high', label: 'Gaji Tertinggi' },
+      ],
+    },
+  ];
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs space-y-4">
@@ -130,28 +214,130 @@ export default function JobFilterToolbar({
         </div>
       </div>
 
-      {/* ─── Tombol Toggle Mobile Filter (Tampil hanya di layar kecil) ─── */}
-      <div className="sm:hidden flex items-center justify-between pt-1">
+      {/* ─── Mobile Horizontal Quick Filters (Swipeable Chips Bar) ─── */}
+      <div className="sm:hidden flex items-center gap-2 overflow-x-auto pb-1.5 pt-0.5 no-scrollbar -mx-1 px-1">
         <button
           type="button"
-          onClick={() => setIsMobileExpanded(!isMobileExpanded)}
-          className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 w-full justify-between"
+          onClick={() => {
+            setLocationRegion('all');
+            setWorkSetup('all');
+          }}
+          className={`h-9 px-3.5 rounded-xl text-xs font-bold shrink-0 transition-all ${
+            locationRegion === 'all' && workSetup === 'all'
+              ? 'bg-slate-900 text-white shadow-xs'
+              : 'bg-slate-100 text-slate-700 hover:bg-slate-200/80'
+          }`}
         >
-          <div className="flex items-center gap-2">
-            <SlidersHorizontal className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Filter & Pengurutan Lowongan</span>
-            {activeFiltersCount > 0 && (
-              <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] flex items-center justify-center font-black">
-                {activeFiltersCount}
-              </span>
-            )}
-          </div>
-          {isMobileExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          Semua
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setLocationRegion(locationRegion === 'indonesia' ? 'all' : 'indonesia')}
+          className={`h-9 px-3.5 rounded-xl text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 ${
+            locationRegion === 'indonesia'
+              ? 'bg-emerald-600 text-white shadow-xs'
+              : 'bg-emerald-50 text-emerald-800 border border-emerald-200/80 hover:bg-emerald-100/60'
+          }`}
+        >
+          <span>🇮🇩 Indonesia</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setLocationRegion(locationRegion === 'asean' ? 'all' : 'asean')}
+          className={`h-9 px-3.5 rounded-xl text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 ${
+            locationRegion === 'asean'
+              ? 'bg-cyan-600 text-white shadow-xs'
+              : 'bg-cyan-50 text-cyan-800 border border-cyan-200/80 hover:bg-cyan-100/60'
+          }`}
+        >
+          <span>🌏 ASEAN</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setLocationRegion(locationRegion === 'east_asia' ? 'all' : 'east_asia')}
+          className={`h-9 px-3.5 rounded-xl text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 ${
+            locationRegion === 'east_asia'
+              ? 'bg-rose-600 text-white shadow-xs'
+              : 'bg-rose-50 text-rose-800 border border-rose-200/80 hover:bg-rose-100/60'
+          }`}
+        >
+          <span>🇯🇵 Asia Timur</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setWorkSetup(workSetup === 'Remote / WFH' ? 'all' : 'Remote / WFH')}
+          className={`h-9 px-3.5 rounded-xl text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 ${
+            workSetup === 'Remote / WFH'
+              ? 'bg-indigo-600 text-white shadow-xs'
+              : 'bg-indigo-50 text-indigo-800 border border-indigo-200/80 hover:bg-indigo-100/60'
+          }`}
+        >
+          <Globe className="w-3.5 h-3.5 text-indigo-600" />
+          <span>Remote</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            setExperienceLevel(
+              experienceLevel === 'Fresh Graduate / Alumni Pelatihan'
+                ? 'all'
+                : 'Fresh Graduate / Alumni Pelatihan'
+            )
+          }
+          className={`h-9 px-3.5 rounded-xl text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 ${
+            experienceLevel === 'Fresh Graduate / Alumni Pelatihan'
+              ? 'bg-purple-600 text-white shadow-xs'
+              : 'bg-purple-50 text-purple-800 border border-purple-200/80 hover:bg-purple-100/60'
+          }`}
+        >
+          <span>🎓 Fresh Grad</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            setWorkType(workType === 'Internship / Magang' ? 'all' : 'Internship / Magang')
+          }
+          className={`h-9 px-3.5 rounded-xl text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 ${
+            workType === 'Internship / Magang'
+              ? 'bg-amber-600 text-white shadow-xs'
+              : 'bg-amber-50 text-amber-800 border border-amber-200/80 hover:bg-amber-100/60'
+          }`}
+        >
+          <span>💼 Magang</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setSort(sort === 'salary_high' ? 'newest' : 'salary_high')}
+          className={`h-9 px-3.5 rounded-xl text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 ${
+            sort === 'salary_high'
+              ? 'bg-emerald-800 text-white shadow-xs'
+              : 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100'
+          }`}
+        >
+          <span>💰 Gaji Tertinggi</span>
         </button>
       </div>
 
-      {/* ─── Grid Filter Utama (Selalu tampil di Desktop, Toggle di Mobile) ─── */}
-      <div className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 ${isMobileExpanded ? 'block' : 'hidden sm:grid'}`}>
+      {/* ─── Trigger Mobile Bottom Sheet Drawer ─── */}
+      <div className="sm:hidden flex items-center gap-2 pt-0.5">
+        <FilterDrawer
+          groups={filterGroups}
+          activeCount={activeFiltersCount}
+          onResetAll={onReset}
+          triggerLabel="Filter Lengkap & Urutkan"
+          className="w-full justify-between"
+        />
+      </div>
+
+      {/* ─── Grid Filter Utama (Khusus Layar Desktop/Tablet sm:) ─── */}
+      <div className="hidden sm:grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
         {/* Filter Wilayah / Regional */}
         <div>
           <label className="flex items-center gap-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
