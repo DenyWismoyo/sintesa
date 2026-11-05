@@ -246,7 +246,11 @@ export function filterAndSortJobs(
     }
   }
 
-  // Filter Wilayah / Regional Geografis
+  // Filter Wilayah / Regional Geografis Terpadu (Indonesia vs ASEAN vs Asia Timur vs Luar Negeri)
+  if (filters.region && filters.region !== 'all') {
+    result = result.filter((job) => job.region === filters.region);
+  }
+
   if (filters.locationRegion && filters.locationRegion !== 'all') {
     const soloKeywords = ['solo', 'surakarta', 'sukoharjo', 'karanganyar', 'sragen', 'boyolali', 'klaten', 'wonogiri', 'stp', 'technopark'];
     const jaboKeywords = ['jakarta', 'bogor', 'depok', 'tangerang', 'bekasi', 'dki', 'jabodetabek', 'bsd', 'banten', 'cikarang'];
@@ -255,16 +259,23 @@ export function filterAndSortJobs(
       ...jaboKeywords,
       'bandung', 'semarang', 'surabaya', 'yogyakarta', 'jogja', 'malang', 'sidoarjo', 'cirebon', 'jawa', 'java', 'jateng', 'jatim', 'jabar', 'diy'
     ];
+    const aseanKeywords = ['singapore', 'singapura', 'malaysia', 'kuala lumpur', 'thailand', 'bangkok', 'vietnam', 'hanoi', 'philippines', 'manila'];
+    const eastAsiaKeywords = ['japan', 'jepang', 'tokyo', 'osaka', 'yokohama', 'korea', 'seoul', 'busan', 'taiwan', 'taipei'];
     const foreignKeywords = [
-      'singapore', 'singapura', 'malaysia', 'kuala lumpur', 'tokyo', 'japan', 'jepang',
-      'philippines', 'filipina', 'thailand', 'bangkok', 'vietnam', 'hanoi', 'worldwide',
-      'anywhere', 'global', 'remote worldwide', 'united states', 'australia', 'germany'
+      ...aseanKeywords,
+      ...eastAsiaKeywords,
+      'worldwide', 'anywhere', 'global', 'remote worldwide', 'united states', 'australia', 'germany'
     ];
 
     result = result.filter((job) => {
       const loc = (job.location + ' ' + (job.city || '')).toLowerCase();
       const setup = job.workSetup;
 
+      if (filters.locationRegion === 'indonesia') {
+        if (job.region === 'indonesia' || job.isStpPartner) return true;
+        if (job.region === 'asean' || job.region === 'east_asia' || job.region === 'global_remote') return false;
+        return !foreignKeywords.some((k) => loc.includes(k));
+      }
       if (filters.locationRegion === 'solo_raya') {
         return soloKeywords.some((k) => loc.includes(k)) || setup === 'On-site (Solo Technopark)';
       }
@@ -274,14 +285,19 @@ export function filterAndSortJobs(
       if (filters.locationRegion === 'jawa') {
         return jawaKeywords.some((k) => loc.includes(k));
       }
+      if (filters.locationRegion === 'asean') {
+        return job.region === 'asean' || aseanKeywords.some((k) => loc.includes(k));
+      }
+      if (filters.locationRegion === 'east_asia') {
+        return job.region === 'east_asia' || eastAsiaKeywords.some((k) => loc.includes(k));
+      }
       if (filters.locationRegion === 'luar_negeri') {
-        return (
-          foreignKeywords.some((k) => loc.includes(k)) ||
-          (!loc.includes('indonesia') && !jawaKeywords.some((k) => loc.includes(k)) && foreignKeywords.some((k) => loc.includes(k)))
-        );
+        if (job.region === 'indonesia' || job.isStpPartner) return false;
+        if (job.region === 'asean' || job.region === 'east_asia' || job.region === 'global_remote') return true;
+        return foreignKeywords.some((k) => loc.includes(k));
       }
       if (filters.locationRegion === 'luar_jawa') {
-        // Lokasi di Indonesia tapi bukan di pulau Jawa
+        if (job.region && job.region !== 'indonesia') return false;
         const isForeign = foreignKeywords.some((k) => loc.includes(k));
         const isJawa = jawaKeywords.some((k) => loc.includes(k));
         return !isForeign && !isJawa;

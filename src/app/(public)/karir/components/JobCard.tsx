@@ -157,6 +157,21 @@ export default function JobCard({
         <div className="flex items-start justify-between gap-2 mb-3.5">
           <div className="flex flex-wrap items-center gap-1.5">
             {getCompanyTypeBadge()}
+            {job.region === 'indonesia' && (
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                🇮🇩 Indonesia
+              </span>
+            )}
+            {job.region === 'asean' && (
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-50 text-cyan-700 border border-cyan-200">
+                🌏 ASEAN
+              </span>
+            )}
+            {job.region === 'east_asia' && (
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                🇯🇵/🇰🇷 Asia Timur
+              </span>
+            )}
             <Badge variant="outline" className="text-[10px] font-semibold text-slate-600 border-slate-200">
               {job.workType}
             </Badge>

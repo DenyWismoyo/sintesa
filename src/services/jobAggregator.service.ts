@@ -7,12 +7,14 @@ import {
   JobExperienceLevel,
   JobCompanyType,
   JobSalary,
+  JobRegionCode,
 } from '@/types/job.types';
 import {
   inferJobCategory,
   inferRelevantTrainingPrograms,
 } from '@/services/jsearch.service';
-import { crawlAtsJobs, AtsTarget, normalizeCompanyName } from '@/services/atsCrawler.service';
+import { crawlAtsJobs, AtsTarget, normalizeCompanyName, inferJobRegion } from '@/services/atsCrawler.service';
+import { INDUSTRIAL_VOCATIONAL_JOBS } from '@/data/jobs/industrialVocationalJobs';
 
 /**
  * Helper untuk menentukan WorkType
@@ -150,6 +152,8 @@ export async function fetchRemotiveJobs(limit: number = 25): Promise<JobListing[
       }
 
       const id = `remotive-${item.id}`;
+      const location = item.candidate_required_location || 'Global / Remote';
+      const region = inferJobRegion({ location, city: 'Remote / Global', company: item.company_name });
 
       return {
         id,
@@ -158,8 +162,10 @@ export async function fetchRemotiveJobs(limit: number = 25): Promise<JobListing[
         company: item.company_name || 'Global Partner',
         companyLogo: item.company_logo || item.company_logo_url || undefined,
         companyType: determineCompanyType(item.company_name || ''),
-        location: item.candidate_required_location || 'Global / Remote',
+        location,
         city: 'Remote / Global',
+        region,
+        country: region === 'indonesia' ? 'Indonesia' : 'Global',
         category,
         workType: determineWorkType(item.job_type || 'full_time'),
         workSetup: 'Remote / WFH',
@@ -236,6 +242,9 @@ export async function fetchArbeitnowJobs(): Promise<JobListing[]> {
       ]);
 
       const id = `arbeitnow-${item.slug || Math.random().toString(36).slice(2, 8)}`;
+      const location = item.location || (item.remote ? 'Remote' : 'Eropa & Asia');
+      const city = item.location?.includes('Jepang') || item.location?.includes('Japan') ? 'Tokyo / Jepang' : 'Global';
+      const region = inferJobRegion({ location, city, company: item.company_name });
 
       return {
         id,
@@ -243,8 +252,10 @@ export async function fetchArbeitnowJobs(): Promise<JobListing[]> {
         title: item.title,
         company: item.company_name || 'International Partner',
         companyType: determineCompanyType(item.company_name || ''),
-        location: item.location || (item.remote ? 'Remote' : 'Eropa & Asia'),
-        city: item.location?.includes('Jepang') || item.location?.includes('Japan') ? 'Tokyo / Jepang' : 'Global',
+        location,
+        city,
+        region,
+        country: region === 'east_asia' ? 'Jepang' : (region === 'indonesia' ? 'Indonesia' : 'Global'),
         category,
         workType: determineWorkType(item.job_types?.[0] || 'Full-time'),
         workSetup: item.remote ? 'Remote / WFH' : 'On-site',
@@ -320,6 +331,8 @@ export async function fetchJobicyJobs(count: number = 20): Promise<JobListing[]>
 
       const hasSalary = Boolean(item.salaryMin || item.salaryMax);
       const id = `jobicy-${item.id}`;
+      const location = item.jobGeo || 'Remote Global';
+      const region = inferJobRegion({ location, city: 'Remote / Global', company: item.companyName });
 
       return {
         id,
@@ -328,8 +341,10 @@ export async function fetchJobicyJobs(count: number = 20): Promise<JobListing[]>
         company: item.companyName || 'Enterprise Partner',
         companyLogo: item.companyLogo || undefined,
         companyType: determineCompanyType(item.companyName || ''),
-        location: item.jobGeo || 'Remote Global',
+        location,
         city: 'Remote / Global',
+        region,
+        country: region === 'indonesia' ? 'Indonesia' : 'Global',
         category,
         workType: determineWorkType(item.jobType?.[0] || 'Full-Time'),
         workSetup: 'Remote / WFH',
@@ -407,6 +422,10 @@ export async function fetchHimalayasJobs(limit: number = 20): Promise<JobListing
       const rawGuid = String(item.guid || item.title || '').replace(/[^a-zA-Z0-9_-]/g, '');
       const guidSuffix = rawGuid.length > 20 ? rawGuid.slice(-20) : rawGuid || Math.random().toString(36).slice(2, 8);
       const id = `himalayas-${guidSuffix}`;
+      const location = Array.isArray(item.locationRestrictions)
+        ? item.locationRestrictions.join(', ')
+        : 'Worldwide / Remote';
+      const region = inferJobRegion({ location, city: 'Remote / Global', company: item.companyName });
 
       return {
         id,
@@ -415,10 +434,10 @@ export async function fetchHimalayasJobs(limit: number = 20): Promise<JobListing
         company: item.companyName || 'Technology Innovator',
         companyLogo: item.companyLogo || undefined,
         companyType: determineCompanyType(item.companyName || ''),
-        location: Array.isArray(item.locationRestrictions)
-          ? item.locationRestrictions.join(', ')
-          : 'Worldwide / Remote',
+        location,
         city: 'Remote / Global',
+        region,
+        country: region === 'indonesia' ? 'Indonesia' : 'Global',
         category,
         workType: determineWorkType(item.employmentType || 'Full-time'),
         workSetup: 'Remote / WFH',
@@ -503,6 +522,9 @@ export async function aggregateMultiProviderJobs(options: {
     }
   }
 
+  // Tambahkan lowongan industri & spesialisasi vokasi Solo Technopark (Indonesia, ASEAN, Jepang, Korea)
+  collectedJobs.push(...INDUSTRIAL_VOCATIONAL_JOBS);
+
   // Deduplikasi berdasarkan kombinasi normalized Company + Title + City
   const seenKey = new Set<string>();
   const uniqueJobs: JobListing[] = [];
@@ -515,6 +537,115 @@ export async function aggregateMultiProviderJobs(options: {
     }
   }
 
-  console.log(`[JobAggregator] Berhasil menghimpun ${uniqueJobs.length} lowongan unik dari Open API & ATS.`);
+  console.log(`[JobAggregator] Berhasil menghimpun ${uniqueJobs.length} lowongan unik dari Open API, ATS & Industri Vokasi.`);
   return uniqueJobs;
+}
+
+export interface RegionalProportionStats {
+  total: number;
+  indonesiaCount: number;
+  indonesiaPercent: number;
+  aseanCount: number;
+  eastAsiaCount: number;
+  globalRemoteCount: number;
+  overseasCount: number;
+  overseasPercent: number;
+}
+
+/**
+ * 6. Penyeimbang Porsi Wilayah (Smart Regional Rebalancer)
+ * Memastikan lowongan Indonesia dimaksimalkan terlebih dahulu dengan target porsi
+ * minimal ~60% Indonesia dan maksimal ~40% Luar Negeri (ASEAN, Jepang, Korea, & Global Remote).
+ */
+export function balanceRegionalProportion(
+  jobs: JobListing[],
+  targetIndoRatio: number = 0.6
+): {
+  balancedJobs: JobListing[];
+  stats: RegionalProportionStats;
+} {
+  const jobsWithRegion = jobs.map((job) => {
+    const region = job.region || inferJobRegion(job);
+    return {
+      ...job,
+      region,
+      country: job.country || (region === 'indonesia' ? 'Indonesia' : 'Global'),
+    };
+  });
+
+  const indoJobs = jobsWithRegion.filter((j) => j.region === 'indonesia');
+  const aseanJobs = jobsWithRegion.filter((j) => j.region === 'asean');
+  const eastAsiaJobs = jobsWithRegion.filter((j) => j.region === 'east_asia');
+  const globalRemoteJobs = jobsWithRegion.filter((j) => j.region === 'global_remote');
+
+  const indoCount = indoJobs.length;
+
+  // Jika data Indonesia belum tersedia, kembalikan data apa adanya
+  if (indoCount === 0) {
+    return {
+      balancedJobs: jobsWithRegion,
+      stats: {
+        total: jobsWithRegion.length,
+        indonesiaCount: 0,
+        indonesiaPercent: 0,
+        aseanCount: aseanJobs.length,
+        eastAsiaCount: eastAsiaJobs.length,
+        globalRemoteCount: globalRemoteJobs.length,
+        overseasCount: jobsWithRegion.length,
+        overseasPercent: 100,
+      },
+    };
+  }
+
+  // Hitung batas lowongan Luar Negeri agar rasio Indonesia minimal targetIndoRatio (60%)
+  const maxOverseasAllowed = Math.round((indoCount / targetIndoRatio) * (1 - targetIndoRatio));
+
+  // Kuota sub-regional luar negeri dengan prioritas:
+  // 1. ASEAN (target ~35% dari luar negeri)
+  // 2. Asia Timur (Jepang & Korea Selatan) (target ~35% dari luar negeri)
+  // 3. Global Remote terverifikasi (target ~30% dari luar negeri)
+  const aseanTargetQuota = Math.round(maxOverseasAllowed * 0.35);
+  const eastAsiaTargetQuota = Math.round(maxOverseasAllowed * 0.35);
+
+  const selectedAsean = aseanJobs.slice(0, aseanTargetQuota);
+  const selectedEastAsia = eastAsiaJobs.slice(0, eastAsiaTargetQuota);
+
+  // Sisa kuota luar negeri yang belum terpakai diisi oleh limpahan prioritas
+  const remainingQuota = Math.max(0, maxOverseasAllowed - (selectedAsean.length + selectedEastAsia.length));
+  
+  const unusedAsean = aseanJobs.slice(aseanTargetQuota);
+  const unusedEastAsia = eastAsiaJobs.slice(eastAsiaTargetQuota);
+  const priorityPool = [...unusedAsean, ...unusedEastAsia, ...globalRemoteJobs];
+  const selectedOtherOverseas = priorityPool.slice(0, remainingQuota);
+
+  const finalOverseas = [
+    ...selectedAsean,
+    ...selectedEastAsia,
+    ...selectedOtherOverseas,
+  ];
+
+  // Susun daftar seimbang: Seluruh lowongan Indonesia + alokasi luar negeri terkurasi
+  const balancedJobs = [...indoJobs, ...finalOverseas];
+  const total = balancedJobs.length;
+  const indoPercent = total > 0 ? Math.round((indoCount / total) * 100) : 0;
+  const overseasCount = finalOverseas.length;
+  const overseasPercent = 100 - indoPercent;
+
+  const finalAseanCount = finalOverseas.filter((j) => j.region === 'asean').length;
+  const finalEastAsiaCount = finalOverseas.filter((j) => j.region === 'east_asia').length;
+  const finalGlobalRemoteCount = finalOverseas.filter((j) => j.region === 'global_remote').length;
+
+  return {
+    balancedJobs,
+    stats: {
+      total,
+      indonesiaCount: indoCount,
+      indonesiaPercent: indoPercent,
+      aseanCount: finalAseanCount,
+      eastAsiaCount: finalEastAsiaCount,
+      globalRemoteCount: finalGlobalRemoteCount,
+      overseasCount,
+      overseasPercent,
+    },
+  };
 }

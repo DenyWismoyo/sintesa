@@ -36,6 +36,14 @@ export const JobExperienceLevelEnum = z.enum([
 ]);
 export type JobExperienceLevel = z.infer<typeof JobExperienceLevelEnum>;
 
+export const JobRegionCodeEnum = z.enum([
+  'indonesia',
+  'asean',
+  'east_asia',
+  'global_remote',
+]);
+export type JobRegionCode = z.infer<typeof JobRegionCodeEnum>;
+
 export const JobCompanyTypeEnum = z.enum([
   'Mitra Industri STP',
   'Tenant Inkubasi Startup STP',
@@ -67,6 +75,8 @@ export const JobListingSchema = z.object({
   category: JobCategoryEnum,
   location: z.string(),
   city: z.string().default('Surakarta'),
+  region: JobRegionCodeEnum.default('indonesia').optional(),
+  country: z.string().default('Indonesia').optional(),
   workType: JobWorkTypeEnum.default('Full-time'),
   workSetup: JobWorkSetupEnum.default('On-site'),
   experienceLevel: JobExperienceLevelEnum.default('Fresh Graduate / Alumni Pelatihan'),
@@ -114,7 +124,8 @@ export interface JobFilterParams {
   isStpPartner?: boolean;
   source?: 'all' | 'stp_partner' | 'jsearch_realtime' | 'ats_public' | 'open_api';
   sort?: 'newest' | 'salary_high' | 'featured';
-  locationRegion?: 'all' | 'solo_raya' | 'jabodetabek' | 'jawa' | 'luar_jawa' | 'luar_negeri';
+  region?: 'all' | 'indonesia' | 'asean' | 'east_asia' | 'global_remote';
+  locationRegion?: 'all' | 'indonesia' | 'solo_raya' | 'jabodetabek' | 'jawa' | 'luar_jawa' | 'asean' | 'east_asia' | 'luar_negeri';
   freshness?: 'all' | 'week' | 'month';
   page?: number;
   limit?: number;

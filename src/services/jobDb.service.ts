@@ -14,8 +14,8 @@ import {
 import { db } from '@/lib/firebase';
 import { JobListing, JobListingSchema } from '@/types/job.types';
 import { fetchJSearchJobs } from '@/services/jsearch.service';
-import { aggregateMultiProviderJobs } from '@/services/jobAggregator.service';
-import { normalizeCompanyName, sanitizePii, stripTrackingParams } from '@/services/atsCrawler.service';
+import { aggregateMultiProviderJobs, balanceRegionalProportion, RegionalProportionStats } from '@/services/jobAggregator.service';
+import { normalizeCompanyName, sanitizePii, stripTrackingParams, inferJobRegion } from '@/services/atsCrawler.service';
 import SYNCED_SNAPSHOT from '@/data/jobs/syncedJobs.json';
 import { getAppId } from '@/lib/appId';
 
@@ -35,6 +35,7 @@ export interface JobSyncMetadata {
   status: 'IDLE' | 'SUCCESS' | 'FAILED' | 'SKIPPED';
   message?: string;
   provider: string;
+  regionalDistribution?: RegionalProportionStats;
 }
 
 let memoryCache: { jobs: JobListing[]; metadata?: JobSyncMetadata } | null = null;
@@ -492,22 +493,25 @@ export const jobDbService = {
       });
 
       const allJobsToSave: JobListing[] = Array.from(combinedMap.values());
-      const stpCount = allJobsToSave.filter((j) => j.isStpPartner).length;
+      // Terapkan penyeimbangan porsi regional: Minimal 60% Indonesia & Maksimal 40% Luar Negeri
+      const { balancedJobs, stats } = balanceRegionalProportion(allJobsToSave, 0.60);
+      const stpCount = balancedJobs.filter((j) => j.isStpPartner).length;
 
       const updatedMetadata: JobSyncMetadata = {
         ...meta,
         lastDailySyncAt: now,
-        totalJobsInDb: allJobsToSave.length,
-        realtimeJobsCount: allJobsToSave.length - stpCount,
+        totalJobsInDb: balancedJobs.length,
+        realtimeJobsCount: balancedJobs.length - stpCount,
         stpJobsCount: stpCount,
         status: 'SUCCESS',
-        message: `Sinkronisasi harian berhasil memutakhirkan ${freshJobs.length} loker baru/aktif via ATS & Open API. Total bank data: ${allJobsToSave.length}.`,
+        message: `Sinkronisasi harian sukses. Terhimpun ${balancedJobs.length} loker (Porsi: ${stats.indonesiaPercent}% Indonesia, ${stats.overseasPercent}% Luar Negeri & Regional [ASEAN: ${stats.aseanCount}, Asia Timur: ${stats.eastAsiaCount}, Remote: ${stats.globalRemoteCount}]).`,
         provider: 'ATS Publik & Open API Multi-Provider (Zero Cost)',
+        regionalDistribution: stats,
       };
 
-      writeLocalSnapshot(allJobsToSave, updatedMetadata);
-      await this.saveJobsToFirestore(allJobsToSave).catch(() => {});
-      await this.rebuildMasterCache(getAppId(), allJobsToSave).catch(() => {});
+      writeLocalSnapshot(balancedJobs, updatedMetadata);
+      await this.saveJobsToFirestore(balancedJobs).catch(() => {});
+      await this.rebuildMasterCache(getAppId(), balancedJobs).catch(() => {});
 
       try {
         await setDoc(doc(db, SYNC_METADATA_DOC), updatedMetadata, { merge: true });
@@ -517,7 +521,7 @@ export const jobDbService = {
 
       return {
         success: true,
-        syncedCount: allJobsToSave.length,
+        syncedCount: balancedJobs.length,
         metadata: updatedMetadata,
         message: updatedMetadata.message || 'Sinkronisasi harian berhasil.',
       };
@@ -656,10 +660,12 @@ export const jobDbService = {
       });
 
       const allJobsToSave: JobListing[] = Array.from(combinedMap.values());
+      // Terapkan penyeimbangan porsi regional: Minimal 60% Indonesia & Maksimal 40% Luar Negeri (ASEAN, Jepang, Korea, Global)
+      const { balancedJobs, stats } = balanceRegionalProportion(allJobsToSave, 0.60);
 
       // 4. Perbarui metadata jadwal seminggu sekali
       const nextSyncAt = now + SYNC_INTERVAL_MS;
-      const stpCount = allJobsToSave.filter((j) => j.isStpPartner).length;
+      const stpCount = balancedJobs.filter((j) => j.isStpPartner).length;
 
       const providerName = hasApiKey
         ? 'ATS Publik, Multi-Provider Open API & JSearch Micro-Batch'
@@ -670,18 +676,19 @@ export const jobDbService = {
         nextSyncAt,
         lastDailySyncAt: now,
         syncIntervalDays: 7,
-        totalJobsInDb: allJobsToSave.length,
-        realtimeJobsCount: allJobsToSave.length - stpCount,
+        totalJobsInDb: balancedJobs.length,
+        realtimeJobsCount: balancedJobs.length - stpCount,
         stpJobsCount: stpCount,
         status: 'SUCCESS',
-        message: `Berhasil mengakumulasi ${allJobsToSave.length} lowongan aktif & terverifikasi. Sinkronisasi mingguan berikutnya dalam 7 hari.`,
+        message: `Berhasil mengakumulasi ${balancedJobs.length} lowongan aktif & terverifikasi (Porsi: ${stats.indonesiaPercent}% Indonesia, ${stats.overseasPercent}% Luar Negeri & Regional [ASEAN: ${stats.aseanCount}, Asia Timur: ${stats.eastAsiaCount}, Remote: ${stats.globalRemoteCount}]). Sinkronisasi mingguan berikutnya dalam 7 hari.`,
         provider: providerName,
+        regionalDistribution: stats,
       };
 
       // 5. Simpan snapshot lokal & simpan ke Firestore & Master Cache
-      writeLocalSnapshot(allJobsToSave, updatedMetadata);
-      await this.saveJobsToFirestore(allJobsToSave).catch(() => {});
-      await this.rebuildMasterCache(getAppId(), allJobsToSave).catch(() => {});
+      writeLocalSnapshot(balancedJobs, updatedMetadata);
+      await this.saveJobsToFirestore(balancedJobs).catch(() => {});
+      await this.rebuildMasterCache(getAppId(), balancedJobs).catch(() => {});
 
       // Simpan metadata ke Firestore jika online
       try {
@@ -694,11 +701,11 @@ export const jobDbService = {
         // Fallback snapshot tetap aman
       }
 
-      console.log(`[jobDbService] Sinkronisasi kumulatif sukses! ${allJobsToSave.length} lowongan tersimpan di bank data.`);
+      console.log(`[jobDbService] Sinkronisasi kumulatif sukses! ${balancedJobs.length} lowongan tersimpan di bank data (${stats.indonesiaPercent}% ID / ${stats.overseasPercent}% LN).`);
 
       return {
         success: true,
-        syncedCount: allJobsToSave.length,
+        syncedCount: balancedJobs.length,
         metadata: updatedMetadata,
         message: updatedMetadata.message || 'Sinkronisasi lowongan selesai.',
       };

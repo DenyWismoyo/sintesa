@@ -1,5 +1,5 @@
 // src/services/atsCrawler.service.ts
-import { JobListing, JobCategory, JobWorkType, JobWorkSetup, JobExperienceLevel, JobCompanyType } from '@/types/job.types';
+import { JobListing, JobCategory, JobWorkType, JobWorkSetup, JobExperienceLevel, JobCompanyType, JobRegionCode } from '@/types/job.types';
 import { inferJobCategory, inferRelevantTrainingPrograms } from '@/services/jsearch.service';
 import { determineWorkType, determineExperienceLevel, determineCompanyType, stripHtml } from '@/services/jobAggregator.service';
 
@@ -17,38 +17,90 @@ export interface AtsTarget {
 }
 
 /**
- * Daftar Kurasi Perusahaan Top Indonesia, Regional & Startup Teknologi
+ * Daftar Kurasi Perusahaan Top Indonesia (60%) & Regional ASEAN, Jepang, Korea, serta Global (40%)
  * yang menggunakan ATS dengan endpoint publik terbuka.
  */
 export const DEFAULT_ATS_TARGETS: AtsTarget[] = [
-  // ── GREENHOUSE ──
-  { id: 'gh-traveloka', platform: 'greenhouse', companyName: 'Traveloka', slugOrToken: 'traveloka', defaultCity: 'Jakarta', defaultCountry: 'Indonesia', isActive: true },
-  { id: 'gh-goto', platform: 'greenhouse', companyName: 'GoTo Group', slugOrToken: 'goto', defaultCity: 'Jakarta', defaultCountry: 'Indonesia', isActive: true },
-  { id: 'gh-tokopedia', platform: 'greenhouse', companyName: 'Tokopedia', slugOrToken: 'tokopedia', defaultCity: 'Jakarta', defaultCountry: 'Indonesia', isActive: true },
-  { id: 'gh-ruangguru', platform: 'greenhouse', companyName: 'Ruangguru', slugOrToken: 'ruangguru', defaultCity: 'Jakarta', defaultCountry: 'Indonesia', isActive: true },
-  { id: 'gh-finaccel', platform: 'greenhouse', companyName: 'Kredivo (FinAccel)', slugOrToken: 'finaccel', defaultCity: 'Jakarta', defaultCountry: 'Indonesia', isActive: true },
+  // ── INDONESIA & DIGITAL BANKING / TECH (LEVER & GREENHOUSE) ──
+  { id: 'lev-amarbank', platform: 'lever', companyName: 'Amar Bank (Tunaiku)', slugOrToken: 'amarbank', defaultCity: 'Jakarta', defaultCountry: 'Indonesia', isActive: true },
   { id: 'gh-xendit', platform: 'greenhouse', companyName: 'Xendit', slugOrToken: 'xendit', defaultCity: 'Jakarta', defaultCountry: 'Indonesia', isActive: true },
-  { id: 'gh-bukalapak', platform: 'greenhouse', companyName: 'Bukalapak', slugOrToken: 'bukalapak', defaultCity: 'Jakarta', defaultCountry: 'Indonesia', isActive: true },
-  { id: 'gh-amarbank', platform: 'greenhouse', companyName: 'Amar Bank', slugOrToken: 'amarbank', defaultCity: 'Surabaya', defaultCountry: 'Indonesia', isActive: true },
+  { id: 'lev-payjoy', platform: 'lever', companyName: 'PayJoy Indonesia', slugOrToken: 'payjoy', defaultCity: 'Jakarta', defaultCountry: 'Indonesia', isActive: true },
+  { id: 'gh-finaccel', platform: 'greenhouse', companyName: 'Kredivo (FinAccel)', slugOrToken: 'finaccel', defaultCity: 'Jakarta', defaultCountry: 'Indonesia', isActive: true },
   { id: 'gh-oyindonesia', platform: 'greenhouse', companyName: 'OY! Indonesia', slugOrToken: 'oyindonesia', defaultCity: 'Jakarta', defaultCountry: 'Indonesia', isActive: true },
-  { id: 'gh-carro', platform: 'greenhouse', companyName: 'Carro Group', slugOrToken: 'carro', defaultCity: 'Jakarta', defaultCountry: 'Indonesia', isActive: true },
 
-  // ── LEVER ──
-  { id: 'lev-efishery', platform: 'lever', companyName: 'eFishery', slugOrToken: 'efishery', defaultCity: 'Bandung', defaultCountry: 'Indonesia', isActive: true },
-  { id: 'lev-kargo', platform: 'lever', companyName: 'Kargo Technologies', slugOrToken: 'kargo', defaultCity: 'Jakarta', defaultCountry: 'Indonesia', isActive: true },
-  { id: 'lev-pluang', platform: 'lever', companyName: 'Pluang', slugOrToken: 'pluang', defaultCity: 'Jakarta', defaultCountry: 'Indonesia', isActive: true },
-  { id: 'lev-ajaib', platform: 'lever', companyName: 'Ajaib', slugOrToken: 'ajaib', defaultCity: 'Jakarta', defaultCountry: 'Indonesia', isActive: true },
-  { id: 'lev-sirclo', platform: 'lever', companyName: 'SIRCLO', slugOrToken: 'sirclo', defaultCity: 'Jakarta', defaultCountry: 'Indonesia', isActive: true },
-  { id: 'lev-shipper', platform: 'lever', companyName: 'Shipper', slugOrToken: 'shipper', defaultCity: 'Jakarta', defaultCountry: 'Indonesia', isActive: true },
-  { id: 'lev-flip', platform: 'lever', companyName: 'Flip Indonesia', slugOrToken: 'flip', defaultCity: 'Jakarta', defaultCountry: 'Indonesia', isActive: true },
-  { id: 'lev-kitalulus', platform: 'lever', companyName: 'KitaLulus', slugOrToken: 'kitalulus', defaultCity: 'Jakarta', defaultCountry: 'Indonesia', isActive: true },
-  { id: 'lev-canva', platform: 'lever', companyName: 'Canva', slugOrToken: 'canva', defaultCity: 'Remote', defaultCountry: 'Global', isActive: true },
+  // ── ASEAN (SINGAPURA, MALAYSIA, REGIONAL) ──
+  { id: 'lev-ninjavan', platform: 'lever', companyName: 'Ninja Van', slugOrToken: 'ninjavan', defaultCity: 'Singapura & Jakarta', defaultCountry: 'Singapura', isActive: true },
+  { id: 'ash-airwallex', platform: 'ashby', companyName: 'Airwallex', slugOrToken: 'airwallex', defaultCity: 'Singapura', defaultCountry: 'Singapura', isActive: true },
 
-  // ── ASHBY ──
+  // ── ASIA TIMUR (JEPANG & KOREA SELATAN) ──
+  { id: 'gh-paypay', platform: 'greenhouse', companyName: 'PayPay Corporation', slugOrToken: 'paypay', defaultCity: 'Tokyo', defaultCountry: 'Jepang', isActive: true },
+  { id: 'gh-coupang', platform: 'greenhouse', companyName: 'Coupang', slugOrToken: 'coupang', defaultCity: 'Seoul', defaultCountry: 'Korea Selatan', isActive: true },
+
+  // ── GLOBAL REMOTE & DIASPORA TERVERIFIKASI (ASHBY) ──
   { id: 'ash-deel', platform: 'ashby', companyName: 'Deel', slugOrToken: 'deel', defaultCity: 'Remote', defaultCountry: 'Global', isActive: true },
   { id: 'ash-linear', platform: 'ashby', companyName: 'Linear', slugOrToken: 'linear', defaultCity: 'Remote', defaultCountry: 'Global', isActive: true },
   { id: 'ash-postman', platform: 'ashby', companyName: 'Postman', slugOrToken: 'postman', defaultCity: 'Remote', defaultCountry: 'Global', isActive: true },
+  { id: 'ash-cursor', platform: 'ashby', companyName: 'Cursor AI', slugOrToken: 'cursor', defaultCity: 'Remote', defaultCountry: 'Global', isActive: true },
+  { id: 'ash-elevenlabs', platform: 'ashby', companyName: 'ElevenLabs', slugOrToken: 'elevenlabs', defaultCity: 'Remote', defaultCountry: 'Global', isActive: true },
+  { id: 'ash-supabase', platform: 'ashby', companyName: 'Supabase', slugOrToken: 'supabase', defaultCity: 'Remote', defaultCountry: 'Global', isActive: true },
 ];
+
+/**
+ * Infer wilayah geografis kanonikal suatu lowongan
+ * Menghasilkan: 'indonesia' | 'asean' | 'east_asia' | 'global_remote'
+ */
+export function inferJobRegion(job: {
+  location?: string;
+  city?: string;
+  country?: string;
+  company?: string;
+  isStpPartner?: boolean;
+}): JobRegionCode {
+  if (job.isStpPartner) return 'indonesia';
+
+  const loc = `${job.location || ''} ${job.city || ''} ${job.country || ''}`.toLowerCase();
+  const comp = (job.company || '').toLowerCase();
+
+  // 1. Deteksi Indonesia (Prioritas Utama: Nasional & Solo Raya)
+  const indoKws = [
+    'indonesia', 'jakarta', 'jawa barat', 'jawa tengah', 'jawa timur', 'banten',
+    'yogyakarta', 'jogja', 'surakarta', 'solo', 'semarang', 'surabaya', 'bandung',
+    'bogor', 'depok', 'tangerang', 'bekasi', 'jabodetabek', 'bali', 'denpasar',
+    'medan', 'palembang', 'makassar', 'batam', 'balikpapan', 'samarinda', 'banjarmasin',
+    'pontianak', 'manado', 'lampung', 'pekanbaru', 'padang', 'malang', 'sukoharjo',
+    'klaten', 'boyolali', 'karanganyar', 'sragen', 'wonogiri', 'salatiga', 'magelang',
+    'kudus', 'tegal', 'purwokerto', 'cilacap', 'cirebon', 'sidoarjo', 'gresik',
+    'pertamina', 'solo technopark'
+  ];
+  if (indoKws.some((k) => loc.includes(k) || comp.includes(k))) {
+    return 'indonesia';
+  }
+
+  // 2. Deteksi ASEAN (Singapura, Malaysia, Thailand, Vietnam, Filipina, dll.)
+  const aseanKws = [
+    'singapore', 'singapura', 'malaysia', 'kuala lumpur', 'selangor', 'johor', 'penang',
+    'shah alam', 'subang jaya', 'kemaman', 'terengganu', 'thailand', 'bangkok', 'vietnam',
+    'hanoi', 'ho chi minh', 'philippines', 'filipina', 'manila', 'taguig', 'cebu',
+    'cabuyao', 'cambodia', 'myanmar', 'brunei', 'laos', 'asean'
+  ];
+  if (aseanKws.some((k) => loc.includes(k))) {
+    return 'asean';
+  }
+
+  // 3. Deteksi Asia Timur (Jepang & Korea Selatan, Taiwan)
+  const eastAsiaKws = [
+    'japan', 'jepang', 'tokyo', 'osaka', 'yokohama', 'nagoya', 'fukuoka', 'sapporo',
+    'kobe', 'kyoto', 'ehime', 'imabari', 'nagasaki', 'yamanashi', 'oshino',
+    'korea', 'south korea', 'korea selatan', 'seoul', 'busan', 'incheon', 'daegu',
+    'changwon', 'ulsan', 'geoje', 'taiwan', 'taipei', 'taoyuan', 'hong kong'
+  ];
+  if (eastAsiaKws.some((k) => loc.includes(k))) {
+    return 'east_asia';
+  }
+
+  // 4. Fallback: Global Remote / WFH
+  return 'global_remote';
+}
 
 /**
  * Pembersih parameter tracking URL (UTM, referrer, ads)
@@ -129,7 +181,7 @@ export async function fetchGreenhouseJobs(target: AtsTarget): Promise<JobListing
   if (!json?.jobs || !Array.isArray(json.jobs)) return [];
 
   const now = Date.now();
-  return json.jobs.slice(0, 30).map((item: any): JobListing => {
+  return json.jobs.slice(0, 35).map((item: any): JobListing => {
     const rawDesc = stripHtml(item.content || '');
     const cleanDesc = sanitizePii(rawDesc);
     const category = inferJobCategory(item.title, cleanDesc);
@@ -141,20 +193,39 @@ export async function fetchGreenhouseJobs(target: AtsTarget): Promise<JobListing
     const jobId = `gh-${target.slugOrToken}-${item.id}`;
     const cleanApplyUrl = stripTrackingParams(item.absolute_url || '');
 
+    const region = inferJobRegion({
+      location: isRemote ? 'Remote' : `${city}, ${target.defaultCountry || 'Indonesia'}`,
+      city,
+      country: target.defaultCountry,
+      company: target.companyName,
+      isStpPartner: false,
+    });
+
+    let currency = 'IDR';
+    if (region === 'east_asia') {
+      currency = target.defaultCountry === 'Jepang' || /japan|jepang|tokyo/i.test(city) ? 'JPY' : 'KRW';
+    } else if (region === 'asean') {
+      currency = /singapore|singapura/i.test(city) ? 'SGD' : /malaysia/i.test(city) ? 'MYR' : 'USD';
+    } else if (region === 'global_remote') {
+      currency = 'USD';
+    }
+
     return {
       id: jobId,
       slug: `job-${jobId}`,
       title: item.title,
       company: target.companyName,
       companyType: determineCompanyType(target.companyName),
-      location: isRemote ? 'Remote / Indonesia' : `${city}, ${target.defaultCountry || 'Indonesia'}`,
+      location: isRemote ? 'Remote Global' : `${city}, ${target.defaultCountry || 'Indonesia'}`,
       city: isRemote ? 'Remote / WFH' : city,
+      region,
+      country: target.defaultCountry || (region === 'indonesia' ? 'Indonesia' : 'Global'),
       category,
       workType: determineWorkType(item.title),
       workSetup: isRemote ? 'Remote / WFH' : 'On-site',
       experienceLevel: determineExperienceLevel(item.title),
       salary: {
-        currency: 'IDR',
+        currency,
         period: 'Bulan',
         isNegotiable: true,
         isDisclosed: false,
@@ -211,20 +282,39 @@ export async function fetchLeverJobs(target: AtsTarget): Promise<JobListing[]> {
     const jobId = `lev-${target.slugOrToken}-${item.id}`;
     const cleanApplyUrl = stripTrackingParams(item.applyUrl || item.hostedUrl || '');
 
+    const region = inferJobRegion({
+      location: isRemote ? 'Remote' : `${locationStr}, ${target.defaultCountry || 'Indonesia'}`,
+      city: locationStr,
+      country: target.defaultCountry,
+      company: target.companyName,
+      isStpPartner: false,
+    });
+
+    let currency = 'IDR';
+    if (region === 'asean') {
+      currency = /singapore|singapura/i.test(locationStr) ? 'SGD' : /malaysia/i.test(locationStr) ? 'MYR' : /philippines/i.test(locationStr) ? 'PHP' : 'USD';
+    } else if (region === 'east_asia') {
+      currency = /japan|jepang/i.test(locationStr) ? 'JPY' : 'KRW';
+    } else if (region === 'global_remote') {
+      currency = 'USD';
+    }
+
     return {
       id: jobId,
       slug: `job-${jobId}`,
       title: item.text,
       company: target.companyName,
       companyType: determineCompanyType(target.companyName),
-      location: isRemote ? 'Remote / Indonesia' : `${locationStr}, ${target.defaultCountry || 'Indonesia'}`,
+      location: isRemote ? 'Remote Global' : `${locationStr}, ${target.defaultCountry || 'Indonesia'}`,
       city: isRemote ? 'Remote / WFH' : locationStr,
+      region,
+      country: target.defaultCountry || (region === 'indonesia' ? 'Indonesia' : 'Global'),
       category,
       workType: determineWorkType(commitment),
       workSetup: isRemote ? 'Remote / WFH' : 'On-site',
       experienceLevel: determineExperienceLevel(item.text),
       salary: {
-        currency: 'IDR',
+        currency,
         period: 'Bulan',
         isNegotiable: true,
         isDisclosed: false,
@@ -294,6 +384,14 @@ export async function fetchAshbyJobs(target: AtsTarget): Promise<JobListing[]> {
     const jobId = `ash-${target.slugOrToken}-${item.id}`;
     const cleanApplyUrl = stripTrackingParams(item.jobUrl || '');
 
+    const region = inferJobRegion({
+      location: isRemote ? 'Remote' : `${locationStr}, ${target.defaultCountry || 'Global'}`,
+      city: locationStr,
+      country: target.defaultCountry,
+      company: target.companyName,
+      isStpPartner: false,
+    });
+
     return {
       id: jobId,
       slug: `job-${jobId}`,
@@ -302,6 +400,8 @@ export async function fetchAshbyJobs(target: AtsTarget): Promise<JobListing[]> {
       companyType: determineCompanyType(target.companyName),
       location: isRemote ? 'Remote Global' : `${locationStr}, ${target.defaultCountry || 'Global'}`,
       city: isRemote ? 'Remote / WFH' : locationStr,
+      region,
+      country: target.defaultCountry || (region === 'indonesia' ? 'Indonesia' : 'Global'),
       category,
       workType: determineWorkType(item.employmentType || 'FullTime'),
       workSetup: isRemote ? 'Remote / WFH' : 'On-site',
@@ -411,6 +511,8 @@ export async function extractJsonLdJobsFromUrl(
             companyType: determineCompanyType(company),
             location: isRemote ? 'Remote / WFH' : `${city}, Indonesia`,
             city: isRemote ? 'Remote / WFH' : city,
+            region: 'indonesia',
+            country: 'Indonesia',
             category,
             workType: determineWorkType(node.employmentType || 'FULL_TIME'),
             workSetup: isRemote ? 'Remote / WFH' : 'On-site',

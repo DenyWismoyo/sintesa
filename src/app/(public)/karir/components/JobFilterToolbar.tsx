@@ -45,11 +45,14 @@ interface JobFilterToolbarProps {
 }
 
 const REGION_LABELS: Record<string, string> = {
-  solo_raya: 'Solo Raya & Sekitarnya',
+  indonesia: '🇮🇩 Indonesia (Nasional)',
+  solo_raya: 'Solo Raya & Kawasan STP',
   jabodetabek: 'Jabodetabek & Banten',
   jawa: 'Pulau Jawa',
   luar_jawa: 'Luar Jawa (Nasional)',
-  luar_negeri: 'Global / Luar Negeri',
+  asean: '🌏 ASEAN (Singapura, Malaysia, dll.)',
+  east_asia: '🇯🇵/🇰🇷 Asia Timur (Jepang & Korea)',
+  luar_negeri: '🌐 Luar Negeri / Global Remote',
 };
 
 const FRESHNESS_LABELS: Record<string, string> = {
@@ -161,11 +164,14 @@ export default function JobFilterToolbar({
             className="w-full h-8.5 px-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50/60 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
           >
             <option value="all">Semua Wilayah</option>
-            <option value="solo_raya">Solo Raya & Sekitarnya</option>
+            <option value="indonesia">🇮🇩 Indonesia (Nasional)</option>
+            <option value="solo_raya">Solo Raya & Kawasan STP</option>
             <option value="jabodetabek">Jabodetabek & Banten</option>
             <option value="jawa">Pulau Jawa</option>
             <option value="luar_jawa">Luar Jawa (Nasional)</option>
-            <option value="luar_negeri">Global / Luar Negeri</option>
+            <option value="asean">🌏 ASEAN (Singapura, Malaysia, dll.)</option>
+            <option value="east_asia">🇯🇵/🇰🇷 Asia Timur (Jepang & Korea)</option>
+            <option value="luar_negeri">🌐 Luar Negeri / Global Remote</option>
           </select>
         </div>
 

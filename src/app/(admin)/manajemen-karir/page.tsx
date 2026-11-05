@@ -162,6 +162,35 @@ export default function AdminManajemenKarirPage() {
   const unconvertedLeadsCount = allInquiries.filter((i) => !i.convertedPartnerId).length;
   const mitraBadgeCount = pendingApprovalJobs.length + unconvertedLeadsCount;
 
+  // Metrik Distribusi Wilayah (Target: 60% Indonesia / 40% Luar Negeri & Regional)
+  const regionalMetrics = React.useMemo(() => {
+    let indo = 0;
+    let asean = 0;
+    let eastAsia = 0;
+    let globalRemote = 0;
+    jobs.forEach((j) => {
+      const reg = j.region || 'indonesia';
+      if (reg === 'indonesia') indo++;
+      else if (reg === 'asean') asean++;
+      else if (reg === 'east_asia') eastAsia++;
+      else globalRemote++;
+    });
+    const totalCount = jobs.length || 1;
+    const indoPct = Math.round((indo / totalCount) * 100);
+    return {
+      indo,
+      indoPct,
+      asean,
+      aseanPct: Math.round((asean / totalCount) * 100),
+      eastAsia,
+      eastAsiaPct: Math.round((eastAsia / totalCount) * 100),
+      globalRemote,
+      globalRemotePct: Math.round((globalRemote / totalCount) * 100),
+      overseas: asean + eastAsia + globalRemote,
+      overseasPct: 100 - indoPct,
+    };
+  }, [jobs]);
+
   const getAdminHeaders = async () => {
     const idToken = await auth.currentUser?.getIdToken().catch(() => null);
     return {
@@ -893,6 +922,93 @@ export default function AdminManajemenKarirPage() {
                 </span>
                 <span className="text-sm font-extrabold text-blue-700">UU PDP & 30 Hari TTL</span>
                 <p className="text-[11px] text-slate-500">PII recruiter dibuang otomatis, expired diarsipkan.</p>
+              </div>
+            </div>
+
+            {/* ─── Kartu Pemantauan Rasio Wilayah (Target 60:40) ─── */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-50/80 via-teal-50/50 to-slate-50 border border-emerald-200/90 shadow-2xs space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black text-slate-900 uppercase tracking-wide">
+                      Komposisi Geografis Lowongan Kerja
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-600 text-white shadow-2xs">
+                      Target 60% ID / 40% Global
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600">
+                    Sistem memprioritaskan penyerapan tenaga kerja nasional di Indonesia (≥ 60%), diperkaya peluang regional ASEAN & Asia Timur (≤ 40%).
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="text-right">
+                    <span className="text-xs font-black text-emerald-800 block">
+                      {regionalMetrics.indo} Loker ({regionalMetrics.indoPct}%)
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-500">
+                      🇮🇩 Indonesia
+                    </span>
+                  </div>
+                  <div className="h-6 w-px bg-slate-300" />
+                  <div className="text-left">
+                    <span className="text-xs font-black text-blue-800 block">
+                      {regionalMetrics.overseas} Loker ({regionalMetrics.overseasPct}%)
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-500">
+                      🌏 Luar Negeri & Global
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress Bar Seimbang */}
+              <div className="w-full h-3 rounded-full bg-slate-200 overflow-hidden flex shadow-inner">
+                <div
+                  className="h-full bg-emerald-600 transition-all duration-500"
+                  style={{ width: `${regionalMetrics.indoPct}%` }}
+                  title={`Indonesia: ${regionalMetrics.indoPct}% (${regionalMetrics.indo} lowongan)`}
+                />
+                <div
+                  className="h-full bg-cyan-500 transition-all duration-500"
+                  style={{ width: `${regionalMetrics.aseanPct}%` }}
+                  title={`ASEAN: ${regionalMetrics.aseanPct}% (${regionalMetrics.asean} lowongan)`}
+                />
+                <div
+                  className="h-full bg-rose-500 transition-all duration-500"
+                  style={{ width: `${regionalMetrics.eastAsiaPct}%` }}
+                  title={`Asia Timur: ${regionalMetrics.eastAsiaPct}% (${regionalMetrics.eastAsia} lowongan)`}
+                />
+                <div
+                  className="h-full bg-slate-400 transition-all duration-500"
+                  style={{ width: `${regionalMetrics.globalRemotePct}%` }}
+                  title={`Global Remote: ${regionalMetrics.globalRemotePct}% (${regionalMetrics.globalRemote} lowongan)`}
+                />
+              </div>
+
+              {/* Rincian Sub-Cluster */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
+                <div className="p-2.5 rounded-xl bg-white border border-emerald-200/80 shadow-2xs">
+                  <span className="text-[10px] font-bold text-emerald-700 block">🇮🇩 Indonesia (Nasional)</span>
+                  <span className="font-extrabold text-sm text-slate-800">{regionalMetrics.indo}</span>
+                  <span className="text-[10px] text-slate-400 ml-1 font-semibold">({regionalMetrics.indoPct}%)</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-white border border-cyan-200/80 shadow-2xs">
+                  <span className="text-[10px] font-bold text-cyan-700 block">🌏 ASEAN (SG, MY, TH)</span>
+                  <span className="font-extrabold text-sm text-slate-800">{regionalMetrics.asean}</span>
+                  <span className="text-[10px] text-slate-400 ml-1 font-semibold">({regionalMetrics.aseanPct}%)</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-white border border-rose-200/80 shadow-2xs">
+                  <span className="text-[10px] font-bold text-rose-700 block">🇯🇵/🇰🇷 Asia Timur (JP & KR)</span>
+                  <span className="font-extrabold text-sm text-slate-800">{regionalMetrics.eastAsia}</span>
+                  <span className="text-[10px] text-slate-400 ml-1 font-semibold">({regionalMetrics.eastAsiaPct}%)</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                  <span className="text-[10px] font-bold text-slate-600 block">🌐 Global Remote / WFH</span>
+                  <span className="font-extrabold text-sm text-slate-800">{regionalMetrics.globalRemote}</span>
+                  <span className="text-[10px] text-slate-400 ml-1 font-semibold">({regionalMetrics.globalRemotePct}%)</span>
+                </div>
               </div>
             </div>
 
