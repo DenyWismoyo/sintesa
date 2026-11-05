@@ -30,6 +30,7 @@ import { useJobAiMatchMutation } from '@/hooks/useJobs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import JobApplyModal from './JobApplyModal';
 
 interface JobDetailModalProps {
   job: JobListing | null;
@@ -61,6 +62,7 @@ export default function JobDetailModal({
 }: JobDetailModalProps) {
   const [activeTab, setActiveTab] = useState<'detail' | 'ai-match'>(initialTab);
   const [modalImgError, setModalImgError] = useState(false);
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
 
   // State untuk form AI Matcher
   const [alumniName, setAlumniName] = useState('');
@@ -548,34 +550,26 @@ export default function JobDetailModal({
               Tutup
             </Button>
 
-            {job.applicationUrl ? (
-              <a
-                href={job.applicationUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 sm:flex-initial"
-              >
-                <Button className="w-full h-10 px-5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl gap-2 shadow-sm">
-                  <span>{job.applySource ? `Lamar via ${job.applySource}` : 'Lamar Sekarang'}</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </Button>
-              </a>
-            ) : job.applicationEmail ? (
-              <a
-                href={`mailto:${job.applicationEmail}?subject=Lamaran Pekerjaan: ${encodeURIComponent(
-                  job.title
-                )} - Alumni Solo Technopark`}
-                className="flex-1 sm:flex-initial"
-              >
-                <Button className="w-full h-10 px-5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl gap-2 shadow-sm">
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Kirim Email HR</span>
-                </Button>
-              </a>
-            ) : null}
+            <Button
+              onClick={() => setIsApplyModalOpen(true)}
+              className="flex-1 sm:flex-initial h-10 px-5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl gap-2 shadow-sm"
+            >
+              <Send className="w-3.5 h-3.5" />
+              <span>Lamar Pekerjaan Sekarang</span>
+            </Button>
           </div>
         </div>
       </div>
+
+      <JobApplyModal
+        job={job}
+        isOpen={isApplyModalOpen}
+        onClose={() => setIsApplyModalOpen(false)}
+        onOpenAiMatch={() => {
+          setIsApplyModalOpen(false);
+          setActiveTab('ai-match');
+        }}
+      />
     </div>
   );
 }

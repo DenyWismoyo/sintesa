@@ -30,6 +30,8 @@ import JobCard from './components/JobCard';
 import JobFilterToolbar from './components/JobFilterToolbar';
 import AlumniQuickMatchBanner from './components/AlumniQuickMatchBanner';
 import CareerExclusiveGate from '@/components/career/CareerExclusiveGate';
+import MyApplicationsModal from './components/MyApplicationsModal';
+import { useMyJobApplications } from '@/hooks/useJobApplications';
 import { useAuth } from '@/lib/AuthContext';
 import { canAccessCareer } from '@/config/roles';
 
@@ -67,6 +69,9 @@ export default function KarirClientPage() {
   const [freshness, setFreshness] = useState(() => searchParams.get('periode') || 'all');
   const [sort, setSort] = useState(() => searchParams.get('sort') || 'newest');
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [isMyAppsModalOpen, setIsMyAppsModalOpen] = useState(false);
+  const { data: myApps = [] } = useMyJobApplications();
+  const appliedJobIds = useMemo(() => new Set(myApps.map((a) => a.jobId)), [myApps]);
 
   // Pagination States
   const [currentPage, setCurrentPage] = useState(() => {
@@ -467,6 +472,20 @@ export default function KarirClientPage() {
             <Sparkles className="w-3.5 h-3.5 text-teal-600" />
             <span>🌐 Peluang Remote / WFH</span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => setIsMyAppsModalOpen(true)}
+            className="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-300 shadow-2xs ml-auto"
+          >
+            <Briefcase className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Lamaran Saya</span>
+            {myApps.length > 0 && (
+              <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] font-black flex items-center justify-center">
+                {myApps.length}
+              </span>
+            )}
+          </button>
         </div>
 
         {/* ─── Pill Tabs Kategori Bidang ─── */}
@@ -581,6 +600,7 @@ export default function KarirClientPage() {
                 onSelect={handleOpenDetail}
                 onOpenAiMatch={handleOpenAiMatch}
                 selectedProgramFilter={trainingProgram}
+                isApplied={appliedJobIds.has(job.id)}
               />
             ))}
           </div>
@@ -674,6 +694,12 @@ export default function KarirClientPage() {
           <ArrowUp className="w-5 h-5 text-emerald-400" />
         </button>
       )}
+      {/* ─── Modal Pelacak Daftar Lamaran Saya ─── */}
+      <MyApplicationsModal
+        isOpen={isMyAppsModalOpen}
+        onClose={() => setIsMyAppsModalOpen(false)}
+        onSelectJob={(jobId) => router.push(`/karir/${jobId}`)}
+      />
     </SectionContainer>
   );
 }

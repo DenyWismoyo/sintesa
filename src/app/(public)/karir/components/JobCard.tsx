@@ -25,6 +25,7 @@ interface JobCardProps {
   onSelect?: (job: JobListing) => void;
   onOpenAiMatch?: (job: JobListing) => void;
   selectedProgramFilter?: string;
+  isApplied?: boolean;
 }
 
 export default function JobCard({
@@ -32,6 +33,7 @@ export default function JobCard({
   onSelect,
   onOpenAiMatch,
   selectedProgramFilter,
+  isApplied,
 }: JobCardProps) {
   const router = useRouter();
   const [imgError, setImgError] = React.useState(false);
@@ -158,6 +160,12 @@ export default function JobCard({
         {/* Top Badges & Actions */}
         <div className="flex items-center justify-between gap-2 mb-3">
           <div className="flex flex-wrap items-center gap-1.5">
+            {isApplied && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                Sudah Dilamar
+              </span>
+            )}
             {getCompanyTypeBadge()}
             {job.region === 'indonesia' && (
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
@@ -292,8 +300,14 @@ export default function JobCard({
           <span>AI Matcher</span>
         </Button>
 
-        <div className="h-11 sm:h-9 px-4 text-xs font-extrabold gap-1.5 rounded-xl shadow-xs bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white flex items-center justify-center transition-all flex-1">
-          <span>Detail & Lamar</span>
+        <div
+          className={`h-11 sm:h-9 px-4 text-xs font-extrabold gap-1.5 rounded-xl shadow-xs active:scale-95 text-white flex items-center justify-center transition-all flex-1 ${
+            isApplied
+              ? 'bg-emerald-700 hover:bg-emerald-800'
+              : 'bg-emerald-600 hover:bg-emerald-700'
+          }`}
+        >
+          <span>{isApplied ? 'Tinjau Lamaran' : 'Detail & Lamar'}</span>
           <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
         </div>
       </div>

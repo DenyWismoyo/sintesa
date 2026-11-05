@@ -54,13 +54,14 @@ import ModalExportPartnership from './components/ModalExportPartnership';
 import TabPartnerOnboarding from './components/TabPartnerOnboarding';
 import TabForumModerationAnalytics from './components/TabForumModerationAnalytics';
 import TabTracerStudyAnalytics from './components/TabTracerStudyAnalytics';
+import TabJobApplications from './components/TabJobApplications';
 
 export default function AdminManajemenKarirPage() {
   const router = useRouter();
   const { role, loading: authLoading } = useAuth();
   const canManageCareer = canPerformAction(role, PERMISSIONS.MANAGE_CAREER);
 
-  const [activeTab, setActiveTab] = useState<'LIST' | 'MITRA' | 'FORUM' | 'SYNC' | 'TALENT' | 'TRACER'>('LIST');
+  const [activeTab, setActiveTab] = useState<'LIST' | 'APPLICATIONS' | 'MITRA' | 'FORUM' | 'SYNC' | 'TALENT' | 'TRACER'>('LIST');
   const [searchFilter, setSearchFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [partnerFilter, setPartnerFilter] = useState('ALL');
@@ -344,6 +345,19 @@ export default function AdminManajemenKarirPage() {
           >
             <Briefcase className="w-4 h-4" />
             <span>Master Lowongan ({total})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('APPLICATIONS')}
+            className={`flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
+              activeTab === 'APPLICATIONS'
+                ? 'bg-white text-emerald-700 shadow-xs'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            <span>Pelamar & Rekomendasi</span>
           </button>
 
           <button
@@ -847,6 +861,9 @@ export default function AdminManajemenKarirPage() {
           </div>
         </div>
       )}
+
+      {/* ─── TAB PELAMAR & REKOMENDASI KARIR STP (CLOSED-LOOP PIPELINE) ─── */}
+      {activeTab === 'APPLICATIONS' && <TabJobApplications />}
 
       {/* ─── TAB 2: KONTROL AGREGATOR & MULTI-TIER SYNC (ZERO COST) ─── */}
       {activeTab === 'SYNC' && (

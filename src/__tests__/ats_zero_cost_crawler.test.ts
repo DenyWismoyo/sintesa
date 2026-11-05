@@ -248,6 +248,8 @@ describe('ATS Zero-Cost Crawler & Data Hygiene Suite', () => {
         id,
         title: `Engineer ${id}`,
         company: `Company ${id}`,
+        companyType: 'Industri Manufaktur',
+        city: 'Jakarta',
         location: region === 'indonesia' ? 'Jakarta, Indonesia' : region === 'asean' ? 'Singapura' : region === 'east_asia' ? 'Tokyo, Jepang' : 'Remote',
         category: 'IT & Rekayasa Perangkat Lunak',
         workType: 'Full-time',
