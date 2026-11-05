@@ -81,17 +81,75 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function JobDetailPage({ params }: PageProps) {
   const resolvedParams = await params;
   const idOrSlug = decodeURIComponent(resolvedParams.id);
+  const job = await jobDbService.getJobById(idOrSlug);
+
+  const jsonLd = job
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'JobPosting',
+        title: job.title,
+        description: job.description,
+        datePosted: new Date(job.postedAt || Date.now()).toISOString(),
+        validThrough: new Date(
+          job.deadlineAt || (job.postedAt || Date.now()) + 30 * 24 * 60 * 60 * 1000
+        ).toISOString(),
+        employmentType:
+          job.workType === 'Full-time'
+            ? 'FULL_TIME'
+            : job.workType === 'Internship / Magang'
+            ? 'INTERN'
+            : job.workType === 'Part-time'
+            ? 'PART_TIME'
+            : 'OTHER',
+        hiringOrganization: {
+          '@type': 'Organization',
+          name: job.company,
+          sameAs: job.companyWebsite || undefined,
+          logo: job.companyLogo || undefined,
+        },
+        jobLocation: {
+          '@type': 'Place',
+          address: {
+            '@type': 'PostalAddress',
+            addressLocality: job.city || 'Surakarta',
+            addressCountry: 'ID',
+          },
+        },
+        jobLocationType: job.workSetup === 'Remote / WFH' ? 'TELECOMMUTE' : undefined,
+        baseSalary:
+          job.salary?.isDisclosed && (job.salary?.min || job.salary?.max)
+            ? {
+                '@type': 'MonetaryAmount',
+                currency: job.salary.currency || 'IDR',
+                value: {
+                  '@type': 'QuantitativeValue',
+                  minValue: job.salary.min,
+                  maxValue: job.salary.max,
+                  unitText: job.salary.period === 'Tahun' ? 'YEAR' : 'MONTH',
+                },
+              }
+            : undefined,
+      }
+    : null;
 
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3">
-          <div className="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm font-semibold text-slate-500">Memuat rincian lowongan kerja...</p>
-        </div>
-      }
-    >
-      <JobDetailClient idOrSlug={idOrSlug} />
-    </Suspense>
+    <>
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
+      <Suspense
+        fallback={
+          <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3">
+            <div className="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm font-semibold text-slate-500">Memuat rincian lowongan kerja...</p>
+          </div>
+        }
+      >
+        <JobDetailClient idOrSlug={idOrSlug} />
+      </Suspense>
+    </>
   );
 }

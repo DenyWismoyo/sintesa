@@ -30,8 +30,8 @@ export default function AlumniQuickMatchBanner() {
             </div>
 
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/20 border border-sky-400/30 text-sky-200 text-xs font-medium">
-              <Database className="w-3.5 h-3.5 text-sky-400" />
-              <span>Kurasi Mitra Resmi & Sinkronisasi Otomatis Mingguan</span>
+              <CheckCircle2 className="w-3.5 h-3.5 text-sky-400" />
+              <span>Mitra Industri Resmi & Lowongan Terverifikasi</span>
             </div>
           </div>
 

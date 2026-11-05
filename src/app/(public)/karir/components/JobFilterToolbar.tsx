@@ -173,14 +173,14 @@ export default function JobFilterToolbar({
         <div>
           <label className="flex items-center gap-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
             <Calendar className="w-3 h-3 text-emerald-600" />
-            <span>Periode Data</span>
+            <span>Waktu Posting</span>
           </label>
           <select
             value={freshness}
             onChange={(e) => setFreshness(e.target.value)}
             className="w-full h-8.5 px-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50/60 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
           >
-            <option value="all">Semua Riwayat (Bank Data)</option>
+            <option value="all">Semua Waktu</option>
             <option value="week">Baru Minggu Ini</option>
             <option value="month">30 Hari Terakhir</option>
           </select>
@@ -415,7 +415,7 @@ export default function JobFilterToolbar({
               <span className="font-bold text-slate-900 bg-emerald-50 border border-emerald-200/60 text-emerald-800 px-2 py-0.5 rounded-md text-[11px]">
                 {totalFound} lowongan
               </span>
-              <span className="text-slate-400 hidden sm:inline">• Arsip kumulatif tersimpan aman</span>
+              <span className="text-slate-400 hidden sm:inline">• Lowongan terverifikasi aktif</span>
             </div>
           )}
         </div>

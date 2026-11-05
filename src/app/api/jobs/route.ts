@@ -130,15 +130,18 @@ export async function POST(request: NextRequest) {
     const isCareerAdmin = canPerformAction(authUser.role, PERMISSIONS.MANAGE_CAREER);
     const canSubmitDraft = canPerformAction(authUser.role, PERMISSIONS.SUBMIT_PARTNER_JOB);
 
-    // 1. Aksi Force Sync API (Khusus Admin Bursa Karir)
-    if (body.action === 'sync') {
+    // 1. Aksi Force Sync API (Khusus Admin Bursa Karir: sync_daily / sync_weekly / sync)
+    if (body.action === 'sync' || body.action === 'sync_daily' || body.action === 'sync_weekly') {
       if (!isCareerAdmin) {
         return NextResponse.json(
           { success: false, message: 'Hanya Administrator Karir yang dapat memicu sinkronisasi.' },
           { status: 403 }
         );
       }
-      const syncResult = await jobDbService.syncWeeklyJobs({ force: true });
+      const syncResult = body.action === 'sync_daily'
+        ? await jobDbService.syncDailyJobs()
+        : await jobDbService.syncWeeklyJobs({ force: true });
+
       return NextResponse.json({
         success: syncResult.success,
         syncedCount: syncResult.syncedCount,

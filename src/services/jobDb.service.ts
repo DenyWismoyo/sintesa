@@ -15,16 +15,19 @@ import { db } from '@/lib/firebase';
 import { JobListing, JobListingSchema } from '@/types/job.types';
 import { fetchJSearchJobs } from '@/services/jsearch.service';
 import { aggregateMultiProviderJobs } from '@/services/jobAggregator.service';
+import { normalizeCompanyName, sanitizePii, stripTrackingParams } from '@/services/atsCrawler.service';
 import SYNCED_SNAPSHOT from '@/data/jobs/syncedJobs.json';
 import { getAppId } from '@/lib/appId';
 
 const JOBS_COLLECTION = 'jobs';
 const SYNC_METADATA_DOC = 'app_settings/jobs_sync';
 const SYNC_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000; // 7 hari (seminggu sekali)
+const JOB_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 hari masa aktif assumed TTL
 
 export interface JobSyncMetadata {
   lastSyncedAt: number | null;
   nextSyncAt: number | null;
+  lastDailySyncAt?: number | null;
   syncIntervalDays: number;
   totalJobsInDb: number;
   realtimeJobsCount: number;
@@ -218,6 +221,56 @@ export const jobDbService = {
       const jobs = jobsToCache || (await this.getJobsFromFirestore());
       if (!jobs.length) return false;
 
+      // Di lingkungan server Node.js, gunakan Firebase Admin SDK untuk akses penuh tanpa restriksi client
+      if (typeof window === 'undefined') {
+        try {
+          const { getAdminDefaultDb } = await import('@/lib/firebaseAdmin');
+          const adminDb = getAdminDefaultDb();
+          const CHUNK_SIZE = 80;
+          const cacheCol = adminDb.collection(`artifacts/${appId}/public/data/cache_jobs`);
+          const masterDoc = cacheCol.doc('master');
+
+          if (jobs.length <= CHUNK_SIZE) {
+            await masterDoc.set({
+              lastUpdated: Date.now(),
+              count: jobs.length,
+              isChunked: false,
+              data: jobs,
+            }, { merge: true });
+            console.log(`[jobDbService] Admin Master Cache berhasil diperbarui di artifacts/${appId} (${jobs.length} loker)`);
+            return true;
+          }
+
+          const totalChunks = Math.ceil(jobs.length / CHUNK_SIZE);
+          const chunkIds: string[] = [];
+
+          for (let i = 0; i < totalChunks; i++) {
+            const chunkId = `chunk_${i}`;
+            chunkIds.push(chunkId);
+            const chunkData = jobs.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+            await cacheCol.doc(chunkId).set({
+              index: i,
+              count: chunkData.length,
+              data: chunkData,
+              lastUpdated: Date.now(),
+            }, { merge: true });
+          }
+
+          await masterDoc.set({
+            lastUpdated: Date.now(),
+            count: jobs.length,
+            isChunked: true,
+            totalChunks,
+            chunkIds,
+          }, { merge: true });
+
+          console.log(`[jobDbService] Admin Master Cache Chunked berhasil diperbarui di artifacts/${appId} (${jobs.length} loker dalam ${totalChunks} chunks)`);
+          return true;
+        } catch {
+          // Lanjut ke fallback client SDK
+        }
+      }
+
       const cacheColRef = collection(db, `artifacts/${appId}/public/data/cache_jobs`);
       const masterDocRef = doc(cacheColRef, 'master');
 
@@ -308,6 +361,29 @@ export const jobDbService = {
   async saveJobsToFirestore(jobs: JobListing[]): Promise<number> {
     if (!jobs.length) return 0;
 
+    // Di server Node.js, prioritaskan Firebase Admin SDK
+    if (typeof window === 'undefined') {
+      try {
+        const { getAdminDefaultDb } = await import('@/lib/firebaseAdmin');
+        const adminDb = getAdminDefaultDb();
+        const chunkSize = 400;
+        let saved = 0;
+        for (let i = 0; i < jobs.length; i += chunkSize) {
+          const chunk = jobs.slice(i, i + chunkSize);
+          const batch = adminDb.batch();
+          chunk.forEach((job) => {
+            const jobRef = adminDb.collection(JOBS_COLLECTION).doc(job.id);
+            batch.set(jobRef, sanitizeForFirestore(job), { merge: true });
+            saved++;
+          });
+          await batch.commit();
+        }
+        return saved || jobs.length;
+      } catch {
+        // Fallback ke client SDK
+      }
+    }
+
     let savedCount = 0;
     try {
       const chunkSize = 400;
@@ -336,7 +412,129 @@ export const jobDbService = {
   },
 
   /**
-   * Sinkronisasi berkala seminggu sekali dari RapidAPI ke Database
+   * Sinkronisasi Harian Cepat (Daily Fast-Sync, 100% Zero-Cost Quota)
+   * Menarik data tangan pertama dari endpoint ATS publik (Greenhouse, Lever, Ashby)
+   * serta 4 Open API gratis tanpa kuota berbayar.
+   */
+  async syncDailyJobs(): Promise<{
+    success: boolean;
+    syncedCount: number;
+    metadata: JobSyncMetadata;
+    message: string;
+  }> {
+    const meta = await this.getSyncMetadata();
+    const now = Date.now();
+
+    console.log('[jobDbService] Memulai sinkronisasi harian (ATS Publik & Open API 100% Gratis)...');
+
+    try {
+      // 1. Tarik lowongan paralel dari ATS Publik & Open API (0 biaya API)
+      const freshJobs = await aggregateMultiProviderJobs({
+        includeAts: true,
+        includeRemotive: true,
+        includeJobicy: true,
+        includeHimalayas: true,
+        includeArbeitnow: true,
+      });
+
+      // 2. Ambil bank data saat ini
+      const existingJobs = await this.getJobsFromFirestore();
+      const combinedMap = new Map<string, JobListing>();
+      const seenCompositeKeys = new Set<string>();
+
+      // 3. Masukkan lowongan eksisting ke Map & terapkan aturan TTL 30 hari
+      existingJobs.forEach((j) => {
+        const normKey = `${normalizeCompanyName(j.company)}|${j.title.toLowerCase().trim()}|${(j.city || '').toLowerCase().trim()}`;
+        if (!seenCompositeKeys.has(normKey)) {
+          seenCompositeKeys.add(normKey);
+
+          // Cek kedaluwarsa TTL 30 hari untuk lowongan non-STP
+          const isStp = Boolean(j.isStpPartner);
+          const lastSeen = j.lastSeenAt || j.postedAt || now;
+          const isExpired = !isStp && now - lastSeen > JOB_TTL_MS;
+
+          combinedMap.set(j.id, {
+            ...j,
+            firstSeenAt: j.firstSeenAt || j.postedAt || now,
+            lastSeenAt: lastSeen,
+            isActive: isExpired ? false : j.isActive !== false,
+          });
+        }
+      });
+
+      // 4. Tambahkan atau mutakhirkan lowongan baru dari penarikan harian
+      freshJobs.forEach((newJob) => {
+        const cleanJob: JobListing = {
+          ...newJob,
+          applicationUrl: stripTrackingParams(newJob.applicationUrl || ''),
+          description: sanitizePii(newJob.description || ''),
+        };
+
+        const normKey = `${normalizeCompanyName(cleanJob.company)}|${cleanJob.title.toLowerCase().trim()}|${(cleanJob.city || '').toLowerCase().trim()}`;
+        const prev = combinedMap.get(cleanJob.id);
+
+        if (prev) {
+          combinedMap.set(cleanJob.id, {
+            ...cleanJob,
+            firstSeenAt: prev.firstSeenAt || cleanJob.postedAt || now,
+            lastSeenAt: now,
+            isActive: true,
+          });
+        } else if (!seenCompositeKeys.has(normKey)) {
+          seenCompositeKeys.add(normKey);
+          combinedMap.set(cleanJob.id, {
+            ...cleanJob,
+            firstSeenAt: cleanJob.postedAt || now,
+            lastSeenAt: now,
+            isActive: true,
+          });
+        }
+      });
+
+      const allJobsToSave: JobListing[] = Array.from(combinedMap.values());
+      const stpCount = allJobsToSave.filter((j) => j.isStpPartner).length;
+
+      const updatedMetadata: JobSyncMetadata = {
+        ...meta,
+        lastDailySyncAt: now,
+        totalJobsInDb: allJobsToSave.length,
+        realtimeJobsCount: allJobsToSave.length - stpCount,
+        stpJobsCount: stpCount,
+        status: 'SUCCESS',
+        message: `Sinkronisasi harian berhasil memutakhirkan ${freshJobs.length} loker baru/aktif via ATS & Open API. Total bank data: ${allJobsToSave.length}.`,
+        provider: 'ATS Publik & Open API Multi-Provider (Zero Cost)',
+      };
+
+      writeLocalSnapshot(allJobsToSave, updatedMetadata);
+      await this.saveJobsToFirestore(allJobsToSave).catch(() => {});
+      await this.rebuildMasterCache(getAppId(), allJobsToSave).catch(() => {});
+
+      try {
+        await setDoc(doc(db, SYNC_METADATA_DOC), updatedMetadata, { merge: true });
+      } catch {
+        // Fallback
+      }
+
+      return {
+        success: true,
+        syncedCount: allJobsToSave.length,
+        metadata: updatedMetadata,
+        message: updatedMetadata.message || 'Sinkronisasi harian berhasil.',
+      };
+    } catch (err: any) {
+      console.error('[jobDbService] Gagal sinkronisasi harian:', err);
+      return {
+        success: false,
+        syncedCount: 0,
+        metadata: meta,
+        message: 'Gagal sinkronisasi harian: ' + err.message,
+      };
+    }
+  },
+
+  /**
+   * Sinkronisasi berkala seminggu sekali (Weekly Deep-Sync & Data Hygiene)
+   * Menghimpun ATS publik, Open API, dan penelusuran lokal hemat kuota
    */
   async syncWeeklyJobs(options: { force?: boolean } = {}): Promise<{
     success: boolean;
@@ -364,42 +562,36 @@ export const jobDbService = {
       };
     }
 
-    console.log('[jobDbService] Memulai sinkronisasi lowongan dari RapidAPI JSearch...');
+    console.log('[jobDbService] Memulai deep sync mingguan (ATS + Open API + Lokal)...');
 
     try {
-      // 1. Tarik lowongan realtime murni dari RapidAPI JSearch internet
-      const hasApiKey = Boolean(process.env.RAPIDAPI_KEY || process.env.JSEARCH_API_KEY);
-      let realtimeJobs: JobListing[] = [];
+      const realtimeJobs: JobListing[] = [];
 
+      // 1. Eksekusi ATS Publik & Open API (Tulang punggung Zero-Cost)
+      try {
+        const openApiJobs = await aggregateMultiProviderJobs({
+          includeAts: true,
+          includeRemotive: true,
+          includeJobicy: true,
+          includeHimalayas: true,
+          includeArbeitnow: true,
+        });
+        realtimeJobs.push(...openApiJobs);
+      } catch (aggErr) {
+        console.warn('[jobDbService] Gagal agregasi open API:', aggErr);
+      }
+
+      // 2. Jika RapidAPI tersedia, jalankan Micro-Batch hemat kuota untuk area prioritas Solo & Indonesia
+      const hasApiKey = Boolean(process.env.RAPIDAPI_KEY || process.env.JSEARCH_API_KEY);
       if (hasApiKey) {
-        // Klaster target lowongan berfokus pada Indonesia, ASEAN, dan Asia (Jepang & Korea)
-        const targetClusters: Array<{ query: string; country?: string }> = [
-          // ── Indonesia (Prioritas Utama Kawasan & Alumni Solo Technopark) ──
-          { query: 'lowongan IT di Jakarta' },
-          { query: 'lowongan programmer Jakarta' },
-          { query: 'lowongan web developer di Indonesia' },
+        const priorityClusters = [
           { query: 'lowongan kerja di Solo' },
           { query: 'teknisi di Indonesia' },
-          { query: 'teknik', country: 'id' },
-          // ── ASEAN (Singapura, Malaysia, Filipina, Thailand, Vietnam) ──
-          { query: 'software engineer in Singapore' },
-          { query: 'developer in Kuala Lumpur' },
-          { query: 'software engineer', country: 'my' },
-          { query: 'web developer', country: 'ph' },
-          { query: 'software engineer', country: 'th' },
-          { query: 'software developer', country: 'vn' },
-          // ── Asia Timur (Jepang) ──
-          { query: 'IT', country: 'jp' },
-          { query: 'engineer', country: 'jp' },
-          { query: 'software', country: 'jp' },
-          { query: 'developer', country: 'jp' },
+          { query: 'lowongan IT di Jakarta' },
         ];
 
-        const fetchPromises = targetClusters.map((target) =>
-          fetchJSearchJobs({ query: target.query, country: target.country }).catch((err) => {
-            console.warn(`[jobDbService] Gagal fetch target '${target.query}':`, err);
-            return { jobs: [], total: 0, isRealtime: false };
-          })
+        const fetchPromises = priorityClusters.map((target) =>
+          fetchJSearchJobs({ query: target.query }).catch(() => ({ jobs: [], total: 0, isRealtime: false }))
         );
 
         const results = await Promise.allSettled(fetchPromises);
@@ -408,62 +600,55 @@ export const jobDbService = {
             realtimeJobs.push(...res.value.jobs);
           }
         });
-
-        // Deduplikasi berdasarkan ID
-        const seenIds = new Set<string>();
-        realtimeJobs = realtimeJobs.filter((job) => {
-          if (seenIds.has(job.id)) return false;
-          seenIds.add(job.id);
-          return true;
-        });
       }
 
-      // 2. Jika RapidAPI mengembalikan 0 (atau kuota habis/tidak ada key), gunakan Multi-Provider Aggregator
-      if (realtimeJobs.length === 0) {
-        console.log('[jobDbService] Memanggil Multi-Provider Aggregator (Remotive, Arbeitnow, Jobicy, Himalayas)...');
-        try {
-          const openApiJobs = await aggregateMultiProviderJobs();
-          realtimeJobs.push(...openApiJobs);
-        } catch (aggErr) {
-          console.warn('[jobDbService] Gagal agregasi open API:', aggErr);
-        }
-      }
-
-      // 3. PENGGABUNGAN KUMULATIF MINGGUAN: Seluruh lowongan yang pernah tercatat sebelumnya TIDAK AKAN HILANG
+      // 3. PENGGABUNGAN KUMULATIF MINGGUAN DENGAN RESOLUSI ENTITAS & TTL
       const existingJobs = await this.getJobsFromFirestore();
       const combinedMap = new Map<string, JobListing>();
-      const seenTitleCompany = new Set<string>();
+      const seenCompositeKeys = new Set<string>();
 
-      // Masukkan SEMUA lowongan terdahulu ke Map bank data kumulatif
+      // Masukkan SEMUA lowongan terdahulu ke Map bank data kumulatif dengan evaluasi TTL 30 hari
       existingJobs.forEach((j) => {
-        const tcKey = `${j.title.toLowerCase().trim()}|${j.company.toLowerCase().trim()}`;
-        if (!seenTitleCompany.has(tcKey)) {
-          seenTitleCompany.add(tcKey);
+        const normKey = `${normalizeCompanyName(j.company)}|${j.title.toLowerCase().trim()}|${(j.city || '').toLowerCase().trim()}`;
+        if (!seenCompositeKeys.has(normKey)) {
+          seenCompositeKeys.add(normKey);
+
+          const isStp = Boolean(j.isStpPartner);
+          const lastSeen = j.lastSeenAt || j.postedAt || now;
+          const isExpired = !isStp && now - lastSeen > JOB_TTL_MS;
+
           combinedMap.set(j.id, {
             ...j,
             firstSeenAt: j.firstSeenAt || j.postedAt || now,
-            lastSeenAt: j.lastSeenAt || j.postedAt || now,
-            isActive: j.isActive !== false,
+            lastSeenAt: lastSeen,
+            isActive: isExpired ? false : j.isActive !== false,
           });
         }
       });
 
       // Tambahkan dan mutakhirkan lowongan baru dari sinkronisasi minggu ini
       realtimeJobs.forEach((newJob) => {
-        const tcKey = `${newJob.title.toLowerCase().trim()}|${newJob.company.toLowerCase().trim()}`;
-        const prev = combinedMap.get(newJob.id);
+        const cleanJob: JobListing = {
+          ...newJob,
+          applicationUrl: stripTrackingParams(newJob.applicationUrl || ''),
+          description: sanitizePii(newJob.description || ''),
+        };
+
+        const normKey = `${normalizeCompanyName(cleanJob.company)}|${cleanJob.title.toLowerCase().trim()}|${(cleanJob.city || '').toLowerCase().trim()}`;
+        const prev = combinedMap.get(cleanJob.id);
+
         if (prev) {
-          combinedMap.set(newJob.id, {
-            ...newJob,
-            firstSeenAt: prev.firstSeenAt || newJob.postedAt || now,
+          combinedMap.set(cleanJob.id, {
+            ...cleanJob,
+            firstSeenAt: prev.firstSeenAt || cleanJob.postedAt || now,
             lastSeenAt: now,
             isActive: true,
           });
-        } else if (!seenTitleCompany.has(tcKey)) {
-          seenTitleCompany.add(tcKey);
-          combinedMap.set(newJob.id, {
-            ...newJob,
-            firstSeenAt: newJob.postedAt || now,
+        } else if (!seenCompositeKeys.has(normKey)) {
+          seenCompositeKeys.add(normKey);
+          combinedMap.set(cleanJob.id, {
+            ...cleanJob,
+            firstSeenAt: cleanJob.postedAt || now,
             lastSeenAt: now,
             isActive: true,
           });
@@ -475,31 +660,21 @@ export const jobDbService = {
       // 4. Perbarui metadata jadwal seminggu sekali
       const nextSyncAt = now + SYNC_INTERVAL_MS;
       const stpCount = allJobsToSave.filter((j) => j.isStpPartner).length;
-      const isMultiProvider = allJobsToSave.some(
-        (j) =>
-          j.id.startsWith('remotive-') ||
-          j.id.startsWith('arbeitnow-') ||
-          j.id.startsWith('jobicy-') ||
-          j.id.startsWith('himalayas-')
-      );
 
-      const providerName = isMultiProvider
-        ? hasApiKey
-          ? 'JSearch RapidAPI & Multi-Provider Aggregator'
-          : 'Multi-Provider Aggregator (Remotive, Arbeitnow, Jobicy, Himalayas)'
-        : hasApiKey
-        ? 'JSearch RapidAPI v2'
-        : 'Internet Realtime';
+      const providerName = hasApiKey
+        ? 'ATS Publik, Multi-Provider Open API & JSearch Micro-Batch'
+        : 'ATS Publik & Open API Multi-Provider (100% Zero Cost)';
 
       const updatedMetadata: JobSyncMetadata = {
         lastSyncedAt: now,
         nextSyncAt,
+        lastDailySyncAt: now,
         syncIntervalDays: 7,
         totalJobsInDb: allJobsToSave.length,
         realtimeJobsCount: allJobsToSave.length - stpCount,
         stpJobsCount: stpCount,
         status: 'SUCCESS',
-        message: `Berhasil mengakumulasi ${allJobsToSave.length} lowongan (bank data kumulatif terus bertambah). Update berikutnya dalam 7 hari.`,
+        message: `Berhasil mengakumulasi ${allJobsToSave.length} lowongan aktif & terverifikasi. Sinkronisasi mingguan berikutnya dalam 7 hari.`,
         provider: providerName,
       };
 

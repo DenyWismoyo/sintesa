@@ -85,7 +85,7 @@ export const JobListingSchema = z.object({
   applicationUrl: z.string().optional(),
   applicationEmail: z.string().optional(),
   applySource: z.string().optional(), // contoh: 'LinkedIn', 'JobStreet', 'Indeed', 'Official Web'
-  source: z.enum(['stp_partner', 'jsearch_realtime']).default('stp_partner').optional(),
+  source: z.enum(['stp_partner', 'jsearch_realtime', 'ats_public', 'open_api']).default('stp_partner').optional(),
   isStpPartner: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
   postedAt: z.number(),
@@ -112,7 +112,7 @@ export interface JobFilterParams {
   experienceLevel?: string;
   trainingProgram?: string;
   isStpPartner?: boolean;
-  source?: 'all' | 'stp_partner' | 'jsearch_realtime';
+  source?: 'all' | 'stp_partner' | 'jsearch_realtime' | 'ats_public' | 'open_api';
   sort?: 'newest' | 'salary_high' | 'featured';
   locationRegion?: 'all' | 'solo_raya' | 'jabodetabek' | 'jawa' | 'luar_jawa' | 'luar_negeri';
   freshness?: 'all' | 'week' | 'month';

@@ -69,23 +69,43 @@ export default function JobCard({
   };
 
   const getCompanyTypeBadge = () => {
+    if (job.isStpPartner || job.companyType === 'Mitra Industri STP') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <ShieldCheck className="w-3 h-3 text-emerald-600" />
+          Mitra Resmi STP
+        </span>
+      );
+    }
+
+    if (job.source === 'ats_public') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+          <Building2 className="w-3 h-3 text-indigo-600" />
+          Perusahaan Terverifikasi
+        </span>
+      );
+    }
+
+    if (job.source === 'open_api') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">
+          <Sparkles className="w-3 h-3 text-teal-600" />
+          Peluang Global / Remote
+        </span>
+      );
+    }
+
     if (job.source === 'jsearch_realtime') {
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
-          <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
-          Live {job.applySource || 'Realtime API'}
+          <Building2 className="w-3 h-3 text-sky-600" />
+          Lowongan Terbuka
         </span>
       );
     }
 
     switch (job.companyType) {
-      case 'Mitra Industri STP':
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-            <ShieldCheck className="w-3 h-3 text-emerald-600" />
-            Mitra STP
-          </span>
-        );
       case 'Tenant Inkubasi Startup STP':
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">

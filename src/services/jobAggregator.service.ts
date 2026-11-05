@@ -12,6 +12,7 @@ import {
   inferJobCategory,
   inferRelevantTrainingPrograms,
 } from '@/services/jsearch.service';
+import { crawlAtsJobs, AtsTarget, normalizeCompanyName } from '@/services/atsCrawler.service';
 
 /**
  * Helper untuk menentukan WorkType
@@ -464,25 +465,30 @@ export async function fetchHimalayasJobs(limit: number = 20): Promise<JobListing
 }
 
 /**
- * 5. Multi-Provider Aggregator Engine Utama
- * Mengumpulkan lowongan secara paralel dari seluruh open API dan menyatukannya
+ * 5. Multi-Provider & ATS Aggregator Engine Utama (100% Zero-Cost Quota)
+ * Mengumpulkan lowongan secara paralel dari open API dan endpoint ATS publik, menyatukannya
  */
 export async function aggregateMultiProviderJobs(options: {
   includeRemotive?: boolean;
   includeArbeitnow?: boolean;
   includeJobicy?: boolean;
   includeHimalayas?: boolean;
+  includeAts?: boolean;
+  atsTargets?: AtsTarget[];
 } = {}): Promise<JobListing[]> {
   const {
     includeRemotive = true,
     includeArbeitnow = true,
     includeJobicy = true,
     includeHimalayas = true,
+    includeAts = true,
+    atsTargets,
   } = options;
 
-  console.log('[JobAggregator] Memulai agregasi paralel dari multi-provider open API...');
+  console.log('[JobAggregator] Memulai agregasi paralel dari multi-provider open API & ATS publik...');
 
   const tasks: Promise<JobListing[]>[] = [];
+  if (includeAts) tasks.push(crawlAtsJobs(atsTargets));
   if (includeRemotive) tasks.push(fetchRemotiveJobs(30));
   if (includeArbeitnow) tasks.push(fetchArbeitnowJobs());
   if (includeJobicy) tasks.push(fetchJobicyJobs(25));
@@ -497,18 +503,18 @@ export async function aggregateMultiProviderJobs(options: {
     }
   }
 
-  // Deduplikasi berdasarkan kombinasi normalized Title + Company
+  // Deduplikasi berdasarkan kombinasi normalized Company + Title + City
   const seenKey = new Set<string>();
   const uniqueJobs: JobListing[] = [];
 
   for (const job of collectedJobs) {
-    const key = `${job.title.toLowerCase().trim()}|${job.company.toLowerCase().trim()}`;
+    const key = `${normalizeCompanyName(job.company)}|${job.title.toLowerCase().trim()}|${(job.city || '').toLowerCase().trim()}`;
     if (!seenKey.has(key)) {
       seenKey.add(key);
       uniqueJobs.push(job);
     }
   }
 
-  console.log(`[JobAggregator] Berhasil menghimpun ${uniqueJobs.length} lowongan unik dari Open API.`);
+  console.log(`[JobAggregator] Berhasil menghimpun ${uniqueJobs.length} lowongan unik dari Open API & ATS.`);
   return uniqueJobs;
 }

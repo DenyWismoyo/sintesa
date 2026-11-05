@@ -233,12 +233,16 @@ export function filterAndSortJobs(
     result = result.filter((job) => job.isStpPartner === filters.isStpPartner);
   }
 
-  // Filter Sumber Lowongan (Mitra STP vs Realtime JSearch)
+  // Filter Sumber Lowongan (Mitra STP vs Realtime JSearch / ATS Publik / Open API)
   if (filters.source && filters.source !== 'all') {
     if (filters.source === 'stp_partner') {
       result = result.filter((job) => job.source === 'stp_partner' || job.isStpPartner);
     } else if (filters.source === 'jsearch_realtime') {
-      result = result.filter((job) => job.source === 'jsearch_realtime');
+      result = result.filter((job) => job.source === 'jsearch_realtime' || job.source === 'ats_public' || job.source === 'open_api');
+    } else if (filters.source === 'ats_public') {
+      result = result.filter((job) => job.source === 'ats_public');
+    } else if (filters.source === 'open_api') {
+      result = result.filter((job) => job.source === 'open_api');
     }
   }
 

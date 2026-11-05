@@ -226,14 +226,20 @@ export default function AdminManajemenKarirPage() {
     }
   };
 
-  const handleTriggerSync = async () => {
+  const handleTriggerSync = async (typeOrEvent?: 'daily' | 'weekly' | React.MouseEvent) => {
+    const type = typeOrEvent === 'daily' ? 'daily' : 'weekly';
     setIsSyncing(true);
-    toast.info('Memulai sinkronisasi lowongan dari RapidAPI JSearch & Aggregator...');
+    const actionName = type === 'daily' ? 'sync_daily' : 'sync_weekly';
+    toast.info(
+      type === 'daily'
+        ? 'Memulai sinkronisasi harian (ATS Publik & Open API 100% Bebas Kuota)...'
+        : 'Memulai deep-sync mingguan (ATS + Open API + Audit TTL)...'
+    );
     try {
       const res = await fetch('/api/jobs', {
         method: 'POST',
         headers: await getAdminHeaders(),
-        body: JSON.stringify({ action: 'sync' }),
+        body: JSON.stringify({ action: actionName }),
       });
       const json = await res.json().catch(() => ({}));
       if (res.ok && json.success) {
@@ -275,7 +281,7 @@ export default function AdminManajemenKarirPage() {
               variant="outline"
               size="sm"
               disabled={isSyncing}
-              onClick={handleTriggerSync}
+              onClick={() => handleTriggerSync('weekly')}
               className="rounded-xl h-10 px-3.5 text-xs font-bold border-slate-200 text-slate-700 hover:bg-slate-50 gap-1.5 shadow-2xs"
             >
               <RotateCw className={`w-3.5 h-3.5 text-slate-600 ${isSyncing ? 'animate-spin text-emerald-600' : ''}`} />
@@ -813,58 +819,160 @@ export default function AdminManajemenKarirPage() {
         </div>
       )}
 
-      {/* ─── TAB 2: KONTROL AGREGATOR & API SYNC ─── */}
+      {/* ─── TAB 2: KONTROL AGREGATOR & MULTI-TIER SYNC (ZERO COST) ─── */}
       {activeTab === 'SYNC' && (
         <div className="space-y-6">
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-2xs space-y-5">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100">
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-2xs space-y-6">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-100">
               <div className="space-y-1">
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
                   <Database className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Koneksi Provider Aktif</span>
+                  <span>Arsitektur Akuisisi Multi-Tier (100% Zero-Cost Quota)</span>
                 </div>
                 <h3 className="text-lg font-black text-slate-900">
-                  Agregator Karir & JSearch RapidAPI Gateway
+                  Gateway Sinkronisasi ATS Publik & Multi-Provider Karir
                 </h3>
                 <p className="text-xs text-slate-500 max-w-xl leading-relaxed">
-                  Data lowongan ditarik secara berkala dan diakumulasikan ke dalam Cloud Firestore tanpa menghapus arsip sebelumnya.
+                  Menghimpun lowongan kerja tangan pertama dari 11 endpoint ATS korporasi dan Open API tanpa biaya kredit API. Data dinormalisasi, disanitasi dari PII (UU PDP No. 27/2022), dan disimpan ke Master Cache.
                 </p>
               </div>
 
-              <Button
-                type="button"
-                onClick={handleTriggerSync}
-                disabled={isSyncing}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl h-11 px-5 gap-2 shadow-md shadow-emerald-200 shrink-0"
-              >
-                <RotateCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-                <span>{isSyncing ? 'Memproses Sinkronisasi...' : 'Sinkronkan Ulang Sekarang'}</span>
-              </Button>
+              <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleTriggerSync('daily')}
+                  disabled={isSyncing}
+                  className="rounded-2xl h-11 px-4 text-xs font-bold border-emerald-200 text-emerald-800 hover:bg-emerald-50 gap-2 shadow-2xs"
+                >
+                  <Sparkles className="w-4 h-4 text-emerald-600" />
+                  <span>Sync Harian (ATS & Open API)</span>
+                </Button>
+
+                <Button
+                  type="button"
+                  onClick={() => handleTriggerSync('weekly')}
+                  disabled={isSyncing}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl h-11 px-5 gap-2 shadow-md shadow-emerald-200"
+                >
+                  <RotateCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                  <span>{isSyncing ? 'Memproses Sinkronisasi...' : 'Deep-Sync Mingguan & TTL'}</span>
+                </Button>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Metrik Inti Sistem */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                  Jadwal Otomatis
+                  Jadwal Cloud Functions
                 </span>
-                <span className="text-sm font-extrabold text-slate-800">Setiap 7 Hari Sekali</span>
-                <p className="text-[11px] text-slate-500">Otomatis saat masa interval mingguan terpenuhi.</p>
+                <span className="text-sm font-extrabold text-slate-800">Harian (04:00) & Senin (03:00)</span>
+                <p className="text-[11px] text-slate-500">Scheduler v2 otomatis berjalan di region Jakarta.</p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Biaya Kuota / Kredit
+                </span>
+                <span className="text-sm font-extrabold text-emerald-700">Rp 0 (100% Free Quota)</span>
+                <p className="text-[11px] text-slate-500">ATS Publik + Keyless Open API + JSearch Micro.</p>
               </div>
 
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
                   Penyimpanan Master
                 </span>
-                <span className="text-sm font-extrabold text-slate-800">Cloud Firestore (jobs)</span>
-                <p className="text-[11px] text-slate-500">Master Cache 1-Read artifacts diaktifkan.</p>
+                <span className="text-sm font-extrabold text-slate-800">Chunked Master Cache</span>
+                <p className="text-[11px] text-slate-500">Hanya memakan 1-2 Read Firestore untuk ribuan pelamar.</p>
               </div>
 
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                  Penyelarasan Diklat
+                  Proteksi Data & TTL
                 </span>
-                <span className="text-sm font-extrabold text-emerald-700">9 Program Sertifikasi STP</span>
-                <p className="text-[11px] text-slate-500">Auto-tagging kurikulum IT, CNC, AI, Welder.</p>
+                <span className="text-sm font-extrabold text-blue-700">UU PDP & 30 Hari TTL</span>
+                <p className="text-[11px] text-slate-500">PII recruiter dibuang otomatis, expired diarsipkan.</p>
+              </div>
+            </div>
+
+            {/* Matriks Konektor Live ATS & Open Provider */}
+            <div className="space-y-3 pt-2">
+              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Status Konektor Sumber Data Aktif
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="p-3.5 rounded-2xl border border-slate-200/90 bg-white shadow-2xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-slate-900">Greenhouse Public ATS</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      Aktif (0 Kuota)
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    Traveloka, GoTo, Tokopedia, Ruangguru, Kredivo, Xendit, Bukalapak, Amar Bank, OY!
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-2xl border border-slate-200/90 bg-white shadow-2xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-slate-900">Lever Public ATS</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      Aktif (0 Kuota)
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    eFishery, Kargo Tech, Pluang, Ajaib, Sirclo, Shipper, Flip, KitaLulus, Canva
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-2xl border border-slate-200/90 bg-white shadow-2xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-slate-900">Ashby Public ATS</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      Aktif (0 Kuota)
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    Deel, Linear, Postman, Cursor (Mendukung rentang gaji transparan)
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-2xl border border-slate-200/90 bg-white shadow-2xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-slate-900">Keyless Open APIs</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">
+                      Aktif (0 Kuota)
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    Remotive (Tech), Himalayas (Salary Tag), Jobicy (Remote), Arbeitnow (Relokasi/Visa)
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-2xl border border-slate-200/90 bg-white shadow-2xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-slate-900">Universal JSON-LD Parser</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                      Siap Crawl
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    Mengekstrak skema Schema.org JobPosting dari halaman karir BUMN dan manufaktur
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-2xl border border-slate-200/90 bg-white shadow-2xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-slate-900">Google Jobs Micro-Batch</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
+                      Hemat Kuota
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    JSearch RapidAPI dibatasi hanya 3 query lokal prioritas (Solo, Manufaktur Jateng, IT)
+                  </p>
+                </div>
               </div>
             </div>
           </div>

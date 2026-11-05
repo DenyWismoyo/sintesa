@@ -12,6 +12,8 @@ import {
   Calendar,
   Layers,
   ArrowRight,
+  ShieldCheck,
+  Building2,
 } from 'lucide-react';
 import { SectionContainer } from '@/components/ui/SectionContainer';
 import PageHero from '@/components/ui/PageHero';
@@ -351,17 +353,14 @@ export default function KarirClientPage() {
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-10">
             <div className="space-y-1.5">
               <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-[11px] font-semibold text-emerald-300">
-                <Database className="w-3 h-3 text-emerald-400" />
-                <span>Bank Data Karir Terakumulasi</span>
+                <Briefcase className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Pusat Karir & Rekrutmen Resmi Solo Technopark</span>
               </div>
               <h3 className="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
-                <span>{total} Lowongan Tersimpan & Terverifikasi</span>
-                <span className="text-xs font-normal text-emerald-300/80 bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-800">
-                  Sinkronisasi Mingguan
-                </span>
+                <span>{total} Lowongan Pekerjaan Aktif & Terverifikasi</span>
               </h3>
               <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
-                Setiap pembaruan mingguan otomatis digabungkan ke dalam bank data tanpa menghapus riwayat sebelumnya. Peluang karir terdahulu tetap dapat diakses sebagai referensi dan peluang aktif.
+                Temukan peluang karir terpercaya dari Mitra Industri Kawasan Solo Technopark, perusahaan teknologi nasional, dan jaringan kerja profesional yang siap menyerap talenta Anda.
               </p>
             </div>
 
@@ -374,6 +373,73 @@ export default function KarirClientPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* ─── Baris Pilihan Jalur Rekrutmen Multi-Tier ─── */}
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <button
+            type="button"
+            onClick={() => {
+              setIsStpPartnerOnly(false);
+              setSourceFilter('all');
+              setCurrentPage(1);
+            }}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              !isStpPartnerOnly && sourceFilter === 'all'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50'
+            }`}
+          >
+            Semua Lowongan ({total})
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setIsStpPartnerOnly(true);
+              setSourceFilter('all');
+              setCurrentPage(1);
+            }}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              isStpPartnerOnly
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'bg-white text-emerald-800 border border-emerald-200 hover:bg-emerald-50/60'
+            }`}
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Mitra Resmi STP & Kawasan</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setIsStpPartnerOnly(false);
+              setSourceFilter('ats_public');
+              setCurrentPage(1);
+            }}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              sourceFilter === 'ats_public'
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'bg-white text-indigo-700 border border-indigo-200 hover:bg-indigo-50/60'
+            }`}
+          >
+            <Building2 className="w-3.5 h-3.5 text-indigo-600" />
+            <span>Perusahaan & Korporasi</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setIsStpPartnerOnly(false);
+              setSourceFilter('open_api');
+              setCurrentPage(1);
+            }}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              sourceFilter === 'open_api'
+                ? 'bg-teal-600 text-white shadow-xs'
+                : 'bg-white text-teal-700 border border-teal-200 hover:bg-teal-50/60'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-teal-600" />
+            <span>Peluang Remote / WFH</span>
+          </button>
         </div>
 
         {/* ─── Pill Tabs Kategori Bidang ─── */}
