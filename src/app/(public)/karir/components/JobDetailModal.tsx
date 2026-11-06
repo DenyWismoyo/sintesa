@@ -3,6 +3,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import {
   X,
   Building2,
@@ -34,7 +35,6 @@ import { useJobAiMatchMutation } from '@/hooks/useJobs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import JobApplyModal from './JobApplyModal';
 
 interface JobDetailModalProps {
   job: JobListing | null;
@@ -66,7 +66,6 @@ export default function JobDetailModal({
 }: JobDetailModalProps) {
   const [activeTab, setActiveTab] = useState<'detail' | 'ai-match'>(initialTab);
   const [modalImgError, setModalImgError] = useState(false);
-  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
 
   // State untuk form AI Matcher
   const [alumniName, setAlumniName] = useState('');
@@ -571,26 +570,17 @@ export default function JobDetailModal({
               Tutup
             </Button>
 
-            <Button
-              onClick={() => setIsApplyModalOpen(true)}
-              className="flex-1 sm:flex-initial h-10 px-5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl gap-2 shadow-sm"
-            >
-              <Send className="w-3.5 h-3.5" />
-              <span>Saluran Lamar & Kontak</span>
-            </Button>
+            <Link href={`/karir/${job.id}/lamar`} onClick={onClose}>
+              <Button
+                className="flex-1 sm:flex-initial h-10 px-5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl gap-2 shadow-sm"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>Saluran Lamar & Kontak</span>
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
-
-      <JobApplyModal
-        job={job}
-        isOpen={isApplyModalOpen}
-        onClose={() => setIsApplyModalOpen(false)}
-        onOpenAiMatch={() => {
-          setIsApplyModalOpen(false);
-          setActiveTab('ai-match');
-        }}
-      />
     </div>
   );
 }

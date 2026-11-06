@@ -62,7 +62,6 @@ import { useAuth } from '@/lib/AuthContext';
 import { canAccessCareer } from '@/config/roles';
 import { alumniService } from '@/services/alumni.service';
 import { Alumni } from '@/types/ecosystem.types';
-import JobApplyModal from '../components/JobApplyModal';
 import MyApplicationsModal from '../components/MyApplicationsModal';
 import { useMyJobApplications } from '@/hooks/useJobApplications';
 
@@ -97,7 +96,6 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
   const [hasLoadedAlumniProfile, setHasLoadedAlumniProfile] = useState(false);
   const [customAlumniProgram, setCustomAlumniProgram] = useState<string | null>(null);
   const [loadedAlumniProfile, setLoadedAlumniProfile] = useState<Alumni | null>(null);
-  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isMyAppsModalOpen, setIsMyAppsModalOpen] = useState(false);
   const { data: myApps = [] } = useMyJobApplications();
   const hasApplied = React.useMemo(() => {
@@ -453,27 +451,28 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
 
             <JobShareMenu job={job} variant="button" />
 
-            {/* Quick jump to application modal */}
-            <Button
-              onClick={() => setIsApplyModalOpen(true)}
-              className={`h-10 px-5 font-extrabold text-xs rounded-xl gap-2 shadow-xs transition-all active:scale-95 ${
-                hasApplied
-                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100'
-                  : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-              }`}
-            >
-              {hasApplied ? (
-                <>
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span>Sudah Dilamar (Cek Status)</span>
-                </>
-              ) : (
-                <>
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Lamar Sekarang</span>
-                </>
-              )}
-            </Button>
+            {/* Quick jump to application dedicated page */}
+            <Link href={`/karir/${job.id}/lamar`}>
+              <Button
+                className={`h-10 px-5 font-extrabold text-xs rounded-xl gap-2 shadow-xs transition-all active:scale-95 ${
+                  hasApplied
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100'
+                    : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                }`}
+              >
+                {hasApplied ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>Sudah Dilamar (Cek Status)</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Lamar Sekarang</span>
+                  </>
+                )}
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -909,26 +908,27 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
             </div>
 
             <div className="space-y-2.5 pt-2">
-              <Button
-                onClick={() => setIsApplyModalOpen(true)}
-                className={`w-full h-12 font-black text-sm rounded-2xl gap-2 shadow-md transition-all active:scale-98 ${
-                  hasApplied
-                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100 shadow-emerald-50'
-                    : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-200'
-                }`}
-              >
-                {hasApplied ? (
-                  <>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>Sudah Pernah Dilamar (Tinjau Berkas)</span>
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4" />
-                    <span>Pilih Saluran Pendaftaran Resmi</span>
-                  </>
-                )}
-              </Button>
+              <Link href={`/karir/${job.id}/lamar`} className="block w-full">
+                <Button
+                  className={`w-full h-12 font-black text-sm rounded-2xl gap-2 shadow-md transition-all active:scale-98 ${
+                    hasApplied
+                      ? 'bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100 shadow-emerald-50'
+                      : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-200'
+                  }`}
+                >
+                  {hasApplied ? (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>Sudah Pernah Dilamar (Tinjau Berkas)</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      <span>Lamar Sekarang (Pilih Saluran Resmi)</span>
+                    </>
+                  )}
+                </Button>
+              </Link>
 
               {/* 1. Jalur Email HRD Langsung (Bebas Masalah DNS / Server Down) */}
               {job.applicationEmail && (
@@ -1177,18 +1177,6 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
         </div>
       </div>
 
-      {/* ─── Modal Panduan & Pengajuan Lamaran Terpadu ─── */}
-      <JobApplyModal
-        job={job}
-        isOpen={isApplyModalOpen}
-        onClose={() => setIsApplyModalOpen(false)}
-        onOpenAiMatch={() => {
-          setIsApplyModalOpen(false);
-          const aiElement = document.getElementById('ai-match');
-          if (aiElement) aiElement.scrollIntoView({ behavior: 'smooth' });
-        }}
-      />
-
       {/* ─── Modal Pelacak Daftar Lamaran Saya ─── */}
       <MyApplicationsModal
         isOpen={isMyAppsModalOpen}
@@ -1224,28 +1212,29 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
           </a>
 
           <a
-            href={getLinkedInJobsUrl(job)}
+            href={getJobstreetSearchUrl(job)}
             target="_blank"
             rel="noopener noreferrer"
-            title="Lamar via LinkedIn Jobs"
+            title="Cari di JobStreet ID"
           >
             <Button
               type="button"
               variant="outline"
               size="sm"
-              className="h-10 px-2.5 border-blue-200 text-blue-900 hover:bg-blue-50 rounded-xl"
+              className="h-10 px-2.5 border-amber-200 text-amber-900 hover:bg-amber-50 rounded-xl"
             >
-              <Linkedin className="w-4 h-4 text-blue-600" />
+              <Briefcase className="w-4 h-4 text-amber-600" />
             </Button>
           </a>
 
-          <Button
-            onClick={() => setIsApplyModalOpen(true)}
-            className="h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl gap-1.5 shadow-sm"
-          >
-            <Send className="w-3.5 h-3.5" />
-            <span>Lamar Sekarang</span>
-          </Button>
+          <Link href={`/karir/${job.id}/lamar`}>
+            <Button
+              className="h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl gap-1.5 shadow-sm"
+            >
+              <Send className="w-3.5 h-3.5" />
+              <span>Lamar Sekarang</span>
+            </Button>
+          </Link>
         </div>
       </div>
     </SectionContainer>
