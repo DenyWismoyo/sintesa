@@ -60,6 +60,9 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Sertifikasi Juru Las (Welder) 6G Standar Migas & Marine"
     ],
     "applicationUrl": "https://pertamina-pme.com/careers",
+    "applicationEmail": "recruitment@pertamina-pme.com",
+    "contactPhone": "+62 21 5200000",
+    "contactWhatsapp": "08119001234",
     "applySource": "Pertamina Career Portal",
     "source": "stp_partner",
     "isStpPartner": false,
@@ -119,6 +122,9 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Pelatihan Juru Las (Welder) 3G/4G/6G"
     ],
     "applicationUrl": "https://advancedoffshore.com/jobs",
+    "applicationEmail": "careers@advancedoffshore.com",
+    "contactPhone": "+62 542 765432",
+    "contactWhatsapp": "08125001234",
     "applySource": "Advanced Offshore Careers",
     "source": "stp_partner",
     "isStpPartner": false,
@@ -173,6 +179,9 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Diklat Underwater Wet Welding (Pengelasan Bawah Air) Solo Technopark"
     ],
     "applicationUrl": "https://glints.com/id/opportunities/jobs/underwater-welder-batam",
+    "applicationEmail": "hrd@atlantis-subsea.com",
+    "contactPhone": "+62 778 465789",
+    "contactWhatsapp": "08127001234",
     "applySource": "Glints",
     "source": "jsearch_realtime",
     "isStpPartner": false,
@@ -230,6 +239,8 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Diklat Underwater Wet Welding (Pengelasan Bawah Air) Solo Technopark"
     ],
     "applicationUrl": "https://www.mycareersfuture.gov.sg",
+    "applicationEmail": "careers@unidive.com.sg",
+    "contactPhone": "+65 6861 2345",
     "applySource": "MyCareersFuture",
     "source": "jsearch_realtime",
     "isStpPartner": false,
@@ -283,6 +294,8 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Diklat Underwater Wet Welding (Pengelasan Bawah Air) Solo Technopark"
     ],
     "applicationUrl": "https://sg.indeed.com",
+    "applicationEmail": "hr@successports.com.sg",
+    "contactPhone": "+65 6265 6789",
     "applySource": "Indeed Singapore",
     "source": "jsearch_realtime",
     "isStpPartner": false,
@@ -338,6 +351,8 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Diklat Underwater Wet Welding (Pengelasan Bawah Air) Solo Technopark"
     ],
     "applicationUrl": "https://sapuraenergy.com/careers",
+    "applicationEmail": "recruitment@sapuraenergy.com",
+    "contactPhone": "+60 3 8659 8800",
     "applySource": "Sapura Careers",
     "source": "jsearch_realtime",
     "isStpPartner": false,
@@ -392,6 +407,8 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Diklat Underwater Wet Welding (Pengelasan Bawah Air) Solo Technopark"
     ],
     "applicationUrl": "https://jp.indeed.com",
+    "applicationEmail": "recruit@nipponsalvage.co.jp",
+    "contactPhone": "+81 3 3436 3571",
     "applySource": "Indeed Japan",
     "source": "jsearch_realtime",
     "isStpPartner": false,
@@ -446,6 +463,8 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Diklat Underwater Wet Welding (Pengelasan Bawah Air) Solo Technopark"
     ],
     "applicationUrl": "https://kr.indeed.com",
+    "applicationEmail": "hrd@ksed.co.kr",
+    "contactPhone": "+82 51 405 1234",
     "applySource": "Indeed Korea",
     "source": "jsearch_realtime",
     "isStpPartner": false,
@@ -507,6 +526,9 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Sertifikasi Pengelasan Pelat & Pipa Standar BNSP / IIW"
     ],
     "applicationUrl": "https://gunanusa.co.id/careers",
+    "applicationEmail": "recruitment@gunanusa.co.id",
+    "contactPhone": "+62 254 5750081",
+    "contactWhatsapp": "08131001234",
     "applySource": "Portal Resmi PT Gunanusa",
     "source": "stp_partner",
     "isStpPartner": false,
@@ -565,6 +587,9 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Pelatihan Juru Las (Welder) 3G/4G/6G"
     ],
     "applicationUrl": "https://pal.co.id/karir",
+    "applicationEmail": "hrd@pal.co.id",
+    "contactPhone": "+62 31 3292275",
+    "contactWhatsapp": "08123001234",
     "applySource": "Rekrutmen Bersama BUMN / PT PAL",
     "source": "stp_partner",
     "isStpPartner": false,
@@ -620,6 +645,9 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Pelatihan Juru Las (Welder) 3G/4G/6G"
     ],
     "applicationUrl": "https://mcdermott.com/careers",
+    "applicationEmail": "careers.indonesia@mcdermott.com",
+    "contactPhone": "+62 778 411000",
+    "contactWhatsapp": "08117701234",
     "applySource": "McDermott International",
     "source": "jsearch_realtime",
     "isStpPartner": false,
@@ -675,6 +703,8 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Pelatihan Juru Las (Welder) 3G/4G/6G"
     ],
     "applicationUrl": "https://seatrium.com/careers",
+    "applicationEmail": "talent@seatrium.com",
+    "contactPhone": "+65 6265 1766",
     "applySource": "Seatrium Career Portal",
     "source": "jsearch_realtime",
     "isStpPartner": false,
@@ -729,6 +759,8 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Pelatihan Juru Las (Welder) 3G/4G/6G"
     ],
     "applicationUrl": "https://my.indeed.com",
+    "applicationEmail": "recruitment@mmhe.com.my",
+    "contactPhone": "+60 7 251 2111",
     "applySource": "Indeed Malaysia",
     "source": "jsearch_realtime",
     "isStpPartner": false,
@@ -788,6 +820,8 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Sertifikasi Pengelasan Pelat & Pipa Standar BNSP / IIW"
     ],
     "applicationUrl": "https://kr.indeed.com",
+    "applicationEmail": "global_recruit@hhi.co.kr",
+    "contactPhone": "+82 52 202 2114",
     "applySource": "Indeed Korea / Rekrutmen Resmi HHI",
     "source": "stp_partner",
     "isStpPartner": false,
@@ -843,6 +877,8 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Pelatihan Juru Las (Welder) 3G/4G/6G"
     ],
     "applicationUrl": "https://hanwhaocean.com/en/careers",
+    "applicationEmail": "careers@hanwhaocean.com",
+    "contactPhone": "+82 55 680 2114",
     "applySource": "Hanwha Ocean Careers",
     "source": "stp_partner",
     "isStpPartner": false,
@@ -899,6 +935,8 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Pelatihan Juru Las (Welder) 3G/4G/6G"
     ],
     "applicationUrl": "https://jp.indeed.com",
+    "applicationEmail": "recruit@imazo.co.jp",
+    "contactPhone": "+81 898 36 5000",
     "applySource": "Indeed Japan",
     "source": "jsearch_realtime",
     "isStpPartner": false,
@@ -954,6 +992,8 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Pelatihan Juru Las (Welder) 3G/4G/6G"
     ],
     "applicationUrl": "https://mhi.com/careers",
+    "applicationEmail": "careers@mhi.com",
+    "contactPhone": "+81 3 6275 6200",
     "applySource": "MHI Global Careers",
     "source": "jsearch_realtime",
     "isStpPartner": false,
@@ -1014,6 +1054,9 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Pelatihan Desain Manufaktur CAD/CAM Mastercam"
     ],
     "applicationUrl": "https://esemka.id/karir",
+    "applicationEmail": "hrd@esemka.co.id",
+    "contactPhone": "+62 271 789012",
+    "contactWhatsapp": "081226500800",
     "applySource": "Bursa Kerja Solo Technopark",
     "source": "stp_partner",
     "isStpPartner": false,
@@ -1068,6 +1111,9 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Pelatihan Operator Mesin CNC Milling & Bubut 5-Axis"
     ],
     "applicationUrl": "https://glints.com/id/opportunities/jobs/cnc-machinist-semarang",
+    "applicationEmail": "karir@makmurmandiripresisi.co.id",
+    "contactPhone": "+62 24 7654321",
+    "contactWhatsapp": "082133445566",
     "applySource": "Glints",
     "source": "jsearch_realtime",
     "isStpPartner": false,
@@ -1126,6 +1172,9 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Pelatihan Operator Mesin CNC Milling & Bubut 5-Axis"
     ],
     "applicationUrl": "https://astra-otoparts.com/careers",
+    "applicationEmail": "recruitment@component.astra.co.id",
+    "contactPhone": "+62 21 4603550",
+    "contactWhatsapp": "08118001234",
     "applySource": "Astra Career Center",
     "source": "stp_partner",
     "isStpPartner": false,
@@ -1181,6 +1230,9 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Pelatihan Operator Mesin CNC Milling & Bubut 5-Axis"
     ],
     "applicationUrl": "https://komatsu.co.id/careers",
+    "applicationEmail": "recruitment.ki@komatsu.co.id",
+    "contactPhone": "+62 21 4405211",
+    "contactWhatsapp": "08119501234",
     "applySource": "Komatsu Indonesia Careers",
     "source": "stp_partner",
     "isStpPartner": false,
@@ -1238,6 +1290,8 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Pelatihan Operator Mesin CNC Milling & Bubut 5-Axis"
     ],
     "applicationUrl": "https://stengg.com/careers",
+    "applicationEmail": "talent@stengg.com",
+    "contactPhone": "+65 6861 6888",
     "applySource": "ST Engineering Careers",
     "source": "jsearch_realtime",
     "isStpPartner": false,
@@ -1292,6 +1346,8 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Pelatihan Operator Mesin CNC Milling & Bubut 5-Axis"
     ],
     "applicationUrl": "https://jobstreet.com.sg",
+    "applicationEmail": "careers@makino.com.sg",
+    "contactPhone": "+65 6861 5722",
     "applySource": "JobStreet Singapore",
     "source": "jsearch_realtime",
     "isStpPartner": false,
@@ -1346,6 +1402,8 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Pelatihan Operator Mesin CNC Milling & Bubut 5-Axis"
     ],
     "applicationUrl": "https://my.indeed.com",
+    "applicationEmail": "hr@uwcberhad.com.my",
+    "contactPhone": "+60 4 589 9888",
     "applySource": "Indeed Malaysia",
     "source": "jsearch_realtime",
     "isStpPartner": false,
@@ -1405,6 +1463,8 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Pelatihan Desain Manufaktur Mekatronika & Otomasi Industri"
     ],
     "applicationUrl": "https://dmgmori.co.jp/careers",
+    "applicationEmail": "careers@dmgmori.co.jp",
+    "contactPhone": "+81 52 587 1811",
     "applySource": "DMG MORI Global Careers",
     "source": "jsearch_realtime",
     "isStpPartner": false,
@@ -1459,6 +1519,8 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Pelatihan Operator Mesin CNC Milling & Bubut 5-Axis"
     ],
     "applicationUrl": "https://jp.indeed.com",
+    "applicationEmail": "recruitment@toyota-supplier.jp",
+    "contactPhone": "+81 565 28 2121",
     "applySource": "Indeed Japan",
     "source": "jsearch_realtime",
     "isStpPartner": false,
@@ -1515,6 +1577,8 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Pelatihan Desain Manufaktur CAD/CAM Mastercam"
     ],
     "applicationUrl": "https://dn-solutions.com/en/careers",
+    "applicationEmail": "talent@dnsolutions.com",
+    "contactPhone": "+82 55 280 4114",
     "applySource": "DN Solutions Global Careers",
     "source": "stp_partner",
     "isStpPartner": false,
@@ -1570,6 +1634,8 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Pelatihan Operator Mesin CNC Milling & Bubut 5-Axis"
     ],
     "applicationUrl": "https://hyundai-rotem.co.kr/en/career",
+    "applicationEmail": "global_careers@hyundai-rotem.co.kr",
+    "contactPhone": "+82 2 3464 1114",
     "applySource": "Hyundai Rotem Careers",
     "source": "jsearch_realtime",
     "isStpPartner": false,
@@ -1625,6 +1691,9 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Pelatihan Juru Las (Welder) 3G/4G/6G"
     ],
     "applicationUrl": "https://citratubindo.com/careers",
+    "applicationEmail": "hrd@citratubindo.com",
+    "contactPhone": "+62 778 711111",
+    "contactWhatsapp": "08127501234",
     "applySource": "Citra Tubindo Careers",
     "source": "stp_partner",
     "isStpPartner": false,
@@ -1682,6 +1751,8 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Pelatihan Desain Manufaktur Mekatronika & Otomasi Industri"
     ],
     "applicationUrl": "https://fanuc.co.jp/en/profile/recruit",
+    "applicationEmail": "global_hr@fanuc.co.jp",
+    "contactPhone": "+81 555 84 5555",
     "applySource": "Fanuc Global Careers",
     "source": "jsearch_realtime",
     "isStpPartner": false,
@@ -1736,6 +1807,9 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Diklat Underwater Wet Welding (Pengelasan Bawah Air) Solo Technopark"
     ],
     "applicationUrl": "https://bintangsubsea.com/careers",
+    "applicationEmail": "careers@bintangsubsea.com",
+    "contactPhone": "+62 778 480123",
+    "contactWhatsapp": "08137001234",
     "applySource": "Bintang Subsea Portal",
     "source": "stp_partner",
     "isStpPartner": false,
@@ -1796,6 +1870,9 @@ export const INDUSTRIAL_VOCATIONAL_JOBS: JobListing[] = [
       "Pelatihan Desain Manufaktur Mekatronika & Otomasi Industri"
     ],
     "applicationUrl": "https://solotechnopark.id/karir",
+    "applicationEmail": "karir.industri@solotechnopark.id",
+    "contactPhone": "+62 271 656686",
+    "contactWhatsapp": "081390001000",
     "applySource": "Biro Karir Solo Technopark",
     "source": "stp_partner",
     "isStpPartner": false,

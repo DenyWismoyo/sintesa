@@ -23,7 +23,11 @@ import {
   HelpCircle,
   ArrowRight,
   TrendingUp,
+  Linkedin,
+  Globe,
+  Mail,
 } from 'lucide-react';
+import { getLinkedInJobsUrl } from '@/utils/jobContactUtils';
 import { JobListing, JobAiMatchResponse } from '@/types/job.types';
 import { formatSalary } from '@/utils/format';
 import { useJobAiMatchMutation } from '@/hooks/useJobs';
@@ -540,6 +544,23 @@ export default function JobDetailModal({
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
+            <a
+              href={getLinkedInJobsUrl(job)}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Lamar via LinkedIn Jobs"
+            >
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-10 px-3 border-blue-200 text-blue-900 hover:bg-blue-50 rounded-xl"
+              >
+                <Linkedin className="w-4 h-4 text-blue-600" />
+                <span className="hidden sm:inline text-xs font-bold ml-1.5">LinkedIn Jobs</span>
+              </Button>
+            </a>
+
             <Button
               type="button"
               variant="outline"
@@ -555,7 +576,7 @@ export default function JobDetailModal({
               className="flex-1 sm:flex-initial h-10 px-5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl gap-2 shadow-sm"
             >
               <Send className="w-3.5 h-3.5" />
-              <span>Lamar Pekerjaan Sekarang</span>
+              <span>Saluran Lamar & Kontak</span>
             </Button>
           </div>
         </div>

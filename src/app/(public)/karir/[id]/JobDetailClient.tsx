@@ -31,7 +31,19 @@ import {
   PhoneCall,
   Check,
   MessageSquare,
+  Linkedin,
+  Globe,
+  Mail,
+  Phone,
+  Copy,
+  Search,
 } from 'lucide-react';
+import {
+  getLinkedInJobsUrl,
+  extractDomain,
+  getWhatsappChatUrl,
+  getMailtoLink,
+} from '@/utils/jobContactUtils';
 import { SectionContainer } from '@/components/ui/SectionContainer';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -892,19 +904,6 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
             </div>
 
             <div className="space-y-2.5 pt-2">
-              <Link
-                href={`/alumni-portal?channel=sapa-industri-dan-rekrutmen`}
-                className="block w-full"
-              >
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full h-10 border-teal-200 text-teal-800 hover:bg-teal-50 font-bold text-xs rounded-2xl gap-1.5"
-                >
-                  <MessageSquare className="w-3.5 h-3.5 text-teal-600" />
-                  <span>Diskusi & Tanya HRD di Forum</span>
-                </Button>
-              </Link>
               <Button
                 onClick={() => setIsApplyModalOpen(true)}
                 className={`w-full h-12 font-black text-sm rounded-2xl gap-2 shadow-md transition-all active:scale-98 ${
@@ -921,10 +920,97 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
-                    <span>Lamar Pekerjaan Sekarang</span>
+                    <span>Saluran Lamar & Kontak Resmi</span>
                   </>
                 )}
               </Button>
+
+              {/* Tautan Cepat Langsung ke LinkedIn Jobs Resmi */}
+              <a
+                href={getLinkedInJobsUrl(job)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full"
+              >
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-10 border-blue-200 text-blue-900 hover:bg-blue-50 font-bold text-xs rounded-2xl gap-2 shadow-2xs"
+                >
+                  <Linkedin className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Lamar via LinkedIn Jobs</span>
+                  <ExternalLink className="w-3 h-3 text-slate-400 ml-auto" />
+                </Button>
+              </a>
+
+              {/* Tautan ke Portal Karir Perusahaan Jika Ada */}
+              {job.applicationUrl && (
+                <a
+                  href={job.applicationUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full"
+                >
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-10 border-slate-200 text-slate-800 hover:bg-slate-50 font-bold text-xs rounded-2xl gap-2 shadow-2xs"
+                  >
+                    <Globe className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Portal Resmi ({extractDomain(job.applicationUrl)})</span>
+                    <ExternalLink className="w-3 h-3 text-slate-400 ml-auto" />
+                  </Button>
+                </a>
+              )}
+
+              {/* Kontak Cepat HRD Jika Tersedia */}
+              {(job.applicationEmail || job.contactWhatsapp || job.contactPhone) && (
+                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
+                  <span className="font-extrabold text-[11px] text-slate-700 block uppercase tracking-wider">
+                    Kontak Langsung HRD:
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {job.applicationEmail && (
+                      <a
+                        href={getMailtoLink(job.applicationEmail, job, user?.displayName || undefined)}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-teal-50 border border-teal-200 text-[11px] font-bold text-teal-900 hover:bg-teal-100 transition-colors"
+                      >
+                        <Mail className="w-3 h-3 text-teal-600" />
+                        <span>Kirim Email HRD</span>
+                      </a>
+                    )}
+                    {(job.contactWhatsapp || job.contactPhone) && (
+                      <a
+                        href={getWhatsappChatUrl(
+                          job.contactWhatsapp || job.contactPhone || '',
+                          job,
+                          user?.displayName || undefined
+                        )}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-[11px] font-bold text-emerald-900 hover:bg-emerald-100 transition-colors"
+                      >
+                        <MessageSquare className="w-3 h-3 text-emerald-600" />
+                        <span>Chat WhatsApp HRD</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <Link
+                href={`/alumni-portal?channel=sapa-industri-dan-rekrutmen`}
+                className="block w-full"
+              >
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-10 border-teal-200 text-teal-800 hover:bg-teal-50 font-bold text-xs rounded-2xl gap-1.5"
+                >
+                  <MessageSquare className="w-3.5 h-3.5 text-teal-600" />
+                  <span>Diskusi & Tanya HRD di Forum</span>
+                </Button>
+              </Link>
 
               <button
                 type="button"
@@ -1053,6 +1139,44 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
         isOpen={isMyAppsModalOpen}
         onClose={() => setIsMyAppsModalOpen(false)}
       />
+
+      {/* ─── Mobile Sticky Floating Action Bar ─── */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-3 shadow-xl flex items-center justify-between gap-3 lg:hidden">
+        <div className="min-w-0 pr-2">
+          <span className="text-[10px] text-slate-400 block font-bold truncate">
+            {job.company}
+          </span>
+          <span className="text-xs font-black text-emerald-700 truncate block">
+            {formattedSalary()}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <a
+            href={getLinkedInJobsUrl(job)}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Lamar via LinkedIn Jobs"
+          >
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-10 px-3 border-blue-200 text-blue-900 hover:bg-blue-50 rounded-xl"
+            >
+              <Linkedin className="w-4 h-4 text-blue-600" />
+            </Button>
+          </a>
+
+          <Button
+            onClick={() => setIsApplyModalOpen(true)}
+            className="h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl gap-1.5 shadow-sm"
+          >
+            <Send className="w-3.5 h-3.5" />
+            <span>Lamar Sekarang</span>
+          </Button>
+        </div>
+      </div>
     </SectionContainer>
   );
 }

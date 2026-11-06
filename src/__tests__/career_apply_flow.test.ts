@@ -153,5 +153,49 @@ describe('Mekanisme Alur Pengajuan Lamaran Karir (Career Apply & Tracking Pipeli
     expect(myApps.length).toBeGreaterThan(0);
     expect(myApps[0].jobId).toBe('job-qa-004');
   });
+
+  it('5. harus mampu menghasilkan tautan cerdas LinkedIn, Google Jobs, WhatsApp & email kontak resmi', async () => {
+    const {
+      getLinkedInJobsUrl,
+      getGoogleJobsUrl,
+      getWhatsappChatUrl,
+      getMailtoLink,
+      extractDomain,
+    } = await import('@/utils/jobContactUtils');
+
+    const dummyJob: any = {
+      id: 'job-test-99',
+      title: 'CNC Lathe Programmer',
+      company: 'PT Solo Manufaktur Kreasi',
+      city: 'Boyolali',
+      location: 'Boyolali, Jawa Tengah',
+      applicationUrl: 'https://esemka.co.id/careers/cnc-lathe',
+      applicationEmail: 'hrd@esemka.co.id',
+      contactPhone: '081226500800',
+    };
+
+    // 1. LinkedIn Jobs Url
+    const linkedinUrl = getLinkedInJobsUrl(dummyJob);
+    expect(linkedinUrl).toContain('linkedin.com/jobs/search');
+    expect(linkedinUrl).toContain(encodeURIComponent('PT Solo Manufaktur Kreasi CNC Lathe Programmer'));
+
+    // 2. Google Jobs Url
+    const googleUrl = getGoogleJobsUrl(dummyJob);
+    expect(googleUrl).toContain('google.com/search');
+    expect(googleUrl).toContain('lowongan');
+
+    // 3. Domain extraction
+    expect(extractDomain(dummyJob.applicationUrl)).toBe('esemka.co.id');
+
+    // 4. WhatsApp Chat Url dengan format 62xxx
+    const waUrl = getWhatsappChatUrl(dummyJob.contactPhone, dummyJob, 'Budi Santoso');
+    expect(waUrl).toContain('wa.me/6281226500800');
+    expect(waUrl).toContain(encodeURIComponent('PT Solo Manufaktur Kreasi'));
+
+    // 5. Mailto format
+    const mailto = getMailtoLink(dummyJob.applicationEmail, dummyJob, 'Budi Santoso');
+    expect(mailto).toContain('mailto:hrd@esemka.co.id');
+    expect(mailto).toContain(encodeURIComponent('Lamaran Pekerjaan: CNC Lathe Programmer - Budi Santoso'));
+  });
 });
 

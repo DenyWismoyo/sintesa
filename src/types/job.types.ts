@@ -94,6 +94,10 @@ export const JobListingSchema = z.object({
   relevantTrainingPrograms: z.array(z.string()).default([]),
   applicationUrl: z.string().optional(),
   applicationEmail: z.string().optional(),
+  contactPhone: z.string().optional(),
+  contactWhatsapp: z.string().optional(),
+  officialCareerUrl: z.string().optional(),
+  linkedinJobUrl: z.string().optional(),
   applySource: z.string().optional(), // contoh: 'LinkedIn', 'JobStreet', 'Indeed', 'Official Web'
   source: z.enum(['stp_partner', 'jsearch_realtime', 'ats_public', 'open_api']).default('stp_partner').optional(),
   isStpPartner: z.boolean().default(true),
