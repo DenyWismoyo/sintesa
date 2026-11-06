@@ -35,6 +35,7 @@ import {
   BadgeAlert,
   Loader2,
   HelpCircle,
+  Zap,
 } from 'lucide-react';
 import { SectionContainer } from '@/components/ui/SectionContainer';
 import { Button } from '@/components/ui/button';
@@ -119,6 +120,7 @@ export default function ApplyJobClient({ idOrSlug, initialJob }: ApplyJobClientP
   const linkedInUrl = getLinkedInJobsUrl(job);
   const googleJobsUrl = getGoogleJobsUrl(job);
   const jobstreetUrl = getJobstreetSearchUrl(job);
+  const glintsUrl = getGlintsSearchUrl(job);
   const portalDomain = extractDomain(job.applicationUrl);
   const instagramUrl = getInstagramSearchUrl(job);
   const kemnakerUrl = getKemnakerSearchUrl(job);
@@ -585,6 +587,39 @@ export default function ApplyJobClient({ idOrSlug, initialJob }: ApplyJobClientP
                       >
                         <Button variant="outline" className="w-full sm:w-auto h-9 border-amber-300 text-amber-950 hover:bg-amber-100 font-extrabold text-xs rounded-xl gap-1.5 shadow-2xs">
                           <span>Buka JobStreet ID</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </Button>
+                      </a>
+                    </div>
+
+                    {/* Glints TapLoker Indonesia */}
+                    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 hover:border-red-400 hover:bg-red-50/20 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="w-7 h-7 rounded-lg bg-red-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                            <Zap className="w-4 h-4" />
+                          </span>
+                          <span className="font-extrabold text-sm text-slate-900 group-hover:text-red-950 transition-colors">
+                            Lamar via Glints (TapLoker Indonesia)
+                          </span>
+                          <Badge variant="outline" className="text-[10px] bg-red-50 text-red-700 border-red-200">
+                            1-Tap Apply & Chat HRD
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-slate-600 pl-9 leading-snug">
+                          Lamar instan untuk posisi <strong>{job.title}</strong> di Glints atau buka langsung via aplikasi mobile TapLoker untuk chat langsung dengan tim HRD.
+                        </p>
+                      </div>
+
+                      <a
+                        href={glintsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full sm:w-auto shrink-0 pl-9 sm:pl-0"
+                        onClick={() => handleMarkExternalApplied('Glints TapLoker')}
+                      >
+                        <Button variant="outline" className="w-full sm:w-auto h-9 border-red-300 text-red-950 hover:bg-red-100 font-extrabold text-xs rounded-xl gap-1.5 shadow-2xs">
+                          <span>Buka Glints / TapLoker</span>
                           <ExternalLink className="w-3.5 h-3.5" />
                         </Button>
                       </a>

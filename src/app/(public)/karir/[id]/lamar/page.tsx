@@ -65,3 +65,4 @@ export default async function ApplyJobPage({ params }: PageProps) {
 
   return <ApplyJobClient idOrSlug={idOrSlug} initialJob={job} />;
 }
+

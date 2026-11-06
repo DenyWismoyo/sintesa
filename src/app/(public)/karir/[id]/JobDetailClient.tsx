@@ -42,6 +42,7 @@ import {
 import {
   getLinkedInJobsUrl,
   getJobstreetSearchUrl,
+  getGlintsSearchUrl,
   extractDomain,
   getWhatsappChatUrl,
   getMailtoLink,
@@ -1010,6 +1011,24 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
                 </Button>
               </a>
 
+              {/* 5. Portal Karir Glints (TapLoker Indonesia) */}
+              <a
+                href={getGlintsSearchUrl(job)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full"
+              >
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-10 border-red-200 text-red-950 bg-red-50/40 hover:bg-red-50 font-bold text-xs rounded-2xl gap-2 shadow-2xs justify-start px-3.5 group"
+                >
+                  <Zap className="w-3.5 h-3.5 text-red-600 shrink-0 group-hover:scale-110 transition-transform" />
+                  <span className="truncate">Cari di Glints (TapLoker Indonesia)</span>
+                  <ExternalLink className="w-3 h-3 text-red-400 ml-auto shrink-0" />
+                </Button>
+              </a>
+
               {/* 5. Tautan ke Website Perusahaan dengan Keterangan Fail-Safe */}
               {job.applicationUrl && (
                 <div className="pt-0.5 space-y-1">
@@ -1224,6 +1243,22 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
               className="h-10 px-2.5 border-amber-200 text-amber-900 hover:bg-amber-50 rounded-xl"
             >
               <Briefcase className="w-4 h-4 text-amber-600" />
+            </Button>
+          </a>
+
+          <a
+            href={getGlintsSearchUrl(job)}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Cari di Glints (TapLoker)"
+          >
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-10 px-2.5 border-red-200 text-red-900 hover:bg-red-50 rounded-xl"
+            >
+              <Zap className="w-4 h-4 text-red-600" />
             </Button>
           </a>
 

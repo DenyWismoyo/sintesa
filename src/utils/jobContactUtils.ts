@@ -44,10 +44,10 @@ export function getJobstreetSearchUrl(job: JobListing): string {
 }
 
 /**
- * Tautan pencarian lowongan di Glints
+ * Tautan pencarian lowongan di Glints (TapLoker Indonesia)
  */
 export function getGlintsSearchUrl(job: JobListing): string {
-  const query = `${job.company} ${job.title}`.trim();
+  const query = `${job.company} ${job.title}`.replace(/[\/\\]/g, ' ').trim();
   return `https://glints.com/id/opportunities/jobs/explore?keyword=${encodeURIComponent(query)}`;
 }
 

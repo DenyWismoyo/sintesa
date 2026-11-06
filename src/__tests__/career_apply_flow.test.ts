@@ -232,5 +232,27 @@ describe('Mekanisme Alur Pengajuan Lamaran Karir (Career Apply & Tracking Pipeli
     expect(officialSearch).toContain('google.com/search');
     expect(officialSearch).toContain(encodeURIComponent('PT Gunanusa Utama Fabricators'));
   });
+
+  it('7. harus mampu menghasilkan tautan portal agregator terpercaya Glints (TapLoker) dan JobStreet ID', async () => {
+    const {
+      getGlintsSearchUrl,
+      getJobstreetSearchUrl,
+    } = await import('@/utils/jobContactUtils');
+
+    const dummyJob: any = {
+      id: 'job-flutter-001',
+      title: 'Mobile App Developer (Flutter/React Native)',
+      company: 'PT Sintesa Teknologi Indonesia',
+    };
+
+    // 1. Glints TapLoker Search URL
+    const glintsUrl = getGlintsSearchUrl(dummyJob);
+    expect(glintsUrl).toContain('glints.com/id/opportunities/jobs/explore?keyword=');
+    expect(glintsUrl).toContain(encodeURIComponent('PT Sintesa Teknologi Indonesia Mobile App Developer (Flutter React Native)'));
+
+    // 2. JobStreet ID Search URL
+    const jobstreetUrl = getJobstreetSearchUrl(dummyJob);
+    expect(jobstreetUrl).toContain('id.jobstreet.com/id/job-search/');
+  });
 });
 
