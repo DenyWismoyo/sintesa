@@ -14,10 +14,17 @@ import {
 import { db } from '@/lib/firebase';
 import { JobListing, JobListingSchema } from '@/types/job.types';
 import { fetchJSearchJobs } from '@/services/jsearch.service';
-import { aggregateMultiProviderJobs, balanceRegionalProportion, RegionalProportionStats } from '@/services/jobAggregator.service';
+import {
+  aggregateMultiProviderJobs,
+  aggregateMultiProviderJobsWithReport,
+  balanceRegionalProportion,
+  RegionalProportionStats,
+} from '@/services/jobAggregator.service';
 import { normalizeCompanyName, sanitizePii, stripTrackingParams, inferJobRegion } from '@/services/atsCrawler.service';
 import SYNCED_SNAPSHOT from '@/data/jobs/syncedJobs.json';
 import { getAppId } from '@/lib/appId';
+import { computeAlumniJobMatch } from '@/utils/jobSmartMatch';
+import { Alumni } from '@/types/ecosystem.types';
 
 const JOBS_COLLECTION = 'jobs';
 const SYNC_METADATA_DOC = 'app_settings/jobs_sync';
@@ -96,27 +103,101 @@ function sanitizeForFirestore(obj: any): any {
   return obj;
 }
 
+/**
+ * Mengirimkan notifikasi Smart Job Alert in-app kepada alumni Open-to-Work
+ * ketika sinkronisasi harian/mingguan menemukan lowongan baru yang sangat selaras.
+ */
+async function dispatchSmartJobAlerts(newJobs: JobListing[]): Promise<void> {
+  if (!newJobs.length || typeof window !== 'undefined') return;
+  try {
+    const { getAdminDefaultDb } = await import('@/lib/firebaseAdmin');
+    const adminDb = getAdminDefaultDb();
+    const appId = getAppId();
+
+    const alumniSnap = await adminDb
+      .collection('alumnis')
+      .where('status', '==', 'CLAIMED')
+      .limit(200)
+      .get();
+
+    if (alumniSnap.empty) return;
+
+    const notifCol = adminDb.collection(`artifacts/${appId}/public/data/ecosystem_notifications`);
+    const batch = adminDb.batch();
+    let alertCount = 0;
+
+    alumniSnap.forEach((docSnap) => {
+      const alumni = { id: docSnap.id, ...docSnap.data() } as Alumni;
+      if (!alumni.claimedByUserId) return;
+      if (alumni.jobAlertEnabled === false) return;
+      if (alumni.isLookingForJob === false && alumni.internalStatus === 'HIRED') return;
+
+      const matched = newJobs
+        .map((job) => ({ job, match: computeAlumniJobMatch(job, alumni) }))
+        .filter((x) => x.match.score >= 70)
+        .sort((a, b) => b.match.score - a.match.score);
+
+      if (matched.length > 0 && alertCount < 50) {
+        const top = matched[0];
+        const notifRef = notifCol.doc();
+        batch.set(notifRef, {
+          id: notifRef.id,
+          recipientUid: alumni.claimedByUserId,
+          title: `🎯 ${matched.length} Lowongan Baru Cocok (${top.match.score}% Match)`,
+          message: `${top.job.title} di ${top.job.company}${matched.length > 1 ? ` dan ${matched.length - 1} posisi lain` : ''} selaras dengan profil kejuruan Anda.`,
+          linkUrl: `/karir/${top.job.id}`,
+          category: 'JOB_ALERT',
+          readByUids: [],
+          createdAt: Date.now(),
+        });
+        alertCount++;
+      }
+    });
+
+    if (alertCount > 0) {
+      await batch.commit();
+      console.log(`[SmartJobAlert] Mengirimkan ${alertCount} notifikasi lowongan baru yang relevan ke alumni.`);
+    }
+  } catch (err) {
+    console.warn('[SmartJobAlert] Melewati pengiriman job alert otomatis:', (err as any)?.message || err);
+  }
+}
+
 export const jobDbService = {
   /**
-   * Mengambil metadata status sinkronisasi mingguan
+   * Mengambil metadata status sinkronisasi:
+   * Prioritas 1: Firestore app_settings/jobs_sync (Single Source of Truth)
+   * Prioritas 2: Local snapshot syncedJobs.json (hanya fallback offline)
    */
   async getSyncMetadata(): Promise<JobSyncMetadata> {
-    // Coba baca dari local snapshot terlebih dahulu
-    const local = readLocalSnapshot();
-    if (local?.metadata) {
-      return local.metadata;
+    if (typeof window === 'undefined') {
+      try {
+        const { getAdminDefaultDb } = await import('@/lib/firebaseAdmin');
+        const adminDb = getAdminDefaultDb();
+        const adminSnap = await adminDb.doc(SYNC_METADATA_DOC).get();
+        if (adminSnap.exists) {
+          return adminSnap.data() as JobSyncMetadata;
+        }
+      } catch {
+        // Lanjut ke client SDK
+      }
     }
 
     try {
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Metadata timeout')), 1200)
+        setTimeout(() => reject(new Error('Metadata timeout')), 1500)
       );
       const snap = await Promise.race([getDoc(doc(db, SYNC_METADATA_DOC)), timeoutPromise]);
       if (snap.exists()) {
         return snap.data() as JobSyncMetadata;
       }
-    } catch (err) {
-      // Fallback diam
+    } catch {
+      // Fallback ke local snapshot jika jaringan bermasalah
+    }
+
+    const local = readLocalSnapshot();
+    if (local?.metadata) {
+      return local.metadata;
     }
 
     return {
@@ -178,13 +259,7 @@ export const jobDbService = {
       // Lanjut ke fallback
     }
 
-    // 2. Cek local persistent snapshot
-    const local = readLocalSnapshot();
-    if (local?.jobs && local.jobs.length > 0) {
-      return local.jobs;
-    }
-
-    // 3. Fallback: Query langsung dari Firestore collection 'jobs'
+    // 2. Fallback: Query langsung dari Firestore collection 'jobs'
     try {
       const fetchPromise = getDocs(
         query(collection(db, JOBS_COLLECTION), orderBy('postedAt', 'desc'), limit(1000))
@@ -207,7 +282,13 @@ export const jobDbService = {
         return jobs;
       }
     } catch {
-      // Fallback
+      // Fallback ke snapshot lokal
+    }
+
+    // 3. Last-resort fallback: Local persistent snapshot (mode offline/darurat)
+    const local = readLocalSnapshot();
+    if (local?.jobs && local.jobs.length > 0) {
+      return local.jobs;
     }
 
     return [];
@@ -429,8 +510,8 @@ export const jobDbService = {
     console.log('[jobDbService] Memulai sinkronisasi harian (ATS Publik & Open API 100% Gratis)...');
 
     try {
-      // 1. Tarik lowongan paralel dari ATS Publik & Open API (0 biaya API)
-      const freshJobs = await aggregateMultiProviderJobs({
+      // 1. Tarik lowongan paralel dari ATS Publik & Open API beserta daftar board yang aktif merespons
+      const { jobs: freshJobs, respondedAtsPrefixes } = await aggregateMultiProviderJobsWithReport({
         includeAts: true,
         includeRemotive: true,
         includeJobicy: true,
@@ -438,27 +519,36 @@ export const jobDbService = {
         includeArbeitnow: true,
       });
 
+      const freshIds = new Set(freshJobs.map((fj) => fj.id));
+
       // 2. Ambil bank data saat ini
       const existingJobs = await this.getJobsFromFirestore();
       const combinedMap = new Map<string, JobListing>();
       const seenCompositeKeys = new Set<string>();
+      const newlyDiscoveredJobs: JobListing[] = [];
 
-      // 3. Masukkan lowongan eksisting ke Map & terapkan aturan TTL 30 hari
+      // 3. Masukkan lowongan eksisting ke Map & terapkan Active ATS Sweeper + TTL 30 hari
       existingJobs.forEach((j) => {
         const normKey = `${normalizeCompanyName(j.company)}|${j.title.toLowerCase().trim()}|${(j.city || '').toLowerCase().trim()}`;
         if (!seenCompositeKeys.has(normKey)) {
           seenCompositeKeys.add(normKey);
 
-          // Cek kedaluwarsa TTL 30 hari untuk lowongan non-STP
           const isStp = Boolean(j.isStpPartner);
           const lastSeen = j.lastSeenAt || j.postedAt || now;
-          const isExpired = !isStp && now - lastSeen > JOB_TTL_MS;
+          const isExpiredByTtl = !isStp && now - lastSeen > JOB_TTL_MS;
+
+          // Active ATS Sweeper: Jika board ATS perusahaan merespons hari ini tetapi ID lowongan ini sudah hilang/ditutup
+          const isClosedOnLiveAts =
+            !isStp &&
+            j.source === 'ats_public' &&
+            respondedAtsPrefixes.some((pref) => j.id.startsWith(pref)) &&
+            !freshIds.has(j.id);
 
           combinedMap.set(j.id, {
             ...j,
             firstSeenAt: j.firstSeenAt || j.postedAt || now,
             lastSeenAt: lastSeen,
-            isActive: isExpired ? false : j.isActive !== false,
+            isActive: isExpiredByTtl || isClosedOnLiveAts ? false : j.isActive !== false,
           });
         }
       });
@@ -477,18 +567,22 @@ export const jobDbService = {
         if (prev) {
           combinedMap.set(cleanJob.id, {
             ...cleanJob,
+            viewsCount: prev.viewsCount || 0,
+            applicantCount: prev.applicantCount || 0,
             firstSeenAt: prev.firstSeenAt || cleanJob.postedAt || now,
             lastSeenAt: now,
             isActive: true,
           });
         } else if (!seenCompositeKeys.has(normKey)) {
           seenCompositeKeys.add(normKey);
-          combinedMap.set(cleanJob.id, {
+          const created: JobListing = {
             ...cleanJob,
             firstSeenAt: cleanJob.postedAt || now,
             lastSeenAt: now,
             isActive: true,
-          });
+          };
+          combinedMap.set(cleanJob.id, created);
+          newlyDiscoveredJobs.push(created);
         }
       });
 
@@ -512,9 +606,17 @@ export const jobDbService = {
       writeLocalSnapshot(balancedJobs, updatedMetadata);
       await this.saveJobsToFirestore(balancedJobs).catch(() => {});
       await this.rebuildMasterCache(getAppId(), balancedJobs).catch(() => {});
+      if (newlyDiscoveredJobs.length > 0) {
+        dispatchSmartJobAlerts(newlyDiscoveredJobs).catch(() => {});
+      }
 
       try {
-        await setDoc(doc(db, SYNC_METADATA_DOC), updatedMetadata, { merge: true });
+        if (typeof window === 'undefined') {
+          const { getAdminDefaultDb } = await import('@/lib/firebaseAdmin');
+          await getAdminDefaultDb().doc(SYNC_METADATA_DOC).set(updatedMetadata, { merge: true });
+        } else {
+          await setDoc(doc(db, SYNC_METADATA_DOC), updatedMetadata, { merge: true });
+        }
       } catch {
         // Fallback
       }
@@ -570,17 +672,19 @@ export const jobDbService = {
 
     try {
       const realtimeJobs: JobListing[] = [];
+      let respondedAtsPrefixes: string[] = [];
 
       // 1. Eksekusi ATS Publik & Open API (Tulang punggung Zero-Cost)
       try {
-        const openApiJobs = await aggregateMultiProviderJobs({
+        const report = await aggregateMultiProviderJobsWithReport({
           includeAts: true,
           includeRemotive: true,
           includeJobicy: true,
           includeHimalayas: true,
           includeArbeitnow: true,
         });
-        realtimeJobs.push(...openApiJobs);
+        realtimeJobs.push(...report.jobs);
+        respondedAtsPrefixes = report.respondedAtsPrefixes;
       } catch (aggErr) {
         console.warn('[jobDbService] Gagal agregasi open API:', aggErr);
       }
@@ -606,12 +710,14 @@ export const jobDbService = {
         });
       }
 
-      // 3. PENGGABUNGAN KUMULATIF MINGGUAN DENGAN RESOLUSI ENTITAS & TTL
+      const freshIds = new Set(realtimeJobs.map((rj) => rj.id));
+      const newlyDiscoveredJobs: JobListing[] = [];
+
+      // 3. PENGGABUNGAN KUMULATIF MINGGUAN DENGAN RESOLUSI ENTITAS, ACTIVE ATS SWEEPER & TTL
       const existingJobs = await this.getJobsFromFirestore();
       const combinedMap = new Map<string, JobListing>();
       const seenCompositeKeys = new Set<string>();
 
-      // Masukkan SEMUA lowongan terdahulu ke Map bank data kumulatif dengan evaluasi TTL 30 hari
       existingJobs.forEach((j) => {
         const normKey = `${normalizeCompanyName(j.company)}|${j.title.toLowerCase().trim()}|${(j.city || '').toLowerCase().trim()}`;
         if (!seenCompositeKeys.has(normKey)) {
@@ -619,13 +725,18 @@ export const jobDbService = {
 
           const isStp = Boolean(j.isStpPartner);
           const lastSeen = j.lastSeenAt || j.postedAt || now;
-          const isExpired = !isStp && now - lastSeen > JOB_TTL_MS;
+          const isExpiredByTtl = !isStp && now - lastSeen > JOB_TTL_MS;
+          const isClosedOnLiveAts =
+            !isStp &&
+            j.source === 'ats_public' &&
+            respondedAtsPrefixes.some((pref) => j.id.startsWith(pref)) &&
+            !freshIds.has(j.id);
 
           combinedMap.set(j.id, {
             ...j,
             firstSeenAt: j.firstSeenAt || j.postedAt || now,
             lastSeenAt: lastSeen,
-            isActive: isExpired ? false : j.isActive !== false,
+            isActive: isExpiredByTtl || isClosedOnLiveAts ? false : j.isActive !== false,
           });
         }
       });
@@ -644,18 +755,22 @@ export const jobDbService = {
         if (prev) {
           combinedMap.set(cleanJob.id, {
             ...cleanJob,
+            viewsCount: prev.viewsCount || 0,
+            applicantCount: prev.applicantCount || 0,
             firstSeenAt: prev.firstSeenAt || cleanJob.postedAt || now,
             lastSeenAt: now,
             isActive: true,
           });
         } else if (!seenCompositeKeys.has(normKey)) {
           seenCompositeKeys.add(normKey);
-          combinedMap.set(cleanJob.id, {
+          const created: JobListing = {
             ...cleanJob,
             firstSeenAt: cleanJob.postedAt || now,
             lastSeenAt: now,
             isActive: true,
-          });
+          };
+          combinedMap.set(cleanJob.id, created);
+          newlyDiscoveredJobs.push(created);
         }
       });
 
@@ -689,14 +804,22 @@ export const jobDbService = {
       writeLocalSnapshot(balancedJobs, updatedMetadata);
       await this.saveJobsToFirestore(balancedJobs).catch(() => {});
       await this.rebuildMasterCache(getAppId(), balancedJobs).catch(() => {});
+      if (newlyDiscoveredJobs.length > 0) {
+        dispatchSmartJobAlerts(newlyDiscoveredJobs).catch(() => {});
+      }
 
       // Simpan metadata ke Firestore jika online
       try {
-        const metaPromise = setDoc(doc(db, SYNC_METADATA_DOC), updatedMetadata, { merge: true });
-        const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Meta timeout')), 2000)
-        );
-        await Promise.race([metaPromise, timeoutPromise]);
+        if (typeof window === 'undefined') {
+          const { getAdminDefaultDb } = await import('@/lib/firebaseAdmin');
+          await getAdminDefaultDb().doc(SYNC_METADATA_DOC).set(updatedMetadata, { merge: true });
+        } else {
+          const metaPromise = setDoc(doc(db, SYNC_METADATA_DOC), updatedMetadata, { merge: true });
+          const timeoutPromise = new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('Meta timeout')), 2000)
+          );
+          await Promise.race([metaPromise, timeoutPromise]);
+        }
       } catch (metaErr) {
         // Fallback snapshot tetap aman
       }

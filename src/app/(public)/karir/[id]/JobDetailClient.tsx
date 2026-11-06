@@ -65,6 +65,7 @@ import { alumniService } from '@/services/alumni.service';
 import { Alumni } from '@/types/ecosystem.types';
 import MyApplicationsModal from '../components/MyApplicationsModal';
 import { useMyJobApplications } from '@/hooks/useJobApplications';
+import { useBookmarkedJobs } from '@/hooks/useBookmarkedJobs';
 
 interface JobDetailClientProps {
   idOrSlug: string;
@@ -93,7 +94,8 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
   const { data: job, isLoading, isError } = useJobDetail(idOrSlug, { enabled: hasCareerAccess });
 
   const [imgError, setImgError] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  const { isBookmarked: checkIsBookmarked, toggleBookmark } = useBookmarkedJobs();
+  const isBookmarked = checkIsBookmarked(job?.id);
   const [hasLoadedAlumniProfile, setHasLoadedAlumniProfile] = useState(false);
   const [customAlumniProgram, setCustomAlumniProgram] = useState<string | null>(null);
   const [loadedAlumniProfile, setLoadedAlumniProfile] = useState<Alumni | null>(null);
@@ -210,12 +212,8 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
   };
 
   const handleToggleBookmark = () => {
-    setIsBookmarked(!isBookmarked);
-    if (!isBookmarked) {
-      toast.success('Lowongan disimpan ke daftar simpanan Anda.');
-    } else {
-      toast.info('Lowongan dihapus dari simpanan.');
-    }
+    if (!job) return;
+    toggleBookmark(job.id, job.title);
   };
 
   const handleRunAiMatch = async (e: React.FormEvent) => {

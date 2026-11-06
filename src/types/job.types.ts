@@ -128,7 +128,7 @@ export interface JobFilterParams {
   trainingProgram?: string;
   isStpPartner?: boolean;
   source?: 'all' | 'stp_partner' | 'jsearch_realtime' | 'ats_public' | 'open_api';
-  sort?: 'newest' | 'salary_high' | 'featured';
+  sort?: 'newest' | 'salary_high' | 'featured' | 'best_match';
   region?: 'all' | 'indonesia' | 'asean' | 'east_asia' | 'global_remote';
   locationRegion?: 'all' | 'indonesia' | 'solo_raya' | 'jabodetabek' | 'jawa' | 'luar_jawa' | 'asean' | 'east_asia' | 'luar_negeri';
   freshness?: 'all' | 'week' | 'month';

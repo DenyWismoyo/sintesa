@@ -5,6 +5,7 @@ import {
   getDocs,
   setDoc,
   updateDoc,
+  deleteDoc,
   query,
   where,
   orderBy,
@@ -193,9 +194,49 @@ export const jobApplicationService = {
         category: 'JOB_APPLICATION',
       });
 
+      // Closed-Loop Integration: Jika pelamar DITERIMA BEKERJA (HIRED), otomatis sinkronkan ke profil Alumni & Tracer Study
+      if (params.status === 'HIRED' && params.applicantUid) {
+        try {
+          const alumniQ = query(
+            collection(db, 'alumnis'),
+            where('claimedByUserId', '==', params.applicantUid),
+            limit(1)
+          );
+          const alumniSnap = await getDocs(alumniQ);
+          if (!alumniSnap.empty) {
+            await updateDoc(doc(db, 'alumnis', alumniSnap.docs[0].id), {
+              internalStatus: 'HIRED',
+              employmentStatus: 'Bekerja',
+              company: params.companyName,
+              hiredByCompany: params.companyName,
+              currentJob: params.jobTitle,
+              hiredAt: Date.now(),
+              isLookingForJob: false,
+              updatedAt: Date.now(),
+            });
+          }
+        } catch (syncErr) {
+          console.warn('[jobApplicationService] Gagal auto-sync status HIRED ke Tracer Study alumni:', syncErr);
+        }
+      }
+
       return true;
     } catch (err) {
       console.error('[jobApplicationService] Error updateApplicationStatus:', err);
+      return false;
+    }
+  },
+
+  /**
+   * Menghapus riwayat lamaran milik pelamar dari Firestore
+   */
+  async deleteApplication(id: string): Promise<boolean> {
+    if (!id || id.startsWith('local-') || id.startsWith('ext-')) return true;
+    try {
+      await deleteDoc(doc(db, getApplicationsPath(), id));
+      return true;
+    } catch (err) {
+      console.warn('[jobApplicationService] Gagal menghapus dokumen lamaran:', err);
       return false;
     }
   },

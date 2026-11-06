@@ -20,7 +20,11 @@ export const rebuildJobMasterCache = onCall(async (request) => {
     throw new HttpsError('permission-denied', 'Akses Ditolak: Hak akses tidak mencukupi untuk memperbarui cache karir.');
   }
 
-  const appId = request.data?.appId || 'blud-app-dev';
+  const rawAppId = typeof request.data?.appId === 'string' ? request.data.appId.trim() : '';
+  const safeAppId = /^[a-zA-Z0-9_-]{3,48}$/.test(rawAppId)
+    ? rawAppId
+    : process.env.APP_ID || process.env.NEXT_PUBLIC_APP_ID || 'blud-app-dev';
+  const appId = safeAppId;
 
   try {
     const snapshot = await db.collection('jobs').orderBy('postedAt', 'desc').limit(1000).get();
@@ -39,16 +43,23 @@ export const rebuildJobMasterCache = onCall(async (request) => {
         category: data.category || 'IT & Rekayasa Perangkat Lunak',
         location: data.location || 'Indonesia',
         city: data.city || '',
+        region: data.region || 'indonesia',
+        country: data.country || 'Indonesia',
         workType: data.workType || 'Full-time',
         workSetup: data.workSetup || 'On-site',
         experienceLevel: data.experienceLevel || 'Fresh Graduate / Alumni Pelatihan',
         salary: data.salary || { currency: 'IDR', period: 'Bulan', isNegotiable: true, isDisclosed: false },
         description: data.description ? data.description.substring(0, 800) : '',
-        responsibilities: Array.isArray(data.responsibilities) ? data.responsibilities.slice(0, 3) : [],
+        responsibilities: Array.isArray(data.responsibilities) ? data.responsibilities.slice(0, 5) : [],
+        requirements: Array.isArray(data.requirements) ? data.requirements.slice(0, 5) : [],
+        benefits: Array.isArray(data.benefits) ? data.benefits.slice(0, 5) : [],
         skills: Array.isArray(data.skills) ? data.skills : [],
         relevantTrainingPrograms: Array.isArray(data.relevantTrainingPrograms) ? data.relevantTrainingPrograms : [],
         applicationUrl: data.applicationUrl || null,
         applicationEmail: data.applicationEmail || null,
+        contactPhone: data.contactPhone || null,
+        contactWhatsapp: data.contactWhatsapp || null,
+        officialCareerUrl: data.officialCareerUrl || null,
         applySource: data.applySource || 'STP Career Portal',
         source: data.source || 'jsearch_realtime',
         isStpPartner: Boolean(data.isStpPartner),
@@ -57,6 +68,11 @@ export const rebuildJobMasterCache = onCall(async (request) => {
         deadlineAt: data.deadlineAt || (Date.now() + 30 * 24 * 60 * 60 * 1000),
         firstSeenAt: data.firstSeenAt || data.postedAt || Date.now(),
         lastSeenAt: data.lastSeenAt || Date.now(),
+        viewsCount: Number(data.viewsCount || 0),
+        applicantCount: Number(data.applicantCount || 0),
+        partnerId: data.partnerId || null,
+        tenantId: data.tenantId || null,
+        approvalStatus: data.approvalStatus || 'APPROVED',
         isActive: data.isActive !== false,
       });
     });

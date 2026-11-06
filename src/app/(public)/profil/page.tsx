@@ -392,7 +392,13 @@ export default function ProfilPage() {
                 </>
               )}
               {activeTab === 'afiliasi' && <TabAfiliasi user={user} />}
-              {activeTab === 'karir' && <TabKarirAlumni userEmail={user.email!} alumniProgram={alumniData?.programTaken} />}
+              {activeTab === 'karir' && (
+                <TabKarirAlumni
+                  userEmail={user.email!}
+                  alumniProgram={alumniData?.programTaken}
+                  alumniProfile={alumniData}
+                />
+              )}
             </motion.div>
           </AnimatePresence>
         </motion.div>

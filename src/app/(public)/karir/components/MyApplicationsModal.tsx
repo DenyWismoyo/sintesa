@@ -20,10 +20,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useMyJobApplications, removeLocalApplication } from '@/hooks/useJobApplications';
-import { useQueryClient } from '@tanstack/react-query';
+import { useMyJobApplications, useDeleteJobApplication } from '@/hooks/useJobApplications';
 import { JOB_APPLICATION_STATUS_LABELS, JobApplicationStatus } from '@/types/alumniForum.types';
-import { toast } from 'sonner';
 
 interface MyApplicationsModalProps {
   isOpen: boolean;
@@ -36,15 +34,13 @@ export default function MyApplicationsModal({
   onClose,
   onSelectJob,
 }: MyApplicationsModalProps) {
-  const queryClient = useQueryClient();
   const { data: applications = [], isLoading } = useMyJobApplications();
+  const deleteMutation = useDeleteJobApplication();
 
   if (!isOpen) return null;
 
-  const handleDelete = (appId: string, jobTitle: string) => {
-    removeLocalApplication(appId);
-    queryClient.invalidateQueries({ queryKey: ['my-job-applications'] });
-    toast.info(`Lamaran posisi ${jobTitle} dihapus dari riwayat pelacakan.`);
+  const handleDelete = (appId: string, jobId: string, jobTitle: string) => {
+    deleteMutation.mutate({ appId, jobId, jobTitle });
   };
 
   const getStatusBadge = (status: JobApplicationStatus) => {
@@ -206,7 +202,7 @@ export default function MyApplicationsModal({
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => handleDelete(app.id || app.jobId, app.jobTitle)}
+                      onClick={() => handleDelete(app.id || app.jobId, app.jobId, app.jobTitle)}
                       className="h-8.5 w-8.5 p-0 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl"
                       title="Hapus dari riwayat"
                     >

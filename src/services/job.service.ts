@@ -5,6 +5,7 @@ import {
   JobAiMatchRequest,
   JobAiMatchResponse,
 } from '@/types/job.types';
+import { normalizeSalaryToMonthlyIdr, isProgramAligned } from '@/utils/jobSmartMatch';
 export const jobService = {
   /**
    * Mengambil daftar lowongan dengan filter dan pencarian
@@ -215,6 +216,7 @@ export function filterAndSortJobs(
         return pLower.includes(tp) || tp.includes(pLower);
       });
       if (matchDirect) return true;
+      if (isProgramAligned(job, filters.trainingProgram)) return true;
 
       // 2. Tokenized matching pada relevantTrainingPrograms
       if (tokens.length > 0) {
@@ -354,7 +356,7 @@ export function filterAndSortJobs(
 
   // Sorting
   if (filters.sort === 'salary_high') {
-    result.sort((a, b) => (b.salary.max || 0) - (a.salary.max || 0));
+    result.sort((a, b) => normalizeSalaryToMonthlyIdr(b.salary) - normalizeSalaryToMonthlyIdr(a.salary));
   } else if (filters.sort === 'featured') {
     result.sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0));
   } else {

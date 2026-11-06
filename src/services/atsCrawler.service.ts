@@ -58,10 +58,25 @@ export function inferJobRegion(job: {
 }): JobRegionCode {
   if (job.isStpPartner) return 'indonesia';
 
-  const loc = `${job.location || ''} ${job.city || ''} ${job.country || ''}`.toLowerCase();
+  // Prioritaskan lokasi aktual (city + location) tanpa bias defaultCountry/company terlebih dahulu
+  const primaryLoc = `${job.city || ''} ${job.location || ''}`.toLowerCase();
+  const fullLoc = `${primaryLoc} ${job.country || ''}`.toLowerCase();
   const comp = (job.company || '').toLowerCase();
 
-  // 1. Deteksi Indonesia (Prioritas Utama: Nasional & Solo Raya)
+  const aseanKws = [
+    'singapore', 'singapura', 'malaysia', 'kuala lumpur', 'selangor', 'johor', 'penang',
+    'shah alam', 'subang jaya', 'kemaman', 'terengganu', 'thailand', 'bangkok', 'vietnam',
+    'hanoi', 'ho chi minh', 'philippines', 'filipina', 'manila', 'taguig', 'makati', 'cebu',
+    'cabuyao', 'cambodia', 'myanmar', 'brunei', 'laos', 'asean'
+  ];
+
+  const eastAsiaKws = [
+    'japan', 'jepang', 'tokyo', 'osaka', 'yokohama', 'nagoya', 'fukuoka', 'sapporo',
+    'kobe', 'kyoto', 'ehime', 'imabari', 'nagasaki', 'yamanashi', 'oshino',
+    'korea', 'south korea', 'korea selatan', 'seoul', 'busan', 'incheon', 'daegu',
+    'changwon', 'ulsan', 'geoje', 'taiwan', 'taipei', 'taoyuan', 'hong kong'
+  ];
+
   const indoKws = [
     'indonesia', 'jakarta', 'jawa barat', 'jawa tengah', 'jawa timur', 'banten',
     'yogyakarta', 'jogja', 'surakarta', 'solo', 'semarang', 'surabaya', 'bandung',
@@ -72,34 +87,99 @@ export function inferJobRegion(job: {
     'kudus', 'tegal', 'purwokerto', 'cilacap', 'cirebon', 'sidoarjo', 'gresik',
     'pertamina', 'solo technopark'
   ];
-  if (indoKws.some((k) => loc.includes(k) || comp.includes(k))) {
+
+  // 1. Jika kota eksplisit menyebut ASEAN / Asia Timur (misal Taguig, Manila, Singapura, Tokyo), langsung tetapkan!
+  if (aseanKws.some((k) => primaryLoc.includes(k))) return 'asean';
+  if (eastAsiaKws.some((k) => primaryLoc.includes(k))) return 'east_asia';
+  if (indoKws.some((k) => primaryLoc.includes(k))) return 'indonesia';
+
+  // 2. Jika primaryLoc netral (misal "Hybrid" / "On-site"), baru cek country & nama perusahaan
+  if (indoKws.some((k) => fullLoc.includes(k) || (!/remote|global|worldwide|united states|europe|london|berlin/i.test(primaryLoc) && comp.includes(k)))) {
     return 'indonesia';
   }
+  if (aseanKws.some((k) => fullLoc.includes(k))) return 'asean';
+  if (eastAsiaKws.some((k) => fullLoc.includes(k))) return 'east_asia';
 
-  // 2. Deteksi ASEAN (Singapura, Malaysia, Thailand, Vietnam, Filipina, dll.)
-  const aseanKws = [
-    'singapore', 'singapura', 'malaysia', 'kuala lumpur', 'selangor', 'johor', 'penang',
-    'shah alam', 'subang jaya', 'kemaman', 'terengganu', 'thailand', 'bangkok', 'vietnam',
-    'hanoi', 'ho chi minh', 'philippines', 'filipina', 'manila', 'taguig', 'cebu',
-    'cabuyao', 'cambodia', 'myanmar', 'brunei', 'laos', 'asean'
-  ];
-  if (aseanKws.some((k) => loc.includes(k))) {
-    return 'asean';
-  }
-
-  // 3. Deteksi Asia Timur (Jepang & Korea Selatan, Taiwan)
-  const eastAsiaKws = [
-    'japan', 'jepang', 'tokyo', 'osaka', 'yokohama', 'nagoya', 'fukuoka', 'sapporo',
-    'kobe', 'kyoto', 'ehime', 'imabari', 'nagasaki', 'yamanashi', 'oshino',
-    'korea', 'south korea', 'korea selatan', 'seoul', 'busan', 'incheon', 'daegu',
-    'changwon', 'ulsan', 'geoje', 'taiwan', 'taipei', 'taoyuan', 'hong kong'
-  ];
-  if (eastAsiaKws.some((k) => loc.includes(k))) {
-    return 'east_asia';
-  }
-
-  // 4. Fallback: Global Remote / WFH
+  // 3. Fallback: Global Remote / WFH
   return 'global_remote';
+}
+
+const SKILL_DICTIONARY: Array<{ pattern: RegExp; label: string }> = [
+  { pattern: /\btypescript\b/i, label: 'TypeScript' },
+  { pattern: /\breact(\.js|js)?\b/i, label: 'React.js' },
+  { pattern: /\bnext(\.js|js)\b/i, label: 'Next.js' },
+  { pattern: /\bnode(\.js|js)\b/i, label: 'Node.js' },
+  { pattern: /\bpython\b/i, label: 'Python' },
+  { pattern: /\bgolang\b|\bgo\b/i, label: 'Golang' },
+  { pattern: /\bjava\b/i, label: 'Java' },
+  { pattern: /\bkotlin\b/i, label: 'Kotlin' },
+  { pattern: /\bflutter\b/i, label: 'Flutter' },
+  { pattern: /\bsql\b|\bpostgresql\b|\bmysql\b/i, label: 'SQL & Database' },
+  { pattern: /\baws\b|\bgcp\b|\bcloud\b/i, label: 'Cloud Infrastructure' },
+  { pattern: /\bdocker\b|\bkubernetes\b/i, label: 'Docker & Kubernetes' },
+  { pattern: /\bci\/cd\b|\bdevops\b/i, label: 'CI/CD & DevOps' },
+  { pattern: /\bmachine learning\b|\bdeep learning\b/i, label: 'Machine Learning' },
+  { pattern: /\bdata analysis\b|\banalytics\b|\btableau\b|\bpower bi\b/i, label: 'Data Analytics' },
+  { pattern: /\bcyber\s*security\b|\binfosec\b|\bsiem\b|\bpentest\b/i, label: 'Cyber Security' },
+  { pattern: /\bfigma\b|\bui\/ux\b|\bproduct design\b/i, label: 'UI/UX & Figma' },
+  { pattern: /\b3d\b|\bblender\b|\bunity\b/i, label: '3D & Multimedia' },
+  { pattern: /\bcnc\b|\bmastercam\b|\bcad\/cam\b|\bsolidworks\b/i, label: 'CNC & CAD/CAM' },
+  { pattern: /\bweld(ing|er)?\b|\bsmaw\b|\bgmaw\b|\bgtaw\b/i, label: 'Welding / Pengelasan' },
+  { pattern: /\bplc\b|\bscada\b|\bautomation\b|\bmekatronika\b/i, label: 'Otomasi & PLC' },
+  { pattern: /\bqa\b|\bquality assurance\b|\bselenium\b|\bplaywright\b/i, label: 'QA & Testing' },
+  { pattern: /\bseo\b|\bdigital marketing\b|\bsocial media\b|\bads\b/i, label: 'Digital Marketing' },
+  { pattern: /\bproject management\b|\bagile\b|\bscrum\b/i, label: 'Agile & Scrum' },
+  { pattern: /\bcustomer (support|service|success)\b|\bcrm\b/i, label: 'Customer Operations' },
+  { pattern: /\bfinancial\b|\baccounting\b|\brisk\b|\bcompliance\b/i, label: 'Risk & Operations' },
+];
+
+export function extractRealSkillsFromJobText(
+  title: string,
+  description: string,
+  category: JobCategory,
+  extraHints: string[] = []
+): string[] {
+  const corpus = `${title} ${extraHints.join(' ')} ${description.slice(0, 1800)}`;
+  const detected: string[] = [];
+
+  for (const item of SKILL_DICTIONARY) {
+    if (item.pattern.test(corpus) && !detected.includes(item.label)) {
+      detected.push(item.label);
+      if (detected.length >= 5) break;
+    }
+  }
+
+  if (detected.length === 0) {
+    switch (category) {
+      case 'Manufaktur Presisi & Mekatronika':
+        return [' Teknik Manufaktur', 'K3 Industri', 'Quality Control'].map((s) => s.trim());
+      case 'Kecerdasan Buatan & Sains Data':
+        return ['Python', 'SQL & Database', 'Data Analytics'];
+      case 'Keamanan Siber (Cyber Security)':
+        return ['Network Security', 'Security Audit', 'Incident Response'];
+      case 'Multimedia, Game & Animasi 3D':
+        return ['UI/UX & Desain', 'Visual Production', 'Creative Tools'];
+      case 'Pemasaran & Bisnis Digital':
+        return ['Komunikasi Bisnis', 'Manajemen Operasional', 'Analitik Pasar'];
+      default:
+        return ['Software Engineering', 'System Architecture', 'Problem Solving'];
+    }
+  }
+
+  return detected;
+}
+
+export function extractBulletSentences(rawText: string, fallback: string[], maxItems: number = 4): string[] {
+  if (!rawText) return fallback;
+  const sentences = rawText
+    .split(/(?:[•·▪\n\r]+|\.\s+)/)
+    .map((s) => s.replace(/^[-*0-9.)\s]+/, '').trim())
+    .filter((s) => s.length >= 28 && s.length <= 165 && !/about us|our mission|equal opportunity/i.test(s));
+
+  if (sentences.length >= 2) {
+    return Array.from(new Set(sentences)).slice(0, maxItems);
+  }
+  return fallback;
 }
 
 /**
@@ -187,25 +267,40 @@ export async function fetchGreenhouseJobs(target: AtsTarget): Promise<JobListing
     const category = inferJobCategory(item.title, cleanDesc);
     const city = item.location?.name || target.defaultCity || 'Jakarta';
     const isRemote = /remote|wfh|anywhere/i.test(`${item.title} ${city}`);
-    const skills = [target.companyName, category.split(' ')[0], 'Problem Solving'].slice(0, 5);
+    const skills = extractRealSkillsFromJobText(item.title, cleanDesc, category);
     const relevantPrograms = inferRelevantTrainingPrograms(category, [...skills, item.title]);
 
     const jobId = `gh-${target.slugOrToken}-${item.id}`;
     const cleanApplyUrl = stripTrackingParams(item.absolute_url || '');
 
     const region = inferJobRegion({
-      location: isRemote ? 'Remote' : `${city}, ${target.defaultCountry || 'Indonesia'}`,
+      location: isRemote ? 'Remote' : city,
       city,
       country: target.defaultCountry,
       company: target.companyName,
       isStpPartner: false,
     });
 
+    const resolvedCountry =
+      region === 'indonesia'
+        ? 'Indonesia'
+        : region === 'asean'
+        ? /philippines|taguig|manila|makati|cebu/i.test(city)
+          ? 'Filipina'
+          : /malaysia|kuala lumpur|selangor|penang/i.test(city)
+          ? 'Malaysia'
+          : 'Singapura'
+        : region === 'east_asia'
+        ? /japan|jepang|tokyo|osaka/i.test(`${city} ${target.defaultCountry || ''}`)
+          ? 'Jepang'
+          : 'Korea Selatan'
+        : 'Global';
+
     let currency = 'IDR';
     if (region === 'east_asia') {
-      currency = target.defaultCountry === 'Jepang' || /japan|jepang|tokyo/i.test(city) ? 'JPY' : 'KRW';
+      currency = resolvedCountry === 'Jepang' ? 'JPY' : 'KRW';
     } else if (region === 'asean') {
-      currency = /singapore|singapura/i.test(city) ? 'SGD' : /malaysia/i.test(city) ? 'MYR' : 'USD';
+      currency = resolvedCountry === 'Singapura' ? 'SGD' : resolvedCountry === 'Malaysia' ? 'MYR' : 'USD';
     } else if (region === 'global_remote') {
       currency = 'USD';
     }
@@ -216,10 +311,10 @@ export async function fetchGreenhouseJobs(target: AtsTarget): Promise<JobListing
       title: item.title,
       company: target.companyName,
       companyType: determineCompanyType(target.companyName),
-      location: isRemote ? 'Remote Global' : `${city}, ${target.defaultCountry || 'Indonesia'}`,
+      location: isRemote ? 'Remote Global' : city.toLowerCase().includes(resolvedCountry.toLowerCase()) ? city : `${city}, ${resolvedCountry}`,
       city: isRemote ? 'Remote / WFH' : city,
       region,
-      country: target.defaultCountry || (region === 'indonesia' ? 'Indonesia' : 'Global'),
+      country: resolvedCountry,
       category,
       workType: determineWorkType(item.title),
       workSetup: isRemote ? 'Remote / WFH' : 'On-site',
@@ -231,13 +326,13 @@ export async function fetchGreenhouseJobs(target: AtsTarget): Promise<JobListing
         isDisclosed: false,
       },
       description: cleanDesc.slice(0, 800) || `Peluang karir ${item.title} di ${target.companyName}.`,
-      responsibilities: [
+      responsibilities: extractBulletSentences(cleanDesc, [
         `Melaksanakan tugas strategis dan teknis peran ${item.title}.`,
         'Berkolaborasi aktif bersama tim lintas fungsi.',
-      ],
+      ]),
       requirements: [
+        `Menguasai kompetensi inti: ${skills.slice(0, 3).join(', ')}.`,
         `Pengalaman relevan di bidang ${category}.`,
-        'Komitmen profesional dan integritas kerja tinggi.',
       ],
       skills,
       benefits: ['Asuransi Kesehatan', 'Jenjang Karir Terbuka', 'Pengembangan Talenta'],
@@ -250,11 +345,11 @@ export async function fetchGreenhouseJobs(target: AtsTarget): Promise<JobListing
       postedAt: item.updated_at ? new Date(item.updated_at).getTime() : now,
       firstSeenAt: now,
       lastSeenAt: now,
-      viewsCount: Math.floor(Math.random() * 30 + 10),
-      applicantCount: Math.floor(Math.random() * 8 + 1),
+      viewsCount: 0,
+      applicantCount: 0,
       isActive: true,
     };
-  }).filter((job) => now - job.postedAt <= 45 * 24 * 60 * 60 * 1000 && job.postedAt >= 1785000000000);
+  }).filter((job) => now - job.postedAt <= 45 * 24 * 60 * 60 * 1000);
 }
 
 /**
@@ -276,25 +371,45 @@ export async function fetchLeverJobs(target: AtsTarget): Promise<JobListing[]> {
       item.categories?.workplaceType === 'remote' ||
       /remote|wfh/i.test(`${item.text} ${locationStr}`);
     const commitment = item.categories?.commitment || 'Full time';
-    const skills = [target.companyName, item.categories?.team || 'Technology'].slice(0, 5);
+    const skills = extractRealSkillsFromJobText(
+      item.text,
+      cleanDesc,
+      category,
+      item.categories?.team ? [item.categories.team] : []
+    );
     const relevantPrograms = inferRelevantTrainingPrograms(category, [...skills, item.text]);
 
     const jobId = `lev-${target.slugOrToken}-${item.id}`;
     const cleanApplyUrl = stripTrackingParams(item.applyUrl || item.hostedUrl || '');
 
     const region = inferJobRegion({
-      location: isRemote ? 'Remote' : `${locationStr}, ${target.defaultCountry || 'Indonesia'}`,
+      location: isRemote ? 'Remote' : locationStr,
       city: locationStr,
       country: target.defaultCountry,
       company: target.companyName,
       isStpPartner: false,
     });
 
+    const resolvedCountry =
+      region === 'indonesia'
+        ? 'Indonesia'
+        : region === 'asean'
+        ? /philippines|taguig|manila|makati|cebu/i.test(locationStr)
+          ? 'Filipina'
+          : /malaysia|kuala lumpur|selangor|penang/i.test(locationStr)
+          ? 'Malaysia'
+          : 'Singapura'
+        : region === 'east_asia'
+        ? /japan|jepang|tokyo|osaka/i.test(locationStr)
+          ? 'Jepang'
+          : 'Korea Selatan'
+        : 'Global';
+
     let currency = 'IDR';
     if (region === 'asean') {
-      currency = /singapore|singapura/i.test(locationStr) ? 'SGD' : /malaysia/i.test(locationStr) ? 'MYR' : /philippines/i.test(locationStr) ? 'PHP' : 'USD';
+      currency = resolvedCountry === 'Singapura' ? 'SGD' : resolvedCountry === 'Malaysia' ? 'MYR' : 'USD';
     } else if (region === 'east_asia') {
-      currency = /japan|jepang/i.test(locationStr) ? 'JPY' : 'KRW';
+      currency = resolvedCountry === 'Jepang' ? 'JPY' : 'KRW';
     } else if (region === 'global_remote') {
       currency = 'USD';
     }
@@ -305,10 +420,10 @@ export async function fetchLeverJobs(target: AtsTarget): Promise<JobListing[]> {
       title: item.text,
       company: target.companyName,
       companyType: determineCompanyType(target.companyName),
-      location: isRemote ? 'Remote Global' : `${locationStr}, ${target.defaultCountry || 'Indonesia'}`,
+      location: isRemote ? 'Remote Global' : locationStr.toLowerCase().includes(resolvedCountry.toLowerCase()) ? locationStr : `${locationStr}, ${resolvedCountry}`,
       city: isRemote ? 'Remote / WFH' : locationStr,
       region,
-      country: target.defaultCountry || (region === 'indonesia' ? 'Indonesia' : 'Global'),
+      country: resolvedCountry,
       category,
       workType: determineWorkType(commitment),
       workSetup: isRemote ? 'Remote / WFH' : 'On-site',
@@ -320,13 +435,13 @@ export async function fetchLeverJobs(target: AtsTarget): Promise<JobListing[]> {
         isDisclosed: false,
       },
       description: cleanDesc.slice(0, 800) || `Lowongan kerja ${item.text} di ${target.companyName}.`,
-      responsibilities: [
+      responsibilities: extractBulletSentences(cleanDesc, [
         `Bertanggung jawab atas deliverable posisi ${item.text}.`,
         'Menerapkan praktik standar kerja profesional.',
-      ],
+      ]),
       requirements: [
+        `Menguasai kompetensi: ${skills.slice(0, 3).join(', ')}.`,
         `Keahlian teknis sesuai bidang ${category}.`,
-        'Kemampuan komunikasi tim yang efektif.',
       ],
       skills,
       benefits: ['BPJS & Tunjangan Kesehatan', 'Fasilitas Kerja Modern'],
@@ -339,11 +454,11 @@ export async function fetchLeverJobs(target: AtsTarget): Promise<JobListing[]> {
       postedAt: item.createdAt ? Number(item.createdAt) : now,
       firstSeenAt: now,
       lastSeenAt: now,
-      viewsCount: Math.floor(Math.random() * 30 + 10),
-      applicantCount: Math.floor(Math.random() * 8 + 1),
+      viewsCount: 0,
+      applicantCount: 0,
       isActive: true,
     };
-  }).filter((job) => now - job.postedAt <= 45 * 24 * 60 * 60 * 1000 && job.postedAt >= 1785000000000);
+  }).filter((job) => now - job.postedAt <= 45 * 24 * 60 * 60 * 1000);
 }
 
 /**
@@ -362,7 +477,12 @@ export async function fetchAshbyJobs(target: AtsTarget): Promise<JobListing[]> {
     const category = inferJobCategory(item.title, cleanDesc);
     const locationStr = item.location || target.defaultCity || 'Remote';
     const isRemote = /remote|anywhere|global/i.test(`${item.title} ${locationStr}`);
-    const skills = [target.companyName, item.department || 'Tech'].slice(0, 5);
+    const skills = extractRealSkillsFromJobText(
+      item.title,
+      cleanDesc,
+      category,
+      item.department ? [item.department] : []
+    );
     const relevantPrograms = inferRelevantTrainingPrograms(category, [...skills, item.title]);
 
     // Ekstraksi kompensasi terstruktur dari Ashby jika tersedia
@@ -385,7 +505,7 @@ export async function fetchAshbyJobs(target: AtsTarget): Promise<JobListing[]> {
     const cleanApplyUrl = stripTrackingParams(item.jobUrl || '');
 
     const region = inferJobRegion({
-      location: isRemote ? 'Remote' : `${locationStr}, ${target.defaultCountry || 'Global'}`,
+      location: isRemote ? 'Remote' : locationStr,
       city: locationStr,
       country: target.defaultCountry,
       company: target.companyName,
@@ -415,13 +535,13 @@ export async function fetchAshbyJobs(target: AtsTarget): Promise<JobListing[]> {
         isDisclosed,
       },
       description: cleanDesc.slice(0, 800) || `Posisi ${item.title} di ${target.companyName}.`,
-      responsibilities: [
+      responsibilities: extractBulletSentences(cleanDesc, [
         `Merancang dan mengembangkan solusi untuk peran ${item.title}.`,
         'Bekerja mandiri dalam lingkungan kolaboratif internasional.',
-      ],
+      ]),
       requirements: [
+        `Menguasai kompetensi: ${skills.slice(0, 3).join(', ')}.`,
         `Keahlian teruji pada domain ${category}.`,
-        'Kemampuan beradaptasi dengan teknologi terkini.',
       ],
       skills,
       benefits: ['Kompensasi Kompetitif Internasional', 'Work From Anywhere (WFA)'],
@@ -434,11 +554,11 @@ export async function fetchAshbyJobs(target: AtsTarget): Promise<JobListing[]> {
       postedAt: item.publishedAt ? new Date(item.publishedAt).getTime() : now,
       firstSeenAt: now,
       lastSeenAt: now,
-      viewsCount: Math.floor(Math.random() * 30 + 10),
-      applicantCount: Math.floor(Math.random() * 8 + 1),
+      viewsCount: 0,
+      applicantCount: 0,
       isActive: true,
     };
-  }).filter((job) => now - job.postedAt <= 45 * 24 * 60 * 60 * 1000 && job.postedAt >= 1785000000000);
+  }).filter((job) => now - job.postedAt <= 45 * 24 * 60 * 60 * 1000);
 }
 
 /**
@@ -524,10 +644,12 @@ export async function extractJsonLdJobsFromUrl(
               isDisclosed: false,
             },
             description: cleanDesc.slice(0, 800) || `Informasi lowongan ${title} di ${company}.`,
-            responsibilities: ['Melaksanakan tugas pokok posisi sesuai standar operasional perusahaan.'],
+            responsibilities: extractBulletSentences(cleanDesc, [
+              'Melaksanakan tugas pokok posisi sesuai standar operasional perusahaan.',
+            ]),
             requirements: ['Kualifikasi dan kompetensi sesuai spesifikasi pengumuman lowongan.'],
             benefits: ['Sesuai Kebijakan Perusahaan'],
-            skills: [company, category.split(' ')[0]],
+            skills: extractRealSkillsFromJobText(title, cleanDesc, category),
             relevantTrainingPrograms: inferRelevantTrainingPrograms(category, [title]),
             isStpPartner: false,
             isFeatured: false,
@@ -537,8 +659,8 @@ export async function extractJsonLdJobsFromUrl(
             postedAt: node.datePosted ? new Date(node.datePosted).getTime() : now,
             firstSeenAt: now,
             lastSeenAt: now,
-            viewsCount: Math.floor(Math.random() * 20 + 5),
-            applicantCount: Math.floor(Math.random() * 6 + 1),
+            viewsCount: 0,
+            applicantCount: 0,
             isActive: true,
           });
         }
@@ -552,26 +674,54 @@ export async function extractJsonLdJobsFromUrl(
   }
 }
 
+export const DEFAULT_JSONLD_TARGETS: Array<{ url: string; companyName: string }> = [
+  { url: 'https://karir.inka.co.id', companyName: 'PT INKA (Persero)' },
+  { url: 'https://rekrutmen.pln.co.id', companyName: 'PT PLN (Persero)' },
+];
+
+export interface AtsCrawlReport {
+  jobs: JobListing[];
+  respondedPrefixes: string[];
+}
+
 /**
- * 5. Multi-ATS Crawler Engine Utama (Paralel dengan Pembatasan Beban)
- * Menjalankan pemindaian seluruh target ATS publik tanpa biaya kuota
+ * 5. Multi-ATS Crawler Engine Utama dengan Pelaporan Active Board Sweeper
  */
-export async function crawlAtsJobs(customTargets?: AtsTarget[]): Promise<JobListing[]> {
+export async function crawlAtsJobsWithReport(customTargets?: AtsTarget[]): Promise<AtsCrawlReport> {
   const targets = (customTargets || DEFAULT_ATS_TARGETS).filter((t) => t.isActive !== false);
   console.log(`[AtsCrawler] Memulai pemindaian publik pada ${targets.length} target korporasi...`);
 
+  const respondedPrefixes: string[] = [];
+
   const tasks = targets.map(async (t) => {
     try {
-      if (t.platform === 'greenhouse') return await fetchGreenhouseJobs(t);
-      if (t.platform === 'lever') return await fetchLeverJobs(t);
-      if (t.platform === 'ashby') return await fetchAshbyJobs(t);
-      return [];
+      let fetched: JobListing[] = [];
+      let prefix = '';
+      if (t.platform === 'greenhouse') {
+        prefix = `gh-${t.slugOrToken}-`;
+        fetched = await fetchGreenhouseJobs(t);
+      } else if (t.platform === 'lever') {
+        prefix = `lev-${t.slugOrToken}-`;
+        fetched = await fetchLeverJobs(t);
+      } else if (t.platform === 'ashby') {
+        prefix = `ash-${t.slugOrToken}-`;
+        fetched = await fetchAshbyJobs(t);
+      }
+      if (fetched.length > 0 && prefix) {
+        respondedPrefixes.push(prefix);
+      }
+      return fetched;
     } catch {
       return [];
     }
   });
 
-  const results = await Promise.allSettled(tasks);
+  // Jalankan juga ekstraktor Schema.org JSON-LD pada halaman karir korporasi/BUMN
+  const jsonLdTasks = DEFAULT_JSONLD_TARGETS.map((jt) =>
+    extractJsonLdJobsFromUrl(jt.url, jt.companyName).catch(() => [] as JobListing[])
+  );
+
+  const results = await Promise.allSettled([...tasks, ...jsonLdTasks]);
   const collectedJobs: JobListing[] = [];
 
   for (const res of results) {
@@ -580,7 +730,7 @@ export async function crawlAtsJobs(customTargets?: AtsTarget[]): Promise<JobList
     }
   }
 
-  // Deduplikasi internal berbasis normalized Title + Company
+  // Deduplikasi internal berbasis normalized Title + Company + City
   const seenKey = new Set<string>();
   const uniqueJobs: JobListing[] = [];
 
@@ -592,7 +742,12 @@ export async function crawlAtsJobs(customTargets?: AtsTarget[]): Promise<JobList
     }
   }
 
-  console.log(`[AtsCrawler] Berhasil menghimpun ${uniqueJobs.length} lowongan tangan pertama dari ATS publik.`);
-  return uniqueJobs;
+  console.log(`[AtsCrawler] Berhasil menghimpun ${uniqueJobs.length} lowongan tangan pertama dari ATS publik & JSON-LD.`);
+  return { jobs: uniqueJobs, respondedPrefixes };
+}
+
+export async function crawlAtsJobs(customTargets?: AtsTarget[]): Promise<JobListing[]> {
+  const report = await crawlAtsJobsWithReport(customTargets);
+  return report.jobs;
 }
 

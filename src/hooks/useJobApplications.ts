@@ -179,3 +179,20 @@ export function useMarkExternalJobApplied() {
   });
 }
 
+export function useDeleteJobApplication() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: { appId: string; jobId: string; jobTitle: string }) => {
+      removeLocalApplication(params.appId);
+      removeLocalApplication(params.jobId);
+      await jobApplicationService.deleteApplication(params.appId);
+      return params;
+    },
+    onSuccess: (params) => {
+      queryClient.invalidateQueries({ queryKey: ['my-job-applications'] });
+      toast.info(`Lamaran posisi ${params.jobTitle} dihapus dari riwayat pelacakan.`);
+    },
+  });
+}
+

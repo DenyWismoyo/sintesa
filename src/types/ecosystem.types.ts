@@ -289,6 +289,10 @@ export const AlumniSchema = z.object({
   hiredByCompany: z.string().optional(),
   hiredAt: z.number().optional(),
   certificateNumber: z.string().optional(),
+  bookmarkedJobIds: z.array(z.string()).optional(),
+  preferredRegion: z.string().optional(),
+  preferredWorkSetup: z.string().optional(),
+  jobAlertEnabled: z.boolean().optional(),
   updatedAt: z.number().optional(),
 });
 export type Alumni = z.infer<typeof AlumniSchema>;

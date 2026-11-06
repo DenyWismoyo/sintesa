@@ -46,12 +46,60 @@ const CACHE_TTL_MS = 10 * 60 * 1000; // 10 menit
  * Inferensi Kategori Pekerjaan berdasarkan judul dan deskripsi
  */
 export function inferJobCategory(title: string, description: string = ''): JobCategory {
-  const text = `${title} ${description}`.toLowerCase();
+  const titleLower = (title || '').toLowerCase();
+  // Batasi konteks deskripsi dan singkirkan bias paragraf "About Company" di awal apabila judul sudah spesifik
+  const text = `${titleLower} ${description.slice(0, 450).toLowerCase()}`;
+
+  // 1. Evaluasi Judul Pekerjaan Terlebih Dahulu (Akurasi Tinggi Tanpa Bias Profil Perusahaan)
+  if (
+    /\b(support|customer service|clerk|admin|operations|hr|recruiter|finance|accounting|sales|business development|account executive|marketing|seo|social media|copywriter|content|brand|partnership|collection)\b/i.test(
+      titleLower
+    ) &&
+    !/\b(data|ai|ml|machine learning|engineer|developer|security|cyber)\b/i.test(titleLower)
+  ) {
+    return 'Pemasaran & Bisnis Digital';
+  }
+
+  if (/\b(cyber|security|infosec|pentest|soc\b|network engineer|devsecops)/i.test(titleLower)) {
+    return 'Keamanan Siber (Cyber Security)';
+  }
 
   if (
-    text.includes('cyber') ||
-    text.includes('security') ||
-    text.includes('soc ') ||
+    /\b(ai\b|artificial intelligence|data scien|machine learning|ml engineer|computer vision|deep learning|data analyst|analytics engineer|nlp|llm)/i.test(
+      titleLower
+    )
+  ) {
+    return 'Kecerdasan Buatan & Sains Data';
+  }
+
+  if (
+    /\b(underwater|diver|subsea|penyelam|cnc|mesin|mekatronik|welder|welding|pengelasan|juru las|operator produksi|machinist|cad\/cam|manufaktur|manufacturing|fabricat|plc|elektro|teknisi|maintenance|garmen|sewing|jahit)\b/i.test(
+      titleLower
+    )
+  ) {
+    return 'Manufaktur Presisi & Mekatronika';
+  }
+
+  if (
+    /\b(3d|game|animasi|animator|blender|multimedia|unity|unreal|ui\/ux|product designer|graphic designer|illustrator|video editor|motion)\b/i.test(
+      titleLower
+    )
+  ) {
+    return 'Multimedia, Game & Animasi 3D';
+  }
+
+  if (
+    /\b(software|frontend|front-end|backend|back-end|fullstack|full-stack|web developer|mobile developer|ios|android|flutter|react|golang|java|devops|sre|qa|quality assurance|test engineer)\b/i.test(
+      titleLower
+    )
+  ) {
+    return 'IT & Rekayasa Perangkat Lunak';
+  }
+
+  // 2. Fallback Kontekstual dari Deskripsi
+  if (
+    text.includes('cyber security') ||
+    text.includes('information security') ||
     text.includes('pentest') ||
     text.includes('jaringan') ||
     text.includes('network engineer')
@@ -60,7 +108,7 @@ export function inferJobCategory(title: string, description: string = ''): JobCa
   }
 
   if (
-    /\b(ai|artificial intelligence|data science|machine learning|computer vision|deep learning|data scientist|data analyst)\b/i.test(
+    /\b(data science|machine learning|computer vision|deep learning|data scientist|data analyst)\b/i.test(
       text
     )
   ) {

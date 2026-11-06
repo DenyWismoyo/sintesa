@@ -13,9 +13,12 @@ import {
   ArrowUpRight,
   Banknote,
   CheckCircle2,
+  Bookmark,
+  Target,
 } from 'lucide-react';
 import { JobListing } from '@/types/job.types';
 import { formatSalary } from '@/utils/format';
+import { isProgramAligned, AlumniJobMatchSummary } from '@/utils/jobSmartMatch';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import JobShareMenu from './JobShareMenu';
@@ -26,6 +29,9 @@ interface JobCardProps {
   onOpenAiMatch?: (job: JobListing) => void;
   selectedProgramFilter?: string;
   isApplied?: boolean;
+  matchSummary?: AlumniJobMatchSummary;
+  isBookmarked?: boolean;
+  onToggleBookmark?: (job: JobListing) => void;
 }
 
 export default function JobCard({
@@ -34,16 +40,18 @@ export default function JobCard({
   onOpenAiMatch,
   selectedProgramFilter,
   isApplied,
+  matchSummary,
+  isBookmarked,
+  onToggleBookmark,
 }: JobCardProps) {
   const router = useRouter();
   const [imgError, setImgError] = React.useState(false);
 
-  // Cek apakah lowongan ini selaras dengan filter program pelatihan yang dipilih user
-  const isMatchingProgram = selectedProgramFilter
-    ? job.relevantTrainingPrograms.some((p) =>
-        p.toLowerCase().includes(selectedProgramFilter.toLowerCase())
-      )
-    : false;
+  // Cek apakah lowongan ini selaras dengan filter program pelatihan (menggunakan sinonim & token pintar)
+  const isMatchingProgram = Boolean(
+    (selectedProgramFilter && isProgramAligned(job, selectedProgramFilter)) ||
+      (matchSummary && matchSummary.score >= 78)
+  );
 
   const daysAgo = Math.max(0, Math.floor((Date.now() - job.postedAt) / (1000 * 60 * 60 * 24)));
   const freshnessLabel =
@@ -170,6 +178,19 @@ export default function JobCard({
                 Sudah Dilamar
               </span>
             )}
+            {matchSummary && matchSummary.score >= 55 && (
+              <span
+                title={matchSummary.reasons.join(' • ')}
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold border shadow-2xs ${
+                  matchSummary.score >= 80
+                    ? 'bg-emerald-600 text-white border-emerald-700'
+                    : 'bg-indigo-50 text-indigo-800 border-indigo-200'
+                }`}
+              >
+                <Target className="w-3 h-3 shrink-0" />
+                <span>{matchSummary.score}% {matchSummary.grade}</span>
+              </span>
+            )}
             {getCompanyTypeBadge()}
             {job.region === 'indonesia' && (
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
@@ -202,6 +223,25 @@ export default function JobCard({
               e.stopPropagation();
             }}
           >
+            {onToggleBookmark && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onToggleBookmark(job);
+                }}
+                title={isBookmarked ? 'Hapus dari simpanan' : 'Simpan lowongan ini'}
+                aria-label="Simpan lowongan"
+                className={`w-8 h-8 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${
+                  isBookmarked
+                    ? 'bg-amber-50 border-amber-300 text-amber-600 shadow-2xs'
+                    : 'bg-white border-slate-200/80 text-slate-400 hover:text-amber-600 hover:border-amber-200'
+                }`}
+              >
+                <Bookmark className={`w-3.5 h-3.5 ${isBookmarked ? 'fill-amber-500 text-amber-500' : ''}`} />
+              </button>
+            )}
             <JobShareMenu job={job} variant="compact-icon" />
           </div>
         </div>

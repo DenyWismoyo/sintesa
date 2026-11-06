@@ -55,6 +55,7 @@ import TabPartnerOnboarding from './components/TabPartnerOnboarding';
 import TabForumModerationAnalytics from './components/TabForumModerationAnalytics';
 import TabTracerStudyAnalytics from './components/TabTracerStudyAnalytics';
 import TabJobApplications from './components/TabJobApplications';
+import TabSmartTalentMatchmaking from './components/TabSmartTalentMatchmaking';
 
 export default function AdminManajemenKarirPage() {
   const router = useRouter();
@@ -670,8 +671,14 @@ export default function AdminManajemenKarirPage() {
                           <td className="py-3 px-4 font-semibold text-slate-700">
                             {job.salary.isDisclosed && (job.salary.min || job.salary.max) ? (
                               <span className="text-emerald-700 font-bold">
-                                {job.salary.min ? formatSalary(job.salary.min, 'IDR') : 'N/A'} -{' '}
-                                {job.salary.max ? formatSalary(job.salary.max, 'IDR') : 'N/A'}
+                                {job.salary.min
+                                  ? formatSalary(job.salary.min, job.salary.currency || 'IDR')
+                                  : 'N/A'}{' '}
+                                -{' '}
+                                {job.salary.max
+                                  ? formatSalary(job.salary.max, job.salary.currency || 'IDR')
+                                  : 'N/A'}
+                                {job.salary.period === 'Tahun' ? ' /thn' : ''}
                               </span>
                             ) : (
                               <span className="text-slate-400">Kompetitif</span>
@@ -1130,44 +1137,9 @@ export default function AdminManajemenKarirPage() {
 
       {/* ─── TAB 3: PENYALURAN TALENTA ALUMNI ─── */}
       {activeTab === 'TALENT' && (
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-            <div>
-              <h3 className="text-base font-bold text-slate-900">Penyaluran Talenta Alumni Solo Technopark</h3>
-              <p className="text-xs text-slate-500">
-                Pintu integrasi langsung menghubungkan alumni pelatihan (Talent Pool) dengan lowongan industri mitra yang aktif.
-              </p>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => router.push('/pelatihan')}
-              className="rounded-xl text-xs font-bold gap-1.5 border-slate-200 text-slate-700"
-            >
-              <Users className="w-3.5 h-3.5 text-slate-500" />
-              <span>Buka Talent Pool Master</span>
-            </Button>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-50/60 to-slate-50 border border-emerald-200/60 flex items-center justify-between gap-4">
-            <div className="space-y-1">
-              <span className="text-xs font-bold text-emerald-950 block">
-                Sistem AI Matcher & Penyaluran Otomatis Siap Digunakan
-              </span>
-              <p className="text-xs text-emerald-800 leading-relaxed max-w-xl">
-                Alumni dapat menguji kecocokan resume & sertifikasi mereka dengan algoritma Clario AI langsung pada setiap detail kartu lowongan.
-              </p>
-            </div>
-            <Link
-              href="/karir"
-              target="_blank"
-              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shrink-0 shadow-xs"
-            >
-              Eksplorasi Bursa Publik
-            </Link>
-          </div>
-        </div>
+        <TabSmartTalentMatchmaking
+          activeJobs={jobs.filter((j) => j.isActive)}
+        />
       )}
 
       {/* ─── TAB TRACER STUDY & ANALITIK SERAPAN KERJA ─── */}

@@ -306,6 +306,7 @@ export const EcosystemNotificationSchema = z.object({
       'SOLUTION_ACCEPTED',
       'JOB_APPLICATION',
       'INTERVIEW_INVITE',
+      'JOB_ALERT',
       'BROADCAST_ALERT',
       'MODERATION_ALERT',
     ])

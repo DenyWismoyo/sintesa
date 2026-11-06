@@ -16,6 +16,8 @@ import {
   Building2,
   ArrowUp,
   Globe,
+  Bookmark,
+  Target,
 } from 'lucide-react';
 import { SectionContainer } from '@/components/ui/SectionContainer';
 import PageHero from '@/components/ui/PageHero';
@@ -29,9 +31,12 @@ import { JobListing } from '@/types/job.types';
 import JobCard from './components/JobCard';
 import JobFilterToolbar from './components/JobFilterToolbar';
 import AlumniQuickMatchBanner from './components/AlumniQuickMatchBanner';
+import AlumniSmartBridgeBar from './components/AlumniSmartBridgeBar';
 import CareerExclusiveGate from '@/components/career/CareerExclusiveGate';
 import MyApplicationsModal from './components/MyApplicationsModal';
 import { useMyJobApplications } from '@/hooks/useJobApplications';
+import { useCurrentAlumniProfile, useBookmarkedJobs } from '@/hooks/useBookmarkedJobs';
+import { computeAlumniJobMatch, AlumniJobMatchSummary } from '@/utils/jobSmartMatch';
 import { useAuth } from '@/lib/AuthContext';
 import { canAccessCareer } from '@/config/roles';
 
@@ -68,9 +73,15 @@ export default function KarirClientPage() {
   const [locationRegion, setLocationRegion] = useState(() => searchParams.get('wilayah') || 'all');
   const [freshness, setFreshness] = useState(() => searchParams.get('periode') || 'all');
   const [sort, setSort] = useState(() => searchParams.get('sort') || 'newest');
+  const [smartFeedMode, setSmartFeedMode] = useState<'all' | 'for_you' | 'saved'>(() => {
+    const f = searchParams.get('feed');
+    return f === 'for_you' || f === 'saved' ? f : 'all';
+  });
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [isMyAppsModalOpen, setIsMyAppsModalOpen] = useState(false);
   const { data: myApps = [] } = useMyJobApplications();
+  const { data: alumniProfile } = useCurrentAlumniProfile({ enabled: hasCareerAccess });
+  const { bookmarkedIds, isBookmarked, toggleBookmark } = useBookmarkedJobs();
   const appliedJobIds = useMemo(() => new Set(myApps.map((a) => a.jobId)), [myApps]);
 
   // Pagination States
@@ -144,6 +155,7 @@ export default function KarirClientPage() {
       if (locationRegion && locationRegion !== 'all') params.set('wilayah', locationRegion);
       if (freshness && freshness !== 'all') params.set('periode', freshness);
       if (sort && sort !== 'newest') params.set('sort', sort);
+      if (smartFeedMode !== 'all') params.set('feed', smartFeedMode);
       if (currentPage > 1) params.set('p', String(currentPage));
       if (pageSize !== 9) params.set('limit', String(pageSize));
 
@@ -169,6 +181,7 @@ export default function KarirClientPage() {
     locationRegion,
     freshness,
     sort,
+    smartFeedMode,
     currentPage,
     pageSize,
     pathname,
@@ -190,6 +203,8 @@ export default function KarirClientPage() {
       setLocationRegion(sp.get('wilayah') || 'all');
       setFreshness(sp.get('periode') || 'all');
       setSort(sp.get('sort') || 'newest');
+      const fd = sp.get('feed');
+      setSmartFeedMode(fd === 'for_you' || fd === 'saved' ? fd : 'all');
       const p = parseInt(sp.get('p') || '1', 10);
       setCurrentPage(isNaN(p) || p < 1 ? 1 : p);
       const l = parseInt(sp.get('limit') || '9', 10);
@@ -218,8 +233,56 @@ export default function KarirClientPage() {
   };
 
   const { data, isLoading } = useJobs(filterParams, { enabled: hasCareerAccess });
-  const jobs = data?.jobs || [];
-  const total = data?.total || 0;
+  const rawJobs = data?.jobs || [];
+
+  // Komputasi Skor Kecocokan Proaktif Alumni secara Real-Time di Memori
+  const jobMatchMap = useMemo(() => {
+    const map = new Map<string, AlumniJobMatchSummary>();
+    if (!alumniProfile) return map;
+    rawJobs.forEach((job) => {
+      map.set(job.id, computeAlumniJobMatch(job, alumniProfile));
+    });
+    return map;
+  }, [rawJobs, alumniProfile]);
+
+  const recommendedCount = useMemo(() => {
+    if (!alumniProfile) return 0;
+    let count = 0;
+    rawJobs.forEach((job) => {
+      const m = jobMatchMap.get(job.id);
+      if (m && m.score >= 60) count++;
+    });
+    return count;
+  }, [rawJobs, alumniProfile, jobMatchMap]);
+
+  // Penerapan Smart Feed Mode ('all' | 'for_you' | 'saved') & Sort 'best_match'
+  const jobs = useMemo(() => {
+    let list = [...rawJobs];
+
+    if (smartFeedMode === 'saved') {
+      const savedSet = new Set(bookmarkedIds);
+      list = list.filter((j) => savedSet.has(j.id));
+    } else if (smartFeedMode === 'for_you' && alumniProfile) {
+      list = list.filter((j) => (jobMatchMap.get(j.id)?.score || 0) >= 60);
+    }
+
+    if (sort === 'best_match' || (smartFeedMode === 'for_you' && sort === 'newest')) {
+      list.sort((a, b) => {
+        if (alumniProfile) {
+          const scoreDiff = (jobMatchMap.get(b.id)?.score || 0) - (jobMatchMap.get(a.id)?.score || 0);
+          if (scoreDiff !== 0) return scoreDiff;
+        } else {
+          const stpDiff = (b.isStpPartner ? 1 : 0) - (a.isStpPartner ? 1 : 0);
+          if (stpDiff !== 0) return stpDiff;
+        }
+        return b.postedAt - a.postedAt;
+      });
+    }
+
+    return list;
+  }, [rawJobs, smartFeedMode, bookmarkedIds, alumniProfile, jobMatchMap, sort]);
+
+  const total = jobs.length;
 
   // Komputasi Pagination
   const totalPages = Math.max(1, Math.ceil(jobs.length / pageSize));
@@ -322,6 +385,7 @@ export default function KarirClientPage() {
     setLocationRegion('all');
     setFreshness('all');
     setSort('newest');
+    setSmartFeedMode('all');
     setCurrentPage(1);
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('sintesa_karir_last_url', '/karir');
@@ -372,6 +436,27 @@ export default function KarirClientPage() {
       />
 
       <div className="space-y-6 pt-4 sm:pt-6">
+        {/* ─── Smart Bridge Personalisasi Alumni (Otomatis muncul saat Alumni Login) ─── */}
+        {alumniProfile && (
+          <AlumniSmartBridgeBar
+            alumniProfile={alumniProfile}
+            recommendedCount={recommendedCount}
+            bookmarkedCount={bookmarkedIds.length}
+            smartFeedMode={smartFeedMode}
+            onSelectFeedMode={(mode) => {
+              setSmartFeedMode(mode);
+              if (mode === 'for_you') setSort('best_match');
+              setCurrentPage(1);
+            }}
+            onQuickFilterMyProgram={(prog) => {
+              setSmartFeedMode('all');
+              setTrainingProgram(prog);
+              setSort('best_match');
+              setCurrentPage(1);
+            }}
+          />
+        )}
+
         {/* ─── Banner Bank Data Kumulatif ─── */}
         <div className="rounded-2xl p-4 sm:p-5 bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 text-white shadow-md relative overflow-hidden">
           <div className="absolute right-0 top-0 w-80 h-full opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white to-transparent pointer-events-none" />
@@ -405,6 +490,7 @@ export default function KarirClientPage() {
           <button
             type="button"
             onClick={() => {
+              setSmartFeedMode('all');
               setIsStpPartnerOnly(false);
               setSourceFilter('all');
               setLocationRegion('all');
@@ -412,12 +498,46 @@ export default function KarirClientPage() {
               setCurrentPage(1);
             }}
             className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
-              !isStpPartnerOnly && sourceFilter === 'all' && locationRegion === 'all' && workSetup === 'all'
+              smartFeedMode === 'all' && !isStpPartnerOnly && sourceFilter === 'all' && locationRegion === 'all' && workSetup === 'all'
                 ? 'bg-slate-900 text-white shadow-xs'
                 : 'bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50'
             }`}
           >
-            Semua Lowongan ({total})
+            Semua Lowongan ({rawJobs.length})
+          </button>
+          {alumniProfile && (
+            <button
+              type="button"
+              onClick={() => {
+                const next = smartFeedMode === 'for_you' ? 'all' : 'for_you';
+                setSmartFeedMode(next);
+                if (next === 'for_you') setSort('best_match');
+                setCurrentPage(1);
+              }}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                smartFeedMode === 'for_you'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'bg-white text-indigo-700 border border-indigo-200 hover:bg-indigo-50/60'
+              }`}
+            >
+              <Target className="w-3.5 h-3.5" />
+              <span>Untuk Anda ({recommendedCount})</span>
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              setSmartFeedMode(smartFeedMode === 'saved' ? 'all' : 'saved');
+              setCurrentPage(1);
+            }}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              smartFeedMode === 'saved'
+                ? 'bg-amber-500 text-slate-950 shadow-xs'
+                : 'bg-white text-amber-800 border border-amber-200 hover:bg-amber-50/60'
+            }`}
+          >
+            <Bookmark className="w-3.5 h-3.5" />
+            <span>Tersimpan ({bookmarkedIds.length})</span>
           </button>
           <button
             type="button"
@@ -601,6 +721,9 @@ export default function KarirClientPage() {
                 onOpenAiMatch={handleOpenAiMatch}
                 selectedProgramFilter={trainingProgram}
                 isApplied={appliedJobIds.has(job.id)}
+                matchSummary={jobMatchMap.get(job.id)}
+                isBookmarked={isBookmarked(job.id)}
+                onToggleBookmark={(j) => toggleBookmark(j.id, j.title)}
               />
             ))}
           </div>

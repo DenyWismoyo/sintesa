@@ -181,8 +181,9 @@ export default function JobFilterToolbar({
       selectedValue: sort,
       onChange: (val) => setSort(val),
       options: [
+        { id: 'best_match', label: '🎯 Paling Sesuai Profil Saya' },
         { id: 'newest', label: 'Terbaru' },
-        { id: 'salary_high', label: 'Gaji Tertinggi' },
+        { id: 'salary_high', label: 'Gaji Tertinggi (Setara IDR)' },
       ],
     },
   ];
@@ -444,6 +445,7 @@ export default function JobFilterToolbar({
               onChange={(e) => setSort(e.target.value)}
               className="flex-1 h-8.5 px-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50/60 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
             >
+              <option value="best_match">🎯 Paling Sesuai Profil</option>
               <option value="newest">Terbaru</option>
               <option value="salary_high">Gaji Tertinggi</option>
             </select>
@@ -571,7 +573,9 @@ export default function JobFilterToolbar({
 
           {sort !== 'newest' && (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-800 text-[11px] font-semibold border border-slate-200">
-              <span>Urutan: Gaji Tertinggi</span>
+              <span>
+                Urutan: {sort === 'best_match' ? '🎯 Paling Sesuai Profil' : 'Gaji Tertinggi'}
+              </span>
               <button
                 type="button"
                 onClick={() => setSort('newest')}

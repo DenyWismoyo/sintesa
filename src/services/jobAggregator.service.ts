@@ -13,7 +13,13 @@ import {
   inferJobCategory,
   inferRelevantTrainingPrograms,
 } from '@/services/jsearch.service';
-import { crawlAtsJobs, AtsTarget, normalizeCompanyName, inferJobRegion } from '@/services/atsCrawler.service';
+import {
+  crawlAtsJobs,
+  crawlAtsJobsWithReport,
+  AtsTarget,
+  normalizeCompanyName,
+  inferJobRegion,
+} from '@/services/atsCrawler.service';
 import { INDUSTRIAL_VOCATIONAL_JOBS } from '@/data/jobs/industrialVocationalJobs';
 
 /**
@@ -196,13 +202,13 @@ export async function fetchRemotiveJobs(limit: number = 25): Promise<JobListing[
         ],
         relevantTrainingPrograms: relevantPrograms,
         isStpPartner: false,
-        source: 'jsearch_realtime',
+        source: 'open_api',
         applySource: 'Remotive Hub',
         applicationUrl: item.url,
         postedAt: item.publication_date ? new Date(item.publication_date).getTime() : Date.now(),
         isFeatured: false,
-        viewsCount: Math.floor(Math.random() * 40 + 10),
-        applicantCount: Math.floor(Math.random() * 12 + 1),
+        viewsCount: 0,
+        applicantCount: 0,
         isActive: true,
       };
     });
@@ -283,13 +289,13 @@ export async function fetchArbeitnowJobs(): Promise<JobListing[]> {
         ],
         relevantTrainingPrograms: relevantPrograms,
         isStpPartner: false,
-        source: 'jsearch_realtime',
+        source: 'open_api',
         applySource: 'Arbeitnow Global',
         applicationUrl: item.url,
         postedAt: item.created_at ? item.created_at * 1000 : Date.now(),
         isFeatured: false,
-        viewsCount: Math.floor(Math.random() * 40 + 10),
-        applicantCount: Math.floor(Math.random() * 12 + 1),
+        viewsCount: 0,
+        applicantCount: 0,
         isActive: true,
       };
     });
@@ -374,13 +380,13 @@ export async function fetchJobicyJobs(count: number = 20): Promise<JobListing[]>
         ],
         relevantTrainingPrograms: relevantPrograms,
         isStpPartner: false,
-        source: 'jsearch_realtime',
+        source: 'open_api',
         applySource: 'Jobicy Remote',
         applicationUrl: item.url,
         postedAt: item.pubDate ? new Date(item.pubDate).getTime() : Date.now(),
         isFeatured: false,
-        viewsCount: Math.floor(Math.random() * 40 + 10),
-        applicantCount: Math.floor(Math.random() * 12 + 1),
+        viewsCount: 0,
+        applicantCount: 0,
         isActive: true,
       };
     });
@@ -478,18 +484,18 @@ export async function fetchHimalayasJobs(limit: number = 20): Promise<JobListing
         ],
         relevantTrainingPrograms: relevantPrograms,
         isStpPartner: false,
-        source: 'jsearch_realtime',
+        source: 'open_api',
         applySource: 'Himalayas App',
         applicationUrl: item.applicationLink,
         postedAt,
         isFeatured: false,
-        viewsCount: Math.floor(Math.random() * 40 + 10),
-        applicantCount: Math.floor(Math.random() * 12 + 1),
+        viewsCount: 0,
+        applicantCount: 0,
         isActive: true,
       };
     }).filter((job) => {
       const now = Date.now();
-      return now - job.postedAt <= 45 * 24 * 60 * 60 * 1000 && job.postedAt >= 1785000000000;
+      return now - job.postedAt <= 45 * 24 * 60 * 60 * 1000;
     });
   } catch (error: any) {
     console.warn('[HimalayasProvider] Error:', error.message);
@@ -501,14 +507,19 @@ export async function fetchHimalayasJobs(limit: number = 20): Promise<JobListing
  * 5. Multi-Provider & ATS Aggregator Engine Utama (100% Zero-Cost Quota)
  * Mengumpulkan lowongan secara paralel dari open API dan endpoint ATS publik, menyatukannya
  */
-export async function aggregateMultiProviderJobs(options: {
+export interface MultiProviderAggregationReport {
+  jobs: JobListing[];
+  respondedAtsPrefixes: string[];
+}
+
+export async function aggregateMultiProviderJobsWithReport(options: {
   includeRemotive?: boolean;
   includeArbeitnow?: boolean;
   includeJobicy?: boolean;
   includeHimalayas?: boolean;
   includeAts?: boolean;
   atsTargets?: AtsTarget[];
-} = {}): Promise<JobListing[]> {
+} = {}): Promise<MultiProviderAggregationReport> {
   const {
     includeRemotive = true,
     includeArbeitnow = true,
@@ -520,8 +531,15 @@ export async function aggregateMultiProviderJobs(options: {
 
   console.log('[JobAggregator] Memulai agregasi paralel dari multi-provider open API & ATS publik...');
 
-  const tasks: Promise<JobListing[]>[] = [];
-  if (includeAts) tasks.push(crawlAtsJobs(atsTargets));
+  let respondedAtsPrefixes: string[] = [];
+  const atsPromise = includeAts
+    ? crawlAtsJobsWithReport(atsTargets).then((rep) => {
+        respondedAtsPrefixes = rep.respondedPrefixes;
+        return rep.jobs;
+      })
+    : Promise.resolve([] as JobListing[]);
+
+  const tasks: Promise<JobListing[]>[] = [atsPromise];
   if (includeRemotive) tasks.push(fetchRemotiveJobs(30));
   if (includeArbeitnow) tasks.push(fetchArbeitnowJobs());
   if (includeJobicy) tasks.push(fetchJobicyJobs(25));
@@ -536,8 +554,23 @@ export async function aggregateMultiProviderJobs(options: {
     }
   }
 
-  // Tambahkan lowongan industri & spesialisasi vokasi Solo Technopark (Indonesia, ASEAN, Jepang, Korea)
-  collectedJobs.push(...INDUSTRIAL_VOCATIONAL_JOBS);
+  // Normalisasi lowongan kurasi vokasi STP agar tidak memiliki timestamp masa depan atau nomor kontak dummy
+  const now = Date.now();
+  const sanitizedVocationalJobs = INDUSTRIAL_VOCATIONAL_JOBS.map((vJob) => {
+    const safePostedAt = vJob.postedAt > now ? now - 3 * 24 * 60 * 60 * 1000 : vJob.postedAt;
+    const isDummyPhone = /5200000|9001234|000000/i.test(
+      `${vJob.contactPhone || ''} ${vJob.contactWhatsapp || ''}`
+    );
+    return {
+      ...vJob,
+      postedAt: safePostedAt,
+      contactPhone: isDummyPhone ? undefined : vJob.contactPhone,
+      contactWhatsapp: isDummyPhone ? undefined : vJob.contactWhatsapp,
+      viewsCount: vJob.viewsCount || 0,
+      applicantCount: vJob.applicantCount || 0,
+    };
+  });
+  collectedJobs.push(...sanitizedVocationalJobs);
 
   // Deduplikasi berdasarkan kombinasi normalized Company + Title + City
   const seenKey = new Set<string>();
@@ -552,7 +585,19 @@ export async function aggregateMultiProviderJobs(options: {
   }
 
   console.log(`[JobAggregator] Berhasil menghimpun ${uniqueJobs.length} lowongan unik dari Open API, ATS & Industri Vokasi.`);
-  return uniqueJobs;
+  return { jobs: uniqueJobs, respondedAtsPrefixes };
+}
+
+export async function aggregateMultiProviderJobs(options: {
+  includeRemotive?: boolean;
+  includeArbeitnow?: boolean;
+  includeJobicy?: boolean;
+  includeHimalayas?: boolean;
+  includeAts?: boolean;
+  atsTargets?: AtsTarget[];
+} = {}): Promise<JobListing[]> {
+  const report = await aggregateMultiProviderJobsWithReport(options);
+  return report.jobs;
 }
 
 export interface RegionalProportionStats {
