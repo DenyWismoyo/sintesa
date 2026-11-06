@@ -197,5 +197,40 @@ describe('Mekanisme Alur Pengajuan Lamaran Karir (Career Apply & Tracking Pipeli
     expect(mailto).toContain('mailto:hrd@esemka.co.id');
     expect(mailto).toContain(encodeURIComponent('Lamaran Pekerjaan: CNC Lathe Programmer - Budi Santoso'));
   });
+
+  it('6. harus mampu menghasilkan tautan validasi poster Instagram, SIAPkerja Kemnaker, dan edaran resmi Google', async () => {
+    const {
+      getInstagramSearchUrl,
+      getInstagramTagUrl,
+      getKemnakerSearchUrl,
+      getOfficialVerificationSearchUrl,
+    } = await import('@/utils/jobContactUtils');
+
+    const dummyJob: any = {
+      id: 'job-welder-gunanusa',
+      title: 'Juru Las (Welder 6G SMAW/GTAW)',
+      company: 'PT Gunanusa Utama Fabricators',
+      city: 'Cilegon',
+    };
+
+    // 1. Instagram Search Url via Google Index
+    const igSearch = getInstagramSearchUrl(dummyJob);
+    expect(igSearch).toContain('site%3Ainstagram.com');
+    expect(igSearch).toContain(encodeURIComponent('Gunanusa Utama Fabricators'));
+
+    // 2. Direct Instagram Tag Url
+    const igTag = getInstagramTagUrl(dummyJob);
+    expect(igTag).toContain('instagram.com/explore/tags/lokergunanusautama');
+
+    // 3. Kemnaker SIAPkerja Url
+    const kemnakerUrl = getKemnakerSearchUrl(dummyJob);
+    expect(kemnakerUrl).toContain('karirhub.kemnaker.go.id/vacancies?search=');
+    expect(kemnakerUrl).toContain(encodeURIComponent('Gunanusa Utama Fabricators'));
+
+    // 4. Official Verification Google Search Url
+    const officialSearch = getOfficialVerificationSearchUrl(dummyJob);
+    expect(officialSearch).toContain('google.com/search');
+    expect(officialSearch).toContain(encodeURIComponent('PT Gunanusa Utama Fabricators'));
+  });
 });
 

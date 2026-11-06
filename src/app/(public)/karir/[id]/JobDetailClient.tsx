@@ -32,6 +32,7 @@ import {
   Check,
   MessageSquare,
   Linkedin,
+  Instagram,
   Globe,
   Mail,
   Phone,
@@ -43,6 +44,9 @@ import {
   extractDomain,
   getWhatsappChatUrl,
   getMailtoLink,
+  getInstagramSearchUrl,
+  getKemnakerSearchUrl,
+  getOfficialVerificationSearchUrl,
 } from '@/utils/jobContactUtils';
 import { SectionContainer } from '@/components/ui/SectionContainer';
 import { Button } from '@/components/ui/button';
@@ -963,6 +967,43 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
                 </a>
               )}
 
+              {/* Validasi Alternatif via Poster Instagram & Kemnaker (Solusi jika Web Perusahaan Down / 521) */}
+              <div className="space-y-1.5 pt-0.5">
+                <a
+                  href={getInstagramSearchUrl(job)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full"
+                >
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-9 border-rose-200 text-rose-950 hover:bg-rose-50 font-bold text-xs rounded-2xl gap-2 shadow-2xs group"
+                  >
+                    <Instagram className="w-3.5 h-3.5 text-rose-600 group-hover:scale-110 transition-transform" />
+                    <span>Cari Poster Loker di Instagram</span>
+                    <ExternalLink className="w-3 h-3 text-slate-400 ml-auto" />
+                  </Button>
+                </a>
+
+                <a
+                  href={getKemnakerSearchUrl(job)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full"
+                >
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-8 border-blue-200/80 text-blue-900 hover:bg-blue-50 font-bold text-[11px] rounded-xl gap-2 shadow-2xs"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Verifikasi SIAPkerja Kemnaker</span>
+                    <ExternalLink className="w-2.5 h-2.5 text-slate-400 ml-auto" />
+                  </Button>
+                </a>
+              </div>
+
               {/* Kontak Cepat HRD Jika Tersedia */}
               {(job.applicationEmail || job.contactWhatsapp || job.contactPhone) && (
                 <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
@@ -1151,7 +1192,23 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
           </span>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
+          <a
+            href={getInstagramSearchUrl(job)}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Cari Poster Loker di Instagram"
+          >
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-10 px-2.5 border-rose-200 text-rose-900 hover:bg-rose-50 rounded-xl"
+            >
+              <Instagram className="w-4 h-4 text-rose-600" />
+            </Button>
+          </a>
+
           <a
             href={getLinkedInJobsUrl(job)}
             target="_blank"
@@ -1162,7 +1219,7 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
               type="button"
               variant="outline"
               size="sm"
-              className="h-10 px-3 border-blue-200 text-blue-900 hover:bg-blue-50 rounded-xl"
+              className="h-10 px-2.5 border-blue-200 text-blue-900 hover:bg-blue-50 rounded-xl"
             >
               <Linkedin className="w-4 h-4 text-blue-600" />
             </Button>

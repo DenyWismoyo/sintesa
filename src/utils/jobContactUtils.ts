@@ -102,3 +102,51 @@ ${applicantName?.trim() || '[Nama Lengkap Anda]'}`;
   return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
+/**
+ * Tautan pencarian poster/flyer loker di Instagram via Google Search (tidak terhalang login-wall Instagram)
+ */
+export function getInstagramSearchUrl(job: JobListing): string {
+  if (job.instagramUrl && job.instagramUrl.startsWith('http')) {
+    return job.instagramUrl;
+  }
+  const cleanComp = job.company
+    .replace(/^PT\s+/i, '')
+    .replace(/^CV\s+/i, '')
+    .trim();
+  const query = `site:instagram.com ("loker" OR "lowongan" OR "rekrutmen") "${cleanComp}"`;
+  return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+}
+
+/**
+ * Tautan eksplorasi tagar loker langsung di aplikasi/web Instagram
+ */
+export function getInstagramTagUrl(job: JobListing): string {
+  if (job.instagramUrl && job.instagramUrl.startsWith('http')) {
+    return job.instagramUrl;
+  }
+  const cleanComp = job.company
+    .replace(/^PT\s+/i, '')
+    .replace(/^CV\s+/i, '')
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .slice(0, 25)
+    .toLowerCase();
+  return `https://www.instagram.com/explore/tags/loker${cleanComp}/`;
+}
+
+/**
+ * Tautan verifikasi lowongan resmi di SIAPkerja / KarirHub Kemnaker RI
+ */
+export function getKemnakerSearchUrl(job: JobListing): string {
+  const cleanComp = job.company.replace(/^PT\s+/i, '').replace(/^CV\s+/i, '').trim();
+  return `https://karirhub.kemnaker.go.id/vacancies?search=${encodeURIComponent(cleanComp)}`;
+}
+
+/**
+ * Tautan Google Search untuk memvalidasi keberadaan pengumuman resmi (flyer / edaran / PDF rekrutmen)
+ */
+export function getOfficialVerificationSearchUrl(job: JobListing): string {
+  const query = `pengumuman lowongan "${job.title}" "${job.company}" resmi`;
+  return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+}
+
+

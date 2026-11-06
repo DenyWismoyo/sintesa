@@ -21,6 +21,7 @@ import {
   Search,
   MessageSquare,
   Linkedin,
+  Instagram,
   Info,
   ArrowUpRight,
 } from 'lucide-react';
@@ -43,6 +44,10 @@ import {
   extractDomain,
   getWhatsappChatUrl,
   getMailtoLink,
+  getInstagramSearchUrl,
+  getInstagramTagUrl,
+  getKemnakerSearchUrl,
+  getOfficialVerificationSearchUrl,
 } from '@/utils/jobContactUtils';
 import { toast } from 'sonner';
 
@@ -113,6 +118,9 @@ export default function JobApplyModal({
   const jobstreetUrl = getJobstreetSearchUrl(job);
   const glintsUrl = getGlintsSearchUrl(job);
   const portalDomain = extractDomain(job.applicationUrl);
+  const instagramUrl = getInstagramSearchUrl(job);
+  const kemnakerUrl = getKemnakerSearchUrl(job);
+  const verificationUrl = getOfficialVerificationSearchUrl(job);
 
   const contactPhone = job.contactWhatsapp || job.contactPhone;
   const whatsappUrl = contactPhone ? getWhatsappChatUrl(contactPhone, job, applicantName) : null;
@@ -396,6 +404,12 @@ export default function JobApplyModal({
                             <p className="text-xs text-slate-500 pl-8">
                               Tautan langsung formulir pelamaran resmi dari sistem rekrutmen {job.company}.
                             </p>
+                            <div className="pl-8 pt-0.5">
+                              <span className="inline-flex items-center gap-1.5 text-[10px] text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60">
+                                <AlertCircle className="w-3 h-3 text-amber-600 shrink-0" />
+                                <span>Jika server website perusahaan sedang down / maintenance (521), gunakan verifikasi Instagram / WhatsApp di bawah.</span>
+                              </span>
+                            </div>
                           </div>
 
                           <a
@@ -412,6 +426,121 @@ export default function JobApplyModal({
                           </a>
                         </div>
                       )}
+                    </div>
+                  </div>
+
+                  {/* Section B: Validasi Bukti Resmi & Poster Loker (Solusi jika Web Perusahaan Down / 521) */}
+                  <div className="space-y-3 pt-1">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                        <Instagram className="w-4 h-4 text-rose-500" />
+                        <span>Validasi Poster Loker & Bukti Pengumuman Resmi:</span>
+                      </h4>
+                      <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        Paling Valid di Indonesia
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-2.5">
+                      {/* Kartu Instagram Poster Search */}
+                      <div className="p-3.5 rounded-2xl bg-gradient-to-r from-rose-50/70 via-amber-50/40 to-purple-50/60 border border-rose-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="w-6 h-6 rounded-lg bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                              <Instagram className="w-3.5 h-3.5" />
+                            </span>
+                            <span className="font-extrabold text-xs sm:text-sm text-slate-900 group-hover:text-rose-950 transition-colors">
+                              Cari Poster & Flyer Loker di Instagram
+                            </span>
+                            <Badge className="text-[9px] bg-rose-600 text-white border-0">
+                              Flyer Resmi
+                            </Badge>
+                          </div>
+                          <p className="text-[11px] text-slate-600 pl-8 leading-snug">
+                            Cek poster rekrutmen asli dari akun Instagram <strong>{job.company}</strong> (diindeks Google tanpa terhalang pop-up login Instagram).
+                          </p>
+                        </div>
+
+                        <a
+                          href={instagramUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full sm:w-auto shrink-0 pl-8 sm:pl-0"
+                        >
+                          <Button className="w-full sm:w-auto h-8 bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-700 hover:to-purple-700 text-white font-extrabold text-[11px] rounded-xl gap-1.5 shadow-2xs">
+                            <Instagram className="w-3 h-3" />
+                            <span>Buka Poster Instagram</span>
+                            <ArrowUpRight className="w-3 h-3" />
+                          </Button>
+                        </a>
+                      </div>
+
+                      {/* Kartu SIAPkerja / KarirHub Kemnaker */}
+                      <div className="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
+                              <ShieldCheck className="w-3.5 h-3.5" />
+                            </span>
+                            <span className="font-extrabold text-xs sm:text-sm text-slate-900 group-hover:text-blue-950 transition-colors">
+                              Verifikasi Izin & Lowongan di KarirHub Kemnaker
+                            </span>
+                            <Badge variant="outline" className="text-[9px] bg-blue-50 text-blue-700 border-blue-200">
+                              SIAPkerja RI
+                            </Badge>
+                          </div>
+                          <p className="text-[11px] text-slate-600 pl-8 leading-snug">
+                            Periksa legalitas badan usaha dan lowongan aktif yang dilaporkan ke Kementerian Ketenagakerjaan RI.
+                          </p>
+                        </div>
+
+                        <a
+                          href={kemnakerUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full sm:w-auto shrink-0 pl-8 sm:pl-0"
+                        >
+                          <Button
+                            variant="outline"
+                            className="w-full sm:w-auto h-8 border-blue-300 text-blue-900 hover:bg-blue-100 font-extrabold text-[11px] rounded-xl gap-1.5"
+                          >
+                            <span>Cek SIAPkerja</span>
+                            <ArrowUpRight className="w-3 h-3" />
+                          </Button>
+                        </a>
+                      </div>
+
+                      {/* Kartu Google Search Pengumuman Resmi */}
+                      <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="w-6 h-6 rounded-lg bg-slate-800 text-white flex items-center justify-center shrink-0">
+                              <Search className="w-3.5 h-3.5" />
+                            </span>
+                            <span className="font-extrabold text-xs sm:text-sm text-slate-900 group-hover:text-slate-950 transition-colors">
+                              Cek Dokumen & Edaran Rekrutmen di Google
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-600 pl-8 leading-snug">
+                            Telusuri pengumuman PDF resmi, berita Disnaker, atau siaran pers rekrutmen posisi {job.title}.
+                          </p>
+                        </div>
+
+                        <a
+                          href={verificationUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full sm:w-auto shrink-0 pl-8 sm:pl-0"
+                        >
+                          <Button
+                            variant="outline"
+                            className="w-full sm:w-auto h-8 border-slate-300 text-slate-800 hover:bg-slate-100 font-bold text-[11px] rounded-xl gap-1.5"
+                          >
+                            <span>Telusuri Google</span>
+                            <ArrowUpRight className="w-3 h-3" />
+                          </Button>
+                        </a>
+                      </div>
                     </div>
                   </div>
 
