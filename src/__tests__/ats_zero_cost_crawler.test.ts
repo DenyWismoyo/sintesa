@@ -135,7 +135,7 @@ describe('ATS Zero-Cost Crawler & Data Hygiene Suite', () => {
         {
           id: 'efish-101',
           text: 'IoT Hardware Engineer',
-          createdAt: 1730000000000,
+          createdAt: Date.now() - 2 * 86400000,
           descriptionPlain: 'Mengembangkan sensor kolam pintar dan aktuator pakan otomatis.',
           applyUrl: 'https://jobs.lever.co/efishery/efish-101/apply?lever-source=web',
           categories: {

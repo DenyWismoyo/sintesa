@@ -24,6 +24,7 @@ import {
   Instagram,
   Info,
   ArrowUpRight,
+  Briefcase,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -342,140 +343,225 @@ export default function JobApplyModal({
                     </div>
                   )}
 
-                  {/* Section A: Akses Resmi Pelamaran */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                        <Globe className="w-4 h-4 text-emerald-600" />
-                        <span>Akses Resmi Pelamaran (Klik Langsung):</span>
-                      </h4>
-                      <span className="text-[11px] text-slate-500">Pilih tautan resmi di bawah</span>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-3">
-                      {/* 1. Tautan LinkedIn Jobs */}
-                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 hover:border-blue-400 hover:bg-blue-50/30 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
-                              <Linkedin className="w-3.5 h-3.5" />
-                            </span>
-                            <span className="font-extrabold text-sm text-slate-900 group-hover:text-blue-900 transition-colors">
-                              Lamar via LinkedIn Jobs Resmi
-                            </span>
-                            <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-700 border-blue-200">
-                              Terverifikasi
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-slate-500 pl-8">
-                            Buka pencarian postingan resmi posisi <strong>{job.title}</strong> di {job.company} untuk melamar langsung via LinkedIn.
-                          </p>
-                        </div>
-
-                        <a
-                          href={linkedInUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full sm:w-auto shrink-0 pl-8 sm:pl-0"
-                          onClick={() => handleMarkExternalApplied('LinkedIn Jobs')}
-                        >
-                          <Button className="w-full sm:w-auto h-9 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl gap-1.5 shadow-xs">
-                            <span>Buka LinkedIn Jobs</span>
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </Button>
-                        </a>
+                  {/* ─── Saluran 1: Kontak Langsung HRD (Paling Cepat, Bebas Down/DNS Error) ─── */}
+                  {(job.applicationEmail || contactPhone) && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                          <Mail className="w-4 h-4 text-teal-600" />
+                          <span>Kontak Rekrutmen Langsung HRD (Paling Direkomendasikan):</span>
+                        </h4>
+                        <span className="text-[10px] text-teal-800 font-bold bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
+                          Respon Cepat
+                        </span>
                       </div>
 
-                      {/* 2. Portal Karir Perusahaan / ATS (Jika Ada) */}
-                      {job.applicationUrl && (
-                        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 hover:border-emerald-400 hover:bg-emerald-50/30 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <span className="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0">
-                                <Globe className="w-3.5 h-3.5" />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* Email HRD */}
+                        {job.applicationEmail && (
+                          <div className="p-4 rounded-2xl bg-teal-50/70 border border-teal-200 flex flex-col justify-between gap-3 shadow-2xs">
+                            <div>
+                              <div className="flex items-center gap-1.5 mb-1">
+                                <span className="w-5 h-5 rounded-md bg-teal-600 text-white flex items-center justify-center shrink-0">
+                                  <Mail className="w-3 h-3" />
+                                </span>
+                                <span className="text-[11px] font-black text-teal-900 uppercase tracking-wider">
+                                  Email Resmi Rekrutmen
+                                </span>
+                              </div>
+                              <span className="font-extrabold text-xs text-teal-950 block truncate" title={job.applicationEmail}>
+                                {job.applicationEmail}
                               </span>
-                              <span className="font-extrabold text-sm text-slate-900 group-hover:text-emerald-900 transition-colors">
-                                Portal Karir Resmi Perusahaan {portalDomain ? `(${portalDomain})` : ''}
-                              </span>
-                              <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">
-                                ATS / Karir
-                              </Badge>
+                              <p className="text-[11px] text-teal-800/80 mt-1 leading-snug">
+                                Kirim CV & Portofolio langsung ke kotak masuk HRD dengan subjek lamaran otomatis.
+                              </p>
                             </div>
-                            <p className="text-xs text-slate-500 pl-8">
-                              Tautan langsung formulir pelamaran resmi dari sistem rekrutmen {job.company}.
-                            </p>
-                            <div className="pl-8 pt-0.5">
-                              <span className="inline-flex items-center gap-1.5 text-[10px] text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60">
-                                <AlertCircle className="w-3 h-3 text-amber-600 shrink-0" />
-                                <span>Jika server website perusahaan sedang down / maintenance (521), gunakan verifikasi Instagram / WhatsApp di bawah.</span>
-                              </span>
+
+                            <div className="flex items-center gap-2 pt-1 border-t border-teal-100">
+                              {mailtoLink && (
+                                <a
+                                  href={mailtoLink}
+                                  className="flex-1"
+                                  onClick={() => handleMarkExternalApplied('Email HRD')}
+                                >
+                                  <Button
+                                    size="sm"
+                                    className="w-full h-8 bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-xs rounded-xl gap-1.5 shadow-2xs"
+                                  >
+                                    <Mail className="w-3 h-3" />
+                                    <span>Draft Email CV</span>
+                                    <ArrowUpRight className="w-3 h-3" />
+                                  </Button>
+                                </a>
+                              )}
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleCopyEmail}
+                                title="Salin Alamat Email"
+                                className="h-8 px-2.5 text-xs font-semibold border-teal-300 text-teal-950 hover:bg-teal-100 rounded-xl shrink-0"
+                              >
+                                {hasCopiedEmail ? (
+                                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                ) : (
+                                  <Copy className="w-3.5 h-3.5" />
+                                )}
+                              </Button>
                             </div>
                           </div>
+                        )}
 
-                          <a
-                            href={job.applicationUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full sm:w-auto shrink-0 pl-8 sm:pl-0"
-                            onClick={() => handleMarkExternalApplied(portalDomain || 'Portal Resmi Perusahaan')}
-                          >
-                            <Button className="w-full sm:w-auto h-9 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl gap-1.5 shadow-xs">
-                              <span>Buka Portal Karir</span>
-                              <ExternalLink className="w-3.5 h-3.5" />
-                            </Button>
-                          </a>
-                        </div>
-                      )}
+                        {/* WhatsApp / Telepon HRD */}
+                        {contactPhone && (
+                          <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 flex flex-col justify-between gap-3 shadow-2xs">
+                            <div>
+                              <div className="flex items-center gap-1.5 mb-1">
+                                <span className="w-5 h-5 rounded-md bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                                  <MessageSquare className="w-3 h-3" />
+                                </span>
+                                <span className="text-[11px] font-black text-emerald-900 uppercase tracking-wider">
+                                  WhatsApp / Telepon HRD
+                                </span>
+                              </div>
+                              <span className="font-extrabold text-xs text-emerald-950 block truncate">
+                                {contactPhone}
+                              </span>
+                              <p className="text-[11px] text-emerald-800/80 mt-1 leading-snug">
+                                Chat tim HRD dengan pesan sapaan resmi pembuka yang sopan dan profesional.
+                              </p>
+                            </div>
+
+                            <div className="flex items-center gap-2 pt-1 border-t border-emerald-100">
+                              {whatsappUrl && (
+                                <a
+                                  href={whatsappUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex-1"
+                                  onClick={() => handleMarkExternalApplied('WhatsApp HRD')}
+                                >
+                                  <Button
+                                    size="sm"
+                                    className="w-full h-8 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl gap-1.5 shadow-2xs"
+                                  >
+                                    <MessageSquare className="w-3 h-3" />
+                                    <span>Chat WhatsApp</span>
+                                    <ArrowUpRight className="w-3 h-3" />
+                                  </Button>
+                                </a>
+                              )}
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleCopyPhone}
+                                title="Salin Nomor WhatsApp"
+                                className="h-8 px-2.5 text-xs font-semibold border-emerald-300 text-emerald-950 hover:bg-emerald-100 rounded-xl shrink-0"
+                              >
+                                {hasCopiedPhone ? (
+                                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                ) : (
+                                  <Copy className="w-3.5 h-3.5" />
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  {/* Section B: Validasi Bukti Resmi & Poster Loker (Solusi jika Web Perusahaan Down / 521) */}
+                  {/* ─── Saluran 2: Validasi Poster Loker & Bukti Resmi di Instagram ─── */}
                   <div className="space-y-3 pt-1">
                     <div className="flex items-center justify-between">
                       <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                         <Instagram className="w-4 h-4 text-rose-500" />
                         <span>Validasi Poster Loker & Bukti Pengumuman Resmi:</span>
                       </h4>
-                      <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                      <span className="text-[10px] text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
                         Paling Valid di Indonesia
                       </span>
                     </div>
 
+                    <div className="p-3.5 rounded-2xl bg-gradient-to-r from-rose-50/70 via-amber-50/40 to-purple-50/60 border border-rose-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-lg bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                            <Instagram className="w-3.5 h-3.5" />
+                          </span>
+                          <span className="font-extrabold text-xs sm:text-sm text-slate-900 group-hover:text-rose-950 transition-colors">
+                            {job.instagramUrl ? `Akun Instagram Resmi (${job.company})` : 'Cari Poster & Flyer Loker di Instagram'}
+                          </span>
+                          <Badge className="text-[9px] bg-rose-600 text-white border-0">
+                            Flyer Resmi
+                          </Badge>
+                        </div>
+                        <p className="text-[11px] text-slate-600 pl-8 leading-snug">
+                          Lihat pengumuman asli, pamflet kualifikasi, dan batas akhir pendaftaran langsung dari akun resmi perusahaan.
+                        </p>
+                      </div>
+
+                      <a
+                        href={instagramUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full sm:w-auto shrink-0 pl-8 sm:pl-0"
+                      >
+                        <Button className="w-full sm:w-auto h-8 bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-700 hover:to-purple-700 text-white font-extrabold text-[11px] rounded-xl gap-1.5 shadow-2xs">
+                          <Instagram className="w-3 h-3" />
+                          <span>Buka Instagram</span>
+                          <ArrowUpRight className="w-3 h-3" />
+                        </Button>
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* ─── Saluran 3: Portal Pencari Kerja Terpercaya (Anti-Captcha & Anti-Login Wall) ─── */}
+                  <div className="space-y-3 pt-1">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                        <Globe className="w-4 h-4 text-blue-600" />
+                        <span>Portal Karir Terpercaya (Verifikasi Agregator):</span>
+                      </h4>
+                      <span className="text-[11px] text-slate-500">Pilih platform di bawah</span>
+                    </div>
+
                     <div className="grid grid-cols-1 gap-2.5">
-                      {/* Kartu Instagram Poster Search */}
-                      <div className="p-3.5 rounded-2xl bg-gradient-to-r from-rose-50/70 via-amber-50/40 to-purple-50/60 border border-rose-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group">
+                      {/* 1. JobStreet Indonesia */}
+                      <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 hover:border-amber-400 hover:bg-amber-50/20 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group">
                         <div className="space-y-0.5">
                           <div className="flex items-center gap-2">
-                            <span className="w-6 h-6 rounded-lg bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
-                              <Instagram className="w-3.5 h-3.5" />
+                            <span className="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0">
+                              <Briefcase className="w-3.5 h-3.5" />
                             </span>
-                            <span className="font-extrabold text-xs sm:text-sm text-slate-900 group-hover:text-rose-950 transition-colors">
-                              Cari Poster & Flyer Loker di Instagram
+                            <span className="font-extrabold text-xs sm:text-sm text-slate-900 group-hover:text-amber-950 transition-colors">
+                              Lamar via JobStreet Indonesia
                             </span>
-                            <Badge className="text-[9px] bg-rose-600 text-white border-0">
-                              Flyer Resmi
+                            <Badge variant="outline" className="text-[9px] bg-amber-50 text-amber-800 border-amber-200">
+                              #1 di Indonesia
                             </Badge>
                           </div>
                           <p className="text-[11px] text-slate-600 pl-8 leading-snug">
-                            Cek poster rekrutmen asli dari akun Instagram <strong>{job.company}</strong> (diindeks Google tanpa terhalang pop-up login Instagram).
+                            Cari dan lamar lowongan <strong>{job.title}</strong> di JobStreet ID tanpa terhalang proteksi login/captcha.
                           </p>
                         </div>
 
                         <a
-                          href={instagramUrl}
+                          href={jobstreetUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="w-full sm:w-auto shrink-0 pl-8 sm:pl-0"
+                          onClick={() => handleMarkExternalApplied('JobStreet ID')}
                         >
-                          <Button className="w-full sm:w-auto h-8 bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-700 hover:to-purple-700 text-white font-extrabold text-[11px] rounded-xl gap-1.5 shadow-2xs">
-                            <Instagram className="w-3 h-3" />
-                            <span>Buka Poster Instagram</span>
-                            <ArrowUpRight className="w-3 h-3" />
+                          <Button variant="outline" className="w-full sm:w-auto h-8 border-amber-300 text-amber-950 hover:bg-amber-100 font-extrabold text-[11px] rounded-xl gap-1.5">
+                            <span>Buka JobStreet</span>
+                            <ExternalLink className="w-3 h-3" />
                           </Button>
                         </a>
                       </div>
 
-                      {/* Kartu SIAPkerja / KarirHub Kemnaker */}
+                      {/* 2. SIAPkerja Kemnaker RI */}
                       <div className="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group">
                         <div className="space-y-0.5">
                           <div className="flex items-center gap-2">
@@ -510,7 +596,7 @@ export default function JobApplyModal({
                         </a>
                       </div>
 
-                      {/* Kartu Google Search Pengumuman Resmi */}
+                      {/* 3. Google Jobs Search */}
                       <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group">
                         <div className="space-y-0.5">
                           <div className="flex items-center gap-2">
@@ -518,16 +604,16 @@ export default function JobApplyModal({
                               <Search className="w-3.5 h-3.5" />
                             </span>
                             <span className="font-extrabold text-xs sm:text-sm text-slate-900 group-hover:text-slate-950 transition-colors">
-                              Cek Dokumen & Edaran Rekrutmen di Google
+                              Telusuri Pengumuman Resmi di Google Jobs
                             </span>
                           </div>
                           <p className="text-[11px] text-slate-600 pl-8 leading-snug">
-                            Telusuri pengumuman PDF resmi, berita Disnaker, atau siaran pers rekrutmen posisi {job.title}.
+                            Cek edaran pengumuman PDF resmi, berita Disnaker, atau siaran pers rekrutmen posisi {job.title}.
                           </p>
                         </div>
 
                         <a
-                          href={verificationUrl}
+                          href={googleJobsUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="w-full sm:w-auto shrink-0 pl-8 sm:pl-0"
@@ -541,128 +627,86 @@ export default function JobApplyModal({
                           </Button>
                         </a>
                       </div>
+
+                      {/* 4. LinkedIn Jobs (Disertai Penjelasan Akun) */}
+                      <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 hover:border-blue-400 hover:bg-blue-50/20 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
+                              <Linkedin className="w-3.5 h-3.5" />
+                            </span>
+                            <span className="font-extrabold text-xs sm:text-sm text-slate-900 group-hover:text-blue-900 transition-colors">
+                              Lamar via LinkedIn Jobs
+                            </span>
+                            <Badge variant="outline" className="text-[9px] bg-slate-100 text-slate-600 border-slate-200">
+                              Butuh Akun
+                            </Badge>
+                          </div>
+                          <p className="text-[11px] text-slate-500 pl-8 leading-snug">
+                            Buka postingan lowongan di platform profesional LinkedIn (pastikan Anda sudah login ke LinkedIn agar tidak diminta verifikasi keamanan).
+                          </p>
+                        </div>
+
+                        <a
+                          href={linkedInUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full sm:w-auto shrink-0 pl-8 sm:pl-0"
+                          onClick={() => handleMarkExternalApplied('LinkedIn Jobs')}
+                        >
+                          <Button variant="outline" className="w-full sm:w-auto h-8 border-blue-300 text-blue-900 hover:bg-blue-100 font-bold text-[11px] rounded-xl gap-1.5">
+                            <span>Buka LinkedIn</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </Button>
+                        </a>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Section B: Kontak Resmi HRD & Rekruter */}
-                  <div className="space-y-3 pt-2">
-                    <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                      <Mail className="w-4 h-4 text-teal-600" />
-                      <span>Kontak Resmi Rekruter & HRD:</span>
-                    </h4>
+                  {/* ─── Saluran 4: Website / Portal Karir Perusahaan (Dengan Warning Fail-Safe) ─── */}
+                  {job.applicationUrl && (
+                    <div className="space-y-2 pt-1">
+                      <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                        <Globe className="w-4 h-4 text-emerald-600" />
+                        <span>Situs Web / Portal Perusahaan (Eksternal):</span>
+                      </h4>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {/* Email HRD */}
-                      {job.applicationEmail ? (
-                        <div className="p-3.5 rounded-2xl bg-teal-50/60 border border-teal-200/80 flex flex-col justify-between gap-2.5">
-                          <div>
-                            <span className="text-[10px] font-bold text-teal-700 uppercase tracking-wider block">
-                              Email Resmi HRD
+                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 hover:border-emerald-400 hover:bg-emerald-50/20 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                              <Globe className="w-3.5 h-3.5" />
                             </span>
-                            <span className="font-extrabold text-xs text-teal-950 block truncate mt-0.5" title={job.applicationEmail}>
-                              {job.applicationEmail}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center gap-2 pt-1">
-                            {mailtoLink && (
-                              <a
-                                href={mailtoLink}
-                                className="flex-1"
-                                onClick={() => handleMarkExternalApplied('Email HRD')}
-                              >
-                                <Button
-                                  size="sm"
-                                  className="w-full h-8 bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] rounded-lg gap-1 shadow-xs"
-                                >
-                                  <Mail className="w-3 h-3" />
-                                  <span>Kirim Email</span>
-                                </Button>
-                              </a>
-                            )}
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={handleCopyEmail}
-                              className="h-8 px-2.5 text-[11px] font-semibold border-teal-300 text-teal-900 hover:bg-teal-100 rounded-lg shrink-0"
-                            >
-                              {hasCopiedEmail ? (
-                                <Check className="w-3.5 h-3.5 text-emerald-600" />
-                              ) : (
-                                <Copy className="w-3.5 h-3.5" />
-                              )}
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-center gap-1">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                            Email Rekrutmen
-                          </span>
-                          <span className="text-xs text-slate-600">
-                            Pelamaran diproses via portal resmi online / LinkedIn di atas.
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Telepon / WhatsApp HRD */}
-                      {contactPhone ? (
-                        <div className="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-200/80 flex flex-col justify-between gap-2.5">
-                          <div>
-                            <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">
-                              WhatsApp / Telepon HRD
-                            </span>
-                            <span className="font-extrabold text-xs text-emerald-950 block truncate mt-0.5">
-                              {contactPhone}
+                            <span className="font-extrabold text-xs sm:text-sm text-slate-900 group-hover:text-emerald-900 transition-colors">
+                              Portal Karir Perusahaan {portalDomain ? `(${portalDomain})` : ''}
                             </span>
                           </div>
-
-                          <div className="flex items-center gap-2 pt-1">
-                            {whatsappUrl && (
-                              <a
-                                href={whatsappUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex-1"
-                                onClick={() => handleMarkExternalApplied('WhatsApp HRD')}
-                              >
-                                <Button
-                                  size="sm"
-                                  className="w-full h-8 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-lg gap-1 shadow-xs"
-                                >
-                                  <MessageSquare className="w-3 h-3" />
-                                  <span>Chat WhatsApp</span>
-                                </Button>
-                              </a>
-                            )}
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={handleCopyPhone}
-                              className="h-8 px-2.5 text-[11px] font-semibold border-emerald-300 text-emerald-900 hover:bg-emerald-100 rounded-lg shrink-0"
-                            >
-                              {hasCopiedPhone ? (
-                                <Check className="w-3.5 h-3.5 text-emerald-600" />
-                              ) : (
-                                <Copy className="w-3.5 h-3.5" />
-                              )}
-                            </Button>
+                          <p className="text-[11px] text-slate-500 pl-8 leading-snug">
+                            Tautan formulir rekrutmen dari domain web eksternal perusahaan.
+                          </p>
+                          <div className="pl-8 pt-0.5">
+                            <span className="inline-flex items-center gap-1.5 text-[10px] text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60">
+                              <AlertCircle className="w-3 h-3 text-amber-600 shrink-0" />
+                              <span>Catatan: Jika server website luar tidak dapat dijangkau (Error 521 / DNS), silakan gunakan opsi Email HRD atau Instagram di atas.</span>
+                            </span>
                           </div>
                         </div>
-                      ) : (
-                        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-center gap-1">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                            Kontak Rekruter Langsung
-                          </span>
-                          <span className="text-xs text-slate-600">
-                            Tersedia melalui pesan InMail LinkedIn atau tab Bantuan Rekomendasi STP.
-                          </span>
-                        </div>
-                      )}
+
+                        <a
+                          href={job.applicationUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full sm:w-auto shrink-0 pl-8 sm:pl-0"
+                          onClick={() => handleMarkExternalApplied(portalDomain || 'Portal Resmi Perusahaan')}
+                        >
+                          <Button className="w-full sm:w-auto h-9 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl gap-1.5 shadow-xs">
+                            <span>Buka Situs Web</span>
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </Button>
+                        </a>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Section C: Pencarian Cepat Alternatif (Fallback jika Link Kadaluarsa) */}
                   <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-2">

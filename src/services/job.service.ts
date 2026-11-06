@@ -132,7 +132,10 @@ export function filterAndSortJobs(
     result = result.filter((job) => (job.approvalStatus || 'APPROVED') === 'APPROVED');
   }
 
-  // Filter Status Aktif
+  // Filter Status Aktif & Kesegaran Data Publik (Anti Lowongan Kadaluarsa / Tahun Lalu)
+  const now = Date.now();
+  const MAX_ACTIVE_AGE_MS = 45 * 24 * 60 * 60 * 1000; // Maksimal 45 hari (aktual bulan-bulan ini)
+
   if (filters.status && filters.status !== 'all') {
     if (filters.status === 'active') {
       result = result.filter((job) => job.isActive);
@@ -140,8 +143,19 @@ export function filterAndSortJobs(
       result = result.filter((job) => !job.isActive);
     }
   } else if (!filters.includeInactive && !filters.partnerId && !filters.tenantId) {
-    // Default untuk publik: hanya tampilkan lowongan yang aktif
-    result = result.filter((job) => job.isActive !== false);
+    // Default untuk bursa karir publik:
+    // 1. Status aktif (isActive !== false)
+    // 2. Deadline belum lewat (jika dicantumkan)
+    // 3. Tanggal posting strictly dalam 45 hari terakhir (aktual bulan ini, anti lowongan kadaluarsa/tahun lalu)
+    result = result.filter((job) => {
+      if (job.isActive === false) return false;
+      if (job.deadlineAt && job.deadlineAt < now) return false;
+      const age = now - job.postedAt;
+      if (age > MAX_ACTIVE_AGE_MS || job.postedAt < 1785000000000 || age < -86400000) {
+        return false;
+      }
+      return true;
+    });
   }
 
   // Filter Query Search (Title, Company, Description, Skills, Relevant Programs)

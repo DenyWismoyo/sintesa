@@ -254,7 +254,7 @@ export async function fetchGreenhouseJobs(target: AtsTarget): Promise<JobListing
       applicantCount: Math.floor(Math.random() * 8 + 1),
       isActive: true,
     };
-  });
+  }).filter((job) => now - job.postedAt <= 45 * 24 * 60 * 60 * 1000 && job.postedAt >= 1785000000000);
 }
 
 /**
@@ -343,7 +343,7 @@ export async function fetchLeverJobs(target: AtsTarget): Promise<JobListing[]> {
       applicantCount: Math.floor(Math.random() * 8 + 1),
       isActive: true,
     };
-  });
+  }).filter((job) => now - job.postedAt <= 45 * 24 * 60 * 60 * 1000 && job.postedAt >= 1785000000000);
 }
 
 /**
@@ -438,7 +438,7 @@ export async function fetchAshbyJobs(target: AtsTarget): Promise<JobListing[]> {
       applicantCount: Math.floor(Math.random() * 8 + 1),
       isActive: true,
     };
-  });
+  }).filter((job) => now - job.postedAt <= 45 * 24 * 60 * 60 * 1000 && job.postedAt >= 1785000000000);
 }
 
 /**

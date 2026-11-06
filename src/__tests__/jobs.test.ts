@@ -221,5 +221,50 @@ describe('Bursa Karir & Talenta Alumni Solo Technopark', () => {
         'Multimedia, Game & Animasi 3D'
       );
     });
+
+    it('harus memfilter secara ketat lowongan yang kadaluarsa (> 45 hari atau dari tahun lalu) pada bursa karir publik', () => {
+      const now = Date.now();
+      const oneDay = 86400000;
+
+      const testJobs: JobListing[] = [
+        {
+          ...MOCK_TEST_JOBS[0],
+          id: 'fresh-job-5-days',
+          title: 'Fresh Job (5 hari lalu)',
+          postedAt: now - 5 * oneDay,
+          deadlineAt: now + 20 * oneDay,
+        },
+        {
+          ...MOCK_TEST_JOBS[0],
+          id: 'old-job-60-days',
+          title: 'Old Job (60 hari lalu)',
+          postedAt: now - 60 * oneDay,
+          deadlineAt: now + 20 * oneDay,
+        },
+        {
+          ...MOCK_TEST_JOBS[0],
+          id: 'expired-deadline-job',
+          title: 'Expired Deadline Job',
+          postedAt: now - 2 * oneDay,
+          deadlineAt: now - 1 * oneDay, // Deadline sudah lewat kemarin
+        },
+        {
+          ...MOCK_TEST_JOBS[0],
+          id: 'year-2024-job',
+          title: 'Ninja Van Driver 2024',
+          postedAt: new Date('2024-04-18').getTime(),
+        },
+        {
+          ...MOCK_TEST_JOBS[0],
+          id: 'year-1970-job',
+          title: 'Himalayas Job 1970',
+          postedAt: 173544170, // Epoch seconds bug
+        },
+      ];
+
+      const res = filterAndSortJobs(testJobs);
+      expect(res.jobs.length).toBe(1);
+      expect(res.jobs[0].id).toBe('fresh-job-5-days');
+    });
   });
 });

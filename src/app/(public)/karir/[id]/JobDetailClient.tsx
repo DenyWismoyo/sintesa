@@ -41,6 +41,7 @@ import {
 } from 'lucide-react';
 import {
   getLinkedInJobsUrl,
+  getJobstreetSearchUrl,
   extractDomain,
   getWhatsappChatUrl,
   getMailtoLink,
@@ -924,14 +925,56 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
-                    <span>Saluran Lamar & Kontak Resmi</span>
+                    <span>Pilih Saluran Pendaftaran Resmi</span>
                   </>
                 )}
               </Button>
 
-              {/* Tautan Cepat Langsung ke LinkedIn Jobs Resmi */}
+              {/* 1. Jalur Email HRD Langsung (Bebas Masalah DNS / Server Down) */}
+              {job.applicationEmail && (
+                <a
+                  href={getMailtoLink(job.applicationEmail, job, user?.displayName || undefined)}
+                  className="block w-full"
+                >
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-10 border-teal-300 text-teal-950 bg-teal-50/70 hover:bg-teal-100 font-extrabold text-xs rounded-2xl gap-2 shadow-2xs justify-start px-3.5 group"
+                  >
+                    <Mail className="w-3.5 h-3.5 text-teal-700 shrink-0 group-hover:scale-110 transition-transform" />
+                    <span className="truncate">Kirim CV via Email HRD ({job.applicationEmail})</span>
+                    <ArrowUpRight className="w-3 h-3 text-teal-600 ml-auto shrink-0" />
+                  </Button>
+                </a>
+              )}
+
+              {/* 2. Jalur WhatsApp / Telepon HRD Jika Ada */}
+              {(job.contactWhatsapp || job.contactPhone) && (
+                <a
+                  href={getWhatsappChatUrl(
+                    job.contactWhatsapp || job.contactPhone || '',
+                    job,
+                    user?.displayName || undefined
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full"
+                >
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-10 border-emerald-300 text-emerald-950 bg-emerald-50/70 hover:bg-emerald-100 font-extrabold text-xs rounded-2xl gap-2 shadow-2xs justify-start px-3.5 group"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5 text-emerald-700 shrink-0 group-hover:scale-110 transition-transform" />
+                    <span className="truncate">Chat WhatsApp Rekrutmen</span>
+                    <ArrowUpRight className="w-3 h-3 text-emerald-600 ml-auto shrink-0" />
+                  </Button>
+                </a>
+              )}
+
+              {/* 3. Validasi via Instagram Resmi / Poster Loker */}
               <a
-                href={getLinkedInJobsUrl(job)}
+                href={getInstagramSearchUrl(job)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block w-full"
@@ -939,109 +982,80 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full h-10 border-blue-200 text-blue-900 hover:bg-blue-50 font-bold text-xs rounded-2xl gap-2 shadow-2xs"
+                  className="w-full h-10 border-rose-200 text-rose-950 bg-rose-50/50 hover:bg-rose-100/70 font-bold text-xs rounded-2xl gap-2 shadow-2xs justify-start px-3.5 group"
                 >
-                  <Linkedin className="w-3.5 h-3.5 text-blue-600" />
-                  <span>Lamar via LinkedIn Jobs</span>
-                  <ExternalLink className="w-3 h-3 text-slate-400 ml-auto" />
+                  <Instagram className="w-3.5 h-3.5 text-rose-600 shrink-0 group-hover:scale-110 transition-transform" />
+                  <span className="truncate">
+                    {job.instagramUrl ? 'Instagram Resmi Perusahaan' : 'Cek Poster Loker di Instagram'}
+                  </span>
+                  <ExternalLink className="w-3 h-3 text-rose-400 ml-auto shrink-0" />
                 </Button>
               </a>
 
-              {/* Tautan ke Portal Karir Perusahaan Jika Ada */}
+              {/* 4. Portal Karir Indonesia Terpercaya (JobStreet ID — Bebas Login Wall) */}
+              <a
+                href={getJobstreetSearchUrl(job)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full"
+              >
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-10 border-amber-200 text-amber-950 hover:bg-amber-50 font-bold text-xs rounded-2xl gap-2 shadow-2xs justify-start px-3.5 group"
+                >
+                  <Briefcase className="w-3.5 h-3.5 text-amber-600 shrink-0 group-hover:scale-110 transition-transform" />
+                  <span className="truncate">Cari Lowongan di JobStreet ID</span>
+                  <ExternalLink className="w-3 h-3 text-amber-400 ml-auto shrink-0" />
+                </Button>
+              </a>
+
+              {/* 5. Tautan ke Website Perusahaan dengan Keterangan Fail-Safe */}
               {job.applicationUrl && (
-                <a
-                  href={job.applicationUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full"
-                >
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full h-10 border-slate-200 text-slate-800 hover:bg-slate-50 font-bold text-xs rounded-2xl gap-2 shadow-2xs"
+                <div className="pt-0.5 space-y-1">
+                  <a
+                    href={job.applicationUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full"
                   >
-                    <Globe className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Portal Resmi ({extractDomain(job.applicationUrl)})</span>
-                    <ExternalLink className="w-3 h-3 text-slate-400 ml-auto" />
-                  </Button>
-                </a>
-              )}
-
-              {/* Validasi Alternatif via Poster Instagram & Kemnaker (Solusi jika Web Perusahaan Down / 521) */}
-              <div className="space-y-1.5 pt-0.5">
-                <a
-                  href={getInstagramSearchUrl(job)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full"
-                >
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full h-9 border-rose-200 text-rose-950 hover:bg-rose-50 font-bold text-xs rounded-2xl gap-2 shadow-2xs group"
-                  >
-                    <Instagram className="w-3.5 h-3.5 text-rose-600 group-hover:scale-110 transition-transform" />
-                    <span>Cari Poster Loker di Instagram</span>
-                    <ExternalLink className="w-3 h-3 text-slate-400 ml-auto" />
-                  </Button>
-                </a>
-
-                <a
-                  href={getKemnakerSearchUrl(job)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full"
-                >
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full h-8 border-blue-200/80 text-blue-900 hover:bg-blue-50 font-bold text-[11px] rounded-xl gap-2 shadow-2xs"
-                  >
-                    <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
-                    <span>Verifikasi SIAPkerja Kemnaker</span>
-                    <ExternalLink className="w-2.5 h-2.5 text-slate-400 ml-auto" />
-                  </Button>
-                </a>
-              </div>
-
-              {/* Kontak Cepat HRD Jika Tersedia */}
-              {(job.applicationEmail || job.contactWhatsapp || job.contactPhone) && (
-                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
-                  <span className="font-extrabold text-[11px] text-slate-700 block uppercase tracking-wider">
-                    Kontak Langsung HRD:
-                  </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {job.applicationEmail && (
-                      <a
-                        href={getMailtoLink(job.applicationEmail, job, user?.displayName || undefined)}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-teal-50 border border-teal-200 text-[11px] font-bold text-teal-900 hover:bg-teal-100 transition-colors"
-                      >
-                        <Mail className="w-3 h-3 text-teal-600" />
-                        <span>Kirim Email HRD</span>
-                      </a>
-                    )}
-                    {(job.contactWhatsapp || job.contactPhone) && (
-                      <a
-                        href={getWhatsappChatUrl(
-                          job.contactWhatsapp || job.contactPhone || '',
-                          job,
-                          user?.displayName || undefined
-                        )}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-[11px] font-bold text-emerald-900 hover:bg-emerald-100 transition-colors"
-                      >
-                        <MessageSquare className="w-3 h-3 text-emerald-600" />
-                        <span>Chat WhatsApp HRD</span>
-                      </a>
-                    )}
-                  </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="w-full h-8 text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-semibold text-[11px] rounded-xl gap-1.5 justify-start px-2"
+                    >
+                      <Globe className="w-3 h-3 text-slate-400 shrink-0" />
+                      <span className="truncate">Situs Web: {extractDomain(job.applicationUrl)}</span>
+                      <ExternalLink className="w-2.5 h-2.5 text-slate-400 ml-auto shrink-0" />
+                    </Button>
+                  </a>
+                  <p className="text-[10px] text-slate-400 px-2 leading-tight">
+                    *Jika situs luar perusahaan tidak dapat dijangkau (Error 521 / DNS), prioritaskan jalur Email atau Instagram resmi di atas.
+                  </p>
                 </div>
               )}
 
+              {/* 6. Verifikasi SIAPkerja Kemnaker */}
+              <a
+                href={getKemnakerSearchUrl(job)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full"
+              >
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full h-8 text-blue-800 hover:bg-blue-50/60 font-semibold text-[11px] rounded-xl gap-1.5 justify-start px-2"
+                >
+                  <ShieldCheck className="w-3 h-3 text-blue-600 shrink-0" />
+                  <span className="truncate">Verifikasi SIAPkerja Kemnaker RI</span>
+                  <ExternalLink className="w-2.5 h-2.5 text-slate-400 ml-auto shrink-0" />
+                </Button>
+              </a>
+
               <Link
                 href={`/alumni-portal?channel=sapa-industri-dan-rekrutmen`}
-                className="block w-full"
+                className="block w-full pt-1"
               >
                 <Button
                   type="button"

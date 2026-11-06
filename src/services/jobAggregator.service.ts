@@ -427,6 +427,17 @@ export async function fetchHimalayasJobs(limit: number = 20): Promise<JobListing
         : 'Worldwide / Remote';
       const region = inferJobRegion({ location, city: 'Remote / Global', company: item.companyName });
 
+      const rawPub = item.pubDate;
+      let postedAt = Date.now();
+      if (typeof rawPub === 'number') {
+        postedAt = rawPub < 10000000000 ? rawPub * 1000 : rawPub;
+      } else if (rawPub) {
+        const parsed = new Date(rawPub).getTime();
+        if (!isNaN(parsed) && parsed > 0) {
+          postedAt = parsed < 10000000000 ? parsed * 1000 : parsed;
+        }
+      }
+
       return {
         id,
         slug: `job-${id}`,
@@ -470,12 +481,15 @@ export async function fetchHimalayasJobs(limit: number = 20): Promise<JobListing
         source: 'jsearch_realtime',
         applySource: 'Himalayas App',
         applicationUrl: item.applicationLink,
-        postedAt: item.pubDate ? new Date(item.pubDate).getTime() : Date.now(),
+        postedAt,
         isFeatured: false,
         viewsCount: Math.floor(Math.random() * 40 + 10),
         applicantCount: Math.floor(Math.random() * 12 + 1),
         isActive: true,
       };
+    }).filter((job) => {
+      const now = Date.now();
+      return now - job.postedAt <= 45 * 24 * 60 * 60 * 1000 && job.postedAt >= 1785000000000;
     });
   } catch (error: any) {
     console.warn('[HimalayasProvider] Error:', error.message);

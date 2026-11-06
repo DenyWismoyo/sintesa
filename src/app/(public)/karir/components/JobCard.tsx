@@ -45,6 +45,10 @@ export default function JobCard({
       )
     : false;
 
+  const daysAgo = Math.max(0, Math.floor((Date.now() - job.postedAt) / (1000 * 60 * 60 * 24)));
+  const freshnessLabel =
+    daysAgo === 0 ? 'Hari ini' : daysAgo === 1 ? '1 hari lalu' : `${daysAgo} hari lalu`;
+
   const handleCardClick = (e: React.MouseEvent) => {
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('sintesa_karir_last_viewed_id', job.id);
@@ -185,6 +189,10 @@ export default function JobCard({
             <Badge variant="outline" className="text-[10px] font-semibold text-slate-600 border-slate-200">
               {job.workType}
             </Badge>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/70 shadow-2xs">
+              <Clock className="w-2.5 h-2.5 text-emerald-600" />
+              {freshnessLabel}
+            </span>
           </div>
 
           <div
