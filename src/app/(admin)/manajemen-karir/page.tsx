@@ -36,12 +36,19 @@ import {
   MessageSquare,
   TrendingUp,
 } from 'lucide-react';
-import { AdminPageHeader } from '@/components/admin';
+import {
+  AdminPageHeader,
+  AdminStatGrid,
+  AdminFilterBar,
+  AdminResponsiveView,
+  AdminMobileCard,
+} from '@/components/admin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useJobs } from '@/hooks/useJobs';
+import { useAdminTab } from '@/hooks/useAdminTab';
 import { JobListing } from '@/types/job.types';
 import { formatSalary } from '@/utils/format';
 import { useAuth } from '@/lib/AuthContext';
@@ -57,12 +64,15 @@ import TabTracerStudyAnalytics from './components/TabTracerStudyAnalytics';
 import TabJobApplications from './components/TabJobApplications';
 import TabSmartTalentMatchmaking from './components/TabSmartTalentMatchmaking';
 
+const KARIR_TABS = ['LIST', 'APPLICATIONS', 'MITRA', 'FORUM', 'SYNC', 'TALENT', 'TRACER'] as const;
+type KarirTab = (typeof KARIR_TABS)[number];
+
 export default function AdminManajemenKarirPage() {
   const router = useRouter();
   const { role, loading: authLoading } = useAuth();
   const canManageCareer = canPerformAction(role, PERMISSIONS.MANAGE_CAREER);
 
-  const [activeTab, setActiveTab] = useState<'LIST' | 'APPLICATIONS' | 'MITRA' | 'FORUM' | 'SYNC' | 'TALENT' | 'TRACER'>('LIST');
+  const [activeTab, setActiveTab] = useAdminTab<KarirTab>('LIST', KARIR_TABS);
   const [searchFilter, setSearchFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [partnerFilter, setPartnerFilter] = useState('ALL');
@@ -294,14 +304,25 @@ export default function AdminManajemenKarirPage() {
         subtitle="Pusat kelola lowongan pekerjaan mitra kawasan Solo Technopark, sinkronisasi agregator API, dan integrasi penyerapan alumni."
         badge={`${total} Lowongan Terdaftar`}
         breadcrumbs={[{ label: 'Ekosistem' }, { label: 'Bursa Karir' }]}
+        tabs={[
+          { id: 'LIST', label: 'Master Lowongan', icon: <Briefcase className="w-3.5 h-3.5" />, badge: total },
+          { id: 'APPLICATIONS', label: 'Pelamar & Rekomendasi', icon: <Users className="w-3.5 h-3.5" /> },
+          { id: 'MITRA', label: 'Mitra & Antrean Loker', icon: <Building2 className="w-3.5 h-3.5" />, badge: mitraBadgeCount || undefined },
+          { id: 'FORUM', label: 'Moderasi Forum & Analitik', icon: <MessageSquare className="w-3.5 h-3.5" /> },
+          { id: 'SYNC', label: 'Kontrol Agregator & API', icon: <Database className="w-3.5 h-3.5" /> },
+          { id: 'TALENT', label: 'Penyaluran Alumni STP', icon: <GraduationCap className="w-3.5 h-3.5" /> },
+          { id: 'TRACER', label: 'Tracer Study & Serapan', icon: <TrendingUp className="w-3.5 h-3.5" /> },
+        ]}
+        activeTab={activeTab}
+        onTabChange={(id) => setActiveTab(id as KarirTab)}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setIsExportModalOpen(true)}
-              className="rounded-xl h-10 px-3.5 text-xs font-bold border-emerald-200 text-emerald-800 bg-emerald-50/60 hover:bg-emerald-100/70 gap-1.5 shadow-2xs"
+              className="rounded-xl h-9 px-3.5 text-xs font-bold border-emerald-200 text-emerald-800 bg-emerald-50/60 hover:bg-emerald-100/70 gap-1.5 shadow-2xs"
             >
               <Download className="w-3.5 h-3.5 text-emerald-700" />
               <span>Ekspor Kemitraan</span>
@@ -313,7 +334,7 @@ export default function AdminManajemenKarirPage() {
               size="sm"
               disabled={isSyncing}
               onClick={() => handleTriggerSync('weekly')}
-              className="rounded-xl h-10 px-3.5 text-xs font-bold border-slate-200 text-slate-700 hover:bg-slate-50 gap-1.5 shadow-2xs"
+              className="rounded-xl h-9 px-3.5 text-xs font-bold border-slate-200 text-slate-700 hover:bg-slate-50 gap-1.5 shadow-2xs"
             >
               <RotateCw className={`w-3.5 h-3.5 text-slate-600 ${isSyncing ? 'animate-spin text-emerald-600' : ''}`} />
               <span>{isSyncing ? 'Menyinkronkan...' : 'Sinkronkan API'}</span>
@@ -324,7 +345,7 @@ export default function AdminManajemenKarirPage() {
                 type="button"
                 size="sm"
                 onClick={handleOpenAdd}
-                className="rounded-xl h-10 px-4 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white gap-2 shadow-sm shadow-emerald-200"
+                className="rounded-xl h-9 px-4 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white gap-2 shadow-sm shadow-emerald-200"
               >
                 <Plus className="w-4 h-4" />
                 <span>Tambah Lowongan Mitra</span>
@@ -332,205 +353,93 @@ export default function AdminManajemenKarirPage() {
             )}
           </div>
         }
-      >
-        {/* Navigasi Pill Tabs Admin */}
-        <div className="flex bg-slate-100/80 p-1.5 rounded-xl overflow-x-auto w-full xl:w-auto hide-scrollbar">
-          <button
-            type="button"
-            onClick={() => setActiveTab('LIST')}
-            className={`flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
-              activeTab === 'LIST'
-                ? 'bg-white text-emerald-700 shadow-xs'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-            }`}
-          >
-            <Briefcase className="w-4 h-4" />
-            <span>Master Lowongan ({total})</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('APPLICATIONS')}
-            className={`flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
-              activeTab === 'APPLICATIONS'
-                ? 'bg-white text-emerald-700 shadow-xs'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            <span>Pelamar & Rekomendasi</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('MITRA')}
-            className={`flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
-              activeTab === 'MITRA'
-                ? 'bg-white text-emerald-700 shadow-xs'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-            }`}
-          >
-            <Building2 className="w-4 h-4" />
-            <span>Mitra & Antrean Loker</span>
-            {mitraBadgeCount > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-black">
-                {mitraBadgeCount}
-              </span>
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('FORUM')}
-            className={`flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
-              activeTab === 'FORUM'
-                ? 'bg-white text-emerald-700 shadow-xs'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-            }`}
-          >
-            <MessageSquare className="w-4 h-4" />
-            <span>Moderasi Forum & Analitik</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('SYNC')}
-            className={`flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
-              activeTab === 'SYNC'
-                ? 'bg-white text-emerald-700 shadow-xs'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-            }`}
-          >
-            <Database className="w-4 h-4" />
-            <span>Kontrol Agregator & API</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('TALENT')}
-            className={`flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
-              activeTab === 'TALENT'
-                ? 'bg-white text-emerald-700 shadow-xs'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-            }`}
-          >
-            <GraduationCap className="w-4 h-4" />
-            <span>Penyaluran Alumni STP</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('TRACER')}
-            className={`flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
-              activeTab === 'TRACER'
-                ? 'bg-white text-emerald-700 shadow-xs'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-            }`}
-          >
-            <TrendingUp className="w-4 h-4" />
-            <span>Tracer Study & Serapan Kerja</span>
-          </button>
-        </div>
-      </AdminPageHeader>
+      />
 
       {/* ─── 2. Metric Cards Banner ─── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/90 flex items-center gap-3.5 shadow-2xs">
-          <div className="p-3 rounded-xl bg-emerald-50 text-emerald-600">
-            <Briefcase className="w-5 h-5 stroke-[2.5]" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-              Total Lowongan Tersimpan
-            </span>
-            <h3 className="text-xl sm:text-2xl font-black text-slate-800">{total}</h3>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/90 flex items-center gap-3.5 shadow-2xs">
-          <div className="p-3 rounded-xl bg-teal-50 text-teal-600">
-            <ShieldCheck className="w-5 h-5 stroke-[2.5]" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-              Mitra Kawasan STP
-            </span>
-            <h3 className="text-xl sm:text-2xl font-black text-slate-800">{stpPartnerCount}</h3>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/90 flex items-center gap-3.5 shadow-2xs">
-          <div className="p-3 rounded-xl bg-sky-50 text-sky-600">
-            <Database className="w-5 h-5 stroke-[2.5]" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-              Realtime Agregator API
-            </span>
-            <h3 className="text-xl sm:text-2xl font-black text-slate-800">{realtimeCount}</h3>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/90 flex items-center gap-3.5 shadow-2xs">
-          <div className="p-3 rounded-xl bg-blue-50 text-blue-600">
-            <CheckCircle2 className="w-5 h-5 stroke-[2.5]" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-              Tayang Aktif di Bursa
-            </span>
-            <h3 className="text-xl sm:text-2xl font-black text-slate-800">{activeCount}</h3>
-          </div>
-        </div>
-      </div>
+      <AdminStatGrid
+        columns={4}
+        items={[
+          {
+            label: 'Total Lowongan Tersimpan',
+            value: total,
+            icon: <Briefcase className="w-5 h-5 stroke-[2.5]" />,
+            color: 'emerald',
+            onClick: () => setActiveTab('LIST'),
+            active: activeTab === 'LIST',
+          },
+          {
+            label: 'Mitra Kawasan STP',
+            value: stpPartnerCount,
+            icon: <ShieldCheck className="w-5 h-5 stroke-[2.5]" />,
+            color: 'teal',
+            onClick: () => setActiveTab('MITRA'),
+            active: activeTab === 'MITRA',
+          },
+          {
+            label: 'Realtime Agregator API',
+            value: realtimeCount,
+            icon: <Database className="w-5 h-5 stroke-[2.5]" />,
+            color: 'sky',
+            onClick: () => setActiveTab('SYNC'),
+            active: activeTab === 'SYNC',
+          },
+          {
+            label: 'Tayang Aktif di Bursa',
+            value: activeCount,
+            icon: <CheckCircle2 className="w-5 h-5 stroke-[2.5]" />,
+            color: 'blue',
+          },
+        ]}
+      />
 
       {/* ─── TAB 1: MASTER DAFTAR LOWONGAN ─── */}
       {activeTab === 'LIST' && (
         <div className="space-y-4">
           {/* Toolbar Saring Data */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <Input
-                placeholder="Cari posisi pekerjaan, nama industri, atau lokasi..."
-                value={searchFilter}
-                onChange={(e) => setSearchFilter(e.target.value)}
-                className="pl-10 h-10 text-xs rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white"
-              />
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <select
-                value={partnerFilter}
-                onChange={(e) => setPartnerFilter(e.target.value)}
-                className="h-10 px-3 text-xs font-semibold rounded-xl border border-slate-200 bg-white text-slate-700"
-              >
-                <option value="ALL">Semua Sumber</option>
-                <option value="STP">Hanya Mitra STP</option>
-                <option value="EXTERNAL">Agregator API</option>
-              </select>
-
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="h-10 px-3 text-xs font-semibold rounded-xl border border-slate-200 bg-white text-slate-700"
-              >
-                <option value="ALL">Semua Status</option>
-                <option value="ACTIVE">Tayang Aktif</option>
-                <option value="PENDING_APPROVAL">Menunggu Kurasi Mitra ({pendingApprovalJobs.length})</option>
-                <option value="INACTIVE">Nonaktif / Ditutup</option>
-              </select>
-
+          <AdminFilterBar
+            searchValue={searchFilter}
+            onSearchChange={setSearchFilter}
+            searchPlaceholder="Cari posisi pekerjaan, nama industri, atau lokasi..."
+            filters={[
+              {
+                id: 'partner',
+                value: partnerFilter,
+                onChange: setPartnerFilter,
+                options: [
+                  { label: 'Semua Sumber', value: 'ALL' },
+                  { label: 'Hanya Mitra STP', value: 'STP' },
+                  { label: 'Agregator API', value: 'EXTERNAL' },
+                ],
+              },
+              {
+                id: 'status',
+                value: statusFilter,
+                onChange: setStatusFilter,
+                options: [
+                  { label: 'Semua Status', value: 'ALL' },
+                  { label: 'Tayang Aktif', value: 'ACTIVE' },
+                  { label: `Menunggu Kurasi Mitra (${pendingApprovalJobs.length})`, value: 'PENDING_APPROVAL' },
+                  { label: 'Nonaktif / Ditutup', value: 'INACTIVE' },
+                ],
+              },
+            ]}
+            hasActiveFilters={Boolean(searchFilter || partnerFilter !== 'ALL' || statusFilter !== 'ALL')}
+            onReset={() => {
+              setSearchFilter('');
+              setPartnerFilter('ALL');
+              setStatusFilter('ALL');
+            }}
+            actions={
               <Link
                 href="/karir"
                 target="_blank"
-                className="h-10 px-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 shrink-0"
+                className="h-9 px-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 shrink-0"
               >
                 <span>Lihat Bursa Publik</span>
                 <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
               </Link>
-            </div>
-          </div>
+            }
+          />
 
           {/* Bar Indikator Seleksi Baris untuk Ekspor Kemitraan */}
           {selectedJobIds.length > 0 && (
@@ -572,58 +481,45 @@ export default function AdminManajemenKarirPage() {
             </div>
           )}
 
-          {/* Tabel Lowongan Kerja */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] text-left text-xs border-collapse">
-                <thead>
-                  <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    <th className="py-3.5 px-3 w-10 text-center">
-                      <button
-                        type="button"
-                        onClick={handleToggleSelectAllCurrentPage}
-                        title={
-                          isAllCurrentPageSelected
-                            ? 'Batal pilih semua di halaman ini'
-                            : 'Pilih semua di halaman ini'
-                        }
-                        className="p-1 rounded text-slate-400 hover:text-slate-700 transition-colors"
-                      >
-                        {isAllCurrentPageSelected ? (
-                          <CheckSquare className="w-4 h-4 text-emerald-600" />
-                        ) : (
-                          <Square className="w-4 h-4 text-slate-300" />
-                        )}
-                      </button>
-                    </th>
-                    <th className="py-3.5 px-4">Lowongan & Perusahaan</th>
-                    <th className="py-3.5 px-4">Kategori & Model</th>
-                    <th className="py-3.5 px-4">Rentang Gaji</th>
-                    <th className="py-3.5 px-4">Sumber Data</th>
-                    <th className="py-3.5 px-4">Status</th>
-                    <th className="py-3.5 px-4 text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {isLoading ? (
-                    <tr>
-                      <td colSpan={7} className="py-12 text-center text-slate-400">
-                        <div className="flex flex-col items-center justify-center gap-2">
-                          <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
-                          <span>Memuat daftar lowongan pekerjaan...</span>
-                        </div>
-                      </td>
+          {/* Tabel & Mobile Cards Lowongan Kerja */}
+          <div className="space-y-3">
+            <AdminResponsiveView<JobListing>
+              items={paginatedJobs}
+              isLoading={isLoading}
+              emptyTitle="Tidak ada lowongan yang sesuai"
+              emptyMessage="Coba sesuaikan kata kunci atau filter pencarian."
+              renderDesktopTable={(items) => (
+                <table className="w-full min-w-[760px] text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                      <th className="py-3.5 px-3 w-10 text-center">
+                        <button
+                          type="button"
+                          onClick={handleToggleSelectAllCurrentPage}
+                          title={
+                            isAllCurrentPageSelected
+                              ? 'Batal pilih semua di halaman ini'
+                              : 'Pilih semua di halaman ini'
+                          }
+                          className="p-1 rounded text-slate-400 hover:text-slate-700 transition-colors"
+                        >
+                          {isAllCurrentPageSelected ? (
+                            <CheckSquare className="w-4 h-4 text-emerald-600" />
+                          ) : (
+                            <Square className="w-4 h-4 text-slate-300" />
+                          )}
+                        </button>
+                      </th>
+                      <th className="py-3.5 px-4">Lowongan & Perusahaan</th>
+                      <th className="py-3.5 px-4">Kategori & Model</th>
+                      <th className="py-3.5 px-4">Rentang Gaji</th>
+                      <th className="py-3.5 px-4">Sumber Data</th>
+                      <th className="py-3.5 px-4">Status</th>
+                      <th className="py-3.5 px-4 text-right">Aksi</th>
                     </tr>
-                  ) : filteredJobs.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="py-12 text-center text-slate-400">
-                        <Briefcase className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                        <p className="font-semibold text-slate-600">Tidak ada lowongan yang sesuai</p>
-                        <p className="text-[11px] text-slate-400">Coba sesuaikan kata kunci atau filter pencarian.</p>
-                      </td>
-                    </tr>
-                  ) : (
-                    paginatedJobs.map((job) => {
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {items.map((job) => {
                       const isSelected = selectedJobIds.includes(job.id);
                       return (
                         <tr
@@ -755,14 +651,103 @@ export default function AdminManajemenKarirPage() {
                           </td>
                         </tr>
                       );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    })}
+                  </tbody>
+                </table>
+              )}
+              renderMobileCard={(job) => {
+                const isSelected = selectedJobIds.includes(job.id);
+                return (
+                  <AdminMobileCard
+                    title={job.title}
+                    subtitle={`${job.company} • ${job.location}`}
+                    badge={
+                      job.approvalStatus === 'PENDING_APPROVAL' ? (
+                        <button
+                          type="button"
+                          onClick={() => handleToggleActive(job)}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-300"
+                        >
+                          <Clock className="w-3 h-3" /> Setujui Draft
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleToggleActive(job)}
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            job.isActive
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-rose-50 text-rose-700 border border-rose-200'
+                          }`}
+                        >
+                          {job.isActive ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                          <span>{job.isActive ? 'Aktif' : 'Nonaktif'}</span>
+                        </button>
+                      )
+                    }
+                    fields={[
+                      {
+                        label: 'Kategori & Model',
+                        value: `${job.category} • ${job.workType}`,
+                      },
+                      {
+                        label: 'Rentang Gaji',
+                        value:
+                          job.salary.isDisclosed && (job.salary.min || job.salary.max)
+                            ? `${job.salary.min ? formatSalary(job.salary.min, job.salary.currency || 'IDR') : 'N/A'} - ${job.salary.max ? formatSalary(job.salary.max, job.salary.currency || 'IDR') : 'N/A'}`
+                            : 'Kompetitif',
+                      },
+                      {
+                        label: 'Sumber',
+                        value: job.isStpPartner ? 'Mitra Kawasan STP' : 'API Realtime',
+                      },
+                    ]}
+                    footer={
+                      <div className="flex items-center justify-between w-full gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleSelectJob(job.id)}
+                          className="flex items-center gap-1.5 text-xs font-bold text-slate-600"
+                        >
+                          {isSelected ? (
+                            <CheckSquare className="w-4 h-4 text-emerald-600" />
+                          ) : (
+                            <Square className="w-4 h-4 text-slate-300" />
+                          )}
+                          <span>Pilih Ekspor</span>
+                        </button>
+                        <div className="flex items-center gap-1.5">
+                          <Link
+                            href={`/karir/${job.id}`}
+                            target="_blank"
+                            className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:text-emerald-600 bg-white"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEdit(job)}
+                            className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:text-blue-600 bg-white"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteJob(job)}
+                            className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:text-rose-600 bg-white"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  />
+                );
+              }}
+            />
 
             {/* ─── Kontrol Pagination Admin ─── */}
-            <div className="p-3.5 bg-slate-50 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+            <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600 shadow-2xs">
               <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
                 <span>
                   Menampilkan{' '}

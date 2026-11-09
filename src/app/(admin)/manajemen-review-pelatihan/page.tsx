@@ -48,10 +48,19 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 import Link from 'next/link';
-import { AdminPageHeader } from '@/components/admin';
+import {
+  AdminPageHeader,
+  AdminStatGrid,
+  AdminFilterBar,
+  AdminFormDrawer,
+} from '@/components/admin';
+import { useAdminTab } from '@/hooks/useAdminTab';
+
+const REVIEW_TABS = ['programs', 'reviews'] as const;
+type ReviewTab = (typeof REVIEW_TABS)[number];
 
 export default function ManajemenReviewPelatihanPage() {
-  const [activeTab, setActiveTab] = useState<'programs' | 'reviews'>('programs');
+  const [activeTab, setActiveTab] = useAdminTab<ReviewTab>('programs', REVIEW_TABS);
   const [programs, setPrograms] = useState<TrainingReviewProgram[]>([]);
   const [reviews, setReviews] = useState<TrainingReviewItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -363,6 +372,12 @@ export default function ManajemenReviewPelatihanPage() {
         subtitle="Kelola program pelatihan yang dibuka untuk direview oleh peserta, mentor, dan industri. Sesuaikan kriteria evaluasi serta kurasi testimoni nyata."
         badge={`${programs.filter(p => p.status === 'ACTIVE').length} Program Aktif`}
         breadcrumbs={[{ label: 'Review Pelatihan' }]}
+        tabs={[
+          { id: 'programs', label: 'Program & Kriteria', icon: <GraduationCap size={14} />, badge: programs.length },
+          { id: 'reviews', label: 'Kotak Masuk Ulasan', icon: <MessageSquareQuote size={14} />, badge: reviews.length },
+        ]}
+        activeTab={activeTab}
+        onTabChange={(id) => setActiveTab(id as ReviewTab)}
         actions={
           <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <Link 
@@ -395,87 +410,46 @@ export default function ManajemenReviewPelatihanPage() {
             </Button>
           </div>
         }
-      >
-        {/* Navigasi Pill Tabs Admin */}
-        <div className="flex bg-slate-100/80 p-1.5 rounded-xl overflow-x-auto w-full sm:w-auto hide-scrollbar">
-          <button
-            onClick={() => setActiveTab('programs')}
-            className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
-              activeTab === 'programs'
-                ? 'bg-white text-emerald-700 shadow-xs'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-            }`}
-          >
-            <GraduationCap size={16} />
-            <span>Program & Kriteria ({programs.length})</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('reviews')}
-            className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
-              activeTab === 'reviews'
-                ? 'bg-white text-emerald-700 shadow-xs'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-            }`}
-          >
-            <MessageSquareQuote size={16} />
-            <span>Kotak Masuk Ulasan ({reviews.length})</span>
-          </button>
-        </div>
-      </AdminPageHeader>
+      />
 
       {/* KARTU STATISTIK RINGKASAN */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Program Aktif</p>
-            <h3 className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5 sm:mt-1">{programs.filter(p => p.status === 'ACTIVE').length} Program</h3>
-            <p className="text-[10px] sm:text-[11px] text-emerald-600 font-bold mt-0.5">Siap direview publik</p>
-          </div>
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-            <GraduationCap size={22} />
-          </div>
-        </div>
-
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Total Ulasan</p>
-            <h3 className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5 sm:mt-1">{totalReviewsCount} Ulasan</h3>
-            <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium mt-0.5">{publishedReviews.length} telah dipublikasi</p>
-          </div>
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-            <MessageSquareQuote size={22} />
-          </div>
-        </div>
-
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Rata-rata Rating</p>
-            <div className="flex items-center gap-1.5 mt-0.5 sm:mt-1">
-              <h3 className="text-xl sm:text-2xl font-black text-slate-900">{avgGlobalRating}</h3>
-              <div className="flex text-amber-400">
-                <Star size={15} fill="currentColor" />
-              </div>
-              <span className="text-[10px] sm:text-xs font-bold text-slate-400">/ 5.0</span>
-            </div>
-            <p className="text-[10px] sm:text-[11px] text-amber-600 font-bold mt-0.5">Indeks Kepuasan</p>
-          </div>
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-            <Star size={22} fill="currentColor" />
-          </div>
-        </div>
-
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Tingkat Rekomendasi</p>
-            <h3 className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5 sm:mt-1">{recommendPercent}%</h3>
-            <p className="text-[10px] sm:text-[11px] text-emerald-600 font-bold mt-0.5">Direkomendasikan</p>
-          </div>
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
-            <ThumbsUp size={22} />
-          </div>
-        </div>
-      </div>
+      <AdminStatGrid
+        columns={4}
+        items={[
+          {
+            label: 'Program Aktif',
+            value: `${programs.filter(p => p.status === 'ACTIVE').length} Program`,
+            subtext: 'Siap direview publik',
+            icon: <GraduationCap size={18} />,
+            color: 'emerald',
+            onClick: () => setActiveTab('programs'),
+            active: activeTab === 'programs',
+          },
+          {
+            label: 'Total Ulasan',
+            value: `${totalReviewsCount} Ulasan`,
+            subtext: `${publishedReviews.length} telah dipublikasi`,
+            icon: <MessageSquareQuote size={18} />,
+            color: 'indigo',
+            onClick: () => setActiveTab('reviews'),
+            active: activeTab === 'reviews',
+          },
+          {
+            label: 'Rata-rata Rating',
+            value: `${avgGlobalRating} / 5.0`,
+            subtext: 'Indeks Kepuasan',
+            icon: <Star size={18} fill="currentColor" />,
+            color: 'amber',
+          },
+          {
+            label: 'Tingkat Rekomendasi',
+            value: `${recommendPercent}%`,
+            subtext: 'Direkomendasikan peserta',
+            icon: <ThumbsUp size={18} />,
+            color: 'teal',
+          },
+        ]}
+      />
 
       {/* KONTEN TAB 1: DAFTAR PROGRAM PELATIHAN */}
       {activeTab === 'programs' && (
@@ -596,66 +570,72 @@ export default function ManajemenReviewPelatihanPage() {
       {activeTab === 'reviews' && (
         <div className="space-y-6">
           {/* BAR PENCARIAN & FILTER */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
-            <div className="relative w-full md:max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-              <Input 
-                value={searchReview}
-                onChange={e => setSearchReview(e.target.value)}
-                placeholder="Cari nama pengulas, instansi, atau kata kunci ulasan..."
-                className="pl-10 h-10 rounded-xl bg-slate-50 border-slate-200 text-xs"
-              />
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-              <select
-                value={filterProgramId}
-                onChange={e => setFilterProgramId(e.target.value)}
-                className="h-10 px-3 text-xs font-bold bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"
-              >
-                <option value="ALL">Semua Program Pelatihan</option>
-                {programs.map(p => (
-                  <option key={p.id} value={p.id}>{p.title}</option>
-                ))}
-              </select>
-
-              <select
-                value={filterRole}
-                onChange={e => setFilterRole(e.target.value)}
-                className="h-10 px-3 text-xs font-bold bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"
-              >
-                <option value="ALL">Semua Peran Reviewer</option>
-                <option value="PESERTA">Peserta Pelatihan / Alumni</option>
-                <option value="MENTOR">Instruktur / Mentor</option>
-                <option value="INDUSTRI">Mitra Industri / Perusahaan</option>
-                <option value="PUBLIK">Masyarakat Umum</option>
-              </select>
-
-              <select
-                value={filterStatus}
-                onChange={e => setFilterStatus(e.target.value)}
-                className="h-10 px-3 text-xs font-bold bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"
-              >
-                <option value="ALL">Semua Status</option>
-                <option value="PUBLISHED">Published (Tampil Publik)</option>
-                <option value="PENDING">Pending (Perlu Moderasi)</option>
-                <option value="REJECTED">Ditolak / Arsip</option>
-              </select>
-
-              <select
-                value={filterRating}
-                onChange={e => setFilterRating(e.target.value)}
-                className="h-10 px-3 text-xs font-bold bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"
-              >
-                <option value="ALL">Semua Bintang</option>
-                <option value="5">Bintang 5</option>
-                <option value="4">Bintang 4</option>
-                <option value="3">Bintang 3</option>
-                <option value="2">Bintang 2</option>
-                <option value="1">Bintang 1</option>
-              </select>
-            </div>
-          </div>
+          <AdminFilterBar
+            searchValue={searchReview}
+            onSearchChange={setSearchReview}
+            searchPlaceholder="Cari nama pengulas, instansi, atau kata kunci ulasan..."
+            filters={[
+              {
+                id: 'program',
+                value: filterProgramId,
+                onChange: setFilterProgramId,
+                options: [
+                  { label: 'Semua Program Pelatihan', value: 'ALL' },
+                  ...programs.map((p) => ({ label: p.title, value: p.id })),
+                ],
+              },
+              {
+                id: 'role',
+                value: filterRole,
+                onChange: setFilterRole,
+                options: [
+                  { label: 'Semua Peran Reviewer', value: 'ALL' },
+                  { label: 'Peserta Pelatihan / Alumni', value: 'PESERTA' },
+                  { label: 'Instruktur / Mentor', value: 'MENTOR' },
+                  { label: 'Mitra Industri / Perusahaan', value: 'INDUSTRI' },
+                  { label: 'Masyarakat Umum', value: 'PUBLIK' },
+                ],
+              },
+              {
+                id: 'status',
+                value: filterStatus,
+                onChange: setFilterStatus,
+                options: [
+                  { label: 'Semua Status', value: 'ALL' },
+                  { label: 'Published (Tampil Publik)', value: 'PUBLISHED' },
+                  { label: 'Pending (Perlu Moderasi)', value: 'PENDING' },
+                  { label: 'Ditolak / Arsip', value: 'REJECTED' },
+                ],
+              },
+              {
+                id: 'rating',
+                value: filterRating,
+                onChange: setFilterRating,
+                options: [
+                  { label: 'Semua Bintang', value: 'ALL' },
+                  { label: 'Bintang 5', value: '5' },
+                  { label: 'Bintang 4', value: '4' },
+                  { label: 'Bintang 3', value: '3' },
+                  { label: 'Bintang 2', value: '2' },
+                  { label: 'Bintang 1', value: '1' },
+                ],
+              },
+            ]}
+            hasActiveFilters={Boolean(
+              searchReview ||
+              filterProgramId !== 'ALL' ||
+              filterRole !== 'ALL' ||
+              filterStatus !== 'ALL' ||
+              filterRating !== 'ALL'
+            )}
+            onReset={() => {
+              setSearchReview('');
+              setFilterProgramId('ALL');
+              setFilterRole('ALL');
+              setFilterStatus('ALL');
+              setFilterRating('ALL');
+            }}
+          />
 
           {/* DAFTAR KARTU ULASAN */}
           {loading ? (
@@ -802,343 +782,308 @@ export default function ManajemenReviewPelatihanPage() {
         </div>
       )}
 
-      {/* MODAL PROGRAM REVIEW & KUSTOMISASI ASPEK */}
-      <AnimatePresence>
-        {isProgramModalOpen && editingProgram && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-slate-900/60 backdrop-blur-xs">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-3xl w-full max-w-3xl shadow-2xl flex flex-col max-h-[90vh] my-auto overflow-hidden"
+      {/* DRAWER PROGRAM REVIEW & KUSTOMISASI ASPEK */}
+      <AdminFormDrawer
+        isOpen={Boolean(isProgramModalOpen && editingProgram)}
+        onClose={() => setIsProgramModalOpen(false)}
+        title={editingProgram?.id ? 'Edit Program & Aspek Review' : 'Tambah Program Pelatihan Baru'}
+        subtitle="Atur deskripsi program dan kustomisasi kriteria penilaian yang akan dinilai oleh publik/peserta."
+        maxWidth="2xl"
+        footer={
+          <>
+            <Button 
+              type="button" 
+              variant="ghost" 
+              onClick={() => setIsProgramModalOpen(false)}
+              className="rounded-xl font-bold text-xs"
             >
-              {/* Header Modal */}
-              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 shrink-0">
-                <div>
-                  <h3 className="text-lg font-black text-slate-900">
-                    {editingProgram.id ? 'Edit Program & Aspek Review' : 'Tambah Program Pelatihan Baru'}
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    Atur deskripsi program dan kustomisasi kriteria penilaian yang akan dinilai oleh publik/peserta.
-                  </p>
+              Batal
+            </Button>
+            <Button 
+              type="submit" 
+              form="form-program-review"
+              disabled={isSavingProgram}
+              className="rounded-xl bg-slate-900 text-white font-bold text-xs px-6 shadow-sm"
+            >
+              {isSavingProgram ? <Loader2 size={14} className="animate-spin mr-1.5" /> : <Save size={14} className="mr-1.5" />}
+              Simpan Program
+            </Button>
+          </>
+        }
+      >
+        {editingProgram && (
+          <form id="form-program-review" onSubmit={handleSaveProgram} className="space-y-6">
+            {/* Informasi Dasar Program */}
+            <div className="space-y-4">
+              <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">
+                Informasi Pelatihan
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label className="text-xs font-bold text-slate-700">Nama / Judul Program Pelatihan <span className="text-red-500">*</span></Label>
+                  <Input 
+                    required
+                    value={editingProgram.title || ''}
+                    onChange={e => setEditingProgram({ ...editingProgram, title: e.target.value })}
+                    placeholder="Contoh: Pelatihan dan Sertifikasi Welder (SMK Go Global)"
+                    className="h-10 rounded-xl text-xs"
+                  />
                 </div>
-                <button 
-                  onClick={() => setIsProgramModalOpen(false)}
-                  className="text-slate-400 hover:text-slate-600 p-2 rounded-full hover:bg-slate-100 transition-colors"
-                >
-                  <X size={18} />
-                </button>
-              </div>
 
-              {/* Form Body */}
-              <form onSubmit={handleSaveProgram} className="flex flex-col flex-1 overflow-hidden">
-                <div className="p-6 space-y-6 overflow-y-auto custom-scrollbar flex-1">
-                  {/* Informasi Dasar Program */}
-                  <div className="space-y-4">
-                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">
-                      Informasi Pelatihan
-                    </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1.5 sm:col-span-2">
-                        <Label className="text-xs font-bold text-slate-700">Nama / Judul Program Pelatihan <span className="text-red-500">*</span></Label>
-                        <Input 
-                          required
-                          value={editingProgram.title || ''}
-                          onChange={e => setEditingProgram({ ...editingProgram, title: e.target.value })}
-                          placeholder="Contoh: Pelatihan dan Sertifikasi Welder (SMK Go Global)"
-                          className="h-10 rounded-xl text-xs"
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label className="text-xs font-bold text-slate-700">Deskripsi Singkat Program</Label>
+                  <textarea
+                    rows={2}
+                    value={editingProgram.shortDescription || ''}
+                    onChange={e => setEditingProgram({ ...editingProgram, shortDescription: e.target.value })}
+                    placeholder="Penjelasan singkat tujuan pelatihan, kompetensi yang dipelajari, dan penempatan..."
+                    className="w-full p-3 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-slate-700">Kategori Program</Label>
+                  <Input 
+                    value={editingProgram.category || ''}
+                    onChange={e => setEditingProgram({ ...editingProgram, category: e.target.value })}
+                    placeholder="Contoh: Manufaktur & Vokasi"
+                    className="h-10 rounded-xl text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-slate-700">Batch / Angkatan</Label>
+                  <Input 
+                    value={editingProgram.batch || ''}
+                    onChange={e => setEditingProgram({ ...editingProgram, batch: e.target.value })}
+                    placeholder="Contoh: Batch II / Angkatan 2026"
+                    className="h-10 rounded-xl text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-slate-700">Mitra Kerjasama / Lembaga</Label>
+                  <Input 
+                    value={editingProgram.partnerInstitution || ''}
+                    onChange={e => setEditingProgram({ ...editingProgram, partnerInstitution: e.target.value })}
+                    placeholder="Contoh: BP3MI Jawa Tengah"
+                    className="h-10 rounded-xl text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-slate-700">Target Peserta</Label>
+                  <Input 
+                    value={editingProgram.targetAudience || ''}
+                    onChange={e => setEditingProgram({ ...editingProgram, targetAudience: e.target.value })}
+                    placeholder="Contoh: Lulusan SMK Teknik / Vokasi"
+                    className="h-10 rounded-xl text-xs"
+                  />
+                </div>
+
+                <div className="space-y-2 sm:col-span-2">
+                  <Label className="text-xs font-bold text-slate-700 flex items-center justify-between">
+                    <span>Banner Gambar Program Pelatihan</span>
+                    {editingProgram.imageUrl && (
+                      <span className="text-[10px] text-emerald-600 font-bold">✓ Banner Terpasang</span>
+                    )}
+                  </Label>
+                  
+                  {/* Hidden File Input */}
+                  <input 
+                    type="file" 
+                    ref={bannerFileRef}
+                    onChange={handleBannerFileChange}
+                    accept="image/png, image/jpeg, image/webp"
+                    className="hidden"
+                  />
+
+                  {/* Banner Preview & Upload Area */}
+                  <div className="flex flex-col sm:flex-row items-center gap-4 p-3.5 rounded-2xl border border-slate-200 bg-slate-50/60">
+                    {editingProgram.imageUrl ? (
+                      <div className="relative w-full sm:w-44 h-24 rounded-xl overflow-hidden bg-slate-900 border border-slate-200 shrink-0 shadow-2xs group">
+                        <img 
+                          src={editingProgram.imageUrl} 
+                          alt="Preview Banner" 
+                          className="w-full h-full object-cover"
                         />
-                      </div>
-
-                      <div className="space-y-1.5 sm:col-span-2">
-                        <Label className="text-xs font-bold text-slate-700">Deskripsi Singkat Program</Label>
-                        <textarea
-                          rows={2}
-                          value={editingProgram.shortDescription || ''}
-                          onChange={e => setEditingProgram({ ...editingProgram, shortDescription: e.target.value })}
-                          placeholder="Penjelasan singkat tujuan pelatihan, kompetensi yang dipelajari, dan penempatan..."
-                          className="w-full p-3 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-bold text-slate-700">Kategori Program</Label>
-                        <Input 
-                          value={editingProgram.category || ''}
-                          onChange={e => setEditingProgram({ ...editingProgram, category: e.target.value })}
-                          placeholder="Contoh: Manufaktur & Vokasi"
-                          className="h-10 rounded-xl text-xs"
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-bold text-slate-700">Batch / Angkatan</Label>
-                        <Input 
-                          value={editingProgram.batch || ''}
-                          onChange={e => setEditingProgram({ ...editingProgram, batch: e.target.value })}
-                          placeholder="Contoh: Batch II / Angkatan 2026"
-                          className="h-10 rounded-xl text-xs"
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-bold text-slate-700">Mitra Kerjasama / Lembaga</Label>
-                        <Input 
-                          value={editingProgram.partnerInstitution || ''}
-                          onChange={e => setEditingProgram({ ...editingProgram, partnerInstitution: e.target.value })}
-                          placeholder="Contoh: BP3MI Jawa Tengah"
-                          className="h-10 rounded-xl text-xs"
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-bold text-slate-700">Target Peserta</Label>
-                        <Input 
-                          value={editingProgram.targetAudience || ''}
-                          onChange={e => setEditingProgram({ ...editingProgram, targetAudience: e.target.value })}
-                          placeholder="Contoh: Lulusan SMK Teknik / Vokasi"
-                          className="h-10 rounded-xl text-xs"
-                        />
-                      </div>
-
-                      <div className="space-y-2 sm:col-span-2">
-                        <Label className="text-xs font-bold text-slate-700 flex items-center justify-between">
-                          <span>Banner Gambar Program Pelatihan</span>
-                          {editingProgram.imageUrl && (
-                            <span className="text-[10px] text-emerald-600 font-bold">✓ Banner Terpasang</span>
-                          )}
-                        </Label>
-                        
-                        {/* Hidden File Input */}
-                        <input 
-                          type="file" 
-                          ref={bannerFileRef}
-                          onChange={handleBannerFileChange}
-                          accept="image/png, image/jpeg, image/webp"
-                          className="hidden"
-                        />
-
-                        {/* Banner Preview & Upload Area */}
-                        <div className="flex flex-col sm:flex-row items-center gap-4 p-3.5 rounded-2xl border border-slate-200 bg-slate-50/60">
-                          {editingProgram.imageUrl ? (
-                            <div className="relative w-full sm:w-44 h-24 rounded-xl overflow-hidden bg-slate-900 border border-slate-200 shrink-0 shadow-2xs group">
-                              <img 
-                                src={editingProgram.imageUrl} 
-                                alt="Preview Banner" 
-                                className="w-full h-full object-cover"
-                              />
-                              <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <button
-                                  type="button"
-                                  onClick={() => bannerFileRef.current?.click()}
-                                  className="text-[10px] font-bold text-white bg-slate-900/80 px-2.5 py-1 rounded-lg"
-                                >
-                                  Ganti Gambar
-                                </button>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="w-full sm:w-44 h-24 rounded-xl border-2 border-dashed border-slate-300 bg-white flex flex-col items-center justify-center text-slate-400 shrink-0">
-                              <ImageIcon size={24} className="mb-1" />
-                              <span className="text-[10px] font-medium">Belum ada banner</span>
-                            </div>
-                          )}
-
-                          <div className="flex-1 space-y-2 w-full">
-                            <div className="flex items-center gap-2">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                disabled={isUploadingBanner}
-                                onClick={() => bannerFileRef.current?.click()}
-                                className="rounded-xl text-xs font-bold border-emerald-200 text-emerald-800 bg-emerald-50 hover:bg-emerald-100 h-9 gap-1.5 shadow-2xs cursor-pointer"
-                              >
-                                {isUploadingBanner ? (
-                                  <>
-                                    <Loader2 size={14} className="animate-spin" />
-                                    <span>Mengunggah...</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <UploadCloud size={14} />
-                                    <span>Upload Banner dari Perangkat</span>
-                                  </>
-                                )}
-                              </Button>
-                              
-                              {editingProgram.imageUrl && (
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => setEditingProgram(prev => ({ ...prev, imageUrl: '' }))}
-                                  className="text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 h-9 rounded-xl"
-                                >
-                                  Hapus Banner
-                                </Button>
-                              )}
-                            </div>
-
-                            <p className="text-[11px] text-slate-500">
-                              Format: JPG, PNG, WebP (Rekomendasi rasio 16:9 atau 1200×630px, maksimal 5MB).
-                            </p>
-
-                            <Input 
-                              value={editingProgram.imageUrl || ''}
-                              onChange={e => setEditingProgram({ ...editingProgram, imageUrl: e.target.value })}
-                              placeholder="Atau tempel URL gambar eksternal di sini..."
-                              className="h-8 rounded-lg text-[11px] bg-white border-slate-200"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* KUSTOMISASI ASPEK EVALUASI / KRITERIA REVIEW */}
-                  <div className="space-y-4 pt-4 border-t border-slate-100">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="text-xs font-black text-slate-900 uppercase tracking-widest">
-                          Kustomisasi Kriteria Penilaian (Rating Aspek)
-                        </h4>
-                        <p className="text-[11px] text-slate-500">
-                          Pengulas akan memberikan rating 1-5 bintang untuk masing-masing aspek di bawah ini:
-                        </p>
-                      </div>
-                      <Button 
-                        type="button" 
-                        size="sm" 
-                        onClick={handleAddAspect} 
-                        className="rounded-xl h-8 text-xs font-bold bg-slate-900 text-white"
-                      >
-                        <Plus size={13} className="mr-1" /> Tambah Aspek
-                      </Button>
-                    </div>
-
-                    <div className="space-y-3">
-                      {editingProgram.aspects?.map((aspect, idx) => (
-                        <div 
-                          key={idx} 
-                          className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row gap-3 items-start sm:items-center"
-                        >
-                          <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 text-slate-700 font-black text-xs flex items-center justify-center shrink-0">
-                            {idx + 1}
-                          </div>
-                          <div className="flex-1 space-y-1.5 w-full">
-                            <Input 
-                              value={aspect.label}
-                              onChange={e => handleAspectChange(idx, 'label', e.target.value)}
-                              placeholder="Nama Aspek (contoh: Kurikulum & Materi)"
-                              className="h-9 rounded-lg bg-white text-xs font-bold"
-                            />
-                            <Input 
-                              value={aspect.description || ''}
-                              onChange={e => handleAspectChange(idx, 'description', e.target.value)}
-                              placeholder="Keterangan panduan aspek (contoh: Kesesuaian materi dengan industri)"
-                              className="h-8 rounded-lg bg-white text-[11px]"
-                            />
-                          </div>
+                        <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                           <button
                             type="button"
-                            onClick={() => handleRemoveAspect(idx)}
-                            className="text-red-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 self-end sm:self-center transition-colors"
-                            title="Hapus Aspek"
+                            onClick={() => bannerFileRef.current?.click()}
+                            className="text-[10px] font-bold text-white bg-slate-900/80 px-2.5 py-1 rounded-lg"
                           >
-                            <Trash2 size={16} />
+                            Ganti Gambar
                           </button>
                         </div>
-                      ))}
+                      </div>
+                    ) : (
+                      <div className="w-full sm:w-44 h-24 rounded-xl border-2 border-dashed border-slate-300 bg-white flex flex-col items-center justify-center text-slate-400 shrink-0">
+                        <ImageIcon size={24} className="mb-1" />
+                        <span className="text-[10px] font-medium">Belum ada banner</span>
+                      </div>
+                    )}
+
+                    <div className="flex-1 space-y-2 w-full">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={isUploadingBanner}
+                          onClick={() => bannerFileRef.current?.click()}
+                          className="rounded-xl text-xs font-bold border-emerald-200 text-emerald-800 bg-emerald-50 hover:bg-emerald-100 h-9 gap-1.5 shadow-2xs cursor-pointer"
+                        >
+                          {isUploadingBanner ? (
+                            <>
+                              <Loader2 size={14} className="animate-spin" />
+                              <span>Mengunggah...</span>
+                            </>
+                          ) : (
+                            <>
+                              <UploadCloud size={14} />
+                              <span>Upload Banner dari Perangkat</span>
+                            </>
+                          )}
+                        </Button>
+                        
+                        {editingProgram.imageUrl && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setEditingProgram(prev => ({ ...prev, imageUrl: '' }))}
+                            className="text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 h-9 rounded-xl"
+                          >
+                            Hapus Banner
+                          </Button>
+                        )}
+                      </div>
+
+                      <p className="text-[11px] text-slate-500">
+                        Format: JPG, PNG, WebP (Rekomendasi rasio 16:9 atau 1200×630px, maksimal 5MB).
+                      </p>
+
+                      <Input 
+                        value={editingProgram.imageUrl || ''}
+                        onChange={e => setEditingProgram({ ...editingProgram, imageUrl: e.target.value })}
+                        placeholder="Atau tempel URL gambar eksternal di sini..."
+                        className="h-8 rounded-lg text-[11px] bg-white border-slate-200"
+                      />
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
 
-                {/* Footer Modal */}
-                <div className="p-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50/50 shrink-0">
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    onClick={() => setIsProgramModalOpen(false)}
-                    className="rounded-xl font-bold text-xs"
-                  >
-                    Batal
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    disabled={isSavingProgram}
-                    className="rounded-xl bg-slate-900 text-white font-bold text-xs px-6 shadow-sm"
-                  >
-                    {isSavingProgram ? <Loader2 size={14} className="animate-spin mr-1.5" /> : <Save size={14} className="mr-1.5" />}
-                    Simpan Program
-                  </Button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* MODAL TANGGAPAN RESMI ADMIN */}
-      <AnimatePresence>
-        {responseModalReview && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-3xl w-full max-w-lg shadow-2xl p-6 space-y-4"
-            >
-              <div className="flex justify-between items-start">
+            {/* KUSTOMISASI ASPEK EVALUASI / KRITERIA REVIEW */}
+            <div className="space-y-4 pt-4 border-t border-slate-100">
+              <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-base font-black text-slate-900">Tanggapan Resmi Solo Technopark</h3>
-                  <p className="text-xs text-slate-500">
-                    Membalas ulasan dari: <strong>{responseModalReview.reviewerName}</strong>
+                  <h4 className="text-xs font-black text-slate-900 uppercase tracking-widest">
+                    Kustomisasi Kriteria Penilaian (Rating Aspek)
+                  </h4>
+                  <p className="text-[11px] text-slate-500">
+                    Pengulas akan memberikan rating 1-5 bintang untuk masing-masing aspek di bawah ini:
                   </p>
                 </div>
-                <button onClick={() => setResponseModalReview(null)} className="text-slate-400 p-1.5 hover:bg-slate-100 rounded-full">
-                  <X size={16} />
-                </button>
-              </div>
-
-              <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 text-xs text-slate-700">
-                <p className="font-bold mb-1">"{responseModalReview.headline}"</p>
-                <p className="italic text-slate-500">"{responseModalReview.feedback}"</p>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-slate-700">Tulis Tanggapan Resmi</Label>
-                <textarea
-                  rows={4}
-                  value={responseText}
-                  onChange={e => setResponseText(e.target.value)}
-                  placeholder="Tuliskan ucapan terima kasih, penjelasan evaluasi, atau komitmen tindak lanjut dari Solo Technopark..."
-                  className="w-full p-3 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
                 <Button 
                   type="button" 
-                  variant="ghost" 
-                  onClick={() => setResponseModalReview(null)}
-                  className="rounded-xl text-xs font-bold"
+                  size="sm" 
+                  onClick={handleAddAspect} 
+                  className="rounded-xl h-8 text-xs font-bold bg-slate-900 text-white"
                 >
-                  Batal
-                </Button>
-                <Button 
-                  onClick={handleSaveResponse}
-                  disabled={isSubmittingResponse}
-                  className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
-                >
-                  {isSubmittingResponse ? <Loader2 size={14} className="animate-spin mr-1.5" /> : <Save size={14} className="mr-1.5" />}
-                  Kirim Tanggapan
+                  <Plus size={13} className="mr-1" /> Tambah Aspek
                 </Button>
               </div>
-            </motion.div>
+
+              <div className="space-y-3">
+                {editingProgram.aspects?.map((aspect, idx) => (
+                  <div 
+                    key={idx} 
+                    className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row gap-3 items-start sm:items-center"
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 text-slate-700 font-black text-xs flex items-center justify-center shrink-0">
+                      {idx + 1}
+                    </div>
+                    <div className="flex-1 space-y-1.5 w-full">
+                      <Input 
+                        value={aspect.label}
+                        onChange={e => handleAspectChange(idx, 'label', e.target.value)}
+                        placeholder="Nama Aspek (contoh: Kurikulum & Materi)"
+                        className="h-9 rounded-lg bg-white text-xs font-bold"
+                      />
+                      <Input 
+                        value={aspect.description || ''}
+                        onChange={e => handleAspectChange(idx, 'description', e.target.value)}
+                        placeholder="Keterangan panduan aspek (contoh: Kesesuaian materi dengan industri)"
+                        className="h-8 rounded-lg bg-white text-[11px]"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveAspect(idx)}
+                      className="text-red-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 self-end sm:self-center transition-colors"
+                      title="Hapus Aspek"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </form>
+        )}
+      </AdminFormDrawer>
+
+      {/* DRAWER TANGGAPAN RESMI ADMIN */}
+      <AdminFormDrawer
+        isOpen={Boolean(responseModalReview)}
+        onClose={() => setResponseModalReview(null)}
+        title="Tanggapan Resmi Solo Technopark"
+        subtitle={responseModalReview ? `Membalas ulasan dari: ${responseModalReview.reviewerName}` : ''}
+        maxWidth="md"
+        footer={
+          <>
+            <Button 
+              type="button" 
+              variant="ghost" 
+              onClick={() => setResponseModalReview(null)}
+              className="rounded-xl text-xs font-bold"
+            >
+              Batal
+            </Button>
+            <Button 
+              onClick={handleSaveResponse}
+              disabled={isSubmittingResponse}
+              className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
+            >
+              {isSubmittingResponse ? <Loader2 size={14} className="animate-spin mr-1.5" /> : <Save size={14} className="mr-1.5" />}
+              Kirim Tanggapan
+            </Button>
+          </>
+        }
+      >
+        {responseModalReview && (
+          <div className="space-y-4">
+            <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 text-xs text-slate-700">
+              <p className="font-bold mb-1">"{responseModalReview.headline}"</p>
+              <p className="italic text-slate-500">"{responseModalReview.feedback}"</p>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold text-slate-700">Tulis Tanggapan Resmi</Label>
+              <textarea
+                rows={4}
+                value={responseText}
+                onChange={e => setResponseText(e.target.value)}
+                placeholder="Tuliskan ucapan terima kasih, penjelasan evaluasi, atau komitmen tindak lanjut dari Solo Technopark..."
+                className="w-full p-3 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
+              />
+            </div>
           </div>
         )}
-      </AnimatePresence>
+      </AdminFormDrawer>
     </div>
   );
 }

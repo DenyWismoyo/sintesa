@@ -11,7 +11,7 @@ export interface AdminFilterOption {
 export interface AdminFilterSelect {
   id?: string;
   key?: string;
-  label: string;
+  label?: string;
   value: string;
   options: AdminFilterOption[];
   onChange: (value: string) => void;
@@ -25,9 +25,11 @@ export interface AdminFilterBarProps {
   searchPlaceholder?: string;
   filters?: AdminFilterSelect[];
   extraActions?: React.ReactNode;
+  actions?: React.ReactNode;
   totalHits?: number;
   totalLabel?: string;
   activeCount?: number;
+  hasActiveFilters?: boolean;
   onReset?: () => void;
   className?: string;
 }
@@ -39,18 +41,23 @@ export default function AdminFilterBar({
   searchPlaceholder = "Cari data...",
   filters = [],
   extraActions,
+  actions,
   totalHits,
   totalLabel = "data",
   activeCount,
+  hasActiveFilters: hasActiveFiltersProp,
   onReset,
   className = ''
 }: AdminFilterBarProps) {
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const currentSearch = searchValue !== undefined ? searchValue : (searchTerm || '');
+  const resolvedExtraActions = extraActions ?? actions;
 
-  const hasActiveFilters = activeCount !== undefined 
-    ? activeCount > 0 
-    : filters.some(f => f.value && f.value !== 'ALL' && f.value !== 'Semua');
+  const hasActiveFilters = hasActiveFiltersProp !== undefined
+    ? hasActiveFiltersProp
+    : activeCount !== undefined 
+      ? activeCount > 0 
+      : filters.some(f => f.value && f.value !== 'ALL' && f.value !== 'Semua');
 
   return (
     <div className={`bg-white rounded-2xl border border-slate-200 shadow-xs p-3 sm:p-4 space-y-3 ${className}`}>
@@ -126,9 +133,9 @@ export default function AdminFilterBar({
           </div>
 
           {/* Extra Actions (e.g. Export, Import) */}
-          {extraActions && (
+          {resolvedExtraActions && (
             <div className="flex items-center gap-2">
-              {extraActions}
+              {resolvedExtraActions}
             </div>
           )}
 

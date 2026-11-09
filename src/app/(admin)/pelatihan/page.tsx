@@ -4,14 +4,24 @@ import React, { useState } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Plus, Search, Edit, Trash2, Calendar, Loader2, LayoutGrid, Users, BookOpen, Tag, GraduationCap, Briefcase, Layers, Receipt } from 'lucide-react';
-import { AdminPageHeader } from '@/components/admin';
+import {
+  AdminPageHeader,
+  AdminStatGrid,
+  AdminFilterBar,
+  AdminResponsiveView,
+  AdminMobileCard,
+} from '@/components/admin';
 import { useTraining } from '@/hooks/useTraining';
+import { useAdminTab } from '@/hooks/useAdminTab';
 import { canPerformAction, PERMISSIONS } from '@/config/roles';
 import { toast } from 'sonner';
 
 import AlumniTab from './components/AlumniTab';
 import TalentPoolTab from './components/TalentPoolTab';
 import DivisionInvoiceTracker from '@/components/finance/DivisionInvoiceTracker';
+
+const PELATIHAN_TABS = ['lms', 'alumni', 'talent', 'tagihan'] as const;
+type PelatihanTab = (typeof PELATIHAN_TABS)[number];
 
 export default function AdminPelatihanPage() {
   const { user, role, loading: authLoading } = useAuth();
@@ -21,7 +31,7 @@ export default function AdminPelatihanPage() {
   const canManageAlumni = canPerformAction(role, PERMISSIONS.MANAGE_ALUMNI);
   const canManageTalent = canPerformAction(role, PERMISSIONS.MANAGE_TALENT);
 
-  const [activeView, setActiveView] = useState<'lms' | 'alumni' | 'talent' | 'tagihan'>('lms');
+  const [activeView, setActiveView] = useAdminTab<PelatihanTab>('lms', PELATIHAN_TABS);
 
   const { trainings, loading, fetchNextPage, hasNextPage, deleteTraining } = useTraining();
   
@@ -59,6 +69,13 @@ export default function AdminPelatihanPage() {
   const activeParticipants = trainings.reduce((acc, curr) => acc + (curr.registeredCount || 0), 0);
   const onlineClasses = trainings.filter(t => t.type?.includes('Online') || t.type?.includes('Video')).length;
 
+  const availableTabs = [
+    ...(canManageLMS ? [{ id: 'lms', label: 'Manajemen LMS', icon: <BookOpen size={14} />, badge: totalClasses }] : []),
+    ...(canManageAlumni ? [{ id: 'alumni', label: 'Database Master Alumni', icon: <GraduationCap size={14} /> }] : []),
+    ...(canManageTalent ? [{ id: 'talent', label: 'Direktori Talent & Karir', icon: <Briefcase size={14} /> }] : []),
+    ...(canManageLMS ? [{ id: 'tagihan', label: 'Tagihan Diklat', icon: <Receipt size={14} /> }] : []),
+  ];
+
   return (
     <div className="w-full space-y-6 pb-24 animate-in fade-in duration-300">
       
@@ -68,118 +85,87 @@ export default function AdminPelatihanPage() {
         subtitle="Manajemen program diklat, kelas digital, peserta kursus, dan database master alumni."
         badge={`${totalClasses} Program Terdaftar`}
         breadcrumbs={[{ label: 'Pelatihan & LMS' }]}
+        tabs={availableTabs}
+        activeTab={activeView}
+        onTabChange={(id) => setActiveView(id as PelatihanTab)}
         actions={
           canManageLMS && activeView === 'lms' ? (
             <button 
               onClick={() => router.push('/pelatihan/builder')} 
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-xs shadow-blue-200 transition-all shrink-0"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-xs shadow-blue-200 transition-all shrink-0"
             >
-              <Plus size={16} /> Buat Kelas Baru
+              <Plus size={15} /> Buat Kelas Baru
             </button>
           ) : undefined
         }
-      >
-        {/* NAVIGASI PILL TAB KONSISTEN */}
-        <div className="flex bg-slate-100/80 p-1.5 rounded-xl overflow-x-auto w-full xl:w-auto hide-scrollbar">
-          {canManageLMS && (
-            <button 
-              onClick={() => setActiveView('lms')} 
-              className={`flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
-                activeView === 'lms' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-              }`}
-            >
-              <BookOpen size={16} /> Manajemen LMS
-            </button>
-          )}
-          {canManageAlumni && (
-            <button 
-              onClick={() => setActiveView('alumni')} 
-              className={`flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
-                activeView === 'alumni' ? 'bg-white text-emerald-700 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-              }`}
-            >
-              <GraduationCap size={16} /> Database Master Alumni
-            </button>
-          )}
-          {canManageTalent && (
-            <button 
-              onClick={() => setActiveView('talent')} 
-              className={`flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
-                activeView === 'talent' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-              }`}
-            >
-              <Briefcase size={16} /> Direktori Talent & Karir
-            </button>
-          )}
-          {canManageLMS && (
-            <button 
-              onClick={() => setActiveView('tagihan')} 
-              className={`flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
-                activeView === 'tagihan' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-              }`}
-            >
-              <Receipt size={16} /> Tagihan Diklat
-            </button>
-          )}
-        </div>
-      </AdminPageHeader>
+      />
 
       {/* METRIC CARDS BANNER */}
       {activeView === 'lms' && canManageLMS && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white p-4 rounded-2xl border border-slate-200/90 flex items-center gap-3.5 shadow-2xs">
-            <div className="p-3 rounded-xl bg-blue-50 text-blue-600"><BookOpen size={18} strokeWidth={2.5}/></div>
-            <div className="flex flex-col"><span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Kelas</span><h3 className="text-xl sm:text-2xl font-black text-slate-800">{totalClasses}</h3></div>
-          </div>
-          <div className="bg-white p-4 rounded-2xl border border-slate-200/90 flex items-center gap-3.5 shadow-2xs">
-            <div className="p-3 rounded-xl bg-emerald-50 text-emerald-600"><Users size={18} strokeWidth={2.5}/></div>
-            <div className="flex flex-col"><span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Peserta</span><h3 className="text-xl sm:text-2xl font-black text-slate-800">{activeParticipants}</h3></div>
-          </div>
-          <div className="bg-white p-4 rounded-2xl border border-slate-200/90 flex items-center gap-3.5 shadow-2xs">
-            <div className="p-3 rounded-xl bg-indigo-50 text-indigo-600"><Tag size={18} strokeWidth={2.5}/></div>
-            <div className="flex flex-col"><span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Kelas Digital</span><h3 className="text-xl sm:text-2xl font-black text-slate-800">{onlineClasses}</h3></div>
-          </div>
-        </div>
+        <AdminStatGrid
+          columns={3}
+          items={[
+            {
+              label: 'Total Kelas',
+              value: totalClasses,
+              icon: <BookOpen size={18} strokeWidth={2.5} />,
+              color: 'blue',
+              subtext: 'Program pelatihan aktif & arsip',
+            },
+            {
+              label: 'Total Peserta',
+              value: activeParticipants,
+              icon: <Users size={18} strokeWidth={2.5} />,
+              color: 'emerald',
+              subtext: 'Akumulasi peserta terdaftar',
+            },
+            {
+              label: 'Kelas Digital',
+              value: onlineClasses,
+              icon: <Tag size={18} strokeWidth={2.5} />,
+              color: 'indigo',
+              subtext: 'Kursus video & online mandiri',
+            },
+          ]}
+        />
       )}
 
       {activeView === 'lms' && canManageLMS && (
         <div className="space-y-4 animate-in fade-in duration-300">
           {/* SEARCH TOOLBAR */}
-          <div className="bg-white p-3 sm:p-4 rounded-2xl shadow-2xs border border-slate-200/90 flex flex-col md:flex-row gap-3 justify-between items-center">
-            <div className="relative w-full md:w-80">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input 
-                placeholder="Cari judul kelas..." 
-                value={searchTerm} 
-                onChange={(e) => setSearchTerm(e.target.value)} 
-                className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium" 
-              />
-            </div>
-            <span className="text-xs font-medium text-slate-500 hidden sm:inline-block">
-              Total: <strong className="text-slate-800">{filteredTrainings.length}</strong> kelas ditemukan
-            </span>
-          </div>
+          <AdminFilterBar
+            searchValue={searchTerm}
+            onSearchChange={setSearchTerm}
+            searchPlaceholder="Cari judul kelas pelatihan..."
+            hasActiveFilters={Boolean(searchTerm)}
+            onReset={() => setSearchTerm('')}
+            actions={
+              <span className="text-xs font-medium text-slate-500 hidden sm:inline-block px-2">
+                Total: <strong className="text-slate-800">{filteredTrainings.length}</strong> kelas ditemukan
+              </span>
+            }
+          />
 
-          {/* TABLE DATA */}
-          <div className="bg-white rounded-2xl shadow-2xs border border-slate-200/90 overflow-hidden">
-            <div className="overflow-x-auto min-h-[400px]">
-              <table className="w-full text-sm text-left border-collapse">
-                <thead className="text-xs text-slate-500 uppercase bg-slate-50/80 border-b border-slate-150 font-bold tracking-wider">
-                  <tr>
-                    <th className="px-5 py-3.5 w-[38%]">Detail Kelas</th>
-                    <th className="px-5 py-3.5 w-[20%]">Harga & Tipe</th>
-                    <th className="px-5 py-3.5 w-[16%]">Peserta</th>
-                    <th className="px-5 py-3.5 w-[14%]">Status</th>
-                    <th className="px-5 py-3.5 w-[12%] text-right pr-6">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 bg-white">
-                  {loading && trainings.length === 0 ? (
-                    <tr><td colSpan={5} className="px-6 py-20 text-center"><Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto" /></td></tr>
-                  ) : filteredTrainings.length === 0 ? (
-                    <tr><td colSpan={5} className="px-6 py-20 text-center"><LayoutGrid className="h-12 w-12 text-slate-300 mx-auto" /></td></tr>
-                  ) : (
-                    filteredTrainings.map((t) => (
+          {/* TABLE & RESPONSIVE CARD DATA */}
+          <AdminResponsiveView
+            items={filteredTrainings}
+            isLoading={loading && trainings.length === 0}
+            emptyTitle="Tidak ada kelas pelatihan ditemukan"
+            emptyMessage="Belum ada program pelatihan yang sesuai dengan kata kunci pencarian Anda."
+            renderDesktopTable={(items) => (
+              <div>
+                <table className="w-full text-sm text-left border-collapse">
+                  <thead className="text-xs text-slate-500 uppercase bg-slate-50/80 border-b border-slate-150 font-bold tracking-wider">
+                    <tr>
+                      <th className="px-5 py-3.5 w-[38%]">Detail Kelas</th>
+                      <th className="px-5 py-3.5 w-[20%]">Harga & Tipe</th>
+                      <th className="px-5 py-3.5 w-[16%]">Peserta</th>
+                      <th className="px-5 py-3.5 w-[14%]">Status</th>
+                      <th className="px-5 py-3.5 w-[12%] text-right pr-6">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 bg-white">
+                    {items.map((t) => (
                       <tr key={t.id} className="hover:bg-slate-50/70 transition-colors group cursor-pointer" onClick={() => router.push(`/pelatihan/${t.id}/peserta`)}>
                         <td className="px-5 py-3.5">
                           <p className="font-bold text-slate-800 text-sm group-hover:text-blue-600 line-clamp-1 transition-colors">{t.title}</p>
@@ -207,17 +193,46 @@ export default function AdminPelatihanPage() {
                           </div>
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-            {hasNextPage && (
-              <div className="px-5 py-3.5 border-t border-slate-200/80 flex justify-center bg-slate-50/70">
-                <button onClick={() => fetchNextPage()} className="px-5 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold shadow-2xs hover:bg-slate-50 transition-colors">Muat Lebih Banyak</button>
+                    ))}
+                  </tbody>
+                </table>
+                {hasNextPage && (
+                  <div className="px-5 py-3.5 border-t border-slate-200/80 flex justify-center bg-slate-50/70">
+                    <button onClick={() => fetchNextPage()} className="px-5 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold shadow-2xs hover:bg-slate-50 transition-colors">Muat Lebih Banyak</button>
+                  </div>
+                )}
               </div>
             )}
-          </div>
+            renderMobileCard={(t) => (
+              <AdminMobileCard
+                title={t.title}
+                subtitle={`${t.type || 'Offline'} • ${t.date ? new Date(t.date).toLocaleDateString('id-ID') : 'Video Course'}`}
+                badge={
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md border uppercase bg-emerald-50 text-emerald-700 border-emerald-200">
+                    {t.status}
+                  </span>
+                }
+                fields={[
+                  {
+                    label: 'Biaya',
+                    value: t.isFree ? 'GRATIS' : new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(t.price || 0),
+                  },
+                  {
+                    label: 'Peserta',
+                    value: `${t.registeredCount || 0} / ${t.quota === 0 ? '∞' : t.quota}`,
+                  },
+                ]}
+                footer={
+                  <div className="flex items-center justify-end gap-1.5 w-full">
+                    <button onClick={() => router.push(`/pelatihan/${t.id}/peserta?view=batches`)} className="px-2.5 py-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg flex items-center gap-1"><Layers size={13} /> Batch</button>
+                    <button onClick={() => router.push(`/pelatihan/${t.id}/peserta`)} className="px-2.5 py-1.5 text-xs font-bold text-blue-600 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-1"><Users size={13} /> Peserta</button>
+                    <button onClick={() => router.push(`/pelatihan/builder?id=${t.id}`)} className="p-1.5 text-slate-600 bg-white border border-slate-200 rounded-lg"><Edit size={14} /></button>
+                    <button onClick={() => t.id && handleDelete(t.id)} className="p-1.5 text-red-600 bg-white border border-red-200 rounded-lg"><Trash2 size={14} /></button>
+                  </div>
+                }
+              />
+            )}
+          />
         </div>
       )}
 

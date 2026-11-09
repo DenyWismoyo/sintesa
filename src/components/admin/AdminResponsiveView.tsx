@@ -8,6 +8,7 @@ export interface AdminResponsiveViewProps<T> {
   loading?: boolean;
   isLoading?: boolean;
   loadingMessage?: string;
+  emptyIcon?: React.ReactNode;
   emptyTitle?: string;
   emptyMessage?: string;
   emptySubtitle?: string;
@@ -26,6 +27,7 @@ export default function AdminResponsiveView<T>({
   loading,
   isLoading,
   loadingMessage = "Memuat Data Sistem...",
+  emptyIcon,
   emptyTitle = "Data Tidak Ditemukan",
   emptyMessage,
   emptySubtitle,
@@ -44,8 +46,8 @@ export default function AdminResponsiveView<T>({
   // 1. STATE LOADING
   if (isCurrentlyLoading && items.length === 0) {
     return (
-      <div className={`bg-white rounded-3xl border border-slate-200 p-12 flex flex-col items-center justify-center text-center shadow-xs ${className}`}>
-        <Loader2 className="w-10 h-10 animate-spin text-blue-600 mb-3" />
+      <div className={`bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-10 sm:p-12 flex flex-col items-center justify-center text-center shadow-xs ${className}`}>
+        <Loader2 className="w-9 h-9 animate-spin text-blue-600 mb-3" />
         <p className="text-sm font-bold text-slate-700">{loadingMessage}</p>
         <p className="text-xs text-slate-400 mt-1">Mengambil informasi terbaru dari basis data.</p>
       </div>
@@ -55,9 +57,9 @@ export default function AdminResponsiveView<T>({
   // 2. STATE KOSONG (EMPTY STATE)
   if (!isCurrentlyLoading && items.length === 0) {
     return (
-      <div className={`bg-white rounded-3xl border border-slate-200 p-12 flex flex-col items-center justify-center text-center shadow-xs ${className}`}>
-        <div className="w-16 h-16 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 mb-4">
-          <SearchX className="w-8 h-8" />
+      <div className={`bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-10 sm:p-12 flex flex-col items-center justify-center text-center shadow-xs ${className}`}>
+        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 mb-4">
+          {emptyIcon || <SearchX className="w-7 h-7 sm:w-8 sm:h-8" />}
         </div>
         <h3 className="text-base font-bold text-slate-800 tracking-tight">
           {emptyTitle}
@@ -81,22 +83,25 @@ export default function AdminResponsiveView<T>({
     );
   }
 
-  // 3. RENDER DATA (HYBRID DESKTOP TABLE & MOBILE CARD LIST)
+  // 3. RENDER DATA (3-DEVICE ADAPTIVE: PC TABLE, TABLET 2-COL GRID, SMARTPHONE 1-COL CARDS)
   return (
     <div className={`space-y-4 ${className}`}>
-      {/* DESKTOP VIEW: Tabel Lengkap (Breakpoint lg ke atas) */}
+      {/* DESKTOP VIEW (PC >= 1024px / lg:): Tabel Lengkap */}
       <div className="hidden lg:block bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto custom-scrollbar">
           {renderDesktopTable(items)}
         </div>
       </div>
 
-      {/* MOBILE & TABLET VIEW: Compact Cards (Breakpoint di bawah lg) */}
-      <div className="lg:hidden space-y-3">
+      {/* TABLET (md: 2 Kolom) & SMARTPHONE (< md: 1 Kolom) VIEW: Responsive Cards */}
+      <div className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-3.5">
         {items.map((item, index) => {
           const key = keyExtractor ? keyExtractor(item, index) : ((item as any)?.id || index);
           return (
-            <div key={key} className="bg-white rounded-2xl border border-slate-200 shadow-xs p-4 transition-all hover:border-blue-200">
+            <div
+              key={key}
+              className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-3.5 sm:p-4 transition-all hover:border-blue-200 flex flex-col justify-between"
+            >
               {renderMobileCard(item, index)}
             </div>
           );

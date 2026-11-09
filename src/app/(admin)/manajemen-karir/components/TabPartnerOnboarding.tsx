@@ -32,6 +32,7 @@ import {
 } from '@/hooks/usePartners';
 import { ConvertInquiryResult } from '@/services/partner.service';
 import { toast } from 'sonner';
+import { AdminResponsiveView, AdminMobileCard, AdminFormDrawer } from '@/components/admin';
 
 interface TabPartnerOnboardingProps {
   pendingJobs: JobListing[];
@@ -224,29 +225,26 @@ export default function TabPartnerOnboarding({
           </div>
         </div>
 
-        {loadingInquiries ? (
-          <div className="py-8 flex justify-center">
-            <Loader2 className="w-5 h-5 animate-spin text-emerald-600" />
-          </div>
-        ) : inquiries.length === 0 ? (
-          <div className="p-6 rounded-2xl bg-slate-50 text-center text-xs text-slate-500">
-            Belum ada pengajuan calon mitra dari formulir `/kemitraan`.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
+        <AdminResponsiveView
+          items={inquiries.slice(0, 20)}
+          isLoading={loadingInquiries}
+          loadingMessage="Memuat daftar calon mitra..."
+          emptyTitle="Belum Ada Pengajuan Calon Mitra"
+          emptySubtitle="Belum ada pengajuan calon mitra dari formulir /kemitraan."
+          renderDesktopTable={() => (
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase">
-                  <th className="py-2.5 pr-4">Instansi / Perusahaan</th>
-                  <th className="py-2.5 px-4">PIC & Kontak</th>
-                  <th className="py-2.5 px-4">Fokus Kerjasama</th>
-                  <th className="py-2.5 pl-4 text-right">Status & Onboarding</th>
+                <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase bg-slate-50/70">
+                  <th className="py-3 px-4">Instansi / Perusahaan</th>
+                  <th className="py-3 px-4">PIC & Kontak</th>
+                  <th className="py-3 px-4">Fokus Kerjasama</th>
+                  <th className="py-3 px-4 text-right">Status & Onboarding</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {inquiries.slice(0, 20).map((inq) => (
                   <tr key={inq.id} className="hover:bg-slate-50/70">
-                    <td className="py-3 pr-4">
+                    <td className="py-3 px-4">
                       <div className="font-bold text-slate-900">{inq.agencyName}</div>
                       <div className="text-[11px] text-slate-500">{inq.agencyType}</div>
                     </td>
@@ -265,7 +263,7 @@ export default function TabPartnerOnboarding({
                         {inq.partnershipType === 'TALENT_RECRUITMENT' ? 'Rekrutmen Talenta' : inq.partnershipType}
                       </span>
                     </td>
-                    <td className="py-3 pl-4 text-right">
+                    <td className="py-3 px-4 text-right">
                       {inq.convertedPartnerId ? (
                         <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700">
                           <ShieldCheck className="w-3.5 h-3.5" /> Mitra Resmi Aktif
@@ -290,8 +288,49 @@ export default function TabPartnerOnboarding({
                 ))}
               </tbody>
             </table>
-          </div>
-        )}
+          )}
+          renderMobileCard={(inq) => (
+            <AdminMobileCard
+              key={inq.id}
+              code={inq.agencyType}
+              title={inq.agencyName}
+              subtitle={`${inq.picName} (${inq.picEmail})`}
+              badge={
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    inq.partnershipType === 'TALENT_RECRUITMENT'
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : 'bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  {inq.partnershipType === 'TALENT_RECRUITMENT' ? 'Rekrutmen Talenta' : inq.partnershipType}
+                </span>
+              }
+              fields={[{ label: 'Kontak WA', value: inq.picPhone, fullWidth: true }]}
+              actions={
+                inq.convertedPartnerId ? (
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700">
+                    <ShieldCheck className="w-3.5 h-3.5" /> Mitra Resmi Aktif
+                  </span>
+                ) : (
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedInquiry(inq);
+                      setTier(
+                        inq.agencyType.includes('Pemerintah') ? 'GOVERNMENT_RSKB' : 'HIRING_PARTNER'
+                      );
+                    }}
+                    className="h-8 px-3 rounded-xl bg-slate-900 hover:bg-emerald-700 text-white text-xs font-bold gap-1.5 w-full sm:w-auto"
+                  >
+                    <UserCheck className="w-3.5 h-3.5" /> Aktifkan Akun Mitra
+                  </Button>
+                )
+              }
+            />
+          )}
+        />
       </div>
 
       {/* 4. Mediasi Undangan Wawancara ke Alumni */}
@@ -336,83 +375,73 @@ export default function TabPartnerOnboarding({
       )}
 
       {/* Modal Konversi Mitra Resmi */}
-      {selectedInquiry && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <form
-            onSubmit={handleConvertPartner}
-            className="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-md p-6 space-y-4"
-          >
-            <div className="flex items-start justify-between">
-              <div>
-                <h4 className="text-base font-bold text-slate-900">
-                  Aktifkan Portal Mitra Resmi
-                </h4>
-                <p className="text-xs text-slate-500">
-                  {selectedInquiry.agencyName} ({selectedInquiry.picEmail})
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedInquiry(null)}
-                className="p-1 text-slate-400 hover:text-slate-700"
+      <AdminFormDrawer
+        isOpen={Boolean(selectedInquiry)}
+        onClose={() => setSelectedInquiry(null)}
+        title="Aktifkan Portal Mitra Resmi"
+        subtitle={
+          selectedInquiry
+            ? `${selectedInquiry.agencyName} (${selectedInquiry.picEmail})`
+            : undefined
+        }
+        asPage={false}
+        maxWidth="md"
+        footer={
+          <div className="flex justify-end gap-2 w-full">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setSelectedInquiry(null)}
+              className="rounded-xl text-xs font-bold"
+            >
+              Batal
+            </Button>
+            <Button
+              type="submit"
+              form="form-convert-partner"
+              disabled={convertInquiryMutation.isPending}
+              className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
+            >
+              {convertInquiryMutation.isPending ? 'Membuat Akun...' : 'Buat Akun Mitra Resmi'}
+            </Button>
+          </div>
+        }
+      >
+        {selectedInquiry && (
+          <form id="form-convert-partner" onSubmit={handleConvertPartner} className="space-y-3">
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700">Tingkatan Kemitraan</label>
+              <select
+                value={tier}
+                onChange={(e) => setTier(e.target.value as PartnerTier)}
+                className="w-full h-10 px-3 rounded-xl border border-slate-200 text-xs font-bold"
               >
-                <X className="w-4 h-4" />
-              </button>
+                {(Object.keys(PARTNER_TIER_LABELS) as PartnerTier[]).map((k) => (
+                  <option key={k} value={k}>
+                    {PARTNER_TIER_LABELS[k]}
+                  </option>
+                ))}
+              </select>
             </div>
-
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Tingkatan Kemitraan</label>
-                <select
-                  value={tier}
-                  onChange={(e) => setTier(e.target.value as PartnerTier)}
-                  className="w-full h-10 px-3 rounded-xl border border-slate-200 text-xs font-bold"
-                >
-                  {(Object.keys(PARTNER_TIER_LABELS) as PartnerTier[]).map((k) => (
-                    <option key={k} value={k}>
-                      {PARTNER_TIER_LABELS[k]}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Sektor Industri</label>
-                <Input
-                  value={industrySector}
-                  onChange={(e) => setIndustrySector(e.target.value)}
-                  className="h-10 rounded-xl text-xs"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Domisili Operasional</label>
-                <Input
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="h-10 rounded-xl text-xs"
-                />
-              </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700">Sektor Industri</label>
+              <Input
+                value={industrySector}
+                onChange={(e) => setIndustrySector(e.target.value)}
+                className="h-10 rounded-xl text-xs"
+              />
             </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setSelectedInquiry(null)}
-                className="rounded-xl text-xs font-bold"
-              >
-                Batal
-              </Button>
-              <Button
-                type="submit"
-                disabled={convertInquiryMutation.isPending}
-                className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
-              >
-                {convertInquiryMutation.isPending ? 'Membuat Akun...' : 'Buat Akun Mitra Resmi'}
-              </Button>
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700">Domisili Operasional</label>
+              <Input
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className="h-10 rounded-xl text-xs"
+              />
             </div>
           </form>
-        </div>
-      )}
+        )}
+      </AdminFormDrawer>
     </div>
   );
 }

@@ -25,7 +25,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogTitle, DialogPageModeProvider } from '@/components/ui/dialog';
-import { AdminPageHeader, AdminFilterBar } from '@/components/admin';
+import { AdminPageHeader, AdminFilterBar, AdminStatGrid } from '@/components/admin';
 
 const CATEGORIES: ArticleCategory[] = [
   'Panduan Pelatihan',
@@ -489,24 +489,34 @@ export default function ManajemenArtikelPage() {
       />
 
       {/* 2. Statistik Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Total Artikel</span>
-          <p className="text-xl sm:text-3xl font-black text-slate-900">{stats.total}</p>
-        </div>
-        <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs">
-          <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider block mb-1">Tayang (Published)</span>
-          <p className="text-xl sm:text-3xl font-black text-emerald-600">{stats.published}</p>
-        </div>
-        <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs">
-          <span className="text-[11px] font-bold text-amber-600 uppercase tracking-wider block mb-1">Draf Simpanan</span>
-          <p className="text-xl sm:text-3xl font-black text-amber-600">{stats.drafts}</p>
-        </div>
-        <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs">
-          <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wider block mb-1">Total Pembaca</span>
-          <p className="text-xl sm:text-3xl font-black text-blue-600">{stats.views.toLocaleString('id-ID')}</p>
-        </div>
-      </div>
+      <AdminStatGrid
+        items={[
+          {
+            label: 'Total Artikel',
+            value: stats.total,
+            icon: Newspaper,
+            variant: 'slate',
+          },
+          {
+            label: 'Tayang (Published)',
+            value: stats.published,
+            icon: CheckCircle2,
+            variant: 'emerald',
+          },
+          {
+            label: 'Draf Simpanan',
+            value: stats.drafts,
+            icon: FileText,
+            variant: 'amber',
+          },
+          {
+            label: 'Total Pembaca',
+            value: stats.views.toLocaleString('id-ID'),
+            icon: Eye,
+            variant: 'blue',
+          },
+        ]}
+      />
 
       {/* 3. Standardized Filter Bar */}
       <AdminFilterBar

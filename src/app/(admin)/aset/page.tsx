@@ -7,18 +7,21 @@ import * as XLSX from 'xlsx';
 
 // Gunakan Custom Hook
 import { useAssets } from '@/hooks/useAssets';
+import { useAdminTab } from '@/hooks/useAdminTab';
 import { assetService } from '@/services/asset.service';
 
 // Import Komponen UI
-import StatCard from './components/StatCard';
 import TabDaftarAset from './components/TabDaftarAset';
 import TabLaporanPublik from './components/TabLaporanPublik';
-import { AdminPageHeader } from '@/components/admin';
+import { AdminPageHeader, AdminStatGrid } from '@/components/admin';
 import ModalDetailAset from './components/ModalDetailAset';
 import ModalFormAset from './components/ModalFormAset';
 import ModalQrCode from './components/ModalQrCode';
 import FloatingPrintBar from './components/FloatingPrintBar';
 import PrintLayout from './components/PrintLayout';
+
+const ASET_TABS = ['Daftar Aset', 'Laporan Publik'] as const;
+type AsetTab = (typeof ASET_TABS)[number];
 
 export default function AsetPage() {
   const { 
@@ -27,7 +30,7 @@ export default function AsetPage() {
     deleteAsset, resolveReport, addMaintenance 
   } = useAssets();
   
-  const [mainTab, setMainTab] = useState<'Daftar Aset' | 'Laporan Publik'>('Daftar Aset');
+  const [mainTab, setMainTab] = useAdminTab<AsetTab>('Daftar Aset', ASET_TABS);
   const [baseUrl, setBaseUrl] = useState('');
   const [selectedForPrint, setSelectedForPrint] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -149,68 +152,71 @@ export default function AsetPage() {
           subtitle="Sistem pendataan inventaris fisik, utilisasi ruangan, dan pelaporan pemeliharaan real-time."
           badge={`${assets.length} Item Terdaftar`}
           breadcrumbs={[{ label: 'Manajemen Aset' }]}
+          tabs={[
+            { id: 'Daftar Aset', label: 'Database Aset', icon: <Folder size={14} />, badge: assets.length },
+            { id: 'Laporan Publik', label: 'Laporan Kerusakan', icon: <Bell size={14} />, badge: openReports.length || undefined },
+          ]}
+          activeTab={mainTab}
+          onTabChange={(id) => setMainTab(id as AsetTab)}
           actions={
             <div className="flex items-center flex-wrap gap-2 w-full sm:w-auto">
               <input type="file" accept=".xlsx, .xls" ref={fileInputRef} onChange={handleImportExcel} className="hidden" />
               <button 
                 onClick={() => fileInputRef.current?.click()} 
-                className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-colors shadow-xs"
+                className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors shadow-xs"
               >
-                <Upload size={16} className="text-slate-500" />
+                <Upload size={15} className="text-slate-500" />
                 <span>Import Excel</span>
               </button>
               <button 
                 onClick={exportToExcel} 
-                className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-colors shadow-xs"
+                className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors shadow-xs"
               >
-                <Download size={16} className="text-emerald-600" />
+                <Download size={15} className="text-emerald-600" />
                 <span>Export Excel</span>
               </button>
               <button 
                 onClick={() => setFormAsset('NEW')} 
-                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-colors shadow-xs shadow-blue-200"
+                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-colors shadow-xs shadow-blue-200"
               >
-                <Plus size={16} />
+                <Plus size={15} />
                 <span>Tambah Aset</span>
               </button>
             </div>
           }
-        >
-          {/* PILL TABS SECTION */}
-          <div className="flex bg-slate-100/80 p-1.5 rounded-xl overflow-x-auto w-full xl:w-auto hide-scrollbar">
-            <button 
-              onClick={() => setMainTab('Daftar Aset')} 
-              className={`flex items-center gap-2 px-5 py-2 font-bold text-xs sm:text-sm rounded-lg transition-all whitespace-nowrap ${mainTab === 'Daftar Aset' ? 'bg-white text-blue-600 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
-            >
-              <Folder size={16} /> Database Aset
-            </button>
-            <button 
-              onClick={() => setMainTab('Laporan Publik')} 
-              className={`flex items-center gap-2 px-5 py-2 font-bold text-xs sm:text-sm rounded-lg transition-all whitespace-nowrap ${mainTab === 'Laporan Publik' ? 'bg-white text-red-600 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
-            >
-              <Bell size={16} /> Laporan Kerusakan
-              {openReports.length > 0 && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full shadow-xs">{openReports.length}</span>}
-            </button>
-          </div>
-        </AdminPageHeader>
+        />
 
         {/* STATS SECTION */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-          <StatCard icon={<LayoutList size={22}/>} title="Total Aset Terdata" value={assets.length} suffix="Item" colorClass="bg-blue-50 text-blue-600" />
-          <StatCard icon={<Wrench size={22}/>} title="Sedang Diperbaiki" value={assets.filter(a => a.status === 'Pemeliharaan').length} suffix="Aset" colorClass="bg-amber-50 text-amber-600" />
-          
-          <div className={`p-4 sm:p-5 rounded-2xl shadow-2xs border flex items-center gap-4 transition-colors ${openReports.length > 0 ? 'bg-red-50/50 border-red-200' : 'bg-white border-slate-200/90'}`}>
-            <div className={`p-2.5 sm:p-3 rounded-xl ${openReports.length > 0 ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-slate-50 text-slate-400'}`}>
-              <ShieldAlert size={22}/>
-            </div>
-            <div>
-              <p className={`text-xs sm:text-sm font-medium ${openReports.length > 0 ? 'text-red-600' : 'text-slate-500'}`}>Laporan Publik Masuk</p>
-              <h3 className={`text-xl sm:text-2xl font-black ${openReports.length > 0 ? 'text-red-700' : 'text-slate-800'}`}>
-                {openReports.length} <span className="text-xs font-normal text-slate-400">Belum Selesai</span>
-              </h3>
-            </div>
-          </div>
-        </div>
+        <AdminStatGrid
+          columns={3}
+          items={[
+            {
+              label: 'Total Aset Terdata',
+              value: `${assets.length} Item`,
+              icon: <LayoutList size={18} />,
+              color: 'blue',
+              subtext: 'Inventaris fisik & ruangan terdaftar',
+              onClick: () => setMainTab('Daftar Aset'),
+              active: mainTab === 'Daftar Aset',
+            },
+            {
+              label: 'Sedang Diperbaiki',
+              value: `${assets.filter(a => a.status === 'Pemeliharaan').length} Aset`,
+              icon: <Wrench size={18} />,
+              color: 'amber',
+              subtext: 'Status dalam pemeliharaan teknis',
+            },
+            {
+              label: 'Laporan Publik Masuk',
+              value: `${openReports.length} Belum Selesai`,
+              icon: <ShieldAlert size={18} />,
+              color: openReports.length > 0 ? 'rose' : 'slate',
+              subtext: openReports.length > 0 ? 'Perlu tindak lanjut segera' : 'Semua laporan telah tertangani',
+              onClick: () => setMainTab('Laporan Publik'),
+              active: mainTab === 'Laporan Publik',
+            },
+          ]}
+        />
 
         {/* RENDER CONTENT */}
         {mainTab === 'Daftar Aset' && (

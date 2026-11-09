@@ -5,32 +5,35 @@ import { useRouter } from 'next/navigation';
 import TabDaftarKatalog from './components/TabDaftarKatalog';
 import ModalFormProduct from './components/ModalFormProduct';
 import DivisionInvoiceTracker from '@/components/finance/DivisionInvoiceTracker';
-import { Tag, Settings, Receipt, CheckCircle2, Share2, Building2 } from 'lucide-react';
+import { Tag, Settings, Receipt, CheckCircle2, Share2, Building2, Plus } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin';
+import { useAdminTab } from '@/hooks/useAdminTab';
 
 // Import Custom Hook Katalog
 import { useCatalog } from '@/hooks/useCatalog';
 import { ProductCatalog } from '@/types';
 
+const KATALOG_TABS = ['daftar', 'tagihan', 'pengaturan'] as const;
+type KatalogTab = (typeof KATALOG_TABS)[number];
+
 export default function KatalogAdminPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'daftar' | 'tagihan' | 'pengaturan'>('daftar');
+  const [activeTab, setActiveTab] = useAdminTab<KatalogTab>('daftar', KATALOG_TABS);
 
-  const { 
-    products = [], 
-    loading = false, 
-    addProduct, 
-    updateProduct, 
-    editProduct,   
-    deleteProduct, 
+  const {
+    products = [],
+    loading = false,
+    addProduct,
+    updateProduct,
+    editProduct,
+    deleteProduct,
     removeProduct,
-    getProduct
   } = useCatalog() as any;
 
   // State untuk mengontrol Modal & Loading Fetching
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductCatalog | null>(null);
-  const [isFetchingDetail, setIsFetchingDetail] = useState(false);
+  const [isFetchingDetail] = useState(false);
 
   // Handler Navigasi Builder
   const handleOpenAdd = () => {
@@ -51,47 +54,50 @@ export default function KatalogAdminPage() {
     try {
       const { id, ...payload } = data;
       let res;
-      
+
       if (selectedProduct?.id) {
         if (typeof editProduct === 'function') {
           res = await editProduct(selectedProduct.id, payload, imageFiles);
         } else if (typeof updateProduct === 'function') {
-          res = await updateProduct(selectedProduct.id, payload, imageFiles.length > 0 ? imageFiles[0] : null);
+          res = await updateProduct(
+            selectedProduct.id,
+            payload,
+            imageFiles.length > 0 ? imageFiles[0] : null
+          );
         } else {
-          alert("Fungsi edit tidak ditemukan pada sistem.");
+          alert('Fungsi edit tidak ditemukan pada sistem.');
           return;
         }
       } else {
         if (typeof editProduct === 'function') {
-           res = await addProduct(payload, imageFiles);
+          res = await addProduct(payload, imageFiles);
         } else {
-           res = await addProduct(payload, imageFiles.length > 0 ? imageFiles[0] : null);
+          res = await addProduct(payload, imageFiles.length > 0 ? imageFiles[0] : null);
         }
       }
 
       if (res && !res.success) {
-        alert("Gagal menyimpan produk: " + res.error);
+        alert('Gagal menyimpan produk: ' + res.error);
       } else {
         handleCloseModal();
       }
-      
     } catch (error: any) {
       console.error(error);
-      alert("Terjadi kesalahan sistem saat upload gambar: " + error.message);
+      alert('Terjadi kesalahan sistem saat upload gambar: ' + error.message);
     }
   };
 
   const handleDeleteProduct = async (id: string) => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus produk/layanan ini?")) {
+    if (window.confirm('Apakah Anda yakin ingin menghapus produk/layanan ini?')) {
       let res;
       if (typeof removeProduct === 'function') {
-         res = await removeProduct(id);
+        res = await removeProduct(id);
       } else if (typeof deleteProduct === 'function') {
-         res = await deleteProduct(id);
+        res = await deleteProduct(id);
       }
-      
+
       if (res && !res.success) {
-        alert("Gagal menghapus produk: " + res.error);
+        alert('Gagal menghapus produk: ' + res.error);
       }
     }
   };
@@ -100,47 +106,34 @@ export default function KatalogAdminPage() {
   const tenantProductsCount = products.filter((p: ProductCatalog) => p.ownerType === 'TENANT').length;
 
   return (
-    <div className="w-full space-y-6 pb-24 animate-in fade-in duration-300"> 
-      
-      {/* 1. ADMIN PAGE HEADER */}
+    <div className="w-full space-y-5 pb-20 animate-in fade-in duration-300">
+      {/* 1. ADMIN PAGE HEADER (Tersinkronisasi dengan Pintasan Sidebar) */}
       <AdminPageHeader
         title="Manajemen E-Katalog"
         subtitle="Kelola produk, layanan, ruangan, dan produk inovasi tenant binaan untuk disewa atau dibeli publik."
         badge={`${products.length} Produk Terdaftar`}
-        breadcrumbs={[{ label: 'Katalog Produk' }]}
-      >
-        {/* Navigasi Pill Tab */}
-        <div className="flex bg-slate-100/80 p-1.5 rounded-xl overflow-x-auto w-full md:w-auto hide-scrollbar">
+        breadcrumbs={[{ label: 'Komersial' }, { label: 'Katalog Produk' }]}
+        actions={
           <button
-            onClick={() => setActiveTab('daftar')}
-            className={`flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
-              activeTab === 'daftar' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-            }`}
+            onClick={handleOpenAdd}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer shrink-0"
           >
-            <Tag size={16} /> Daftar Produk
+            <Plus size={15} />
+            <span>Tambah Produk</span>
           </button>
-          <button
-            onClick={() => setActiveTab('tagihan')}
-            className={`flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
-              activeTab === 'tagihan' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-            }`}
-          >
-            <Receipt size={16} /> Tagihan & Order
-          </button>
-          <button
-            onClick={() => setActiveTab('pengaturan')}
-            className={`flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
-              activeTab === 'pengaturan' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-            }`}
-          >
-            <Settings size={16} /> Pengaturan Katalog
-          </button>
-        </div>
-      </AdminPageHeader>
+        }
+        tabs={[
+          { id: 'daftar', label: 'Daftar Produk', icon: <Tag size={14} />, badge: products.length },
+          { id: 'tagihan', label: 'Tagihan & Order', icon: <Receipt size={14} /> },
+          { id: 'pengaturan', label: 'Pengaturan Katalog', icon: <Settings size={14} /> },
+        ]}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
 
       {/* Konten Tab Aktif */}
       {activeTab === 'daftar' && (
-        <TabDaftarKatalog 
+        <TabDaftarKatalog
           products={products}
           loading={loading}
           isFetchingDetail={isFetchingDetail}
@@ -157,10 +150,10 @@ export default function KatalogAdminPage() {
           subtitle="Pantau seluruh invoice checkout produk dari halaman publik /e-katalog beserta sinkronisasi omzet tenant."
         />
       )}
-      
+
       {activeTab === 'pengaturan' && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-6 space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 sm:p-6 space-y-3">
             <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
               <CheckCircle2 size={20} />
             </div>
@@ -173,7 +166,7 @@ export default function KatalogAdminPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-6 space-y-3">
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 sm:p-6 space-y-3">
             <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
               <Building2 size={20} />
             </div>
@@ -186,7 +179,7 @@ export default function KatalogAdminPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-6 space-y-3">
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 sm:p-6 space-y-3">
             <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
               <Share2 size={20} />
             </div>
@@ -202,13 +195,12 @@ export default function KatalogAdminPage() {
       )}
 
       {/* Modal Form */}
-      <ModalFormProduct 
-        isOpen={isModalOpen} 
-        onClose={handleCloseModal} 
-        initialData={selectedProduct} 
+      <ModalFormProduct
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        initialData={selectedProduct}
         onSubmit={handleSaveProduct}
       />
-
     </div>
   );
 }

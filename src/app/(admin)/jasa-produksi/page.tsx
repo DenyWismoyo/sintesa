@@ -4,6 +4,7 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { useProduction } from '@/hooks/useProduction';
+import { useAdminTab } from '@/hooks/useAdminTab';
 import {
   ProductionOrder,
   ProductionStatus,
@@ -12,7 +13,14 @@ import {
   PRODUCTION_CATEGORY_LABELS,
   PAYMENT_STATUS_LABELS
 } from '@/types/production.types';
-import { AdminPageHeader } from '@/components/admin';
+import {
+  AdminPageHeader,
+  AdminStatGrid,
+  AdminFilterBar,
+  AdminResponsiveView,
+  AdminMobileCard,
+  AdminFormDrawer,
+} from '@/components/admin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -67,7 +75,8 @@ import ModalInvoiceProduction from './components/ModalInvoiceProduction';
 import ModalPrintSpk from './components/ModalPrintSpk';
 import DivisionInvoiceTracker from '@/components/finance/DivisionInvoiceTracker';
 
-type FilterTab = 'ALL' | 'DRAFT_ESTIMATION' | 'WAITING_DP' | 'IN_PRODUCTION' | 'QC' | 'DELIVERY' | 'COMPLETED' | 'INVOICES';
+const PRODUCTION_TABS = ['ALL', 'DRAFT_ESTIMATION', 'WAITING_DP', 'IN_PRODUCTION', 'QC', 'DELIVERY', 'COMPLETED', 'INVOICES'] as const;
+type FilterTab = (typeof PRODUCTION_TABS)[number];
 
 export default function JasaProduksiPage() {
   const { user } = useAuth();
@@ -76,7 +85,7 @@ export default function JasaProduksiPage() {
   // Search & Filter States
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
-  const [activeTab, setActiveTab] = useState<FilterTab>('ALL');
+  const [activeTab, setActiveTab] = useAdminTab<FilterTab>('ALL', PRODUCTION_TABS);
 
   // Modal Control States
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -219,8 +228,20 @@ export default function JasaProduksiPage() {
             <span>{orders.length} Total SPK</span>
           </Badge>
         }
+        tabs={[
+          { id: 'ALL', label: 'Semua Pesanan', badge: orders.length },
+          { id: 'DRAFT_ESTIMATION', label: 'Draf & Review' },
+          { id: 'WAITING_DP', label: 'Menunggu DP' },
+          { id: 'IN_PRODUCTION', label: 'Pengerjaan Bengkel', badge: stats.inProductionCount || undefined },
+          { id: 'QC', label: 'Uji Mutu (QC)' },
+          { id: 'DELIVERY', label: 'Siap Kirim & DO', badge: stats.readyDeliveryCount || undefined },
+          { id: 'COMPLETED', label: 'Selesai Lunas' },
+          { id: 'INVOICES', label: '💳 Tagihan Divisi' },
+        ]}
+        activeTab={activeTab}
+        onTabChange={(id) => setActiveTab(id as FilterTab)}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -256,134 +277,74 @@ export default function JasaProduksiPage() {
       />
 
       {/* 2. Stat Cards Ringkasan */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-slate-200 shadow-sm bg-gradient-to-br from-white to-slate-50">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-slate-500">Total Pesanan</p>
-              <p className="text-2xl font-bold text-slate-800 mt-1">{stats.totalCount}</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">Semua kategori pengerjaan</p>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
-              <Layers className="w-6 h-6" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-indigo-100 shadow-sm bg-gradient-to-br from-indigo-50/50 to-white">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-indigo-600">Sedang Dikerjakan</p>
-              <p className="text-2xl font-bold text-indigo-900 mt-1">{stats.inProductionCount}</p>
-              <p className="text-[11px] text-indigo-500 mt-0.5">Aktif di bengkel / mesin</p>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center">
-              <Wrench className="w-6 h-6" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-teal-100 shadow-sm bg-gradient-to-br from-teal-50/50 to-white">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-teal-600">QC & Siap Kirim</p>
-              <p className="text-2xl font-bold text-teal-900 mt-1">{stats.readyDeliveryCount}</p>
-              <p className="text-[11px] text-teal-500 mt-0.5">Menunggu Surat Jalan</p>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center">
-              <Truck className="w-6 h-6" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-emerald-100 shadow-sm bg-gradient-to-br from-emerald-50/50 to-white">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-emerald-600">Estimasi Omzet Manufaktur</p>
-              <p className="text-lg font-extrabold text-emerald-900 mt-1 font-mono">
-                {formatRupiah(stats.totalOmzet)}
-              </p>
-              <p className="text-[11px] text-emerald-500 mt-0.5">Penerimaan Jasa BLUD</p>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-              <DollarSign className="w-6 h-6" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <AdminStatGrid
+        columns={4}
+        items={[
+          {
+            label: 'Total Pesanan',
+            value: stats.totalCount,
+            subtext: 'Semua kategori pengerjaan',
+            icon: <Layers className="w-4 h-4 sm:w-5 sm:h-5" />,
+            color: 'slate',
+            onClick: () => setActiveTab('ALL'),
+            active: activeTab === 'ALL',
+          },
+          {
+            label: 'Sedang Dikerjakan',
+            value: stats.inProductionCount,
+            subtext: 'Aktif di bengkel / mesin',
+            icon: <Wrench className="w-4 h-4 sm:w-5 sm:h-5" />,
+            color: 'indigo',
+            onClick: () => setActiveTab('IN_PRODUCTION'),
+            active: activeTab === 'IN_PRODUCTION',
+          },
+          {
+            label: 'QC & Siap Kirim',
+            value: stats.readyDeliveryCount,
+            subtext: 'Menunggu Surat Jalan',
+            icon: <Truck className="w-4 h-4 sm:w-5 sm:h-5" />,
+            color: 'teal',
+            onClick: () => setActiveTab('DELIVERY'),
+            active: activeTab === 'DELIVERY',
+          },
+          {
+            label: 'Estimasi Omzet Manufaktur',
+            value: formatRupiah(stats.totalOmzet),
+            subtext: 'Penerimaan Jasa BLUD',
+            icon: <DollarSign className="w-4 h-4 sm:w-5 sm:h-5" />,
+            color: 'emerald',
+          },
+        ]}
+      />
 
       {/* 3. Filter Bar & Pencarian */}
-      <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm space-y-4">
-        {/* Tab Status */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
-          {[
-            { id: 'ALL', label: 'Semua Pesanan' },
-            { id: 'DRAFT_ESTIMATION', label: 'Draf & Review' },
-            { id: 'WAITING_DP', label: 'Menunggu DP' },
-            { id: 'IN_PRODUCTION', label: 'Pengerjaan Bengkel' },
-            { id: 'QC', label: 'Uji Mutu (QC)' },
-            { id: 'DELIVERY', label: 'Siap Kirim & Terkirim' },
-            { id: 'COMPLETED', label: 'Selesai Lunas' },
-            { id: 'INVOICES', label: '💳 Monitoring Tagihan (Divisi)' }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as FilterTab)}
-              className={`px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition-colors ${
-                activeTab === tab.id
-                  ? 'bg-slate-900 text-white shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Input Pencarian & Dropdown Kategori */}
-        <div className="flex flex-col sm:flex-row items-center gap-3">
-          <div className="relative flex-1 w-full">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <Input
-              type="text"
-              placeholder="Cari berdasarkan judul proyek, no SPK, nama pemesan..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 h-9 text-xs"
-            />
-          </div>
-
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="h-9 px-3 text-xs rounded-md border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-auto"
-            >
-              <option value="ALL">Semua Kategori Mesin</option>
-              {Object.entries(PRODUCTION_CATEGORY_LABELS).map(([catKey, catLabel]) => (
-                <option key={catKey} value={catKey}>
-                  {catLabel}
-                </option>
-              ))}
-            </select>
-
-            {(searchTerm || categoryFilter !== 'ALL' || activeTab !== 'ALL') && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setSearchTerm('');
-                  setCategoryFilter('ALL');
-                  setActiveTab('ALL');
-                }}
-                className="text-xs text-rose-600 hover:text-rose-700 h-9 shrink-0"
-              >
-                Reset Filter
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
+      {activeTab !== 'INVOICES' && (
+        <AdminFilterBar
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+          searchPlaceholder="Cari berdasarkan judul proyek, no SPK, nama pemesan..."
+          filters={[
+            {
+              id: 'category',
+              value: categoryFilter,
+              onChange: setCategoryFilter,
+              options: [
+                { label: 'Semua Kategori Mesin', value: 'ALL' },
+                ...Object.entries(PRODUCTION_CATEGORY_LABELS).map(([catKey, catLabel]) => ({
+                  label: catLabel,
+                  value: catKey,
+                })),
+              ],
+            },
+          ]}
+          hasActiveFilters={Boolean(searchTerm || categoryFilter !== 'ALL' || activeTab !== 'ALL')}
+          onReset={() => {
+            setSearchTerm('');
+            setCategoryFilter('ALL');
+            setActiveTab('ALL');
+          }}
+        />
+      )}
 
       {/* 4. Tabel / Daftar Pesanan ATAU Monitoring Tagihan Divisi */}
       {activeTab === 'INVOICES' ? (
@@ -393,22 +354,17 @@ export default function JasaProduksiPage() {
           subtitle="Pantau pembayaran DP, pelunasan akhir, verifikasi bukti transfer, dan sisa piutang pesanan bengkel manufaktur secara mandiri."
         />
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          {loading ? (
-            <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
-            <span className="text-xs font-medium">Memuat data pesanan jasa produksi...</span>
-          </div>
-        ) : filteredOrders.length === 0 ? (
-          <div className="p-12 text-center text-slate-400 space-y-3">
-            <Hammer className="w-10 h-10 mx-auto text-slate-300" />
-            <p className="text-sm font-semibold text-slate-700">Tidak ada pesanan produksi ditemukan</p>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              {searchTerm || categoryFilter !== 'ALL' || activeTab !== 'ALL'
-                ? 'Coba sesuaikan kata kunci atau bersihkan filter pencarian Anda.'
-                : 'Mulai dengan membuat Surat Perintah Kerja (SPK) pengerjaan manufaktur baru.'}
-            </p>
-            {!(searchTerm || categoryFilter !== 'ALL' || activeTab !== 'ALL') && (
+        <AdminResponsiveView<ProductionOrder>
+          items={filteredOrders}
+          isLoading={loading}
+          emptyTitle="Tidak ada pesanan produksi ditemukan"
+          emptyMessage={
+            searchTerm || categoryFilter !== 'ALL' || activeTab !== 'ALL'
+              ? 'Coba sesuaikan kata kunci atau bersihkan filter pencarian Anda.'
+              : 'Mulai dengan membuat Surat Perintah Kerja (SPK) pengerjaan manufaktur baru.'
+          }
+          emptyAction={
+            !(searchTerm || categoryFilter !== 'ALL' || activeTab !== 'ALL') ? (
               <div className="flex flex-wrap items-center justify-center gap-2.5 mt-3">
                 <Button
                   size="sm"
@@ -432,10 +388,9 @@ export default function JasaProduksiPage() {
                   <span>{isSeeding ? 'Menyinkronkan...' : 'Muat Data Demo Manufaktur'}</span>
                 </Button>
               </div>
-            )}
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
+            ) : undefined
+          }
+          renderDesktopTable={(items) => (
             <table className="w-full min-w-[760px] text-left text-xs">
               <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[11px] tracking-wider">
                 <tr>
@@ -449,7 +404,7 @@ export default function JasaProduksiPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {filteredOrders.map((order) => {
+                {items.map((order) => {
                   const statusMeta = PRODUCTION_STATUS_LABELS[order.status] || {
                     label: order.status,
                     color: 'bg-slate-100 text-slate-700 border-slate-200'
@@ -653,188 +608,233 @@ export default function JasaProduksiPage() {
                 })}
               </tbody>
             </table>
-          </div>
-        )}
-      </div>
+          )}
+          renderMobileCard={(order) => {
+            const statusMeta = PRODUCTION_STATUS_LABELS[order.status] || {
+              label: order.status,
+              color: 'bg-slate-100 text-slate-700 border-slate-200'
+            };
+            const paymentMeta = PAYMENT_STATUS_LABELS[order.paymentStatus] || {
+              label: order.paymentStatus,
+              color: 'bg-slate-100 text-slate-700 border-slate-200'
+            };
+
+            return (
+              <AdminMobileCard
+                title={order.projectTitle}
+                subtitle={`${order.clientName} (${order.clientType}) • ${PRODUCTION_CATEGORY_LABELS[order.category] || order.category}`}
+                badge={
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusMeta.color}`}>
+                    {statusMeta.label}
+                  </span>
+                }
+                fields={[
+                  { label: 'No. SPK', value: <span className="font-mono text-indigo-700">{order.orderNumber}</span> },
+                  { label: 'Nilai SPK', value: <span className="font-mono text-slate-900">{formatRupiah(order.totalCost)}</span> },
+                  { label: 'Progres', value: `${order.productionProgress}% (${order.items.length} part)` },
+                  { label: 'Target Selesai', value: order.targetDeliveryDate || '-' },
+                ]}
+                footer={
+                  <div className="flex items-center justify-between w-full gap-2">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${paymentMeta.color}`}>
+                      {paymentMeta.label}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setDetailOrder(order)}
+                        className="h-7 text-[11px] font-bold px-2.5"
+                      >
+                        Detail
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedOrderForProgress(order);
+                          setIsProgressModalOpen(true);
+                        }}
+                        className="h-7 text-[11px] font-bold text-indigo-600 border-indigo-200 px-2.5"
+                      >
+                        + Log
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handlePrintSpkPdf(order)}
+                        className="h-7 text-[11px] font-bold px-2"
+                      >
+                        <Printer className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                }
+              />
+            );
+          }}
+        />
       )}
 
       {/* 5. Detail Drawer / Dialog Preview */}
-      {detailOrder && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex justify-end">
-          <div className="w-full max-w-xl bg-white h-full shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right duration-200">
-            {/* Drawer Header */}
-            <div className="p-6 bg-slate-900 text-white flex items-center justify-between">
-              <div>
-                <span className="text-xs font-mono text-indigo-300 bg-indigo-500/20 px-2 py-0.5 rounded border border-indigo-400/30">
-                  {detailOrder.orderNumber}
-                </span>
-                <h3 className="text-lg font-bold mt-1 text-white">{detailOrder.projectTitle}</h3>
-                <p className="text-xs text-slate-300">
-                  Klien: <span className="text-white font-medium">{detailOrder.clientName}</span> ({detailOrder.clientType})
-                </p>
-              </div>
+      <AdminFormDrawer
+        isOpen={Boolean(detailOrder)}
+        onClose={() => setDetailOrder(null)}
+        title={detailOrder?.projectTitle || 'Detail SPK Produksi'}
+        subtitle={detailOrder ? `${detailOrder.orderNumber} • Klien: ${detailOrder.clientName} (${detailOrder.clientType})` : ''}
+        maxWidth="xl"
+      >
+        {detailOrder && (
+          <div className="space-y-6 text-xs">
+            {/* Quick Actions */}
+            <div className="grid grid-cols-3 gap-2">
               <Button
-                variant="ghost"
                 size="sm"
-                onClick={() => setDetailOrder(null)}
-                className="text-slate-400 hover:text-white"
+                onClick={() => handlePrintSpkPdf(detailOrder)}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] gap-1.5 h-8"
               >
-                ✕
+                <Printer className="w-3.5 h-3.5" />
+                PDF SPK
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  setSelectedOrderForDelivery(detailOrder);
+                  setIsDeliveryModalOpen(true);
+                }}
+                className="bg-teal-600 hover:bg-teal-700 text-white text-[11px] gap-1.5 h-8"
+              >
+                <Truck className="w-3.5 h-3.5" />
+                Surat Jalan
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  setSelectedOrderForInvoice(detailOrder);
+                  setIsInvoiceModalOpen(true);
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-[11px] gap-1.5 h-8"
+              >
+                <ReceiptText className="w-3.5 h-3.5" />
+                Invoice
               </Button>
             </div>
 
-            {/* Drawer Body */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 text-xs">
-              {/* Quick Actions */}
-              <div className="grid grid-cols-3 gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => handlePrintSpkPdf(detailOrder)}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] gap-1.5 h-8"
+            {/* Status & Bengkel */}
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500">Status Pengerjaan:</span>
+                <span
+                  className={`px-2.5 py-0.5 rounded-full font-semibold border ${
+                    PRODUCTION_STATUS_LABELS[detailOrder.status]?.color
+                  }`}
                 >
-                  <Printer className="w-3.5 h-3.5" />
-                  PDF SPK
-                </Button>
+                  {PRODUCTION_STATUS_LABELS[detailOrder.status]?.label}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500">Kemajuan Produksi:</span>
+                <span className="font-bold text-indigo-700 font-mono">{detailOrder.productionProgress}% Selesai</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500">Lokasi Workshop:</span>
+                <span className="font-medium text-slate-800">{detailOrder.workshopLocation}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500">Teknisi Penanggung Jawab:</span>
+                <span className="font-medium text-slate-800">{detailOrder.assignedTechnician}</span>
+              </div>
+            </div>
+
+            {/* Daftar Part / Item */}
+            <div className="space-y-2">
+              <h4 className="font-bold text-slate-800 flex items-center justify-between">
+                <span>Daftar Part ({detailOrder.items.length})</span>
+                <span className="text-indigo-700 font-mono">{formatRupiah(detailOrder.totalCost)}</span>
+              </h4>
+              <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-200">
+                {detailOrder.items.map((item, idx) => (
+                  <div key={idx} className="p-3 bg-white space-y-1">
+                    <div className="flex justify-between items-start">
+                      <span className="font-semibold text-slate-900">
+                        {idx + 1}. {item.partName}
+                      </span>
+                      <span className="font-mono font-bold text-slate-800">
+                        {formatRupiah(item.totalPrice)}
+                      </span>
+                    </div>
+                    <p className="text-slate-500 text-[11px]">
+                      Material: <span className="text-slate-700 font-medium">{item.material}</span> | Dimensi:{' '}
+                      {item.dimensions || '-'} | Qty: {item.quantity} {item.unit}
+                    </p>
+                    {item.notes && <p className="text-slate-400 text-[10px] italic">{item.notes}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Riwayat Log Pengerjaan */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h4 className="font-bold text-slate-800">Catatan Pengerjaan Lapangan</h4>
                 <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => {
-                    setSelectedOrderForDelivery(detailOrder);
-                    setIsDeliveryModalOpen(true);
+                    setSelectedOrderForProgress(detailOrder);
+                    setIsProgressModalOpen(true);
                   }}
-                  className="bg-teal-600 hover:bg-teal-700 text-white text-[11px] gap-1.5 h-8"
+                  className="h-6 text-[10px] text-indigo-700 gap-1"
                 >
-                  <Truck className="w-3.5 h-3.5" />
-                  Surat Jalan
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    setSelectedOrderForInvoice(detailOrder);
-                    setIsInvoiceModalOpen(true);
-                  }}
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-[11px] gap-1.5 h-8"
-                >
-                  <ReceiptText className="w-3.5 h-3.5" />
-                  Invoice
+                  <Plus className="w-3 h-3" /> Catat Progres
                 </Button>
               </div>
 
-              {/* Status & Bengkel */}
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500">Status Pengerjaan:</span>
-                  <span
-                    className={`px-2.5 py-0.5 rounded-full font-semibold border ${
-                      PRODUCTION_STATUS_LABELS[detailOrder.status]?.color
-                    }`}
-                  >
-                    {PRODUCTION_STATUS_LABELS[detailOrder.status]?.label}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500">Kemajuan Produksi:</span>
-                  <span className="font-bold text-indigo-700 font-mono">{detailOrder.productionProgress}% Selesai</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500">Lokasi Workshop:</span>
-                  <span className="font-medium text-slate-800">{detailOrder.workshopLocation}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500">Teknisi Penanggung Jawab:</span>
-                  <span className="font-medium text-slate-800">{detailOrder.assignedTechnician}</span>
-                </div>
-              </div>
-
-              {/* Daftar Part / Item */}
-              <div className="space-y-2">
-                <h4 className="font-bold text-slate-800 flex items-center justify-between">
-                  <span>Daftar Part ({detailOrder.items.length})</span>
-                  <span className="text-indigo-700 font-mono">{formatRupiah(detailOrder.totalCost)}</span>
-                </h4>
-                <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-200">
-                  {detailOrder.items.map((item, idx) => (
-                    <div key={idx} className="p-3 bg-white space-y-1">
-                      <div className="flex justify-between items-start">
-                        <span className="font-semibold text-slate-900">
-                          {idx + 1}. {item.partName}
+              {(!detailOrder.workNotes || detailOrder.workNotes.length === 0) ? (
+                <p className="text-slate-400 italic text-center py-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                  Belum ada riwayat aktivitas yang dicatat.
+                </p>
+              ) : (
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  {[...detailOrder.workNotes].reverse().map((log) => (
+                    <div key={log.id} className="p-2.5 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                      <div className="flex justify-between items-center">
+                        <span className="font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded text-[10px] border border-indigo-100">
+                          {log.percentage}%
                         </span>
-                        <span className="font-mono font-bold text-slate-800">
-                          {formatRupiah(item.totalPrice)}
-                        </span>
+                        <span className="text-[10px] text-slate-400 font-mono">{log.date}</span>
                       </div>
-                      <p className="text-slate-500 text-[11px]">
-                        Material: <span className="text-slate-700 font-medium">{item.material}</span> | Dimensi:{' '}
-                        {item.dimensions || '-'} | Qty: {item.quantity} {item.unit}
-                      </p>
-                      {item.notes && <p className="text-slate-400 text-[10px] italic">{item.notes}</p>}
+                      <p className="text-slate-700 leading-relaxed">{log.note}</p>
+                      <p className="text-[10px] text-slate-400 text-right">Oleh: {log.author}</p>
                     </div>
                   ))}
                 </div>
-              </div>
-
-              {/* Riwayat Log Pengerjaan */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-slate-800">Catatan Pengerjaan Lapangan</h4>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedOrderForProgress(detailOrder);
-                      setIsProgressModalOpen(true);
-                    }}
-                    className="h-6 text-[10px] text-indigo-700 gap-1"
-                  >
-                    <Plus className="w-3 h-3" /> Catat Progres
-                  </Button>
-                </div>
-
-                {(!detailOrder.workNotes || detailOrder.workNotes.length === 0) ? (
-                  <p className="text-slate-400 italic text-center py-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                    Belum ada riwayat aktivitas yang dicatat.
-                  </p>
-                ) : (
-                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                    {[...detailOrder.workNotes].reverse().map((log) => (
-                      <div key={log.id} className="p-2.5 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
-                        <div className="flex justify-between items-center">
-                          <span className="font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded text-[10px] border border-indigo-100">
-                            {log.percentage}%
-                          </span>
-                          <span className="text-[10px] text-slate-400 font-mono">{log.date}</span>
-                        </div>
-                        <p className="text-slate-700 leading-relaxed">{log.note}</p>
-                        <p className="text-[10px] text-slate-400 text-right">Oleh: {log.author}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Lampiran Gambar Kerja / CAD */}
-              {detailOrder.blueprintFiles && detailOrder.blueprintFiles.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="font-bold text-slate-800">Lampiran CAD / Blueprint ({detailOrder.blueprintFiles.length})</h4>
-                  <div className="space-y-1.5">
-                    {detailOrder.blueprintFiles.map((file) => (
-                      <a
-                        key={file.id}
-                        href={file.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="p-2.5 bg-indigo-50/50 hover:bg-indigo-50 border border-indigo-100 rounded-lg flex items-center justify-between text-indigo-900 transition-colors"
-                      >
-                        <span className="font-medium truncate max-w-xs">{file.name}</span>
-                        <ExternalLink className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                      </a>
-                    ))}
-                  </div>
-                </div>
               )}
             </div>
+
+            {/* Lampiran Gambar Kerja / CAD */}
+            {detailOrder.blueprintFiles && detailOrder.blueprintFiles.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-bold text-slate-800">Lampiran CAD / Blueprint ({detailOrder.blueprintFiles.length})</h4>
+                <div className="space-y-1.5">
+                  {detailOrder.blueprintFiles.map((file) => (
+                    <a
+                      key={file.id}
+                      href={file.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="p-2.5 bg-indigo-50/50 hover:bg-indigo-50 border border-indigo-100 rounded-lg flex items-center justify-between text-indigo-900 transition-colors"
+                    >
+                      <span className="font-medium truncate max-w-xs">{file.name}</span>
+                      <ExternalLink className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        )}
+      </AdminFormDrawer>
 
       {/* 6. Modals & Workspaces */}</div><DialogPageModeProvider backLabel="Kembali ke Daftar SPK" onClosePage={() => { setIsFormModalOpen(false); setEditingOrder(null); }} pageTitle={editingOrder ? `Edit SPK: ${editingOrder.orderNumber}` : 'Penerbitan SPK Jasa Produksi Baru'} badgeText="SPK Builder">
       {/* Modal Form SPK (Create / Edit) */}

@@ -19,17 +19,21 @@ import ModalFormInvoice from '../billing/component/ModalFormInvoice';
 import ModalInvoiceDetail from '../billing/component/ModalInvoiceDetail';
 
 import { Building2, KanbanSquare, Network, Receipt, ShieldCheck, UserCheck, Plus, Headset } from 'lucide-react'; 
-import { AdminPageHeader } from '@/components/admin'; 
+import { AdminPageHeader, AdminStatGrid } from '@/components/admin'; 
 
 // Import Custom Hooks
 import { useTenants } from '@/hooks/useTenants';
 import { useBilling } from '@/hooks/useBilling'; 
 import { useFinance } from '@/hooks/useFinance';
+import { useAdminTab } from '@/hooks/useAdminTab';
 import { Tenant, Invoice } from '@/types';
+
+const TENANT_TABS = ['direktori', 'validasi', 'kanban', 'matching', 'kurasi', 'tagihan', 'helpdesk'] as const;
+type TenantTab = (typeof TENANT_TABS)[number];
 
 export default function TenantAdminPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('direktori');
+  const [activeTab, setActiveTab] = useAdminTab<TenantTab>('direktori', TENANT_TABS);
 
   const { 
     tenants, 
@@ -165,51 +169,60 @@ export default function TenantAdminPage() {
         subtitle="Kelola direktori startup binaan, validasi pendaftar, progres inkubasi, kurasi produk UKM, dan helpdesk fasilitas."
         badge={`${allTenants.length} Tenant Terdaftar`}
         breadcrumbs={[{ label: 'Inkubasi Tenant' }]}
+        tabs={[
+          { id: 'direktori', label: 'Direktori', icon: <Building2 size={14} />, badge: allTenants.length },
+          { id: 'validasi', label: 'Validasi Pendaftar', icon: <UserCheck size={14} />, badge: pendingTenantsCount || undefined },
+          { id: 'kanban', label: 'Pipeline Kanban', icon: <KanbanSquare size={14} /> },
+          { id: 'matching', label: 'Business Matching', icon: <Network size={14} /> },
+          { id: 'kurasi', label: 'Kurasi UKM', icon: <ShieldCheck size={14} /> },
+          { id: 'tagihan', label: 'Tagihan Tenant', icon: <Receipt size={14} /> },
+          { id: 'helpdesk', label: 'Helpdesk Keluhan', icon: <Headset size={14} /> },
+        ]}
+        activeTab={activeTab}
+        onTabChange={(id) => setActiveTab(id as TenantTab)}
         actions={
           <button 
             onClick={handleOpenAdd} 
-            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-xs shadow-blue-200 transition-all shrink-0"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-xs shadow-blue-200 transition-all shrink-0"
           >
-            <Plus size={16} />
+            <Plus size={15} />
             <span>Tambah Tenant</span>
           </button>
         }
-      >
-        {/* NAVIGASI PILL TAB */}
-        <div className="flex bg-slate-100/80 p-1.5 rounded-xl overflow-x-auto w-full xl:w-auto hide-scrollbar">
-          <button onClick={() => setActiveTab('validasi')} className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap relative ${activeTab === 'validasi' ? 'bg-white text-amber-600 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
-            <UserCheck size={16} /> Validasi 
-            {pendingTenantsCount > 0 && (
-              <span className="bg-amber-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center ml-1">{pendingTenantsCount}</span>
-            )}
-          </button>
+      />
 
-          <button onClick={() => setActiveTab('direktori')} className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${activeTab === 'direktori' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
-            <Building2 size={16} /> Direktori
-          </button>
-          <button onClick={() => setActiveTab('kanban')} className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${activeTab === 'kanban' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
-            <KanbanSquare size={16} /> Kanban
-          </button>
-          <button onClick={() => setActiveTab('matching')} className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${activeTab === 'matching' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
-            <Network size={16} /> Matching
-          </button>
-          <button onClick={() => setActiveTab('kurasi')} className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${activeTab === 'kurasi' ? 'bg-white text-emerald-600 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
-            <ShieldCheck size={16} /> Kurasi UKM
-          </button>
-          <button onClick={() => setActiveTab('tagihan')} className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${activeTab === 'tagihan' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
-            <Receipt size={16} /> Tagihan
-          </button>
-          <button onClick={() => setActiveTab('helpdesk')} className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${activeTab === 'helpdesk' ? 'bg-white text-amber-700 shadow-xs' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
-            <Headset size={16} /> Helpdesk Keluhan
-          </button>
-        </div>
-      </AdminPageHeader>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCardTenant title="Menunggu Validasi" value={pendingTenantsCount} icon={<UserCheck size={24} />} colorClass="bg-amber-50 text-amber-600" />
-        <StatCardTenant title="Startup Aktif (Inkubasi)" value={activeTenantsCount} icon={<KanbanSquare size={24} />} colorClass="bg-emerald-50 text-emerald-600" />
-        <StatCardTenant title="Lulus Binaan (Alumni)" value={alumniTenantsCount} icon={<Network size={24} />} colorClass="bg-purple-50 text-purple-600" />
-      </div>
+      <AdminStatGrid
+        columns={3}
+        items={[
+          {
+            label: 'Menunggu Validasi',
+            value: pendingTenantsCount,
+            icon: <UserCheck size={18} />,
+            color: 'amber',
+            subtext: 'Pendaftar pra-inkubasi baru',
+            onClick: () => setActiveTab('validasi'),
+            active: activeTab === 'validasi',
+          },
+          {
+            label: 'Startup Aktif (Inkubasi)',
+            value: activeTenantsCount,
+            icon: <KanbanSquare size={18} />,
+            color: 'emerald',
+            subtext: 'Tenant aktif dalam pembinaan',
+            onClick: () => setActiveTab('direktori'),
+            active: activeTab === 'direktori',
+          },
+          {
+            label: 'Lulus Binaan (Alumni)',
+            value: alumniTenantsCount,
+            icon: <Network size={18} />,
+            color: 'purple',
+            subtext: 'Startup pasca-inkubasi',
+            onClick: () => setActiveTab('kanban'),
+            active: activeTab === 'kanban',
+          },
+        ]}
+      />
 
       {/* Konten Tab Aktif */}
       <div className="min-h-[500px]">

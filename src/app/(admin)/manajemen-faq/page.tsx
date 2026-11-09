@@ -8,7 +8,7 @@ import {
   Loader2, CheckCircle, XCircle, HelpCircle,
   Pin, ThumbsUp, ThumbsDown, Users, Tag, AlertCircle
 } from 'lucide-react';
-import { AdminPageHeader, AdminFilterBar } from '@/components/admin';
+import { AdminPageHeader, AdminFilterBar, AdminFormDrawer } from '@/components/admin';
 
 export default function ManajemenFAQPage() {
   const { faqs, loading, error, addFaq, updateFaq, removeFaq } = useFaqs();
@@ -264,115 +264,104 @@ export default function ManajemenFAQPage() {
         )}
       </div>
 
-      {/* MODAL FORM DINAMIS */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden my-auto max-h-[92vh] sm:max-h-[88vh] flex flex-col border border-slate-100 animate-in zoom-in-95 duration-200">
-            
-            <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-md shrink-0">
-              <div>
-                <h3 className="text-base sm:text-lg font-black text-slate-800 tracking-tight">{editingId ? 'Edit Data FAQ' : 'Tambah FAQ Baru'}</h3>
-                <p className="text-xs font-medium text-slate-500 mt-0.5">Isi pertanyaan dan jawaban yang jelas untuk pengguna.</p>
-              </div>
-              <button onClick={handleCloseModal} className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 p-2 rounded-full transition-colors cursor-pointer"><XCircle size={20} /></button>
+      {/* DRAWER FORM DINAMIS */}
+      <AdminFormDrawer
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        title={editingId ? 'Edit Data FAQ' : 'Tambah FAQ Baru'}
+        subtitle="Isi pertanyaan dan jawaban yang jelas untuk pengguna."
+        maxWidth="xl"
+        footer={
+          <>
+            <button 
+              type="button" 
+              onClick={handleCloseModal} 
+              className="px-5 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors"
+            >
+              Batal
+            </button>
+            <button 
+              type="submit" 
+              form="form-faq-editor"
+              disabled={isSubmitting} 
+              className="flex items-center justify-center gap-2 px-6 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl shadow-sm hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+              {isSubmitting ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle size={15} />} 
+              {isSubmitting ? 'Menyimpan...' : 'Simpan FAQ'}
+            </button>
+          </>
+        }
+      >
+        <form id="form-faq-editor" onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+          {/* Switcher Pin */}
+          <div className="flex items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-2xl">
+            <div>
+              <h4 className="text-xs font-black text-amber-900 flex items-center gap-2 uppercase tracking-widest">
+                <Pin size={16} /> Sematkan di Beranda
+              </h4>
+              <p className="text-[11px] text-amber-700 font-medium mt-0.5">FAQ ini akan diprioritaskan tampil paling atas di halaman awal publik.</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" className="sr-only peer" checked={formData.isPinned} onChange={(e) => setFormData({...formData, isPinned: e.target.checked})} />
+              <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+            </label>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">Pertanyaan Utama (Q) *</label>
+              <input required type="text" value={formData.question} onChange={(e) => setFormData({...formData, question: e.target.value})} className={inputClass} placeholder="Tuliskan pertanyaan spesifik..." />
             </div>
             
-            <form onSubmit={handleSubmit} className="p-4 sm:p-6 overflow-y-auto custom-scrollbar bg-slate-50/50 flex-1">
-              <div className="space-y-4 sm:space-y-5">
-                
-                {/* Switcher Pin */}
-                <div className="flex items-center justify-between p-5 bg-amber-50 border border-amber-200 rounded-2xl shadow-sm">
-                  <div>
-                    <h4 className="text-sm font-black text-amber-900 flex items-center gap-2 uppercase tracking-widest">
-                      <Pin size={18} /> Sematkan di Beranda
-                    </h4>
-                    <p className="text-xs text-amber-700 font-medium mt-1">FAQ ini akan diprioritaskan tampil paling atas di halaman awal publik.</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" checked={formData.isPinned} onChange={(e) => setFormData({...formData, isPinned: e.target.checked})} />
-                    <div className="w-12 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500 shadow-inner"></div>
-                  </label>
-                </div>
-
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Pertanyaan Utama (Q) *</label>
-                    <input required type="text" value={formData.question} onChange={(e) => setFormData({...formData, question: e.target.value})} className={inputClass} placeholder="Tuliskan pertanyaan spesifik..." />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5 flex justify-between items-end">
-                      <span>Jawaban Komprehensif (A) *</span>
-                      <span className="text-[10px] text-slate-400 font-medium">Mendukung format Markdown/HTML dasar</span>
-                    </label>
-                    <textarea required rows={6} value={formData.answer} onChange={(e) => setFormData({...formData, answer: e.target.value})} className={`${inputClass} resize-y leading-relaxed`} placeholder="Tuliskan jawaban yang komprehensif dan mudah dipahami..."></textarea>
-                  </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1.5">Kategori / Topik *</label>
-                      <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} className={`${inputClass} font-bold text-slate-700 cursor-pointer`}>
-                        {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-indigo-700 mb-1.5 flex items-center gap-1.5">
-                        <Users size={14} /> Target Audience (Akses) *
-                      </label>
-                      <select value={formData.targetAudience} onChange={(e) => setFormData({...formData, targetAudience: e.target.value as any})} className="w-full px-4 py-2.5 bg-indigo-50 border border-indigo-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 font-bold text-indigo-900 cursor-pointer transition-all outline-none">
-                        {audiences.map(aud => <option key={aud.value} value={aud.value}>{aud.label}</option>)}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-100">
-                    <label className="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5">
-                      <Tag size={16} className="text-blue-500" /> Tags Dinamis (SEO)
-                    </label>
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      {formData.relatedTags?.map(tag => (
-                        <span key={tag} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 shadow-sm">
-                          {tag} <button type="button" onClick={() => removeTag(tag)} className="text-slate-400 hover:text-red-500 transition-colors"><XCircle size={14}/></button>
-                        </span>
-                      ))}
-                    </div>
-                    <input 
-                      type="text" 
-                      value={tagInput}
-                      onChange={(e) => setTagInput(e.target.value)}
-                      onKeyDown={handleAddTag}
-                      className={inputClass} 
-                      placeholder="Ketik kata kunci dan tekan Enter (contoh: Lab AI, Pembayaran, Invoice)..." 
-                    />
-                  </div>
-                </div>
-
-              </div>
-
-              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 pt-4 sm:pt-6 mt-6 border-t border-slate-200 sticky bottom-0 bg-slate-50/95 backdrop-blur-md pb-2">
-                <button 
-                  type="button" 
-                  onClick={handleCloseModal} 
-                  className="w-full sm:w-auto min-h-[42px] px-6 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors shadow-xs text-center"
-                >
-                  Batal
-                </button>
-                <button 
-                  type="submit" 
-                  disabled={isSubmitting} 
-                  className="w-full sm:w-auto min-h-[42px] flex items-center justify-center gap-2 px-6 sm:px-8 py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:bg-blue-700 transition-colors disabled:opacity-50 text-center"
-                >
-                  {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18} />} 
-                  {isSubmitting ? 'Menyimpan...' : 'Simpan FAQ'}
-                </button>
-              </div>
-            </form>
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5 flex justify-between items-end">
+                <span>Jawaban Komprehensif (A) *</span>
+                <span className="text-[10px] text-slate-400 font-medium">Mendukung format Markdown/HTML dasar</span>
+              </label>
+              <textarea required rows={6} value={formData.answer} onChange={(e) => setFormData({...formData, answer: e.target.value})} className={`${inputClass} resize-y leading-relaxed`} placeholder="Tuliskan jawaban yang komprehensif dan mudah dipahami..."></textarea>
+            </div>
           </div>
-        </div>
-      )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">Kategori / Topik *</label>
+              <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} className={`${inputClass} font-bold text-slate-700 cursor-pointer`}>
+                {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-indigo-700 mb-1.5 flex items-center gap-1.5">
+                <Users size={14} /> Target Audience (Akses) *
+              </label>
+              <select value={formData.targetAudience} onChange={(e) => setFormData({...formData, targetAudience: e.target.value as any})} className="w-full px-4 py-2.5 bg-indigo-50 border border-indigo-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 font-bold text-indigo-900 cursor-pointer transition-all outline-none">
+                {audiences.map(aud => <option key={aud.value} value={aud.value}>{aud.label}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className="pt-2 border-t border-slate-100">
+            <label className="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5">
+              <Tag size={16} className="text-blue-500" /> Tags Dinamis (SEO)
+            </label>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {formData.relatedTags?.map(tag => (
+                <span key={tag} className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700">
+                  {tag} <button type="button" onClick={() => removeTag(tag)} className="text-slate-400 hover:text-red-500 transition-colors"><XCircle size={14}/></button>
+                </span>
+              ))}
+            </div>
+            <input 
+              type="text" 
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={handleAddTag}
+              className={inputClass} 
+              placeholder="Ketik kata kunci dan tekan Enter (contoh: Lab AI, Pembayaran, Invoice)..." 
+            />
+          </div>
+        </form>
+      </AdminFormDrawer>
     </div>
   );
 }

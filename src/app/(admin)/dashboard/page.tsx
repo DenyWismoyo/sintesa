@@ -3,6 +3,7 @@
 import { useAuth } from '@/lib/AuthContext';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { collection, query, onSnapshot, orderBy, limit } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '@/lib/firebase';
@@ -12,7 +13,7 @@ import {
   Filter, TrendingUp, BarChart3, Bell, PackageSearch, UserPlus, 
   BookOpen, Building2, Wrench, Rocket, Layers
 } from 'lucide-react';
-import { AdminPageHeader } from '@/components/admin';
+import { AdminPageHeader, AdminStatGrid } from '@/components/admin';
 
 const MONTHS = [
   "Januari", "Februari", "Maret", "April", "Mei", "Juni",
@@ -34,6 +35,7 @@ function timeAgo(ms: number) {
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const appId = getAppId();
   
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
@@ -149,39 +151,42 @@ export default function DashboardPage() {
       ) : (
         <>
           {/* BARIS 1: 4 METRIK KUNCI (OPERASIONAL) */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <StatCard 
-              title="Pengguna Sistem" 
-              value={stats?.users?.total?.toString() || "0"} 
-              icon={<UserPlus size={18} />} 
-              trend="Akun Terdaftar" colorClass="text-blue-600 bg-blue-50 border-blue-100"
-              href="/pengaturan"
-            />
-            <StatCard 
-              title="Tenant Aktif" 
-              value={stats?.tenants?.active?.toString() || "0"} 
-              subValue={`dari total ${stats?.tenants?.total || 0} pendaftar`}
-              icon={<Rocket size={18} />} 
-              trend="Mitra Startup" colorClass="text-purple-600 bg-purple-50 border-purple-100"
-              href="/tenant"
-            />
-            <StatCard 
-              title="Aset Disewa" 
-              value={stats?.assets?.rented?.toString() || "0"} 
-              subValue={`dari total ${stats?.assets?.total || 0} unit/ruangan`}
-              icon={<Building2 size={18} />} 
-              trend="Utilisasi Aset" colorClass="text-emerald-600 bg-emerald-50 border-emerald-100"
-              href="/booking"
-            />
-            <StatCard 
-              title="Peserta Pelatihan" 
-              value={stats?.training?.totalRegistrants?.toString() || "0"} 
-              subValue={`di dalam ${stats?.training?.totalEvents || 0} program`}
-              icon={<GraduationCap size={18} />} 
-              trend="Siswa LMS" colorClass="text-amber-600 bg-amber-50 border-amber-100"
-              href="/pelatihan"
-            />
-          </div>
+          <AdminStatGrid
+            items={[
+              {
+                label: 'Pengguna Sistem',
+                value: stats?.users?.total?.toString() || '0',
+                subtext: 'Akun Terdaftar',
+                icon: UserPlus,
+                variant: 'blue',
+                onClick: () => router.push('/pengaturan'),
+              },
+              {
+                label: 'Tenant Aktif',
+                value: stats?.tenants?.active?.toString() || '0',
+                subtext: `dari total ${stats?.tenants?.total || 0} pendaftar`,
+                icon: Rocket,
+                variant: 'purple',
+                onClick: () => router.push('/tenant'),
+              },
+              {
+                label: 'Aset Disewa',
+                value: stats?.assets?.rented?.toString() || '0',
+                subtext: `dari total ${stats?.assets?.total || 0} unit/ruangan`,
+                icon: Building2,
+                variant: 'emerald',
+                onClick: () => router.push('/booking'),
+              },
+              {
+                label: 'Peserta Pelatihan',
+                value: stats?.training?.totalRegistrants?.toString() || '0',
+                subtext: `di dalam ${stats?.training?.totalEvents || 0} program`,
+                icon: GraduationCap,
+                variant: 'amber',
+                onClick: () => router.push('/pelatihan'),
+              },
+            ]}
+          />
 
           {/* BARIS 2: ANALITIK GRAFIK & FEED AKTIVITAS */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">

@@ -3,7 +3,14 @@
 
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '@/lib/AuthContext';
-import { AdminPageHeader, AdminResponsiveView, AdminFormDrawer } from '@/components/admin';
+import { useAdminTab } from '@/hooks/useAdminTab';
+import {
+  AdminPageHeader,
+  AdminResponsiveView,
+  AdminFormDrawer,
+  AdminStatGrid,
+  AdminFilterBar,
+} from '@/components/admin';
 import { useAllWorkOrders, useWorkOrderMutations } from '@/hooks/useServiceDesk';
 import { WorkOrder, WorkOrderStatus, WorkOrderPriority } from '@/types/serviceDesk.types';
 import { formatRupiah } from '@/utils/format';
@@ -34,11 +41,12 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 
-type FilterTab = 'ALL' | 'OPEN' | 'IN_PROGRESS' | 'WAITING_PARTS' | 'RESOLVED' | 'CLOSED';
+const SERVICE_DESK_TABS = ['ALL', 'OPEN', 'IN_PROGRESS', 'WAITING_PARTS', 'RESOLVED', 'CLOSED'] as const;
+type FilterTab = (typeof SERVICE_DESK_TABS)[number];
 
 export default function ServiceDeskPage() {
   const { role } = useAuth();
-  const [activeTab, setActiveTab] = useState<FilterTab>('ALL');
+  const [activeTab, setActiveTab] = useAdminTab<FilterTab>('ALL', SERVICE_DESK_TABS);
   const [searchTerm, setSearchTerm] = useState('');
 
   // Data Queries
@@ -180,108 +188,87 @@ export default function ServiceDeskPage() {
       <AdminPageHeader
         title="Service Desk & SPK Pemeliharaan"
         description="Pusat triase aduan kerusakan aset fisik, penerbitan Surat Perintah Kerja (SPK), dan Berita Acara Serah Terima (BAST)."
+        breadcrumbs={[{ label: 'Operasional' }, { label: 'Service Desk' }]}
+        tabs={[
+          { id: 'ALL', label: 'Semua Tiket', badge: metrics.total },
+          { id: 'OPEN', label: 'Menunggu Teknisi', badge: metrics.openCount || undefined },
+          { id: 'IN_PROGRESS', label: 'Dalam Pengerjaan', badge: metrics.inProgressCount || undefined },
+          { id: 'RESOLVED', label: 'Selesai & BAST', badge: metrics.resolvedCount || undefined },
+        ]}
+        activeTab={activeTab}
+        onTabChange={(id) => setActiveTab(id as FilterTab)}
+        actions={
+          <Button
+            onClick={() => {
+              setCreateForm({
+                title: '',
+                assetName: '',
+                location: 'Kawasan Solo Technopark',
+                reporterName: 'Staf Operasional STP',
+                issueDescription: '',
+                priority: 'SEDANG',
+                source: 'INTERNAL_STAFF',
+              });
+              setIsCreateOpen(true);
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white gap-2 font-bold text-xs h-8.5 px-3.5 shadow-xs shrink-0"
+          >
+            <Plus size={15} />
+            Terbitkan SPK Manual
+          </Button>
+        }
       />
 
       {/* METRIC CARDS */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <Card className="border-slate-200/90 shadow-2xs bg-gradient-to-br from-blue-50/60 to-white rounded-xl sm:rounded-2xl">
-          <CardContent className="p-3.5 sm:p-4 flex items-center gap-3">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs shrink-0">
-              <Layers className="w-4 h-4 sm:w-5 sm:h-5" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Total SPK</p>
-              <h3 className="text-lg sm:text-xl md:text-2xl font-black text-slate-900 mt-0.5">{metrics.total}</h3>
-            </div>
-          </CardContent>
-        </Card>
+      <AdminStatGrid
+        columns={4}
+        items={[
+          {
+            label: 'Total SPK',
+            value: metrics.total,
+            icon: <Layers className="w-4 h-4 sm:w-5 sm:h-5" />,
+            color: 'blue',
+            onClick: () => setActiveTab('ALL'),
+            active: activeTab === 'ALL',
+          },
+          {
+            label: 'Antrean Teknisi',
+            value: metrics.openCount,
+            icon: <Clock className="w-4 h-4 sm:w-5 sm:h-5" />,
+            color: 'amber',
+            onClick: () => setActiveTab('OPEN'),
+            active: activeTab === 'OPEN',
+          },
+          {
+            label: 'Pengerjaan',
+            value: metrics.inProgressCount,
+            icon: <Wrench className="w-4 h-4 sm:w-5 sm:h-5" />,
+            color: 'indigo',
+            onClick: () => setActiveTab('IN_PROGRESS'),
+            active: activeTab === 'IN_PROGRESS',
+          },
+          {
+            label: 'Selesai BAST',
+            value: metrics.resolvedCount,
+            icon: <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />,
+            color: 'emerald',
+            onClick: () => setActiveTab('RESOLVED'),
+            active: activeTab === 'RESOLVED',
+          },
+        ]}
+      />
 
-        <Card className="border-slate-200/90 shadow-2xs bg-gradient-to-br from-amber-50/60 to-white rounded-xl sm:rounded-2xl">
-          <CardContent className="p-3.5 sm:p-4 flex items-center gap-3">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-xs shrink-0">
-              <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Antrean Teknisi</p>
-              <h3 className="text-lg sm:text-xl md:text-2xl font-black text-slate-900 mt-0.5">{metrics.openCount}</h3>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200/90 shadow-2xs bg-gradient-to-br from-indigo-50/60 to-white rounded-xl sm:rounded-2xl">
-          <CardContent className="p-3.5 sm:p-4 flex items-center gap-3">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs shrink-0">
-              <Wrench className="w-4 h-4 sm:w-5 sm:h-5" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Pengerjaan</p>
-              <h3 className="text-lg sm:text-xl md:text-2xl font-black text-slate-900 mt-0.5">{metrics.inProgressCount}</h3>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200/90 shadow-2xs bg-gradient-to-br from-emerald-50/60 to-white rounded-xl sm:rounded-2xl">
-          <CardContent className="p-3.5 sm:p-4 flex items-center gap-3">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs shrink-0">
-              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Selesai BAST</p>
-              <h3 className="text-lg sm:text-xl md:text-2xl font-black text-slate-900 mt-0.5">{metrics.resolvedCount}</h3>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* FILTER & ACTIONS */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
-        <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-          {(['ALL', 'OPEN', 'IN_PROGRESS', 'RESOLVED'] as FilterTab[]).map((tab) => (
-            <Button
-              key={tab}
-              variant={activeTab === tab ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setActiveTab(tab)}
-              className="font-bold text-xs h-8 px-3"
-            >
-              {tab === 'ALL' && 'Semua Tiket'}
-              {tab === 'OPEN' && 'Menunggu Teknisi'}
-              {tab === 'IN_PROGRESS' && 'Dalam Pengerjaan'}
-              {tab === 'RESOLVED' && 'Selesai & BAST'}
-            </Button>
-          ))}
-        </div>
-
-        <Button
-          onClick={() => {
-            setCreateForm({
-              title: '',
-              assetName: '',
-              location: 'Kawasan Solo Technopark',
-              reporterName: 'Staf Operasional STP',
-              issueDescription: '',
-              priority: 'SEDANG',
-              source: 'INTERNAL_STAFF',
-            });
-            setIsCreateOpen(true);
-          }}
-          className="bg-blue-600 hover:bg-blue-700 text-white gap-2 font-bold text-xs h-8.5 px-3.5 shadow-xs shrink-0"
-        >
-          <Plus size={15} />
-          Terbitkan SPK Manual
-        </Button>
-      </div>
-
-      {/* SEARCH BAR */}
-      <div className="relative">
-        <Search className="absolute left-3.5 top-2.5 text-slate-400" size={16} />
-        <Input
-          placeholder="Cari nomor SPK, judul kerusakan, nama fasilitas, atau teknisi..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-9 h-9 text-xs sm:text-sm bg-white border-slate-200/90 rounded-xl"
-        />
-      </div>
+      {/* SEARCH & FILTER BAR */}
+      <AdminFilterBar
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Cari nomor SPK, judul kerusakan, nama fasilitas, atau teknisi..."
+        hasActiveFilters={Boolean(searchTerm || activeTab !== 'ALL')}
+        onReset={() => {
+          setSearchTerm('');
+          setActiveTab('ALL');
+        }}
+      />
 
       {/* RESPONSIVE TABLE & CARD LIST */}
       <AdminResponsiveView<WorkOrder>

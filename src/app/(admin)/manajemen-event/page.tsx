@@ -12,7 +12,7 @@ import {
   MapPin, Loader2, Image as ImageIcon, CheckCircle, XCircle,
   AlignLeft, Ticket, Settings, Users, Globe, ShieldAlert, Sparkles, UploadCloud
 } from 'lucide-react';
-import { AdminPageHeader, AdminFilterBar, AdminResponsiveView } from '@/components/admin';
+import { AdminPageHeader, AdminFilterBar, AdminResponsiveView, AdminStatGrid } from '@/components/admin';
 import ModalPesertaEvent from './components/ModalPesertaEvent';
 
 export default function ManajemenEventPage() {
@@ -182,6 +182,35 @@ export default function ManajemenEventPage() {
             <Plus size={18} /> Buat Event Baru
           </button>
         }
+      />
+
+      <AdminStatGrid
+        items={[
+          {
+            label: 'Total Event',
+            value: events.length,
+            icon: Calendar,
+            variant: 'blue',
+          },
+          {
+            label: 'Upcoming & Ongoing',
+            value: events.filter((e) => e.status === 'Upcoming' || e.status === 'Ongoing').length,
+            icon: Sparkles,
+            variant: 'amber',
+          },
+          {
+            label: 'Virtual / Online',
+            value: events.filter((e) => e.isOnline).length,
+            icon: Globe,
+            variant: 'indigo',
+          },
+          {
+            label: 'Selesai (Completed)',
+            value: events.filter((e) => e.status === 'Completed').length,
+            icon: CheckCircle,
+            variant: 'emerald',
+          },
+        ]}
       />
 
       {error && (

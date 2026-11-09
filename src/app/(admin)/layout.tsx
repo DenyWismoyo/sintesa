@@ -1,28 +1,34 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useAuth } from '@/lib/AuthContext';
-import { hasAccess, isInternalStaff, ROLE_LABELS } from '@/config/roles';
+import {
+  APP_ROLES,
+  canPerformAction,
+  hasAccess,
+  isInternalStaff,
+  PERMISSIONS,
+  ROLE_LABELS,
+} from '@/config/roles';
 import NotificationBellDropdown from '@/components/common/NotificationBellDropdown';
-import { 
-  LayoutDashboard, 
-  Building2, 
-  CalendarDays, 
-  ShoppingBag, 
-  Receipt, 
-  Rocket, 
-  GraduationCap, 
-  Ticket, 
-  HelpCircle, 
+import {
+  LayoutDashboard,
+  Building2,
+  CalendarDays,
+  ShoppingBag,
+  Receipt,
+  Rocket,
+  GraduationCap,
+  Ticket,
+  HelpCircle,
   LogOut,
   Menu,
   X,
-  Hexagon,
   Settings,
   ShieldAlert,
   Video,
@@ -36,150 +42,508 @@ import {
   Wrench,
   Handshake,
   Award,
-  MessageSquareQuote
+  MessageSquareQuote,
+  ChevronDown,
+  ChevronRight,
+  Loader2,
 } from 'lucide-react';
 
-// --- KONFIGURASI MENU ---
-const MENU_GROUPS = [
+export interface AdminSubTabConfig {
+  id: string;
+  label: string;
+  permission?: string;
+  hideForRoles?: string[];
+}
+
+export interface AdminMenuItemConfig {
+  name: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  subTabs?: AdminSubTabConfig[];
+}
+
+export interface AdminMenuGroupConfig {
+  group: string;
+  items: AdminMenuItemConfig[];
+}
+
+// --- KONFIGURASI MENU & PINTASAN SUB-TAB SIDEBAR ---
+const MENU_GROUPS: AdminMenuGroupConfig[] = [
   {
     group: 'Utama',
     items: [
       { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
       { name: 'Executive Command', href: '/eksekutif', icon: Crown },
-    ]
+    ],
   },
   {
     group: 'Kepegawaian',
     items: [
       { name: 'Presensi Pegawai STP', href: '/presensi', icon: ClockCheck },
-    ]
+    ],
   },
   {
     group: 'Operasional',
     items: [
-      { name: 'Manajemen Aset', href: '/aset', icon: Building2 },
-      { name: 'Booking & Jadwal', href: '/booking', icon: CalendarDays },
-      { name: 'Jasa Produksi', href: '/jasa-produksi', icon: Hammer },
-      { name: 'Service Desk & SPK', href: '/service-desk', icon: Wrench },
-    ]
+      {
+        name: 'Manajemen Aset',
+        href: '/aset',
+        icon: Building2,
+        subTabs: [
+          { id: 'Daftar Aset', label: 'Database Aset' },
+          { id: 'Laporan Publik', label: 'Laporan Kerusakan' },
+        ],
+      },
+      {
+        name: 'Booking & Jadwal',
+        href: '/booking',
+        icon: CalendarDays,
+        subTabs: [
+          { id: 'Antrean', label: 'Antrean Persetujuan' },
+          { id: 'Kalender', label: 'Kalender Master' },
+          { id: 'Ruangan', label: 'Manajemen Ruangan' },
+          { id: 'Fasilitas Teknis', label: 'Fasilitas Teknis' },
+          { id: 'Kemitraan', label: 'Kemitraan B2B & RFP' },
+        ],
+      },
+      {
+        name: 'Jasa Produksi',
+        href: '/jasa-produksi',
+        icon: Hammer,
+        subTabs: [
+          { id: 'ALL', label: 'Semua Pesanan SPK' },
+          { id: 'DRAFT_ESTIMATION', label: 'Draf & Estimasi' },
+          { id: 'WAITING_DP', label: 'Menunggu DP' },
+          { id: 'IN_PRODUCTION', label: 'Pengerjaan Bengkel' },
+          { id: 'QC', label: 'Uji Mutu (QC)' },
+          { id: 'DELIVERY', label: 'Siap Kirim & BAST' },
+          { id: 'COMPLETED', label: 'Selesai Lunas' },
+          { id: 'INVOICES', label: 'Monitoring Tagihan' },
+        ],
+      },
+      {
+        name: 'Service Desk & SPK',
+        href: '/service-desk',
+        icon: Wrench,
+        subTabs: [
+          { id: 'ALL', label: 'Semua Tiket' },
+          { id: 'OPEN', label: 'Menunggu Teknisi' },
+          { id: 'IN_PROGRESS', label: 'Dalam Pengerjaan' },
+          { id: 'RESOLVED', label: 'Selesai & BAST' },
+        ],
+      },
+    ],
   },
   {
     group: 'Komersial',
     items: [
-      { name: 'Katalog Produk', href: '/katalog', icon: ShoppingBag },
-      { name: 'Billing & Invoice', href: '/billing', icon: Receipt },
-      { name: 'Kemitraan & MoU', href: '/manajemen-kemitraan', icon: Handshake },
-      { name: 'Program Afiliasi', href: '/afiliasi', icon: Share2 },
-    ]
+      {
+        name: 'Katalog Produk',
+        href: '/katalog',
+        icon: ShoppingBag,
+        subTabs: [
+          { id: 'daftar', label: 'Daftar Produk' },
+          { id: 'tagihan', label: 'Tagihan & Order' },
+          { id: 'pengaturan', label: 'Pengaturan Katalog' },
+        ],
+      },
+      {
+        name: 'Billing & Invoice',
+        href: '/billing',
+        icon: Receipt,
+        subTabs: [
+          {
+            id: 'DASHBOARD',
+            label: 'Dasbor Keuangan',
+            hideForRoles: [APP_ROLES.KASIR, APP_ROLES.KASIR_PENGELUARAN],
+          },
+          {
+            id: 'INCOME',
+            label: 'Tagihan & Pendapatan',
+            hideForRoles: [APP_ROLES.KASIR_PENGELUARAN],
+          },
+          {
+            id: 'KONFIRMASI',
+            label: 'Verifikasi Bayar',
+            hideForRoles: [APP_ROLES.KASIR_PENGELUARAN],
+          },
+          {
+            id: 'EXPENSE',
+            label: 'Pengeluaran (AP)',
+            hideForRoles: [APP_ROLES.KASIR],
+          },
+          {
+            id: 'AGING_PIUTANG',
+            label: 'Umur Piutang',
+            hideForRoles: [APP_ROLES.KASIR_PENGELUARAN],
+          },
+          {
+            id: 'PROFIT_CENTER',
+            label: 'Laba/Rugi Divisi',
+            hideForRoles: [APP_ROLES.KASIR, APP_ROLES.KASIR_PENGELUARAN],
+          },
+          {
+            id: 'CASH_FLOW',
+            label: 'Arus Kas',
+            hideForRoles: [APP_ROLES.KASIR, APP_ROLES.KASIR_PENGELUARAN],
+          },
+          {
+            id: 'CASH',
+            label: 'Kas & Bank',
+            hideForRoles: [APP_ROLES.KASIR, APP_ROLES.KASIR_PENGELUARAN],
+          },
+          {
+            id: 'REKAP_ALOKASI',
+            label: 'Rekap Alokasi BAS',
+            hideForRoles: [APP_ROLES.KASIR, APP_ROLES.KASIR_PENGELUARAN],
+          },
+          {
+            id: 'REPORT',
+            label: 'Buku Besar',
+            hideForRoles: [APP_ROLES.KASIR, APP_ROLES.KASIR_PENGELUARAN],
+          },
+          {
+            id: 'EXPORT',
+            label: 'Pusat Ekspor',
+            hideForRoles: [APP_ROLES.KASIR, APP_ROLES.KASIR_PENGELUARAN],
+          },
+        ],
+      },
+      {
+        name: 'Kemitraan & MoU',
+        href: '/manajemen-kemitraan',
+        icon: Handshake,
+        subTabs: [
+          { id: 'MOU_LIST', label: 'Daftar Dokumen MoU' },
+          { id: 'INQUIRIES_PIPELINE', label: 'Pipeline Calon Mitra' },
+          { id: 'OPEN_PROJECTS', label: 'Kurasi Open Project' },
+          { id: 'FINANCING_SCHEMES', label: 'Pembiayaan & Bank' },
+        ],
+      },
+      {
+        name: 'Program Afiliasi',
+        href: '/afiliasi',
+        icon: Share2,
+        subTabs: [
+          { id: 'verifikasi', label: 'Antrean Verifikasi' },
+          { id: 'direktori', label: 'Direktori Mitra' },
+          { id: 'komisi', label: 'Buku Besar Komisi' },
+          { id: 'pencairan', label: 'Pencairan Dana' },
+          { id: 'pengaturan', label: 'Pengaturan Komisi' },
+        ],
+      },
+    ],
   },
   {
     group: 'Ekosistem',
     items: [
-      { name: 'Inkubasi Tenant', href: '/tenant', icon: Rocket },
-      { name: 'Pelatihan', href: '/pelatihan', icon: GraduationCap },
-      { name: 'Review Pelatihan', href: '/manajemen-review-pelatihan', icon: MessageSquareQuote },
-      { name: 'Bursa Karir', href: '/manajemen-karir', icon: Briefcase },
+      {
+        name: 'Inkubasi Tenant',
+        href: '/tenant',
+        icon: Rocket,
+        subTabs: [
+          { id: 'direktori', label: 'Direktori Startup' },
+          { id: 'validasi', label: 'Validasi Pendaftar' },
+          { id: 'kanban', label: 'Kanban Inkubasi' },
+          { id: 'matching', label: 'Business Matching' },
+          { id: 'kurasi', label: 'Kurasi Produk UKM' },
+          { id: 'tagihan', label: 'Tagihan Tenant' },
+          { id: 'helpdesk', label: 'Helpdesk Keluhan' },
+        ],
+      },
+      {
+        name: 'Pelatihan',
+        href: '/pelatihan',
+        icon: GraduationCap,
+        subTabs: [
+          { id: 'lms', label: 'Manajemen LMS', permission: PERMISSIONS.MANAGE_LMS },
+          { id: 'alumni', label: 'Database Alumni', permission: PERMISSIONS.MANAGE_ALUMNI },
+          { id: 'talent', label: 'Direktori Talent', permission: PERMISSIONS.MANAGE_TALENT },
+          { id: 'tagihan', label: 'Tagihan Diklat', permission: PERMISSIONS.MANAGE_LMS },
+        ],
+      },
+      {
+        name: 'Review Pelatihan',
+        href: '/manajemen-review-pelatihan',
+        icon: MessageSquareQuote,
+        subTabs: [
+          { id: 'programs', label: 'Program & Kriteria' },
+          { id: 'reviews', label: 'Kotak Masuk Ulasan' },
+        ],
+      },
+      {
+        name: 'Bursa Karir',
+        href: '/manajemen-karir',
+        icon: Briefcase,
+        subTabs: [
+          { id: 'LIST', label: 'Master Lowongan' },
+          { id: 'APPLICATIONS', label: 'Pelamar & Seleksi' },
+          { id: 'MITRA', label: 'Mitra & Antrean Loker' },
+          { id: 'FORUM', label: 'Moderasi Forum' },
+          { id: 'SYNC', label: 'Kontrol Agregator API' },
+          { id: 'TALENT', label: 'Penyaluran Alumni' },
+          { id: 'TRACER', label: 'Tracer Study Alumni' },
+        ],
+      },
       { name: 'Manajemen Event', href: '/manajemen-event', icon: Ticket },
       { name: 'Artikel & Warta', href: '/manajemen-artikel', icon: Newspaper },
       { name: 'Manajemen KRENOVA', href: '/manajemen-krenova', icon: Video },
       { name: 'Survei IKM', href: '/manajemen-ikm', icon: Award },
-    ]
+    ],
   },
   {
     group: 'Sistem',
     items: [
       { name: 'Pusat Bantuan', href: '/manajemen-faq', icon: HelpCircle },
-      { name: 'Pengaturan Sistem', href: '/pengaturan', icon: Settings },
-    ]
-  }
+      {
+        name: 'Pengaturan Sistem',
+        href: '/pengaturan',
+        icon: Settings,
+        subTabs: [
+          {
+            id: 'Profil',
+            label: 'Profil Instansi',
+            permission: PERMISSIONS.EDIT_INSTITUTION_PROFILE,
+          },
+          {
+            id: 'Keuangan',
+            label: 'Billing & Keuangan',
+            permission: PERMISSIONS.MANAGE_FINANCE_BAS,
+          },
+          {
+            id: 'Sistem',
+            label: 'Konfigurasi Sistem',
+            permission: PERMISSIONS.EDIT_INSTITUTION_PROFILE,
+          },
+          {
+            id: 'Notifikasi',
+            label: 'Notifikasi Email',
+            permission: PERMISSIONS.EDIT_INSTITUTION_PROFILE,
+          },
+          {
+            id: 'Keamanan',
+            label: 'Keamanan (RBAC)',
+            permission: PERMISSIONS.MANAGE_ROLES_USERS,
+          },
+        ],
+      },
+    ],
+  },
 ];
+
+function filterAllowedSubTabs(subTabs: AdminSubTabConfig[] | undefined, role: string | null): AdminSubTabConfig[] {
+  if (!subTabs) return [];
+  return subTabs.filter((sub) => {
+    if (sub.hideForRoles && role && sub.hideForRoles.includes(role)) {
+      return false;
+    }
+    if (sub.permission && !canPerformAction(role as any, sub.permission as any)) {
+      return false;
+    }
+    return true;
+  });
+}
+
+function SidebarNavContent({
+  role,
+  pathname,
+  isMobile = false,
+  onCloseMobile,
+}: {
+  role: string | null;
+  pathname: string;
+  isMobile?: boolean;
+  onCloseMobile?: () => void;
+}) {
+  const searchParams = useSearchParams();
+  const currentTabParam = searchParams.get('tab');
+
+  // Menyimpan menu mana saja yang sedang di-expand manual oleh pengguna di sidebar
+  const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>({});
+
+  const isActive = (href: string) => {
+    if (href === '/dashboard' && pathname === '/dashboard') return true;
+    if (href !== '/dashboard' && (pathname === href || pathname.startsWith(href + '/'))) return true;
+    return false;
+  };
+
+  const toggleExpand = (href: string, currentOpen: boolean, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setExpandedMap((prev) => ({
+      ...prev,
+      [href]: !currentOpen,
+    }));
+  };
+
+  return (
+    <div className={`flex flex-col ${isMobile ? 'gap-2.5 p-3' : 'gap-2.5 p-3 w-full'}`}>
+      {MENU_GROUPS.map((group) => {
+        const allowedItems = group.items.filter((item) => hasAccess(role as any, item.href));
+        if (allowedItems.length === 0) return null;
+
+        return (
+          <div key={group.group} className="flex flex-col gap-0.5">
+            <span className="px-2 pt-1 pb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 select-none">
+              {group.group}
+            </span>
+            {allowedItems.map((item) => {
+              const active = isActive(item.href);
+              const allowedSubTabs = filterAllowedSubTabs(item.subTabs, role);
+              const hasSubTabs = allowedSubTabs.length > 0;
+              // Otomatis terbuka jika menu sedang aktif, kecuali ditutup manual oleh user
+              const isExpanded =
+                expandedMap[item.href] !== undefined ? expandedMap[item.href] : active;
+
+              const activeSubTabId = (() => {
+                if (!active || !hasSubTabs) return null;
+                if (currentTabParam) {
+                  const found = allowedSubTabs.find(
+                    (s) => s.id.toLowerCase() === currentTabParam.toLowerCase()
+                  );
+                  if (found) return found.id;
+                }
+                return allowedSubTabs[0]?.id || null;
+              })();
+
+              return (
+                <div key={item.href} className="flex flex-col">
+                  <div className="relative flex items-center">
+                    <Link
+                      href={item.href}
+                      onClick={() => isMobile && onCloseMobile?.()}
+                      className={`group flex-1 flex items-center rounded-lg transition-all duration-150 px-2.5 py-1.5 gap-2.5 text-xs font-medium min-w-0 ${
+                        active
+                          ? 'bg-blue-50/90 text-blue-700 font-semibold shadow-2xs'
+                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      } ${hasSubTabs ? 'pr-7' : ''}`}
+                    >
+                      <item.icon
+                        className={`w-4 h-4 shrink-0 transition-transform duration-200 ${
+                          active ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-700'
+                        }`}
+                      />
+                      <span className="truncate">{item.name}</span>
+                    </Link>
+
+                    {hasSubTabs && (
+                      <button
+                        type="button"
+                        onClick={(e) => toggleExpand(item.href, isExpanded, e)}
+                        title={isExpanded ? 'Sembunyikan Sub-Tab' : 'Tampilkan Pintasan Tab'}
+                        className={`absolute right-1 p-1 rounded-md transition-colors cursor-pointer ${
+                          active
+                            ? 'text-blue-600 hover:bg-blue-100/80'
+                            : 'text-slate-400 hover:text-slate-700 hover:bg-slate-200/60'
+                        }`}
+                      >
+                        <ChevronDown
+                          className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                            isExpanded ? 'rotate-180' : ''
+                          }`}
+                        />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* PINTASAN SUB-TAB ACCORDION */}
+                  {hasSubTabs && isExpanded && (
+                    <div className="ml-4 pl-2.5 mt-0.5 mb-1 border-l-2 border-slate-100 flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-150">
+                      {allowedSubTabs.map((sub) => {
+                        const isSubActive = active && activeSubTabId === sub.id;
+                        return (
+                          <Link
+                            key={sub.id}
+                            href={`${item.href}?tab=${encodeURIComponent(sub.id)}`}
+                            onClick={() => isMobile && onCloseMobile?.()}
+                            className={`flex items-center justify-between px-2.5 py-1 rounded-md text-[11px] transition-colors truncate ${
+                              isSubActive
+                                ? 'bg-blue-600 text-white font-bold shadow-2xs'
+                                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/80 font-medium'
+                            }`}
+                          >
+                            <span className="truncate">{sub.label}</span>
+                            {isSubActive && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0 ml-1.5" />
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ActiveSubTabBadge({
+  currentMenu,
+  role,
+}: {
+  currentMenu?: AdminMenuItemConfig;
+  role: string | null;
+}) {
+  const searchParams = useSearchParams();
+  const currentTabParam = searchParams.get('tab');
+
+  if (!currentMenu?.subTabs || currentMenu.subTabs.length === 0) return null;
+  const allowed = filterAllowedSubTabs(currentMenu.subTabs, role);
+  if (allowed.length === 0) return null;
+
+  const activeSub =
+    (currentTabParam &&
+      allowed.find((s) => s.id.toLowerCase() === currentTabParam.toLowerCase())) ||
+    allowed[0];
+
+  if (!activeSub) return null;
+
+  return (
+    <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400 font-semibold min-w-0">
+      <ChevronRight className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+      <span className="text-slate-700 font-bold truncate">{activeSub.label}</span>
+    </div>
+  );
+}
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { role, loading } = useAuth(); // AMBIL DATA ROLE USER
+  const { role, loading } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Fungsi untuk mengecek apakah menu sedang aktif
   const isActive = (href: string) => {
     if (href === '/dashboard' && pathname === '/dashboard') return true;
-    if (href !== '/dashboard' && pathname.startsWith(href)) return true;
+    if (href !== '/dashboard' && (pathname === href || pathname.startsWith(href + '/'))) return true;
     return false;
   };
 
-  const currentMenu = MENU_GROUPS.flatMap(g => g.items).find(item => isActive(item.href));
+  const currentMenu = MENU_GROUPS.flatMap((g) => g.items).find((item) => isActive(item.href));
 
   const handleLogout = async () => {
-    if (window.confirm("Apakah Anda yakin ingin keluar dari sistem admin?")) {
+    if (window.confirm('Apakah Anda yakin ingin keluar dari sistem admin?')) {
       try {
         await signOut(auth);
         router.push('/login');
       } catch (err) {
-        console.error("Gagal logout:", err);
+        console.error('Gagal logout:', err);
       }
     }
   };
 
-  // Komponen Navigasi Render (Memfilter menu berdasarkan Hak Akses)
-  // Komponen Navigasi Render (Memfilter menu berdasarkan Hak Akses)
-  const NavigationItems = ({ isMobile = false }: { isMobile?: boolean }) => {
-    return (
-      <div className={`flex flex-col ${isMobile ? 'gap-2.5 p-3' : 'gap-2.5 p-3 w-full'}`}>
-        {MENU_GROUPS.map((group) => {
-          // FILTER: Hanya ambil item menu yang diizinkan untuk Role saat ini
-          const allowedItems = group.items.filter(item => hasAccess(role, item.href));
-          
-          if (allowedItems.length === 0) return null;
-
-          return (
-            <div key={group.group} className="flex flex-col gap-0.5">
-              <span className="px-2 pt-1 pb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 select-none">
-                {group.group}
-              </span>
-              {allowedItems.map((item) => {
-                const active = isActive(item.href);
-                return (
-                  <Link 
-                    key={item.href} 
-                    href={item.href}
-                    onClick={() => isMobile && setIsMobileMenuOpen(false)}
-                    className={`group relative flex items-center rounded-lg transition-all duration-150
-                      px-2.5 py-1.5 gap-2.5 text-xs font-medium
-                      ${active 
-                        ? 'bg-blue-50/90 text-blue-700 font-semibold shadow-2xs' 
-                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                      }
-                    `}
-                  >
-                    <item.icon className={`w-4 h-4 shrink-0 transition-transform duration-200 ${active ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-700'}`} />
-                    <span className="truncate">
-                      {item.name}
-                    </span>
-                    {active && (
-                      <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0" />
-                    )}
-                  </Link>
-                );
-              })}
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
-  // --- LOGIKA PROTEKSI SIDEBAR & LAYOUT (DISEMPURNAKAN) ---
   const isLmsRoute = pathname.startsWith('/lms');
-  
-  // Daftar URL publik yang BEBAS diakses siapa saja (tanpa butuh akses menu admin)
-  // Sesuaikan array ini jika Anda punya halaman login/landing page di root ('/')
-  const isPublicRoute = pathname === '/' || pathname.startsWith('/login') || pathname.startsWith('/register');
+  const isPublicRoute =
+    pathname === '/' || pathname.startsWith('/login') || pathname.startsWith('/register');
 
   if (loading) {
-    return <div className="min-h-screen bg-slate-50"></div>; 
+    return <div className="min-h-screen bg-slate-50" />;
   }
 
-  // 1. BYPASS UNTUK RUTE PUBLIK/LMS (Layout dibiarkan full-width, boleh diakses)
+  // 1. BYPASS UNTUK RUTE PUBLIK/LMS
   if (isLmsRoute || isPublicRoute) {
     return (
       <div className="min-h-screen bg-slate-50 font-sans text-slate-900 w-full">
@@ -191,51 +555,69 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   // 2. CEK AKSES RUTE SAAT INI (Route Guard Inti)
-  // hasAccess() akan membaca konfigurasi dari roles.ts.
-  // Jika Role = 'public' dan URL = '/billing', fungsi ini pasti mereturn FALSE.
   const isPathAllowed = hasAccess(role, pathname);
 
-  // 3. BLOKIR MUTLAK: Jika rute tidak diizinkan!
-  // Kita JANGAN MERENDER {children} sama sekali. Hentikan di sini.
+  // 3. BLOKIR MUTLAK JIKA RUTE TIDAK DIIZINKAN
   if (!isPathAllowed) {
     return (
       <div className="min-h-screen w-full bg-slate-50 flex flex-col items-center justify-center text-center p-6 animate-in fade-in">
-         <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-5 border-4 border-white shadow-sm">
-            <ShieldAlert className="w-8 h-8" />
-         </div>
-         <h2 className="text-2xl font-black text-slate-800 tracking-tight">Akses Terlarang</h2>
-         <p className="text-slate-500 mt-2 text-xs sm:text-sm font-medium max-w-md mx-auto">
-           Akun Anda dengan hak akses <b className="text-blue-600">{role ? ROLE_LABELS[role] || role : 'Pengguna Umum'}</b> tidak memiliki kewenangan untuk mengakses menu <span className="font-mono text-slate-700 bg-slate-200 px-1.5 py-0.5 rounded">{pathname}</span>.
-         </p>
-         <Link href={isInternalStaff(role) ? "/dashboard" : "/"} className="mt-6 bg-slate-900 text-white px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold hover:bg-slate-800 transition-colors shadow-sm">
-            {isInternalStaff(role) ? "Kembali ke Dashboard" : "Kembali ke Beranda"}
-         </Link>
+        <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-5 border-4 border-white shadow-sm">
+          <ShieldAlert className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-black text-slate-800 tracking-tight">Akses Terlarang</h2>
+        <p className="text-slate-500 mt-2 text-xs sm:text-sm font-medium max-w-md mx-auto">
+          Akun Anda dengan hak akses{' '}
+          <b className="text-blue-600">{role ? ROLE_LABELS[role] || role : 'Pengguna Umum'}</b>{' '}
+          tidak memiliki kewenangan untuk mengakses menu{' '}
+          <span className="font-mono text-slate-700 bg-slate-200 px-1.5 py-0.5 rounded">
+            {pathname}
+          </span>
+          .
+        </p>
+        <Link
+          href={isInternalStaff(role) ? '/dashboard' : '/'}
+          className="mt-6 bg-slate-900 text-white px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold hover:bg-slate-800 transition-colors shadow-sm"
+        >
+          {isInternalStaff(role) ? 'Kembali ke Dashboard' : 'Kembali ke Beranda'}
+        </Link>
       </div>
     );
   }
 
-  // 4. RENDER LAYOUT ADMIN (Sidebar Ramping Modern & Mobile Drawer Compact)
+  // 4. RENDER LAYOUT ADMIN (Sidebar dengan Pintasan Sub-Tab & Mobile Drawer)
   return (
     <div className="flex h-screen w-full bg-slate-50/70 overflow-hidden text-slate-900 font-sans">
-      
       {/* 1. SIDEBAR DESKTOP MINIMALIS ELEGAN */}
-      <aside className="hidden md:flex flex-col w-56 lg:w-60 bg-white border-r border-slate-200/80 shrink-0 z-30 select-none shadow-[1px_0_4px_rgba(0,0,0,0.02)]">
+      <aside className="hidden md:flex flex-col w-56 lg:w-64 bg-white border-r border-slate-200/80 shrink-0 z-30 select-none shadow-[1px_0_4px_rgba(0,0,0,0.02)]">
         {/* Brand Header */}
         <div className="h-14 px-4 flex items-center justify-between border-b border-slate-100 shrink-0">
           <Link href="/" className="flex items-center gap-2.5 group" title="KST Solo Technopark">
-             <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center p-0.5 bg-slate-50 border border-slate-100 group-hover:scale-105 transition-transform">
-               <Image src="/icon-192x192.png" alt="Solo Technopark" width={28} height={28} className="object-contain" priority />
-             </div>
-             <div className="flex flex-col">
-               <span className="font-black text-xs text-slate-900 leading-tight tracking-tight">Solo Technopark</span>
-               <span className="text-[10px] text-slate-400 font-semibold tracking-wide">Admin Workspace</span>
-             </div>
+            <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center p-0.5 bg-slate-50 border border-slate-100 group-hover:scale-105 transition-transform">
+              <Image
+                src="/icon-192x192.png"
+                alt="Solo Technopark"
+                width={28}
+                height={28}
+                className="object-contain"
+                priority
+              />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-black text-xs text-slate-900 leading-tight tracking-tight">
+                Solo Technopark
+              </span>
+              <span className="text-[10px] text-slate-400 font-semibold tracking-wide">
+                Admin Workspace
+              </span>
+            </div>
           </Link>
         </div>
 
-        {/* Navigation Items with subtle scroll */}
-        <nav className="flex-1 overflow-y-auto no-scrollbar py-1">
-          <NavigationItems />
+        {/* Navigation Items with Sub-Tab Shortcuts */}
+        <nav className="flex-1 overflow-y-auto custom-scrollbar py-1">
+          <Suspense fallback={<div className="p-4 text-xs text-slate-400">Memuat navigasi...</div>}>
+            <SidebarNavContent role={role} pathname={pathname} />
+          </Suspense>
         </nav>
 
         {/* Footer User & Actions Card */}
@@ -255,24 +637,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             <div className="flex items-center gap-1 shrink-0">
               {hasAccess(role, '/presensi') && (
-                <Link 
-                  href="/presensi" 
+                <Link
+                  href="/presensi"
                   className="p-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors flex items-center"
                   title="Presensi Pegawai STP (Techno Sign)"
                 >
                   <ClockCheck className="w-3.5 h-3.5" />
                 </Link>
               )}
-              <Link 
-                href="/" 
+              <Link
+                href="/"
                 className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
                 title="Beranda Utama"
               >
                 <Home className="w-3.5 h-3.5" />
               </Link>
-              <button 
+              <button
                 onClick={handleLogout}
-                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                 title="Keluar"
               >
                 <LogOut className="w-3.5 h-3.5" />
@@ -284,25 +666,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* 2. AREA UTAMA */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-        
         {/* Mobile Top Header */}
         <header className="md:hidden h-14 bg-white border-b border-slate-200/80 flex items-center justify-between px-3.5 z-20 shrink-0 shadow-2xs">
           <div className="flex items-center gap-2.5 min-w-0">
-             <Link href="/" title="Beranda Katalog STP" className="shrink-0">
-               <Image src="/icon-192x192.png" alt="Solo Technopark" width={28} height={28} className="w-7 h-7 object-contain rounded-md" priority />
-             </Link>
-             <div className="flex flex-col min-w-0">
-               <span className="font-bold text-slate-800 text-xs sm:text-sm leading-tight truncate">
-                 {currentMenu?.name || 'Admin Panel'}
-               </span>
-               <span className="text-[9px] text-blue-600 font-bold uppercase tracking-wider">
-                 {ROLE_LABELS[role || ''] || role}
-               </span>
-             </div>
+            <Link href="/" title="Beranda Katalog STP" className="shrink-0">
+              <Image
+                src="/icon-192x192.png"
+                alt="Solo Technopark"
+                width={28}
+                height={28}
+                className="w-7 h-7 object-contain rounded-md"
+                priority
+              />
+            </Link>
+            <div className="flex flex-col min-w-0">
+              <span className="font-bold text-slate-800 text-xs sm:text-sm leading-tight truncate">
+                {currentMenu?.name || 'Admin Panel'}
+              </span>
+              <span className="text-[9px] text-blue-600 font-bold uppercase tracking-wider">
+                {ROLE_LABELS[role || ''] || role}
+              </span>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <NotificationBellDropdown align="right" />
-            <button 
+            <button
               onClick={() => setIsMobileMenuOpen(true)}
               className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors active:scale-95"
               aria-label="Buka Menu Navigasi"
@@ -314,19 +702,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Desktop Top Header */}
         <header className="hidden md:flex h-14 bg-white/90 backdrop-blur-md border-b border-slate-200/80 items-center justify-between px-6 z-20 shrink-0">
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
             <span className="font-extrabold text-slate-800 text-sm leading-tight truncate">
               {currentMenu?.name || 'Dashboard'}
             </span>
-            <span className="text-[10px] bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded-full border border-blue-200/60 uppercase tracking-wider">
+            <Suspense fallback={null}>
+              <ActiveSubTabBadge currentMenu={currentMenu} role={role} />
+            </Suspense>
+            <span className="ml-1 text-[10px] bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded-full border border-blue-200/60 uppercase tracking-wider shrink-0">
               {ROLE_LABELS[role || ''] || role}
             </span>
           </div>
           <div className="flex items-center gap-3">
             <NotificationBellDropdown align="right" />
             <div className="h-4 w-px bg-slate-200" />
-            <Link 
-              href="/" 
+            <Link
+              href="/"
               className="px-3 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-semibold"
               title="Kunjungi Beranda Publik"
             >
@@ -338,8 +729,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Content Body */}
         <main className="flex-1 overflow-y-auto relative scroll-smooth bg-slate-50/50">
-          <div className="min-h-full w-full p-3.5 sm:p-5 md:p-6 lg:p-8 2xl:px-10 max-w-[1920px] mx-auto">
-             {children}
+          <div className="min-h-full w-full p-3.5 sm:p-5 md:p-6 lg:p-7 2xl:px-10 max-w-[1920px] mx-auto">
+            <Suspense
+              fallback={
+                <div className="py-24 flex flex-col items-center justify-center gap-2 text-slate-400">
+                  <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                  <span className="text-xs font-semibold">Memuat modul admin...</span>
+                </div>
+              }
+            >
+              {children}
+            </Suspense>
           </div>
         </main>
       </div>
@@ -348,85 +748,93 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {isMobileMenuOpen && (
         <div className="md:hidden fixed inset-0 z-50 flex">
           {/* Backdrop */}
-          <div 
+          <div
             className="fixed inset-0 bg-slate-900/30 backdrop-blur-xs transition-opacity duration-200"
             onClick={() => setIsMobileMenuOpen(false)}
           />
-          {/* Drawer Body - compact width 270px */}
-          <div className="relative flex-1 flex flex-col max-w-[270px] w-full bg-white shadow-2xl animate-in slide-in-from-left duration-200">
+          {/* Drawer Body */}
+          <div className="relative flex-1 flex flex-col max-w-[285px] w-full bg-white shadow-2xl animate-in slide-in-from-left duration-200">
             {/* Header */}
             <div className="h-14 border-b border-slate-100 flex items-center justify-between px-3.5 shrink-0">
               <div className="flex items-center gap-2">
-                <Image src="/icon-192x192.png" alt="Solo Technopark" width={24} height={24} className="w-6 h-6 object-contain" />
-                <span className="font-bold text-slate-800 text-xs">Navigasi Admin</span>
+                <Image
+                  src="/icon-192x192.png"
+                  alt="Solo Technopark"
+                  width={24}
+                  height={24}
+                  className="w-6 h-6 object-contain"
+                />
+                <span className="font-bold text-slate-800 text-xs">Navigasi Admin & Pintasan</span>
               </div>
-              <button 
+              <button
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
-            
+
             {/* Menu List */}
-            <div className="flex-1 overflow-y-auto no-scrollbar">
-              <NavigationItems isMobile={true} />
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+              <Suspense fallback={<div className="p-4 text-xs text-slate-400">Memuat...</div>}>
+                <SidebarNavContent
+                  role={role}
+                  pathname={pathname}
+                  isMobile={true}
+                  onCloseMobile={() => setIsMobileMenuOpen(false)}
+                />
+              </Suspense>
             </div>
 
             {/* Compact Footer Profile & Action */}
             <div className="p-3 border-t border-slate-150 bg-slate-50/80 shrink-0 flex flex-col gap-2">
-               <div className="flex items-center justify-between px-2 py-1.5 bg-white rounded-lg border border-slate-200/70">
-                 <div className="flex items-center gap-2 min-w-0">
-                   <div className="w-6 h-6 rounded-md bg-blue-600 text-white font-bold text-[10px] flex items-center justify-center shrink-0">
-                     {role?.substring(0, 2).toUpperCase() || 'AD'}
-                   </div>
-                   <div className="flex flex-col min-w-0">
-                     <span className="text-[11px] font-bold text-slate-800 truncate leading-tight">
-                       {ROLE_LABELS[role || ''] || role}
-                     </span>
-                   </div>
-                 </div>
-                 <div className="flex items-center gap-1 shrink-0">
-                   {hasAccess(role, '/presensi') && (
-                     <Link 
-                       href="/presensi" 
-                       onClick={() => setIsMobileMenuOpen(false)}
-                       className="p-1 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-md"
-                       title="Presensi Pegawai STP"
-                     >
-                       <ClockCheck className="w-3.5 h-3.5" />
-                     </Link>
-                   )}
-                   <Link 
-                     href="/" 
-                     onClick={() => setIsMobileMenuOpen(false)}
-                     className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md"
-                     title="Beranda"
-                   >
-                     <Home className="w-3.5 h-3.5" />
-                   </Link>
-                 </div>
-               </div>
+              <div className="flex items-center justify-between px-2 py-1.5 bg-white rounded-lg border border-slate-200/70">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-6 h-6 rounded-md bg-blue-600 text-white font-bold text-[10px] flex items-center justify-center shrink-0">
+                    {role?.substring(0, 2).toUpperCase() || 'AD'}
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[11px] font-bold text-slate-800 truncate leading-tight">
+                      {ROLE_LABELS[role || ''] || role}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  {hasAccess(role, '/presensi') && (
+                    <Link
+                      href="/presensi"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="p-1 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-md"
+                      title="Presensi Pegawai STP"
+                    >
+                      <ClockCheck className="w-3.5 h-3.5" />
+                    </Link>
+                  )}
+                  <Link
+                    href="/"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md"
+                    title="Beranda"
+                  >
+                    <Home className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </div>
 
-               <button 
-                 onClick={() => {
-                   setIsMobileMenuOpen(false);
-                   handleLogout();
-                 }}
-                 className="flex items-center justify-center gap-2 w-full py-1.5 text-red-600 hover:bg-red-50 rounded-lg font-bold text-xs transition-colors"
-               >
-                  <LogOut className="w-3.5 h-3.5" />
-                  Keluar dari Sistem
-               </button>
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  handleLogout();
+                }}
+                className="flex items-center justify-center gap-2 w-full py-1.5 text-red-600 hover:bg-red-50 rounded-lg font-bold text-xs transition-colors"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                Keluar dari Sistem
+              </button>
             </div>
           </div>
         </div>
       )}
-
-      <style dangerouslySetInnerHTML={{__html: `
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      `}} />
     </div>
   );
 }

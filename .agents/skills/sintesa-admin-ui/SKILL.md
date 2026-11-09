@@ -1,0 +1,70 @@
+---
+name: sintesa-admin-ui
+description: Standarisasi arsitektur UI halaman Admin Sintesa/Teknopark (PC, Tablet, Smartphone). Gunakan skill ini SEBELUM membuat atau merefaktor halaman di src/app/(admin)/. Berisi panduan penggunaan 7 Shared Admin Components (AdminPageHeader, AdminStatGrid, AdminFilterBar, AdminResponsiveView, AdminMobileCard, AdminStatusBadge, AdminFormDrawer), sinkronisasi pintasan Sub-Tab Sidebar via useAdminTab (?tab=...), dan aturan responsivitas 3 perangkat.
+---
+
+# Standar Arsitektur UI Admin Sintesa / Teknopark (`src/app/(admin)/`)
+
+Seluruh halaman di dalam grup rute `src/app/(admin)/` **WAJIB** menggunakan komponen standar dari `src/components/admin/` dan sistem sinkronisasi sub-tab URL (`useAdminTab`) agar seragam dan kompatibel 100% di **PC (`>=1024px`)**, **Tablet (`768px–1023px`)**, dan **Smartphone (`<768px`)**.
+
+---
+
+## 1. Struktur Anatomi Halaman Admin Standar
+
+Setiap halaman admin (`page.tsx`) wajib mengikuti urutan vertikal berikut:
+1. **`AdminPageHeader`**: Judul, *breadcrumb*, *badge*, tombol aksi utama (`actions`), dan konfigurasi `tabs` (otomatis terhubung ke pintasan Sidebar).
+2. **`AdminStatGrid` / `AdminStatCard`**: Baris ringkasan KPI (`grid-cols-2 lg:grid-cols-4`).
+3. **`AdminFilterBar`**: Input pencarian dan *dropdown filter* (otomatis menjadi *collapsible filter panel* di Smartphone).
+4. **`AdminResponsiveView` + `AdminMobileCard`**: Kontainer data adaptif 3-perangkat (Tabel penuh di PC `lg:`, Grid 2 kolom di Tablet `md:`, dan Kartu 1 kolom di Smartphone `<md:`).
+5. **`AdminFormDrawer`**: Drawer/Modal formulir atau *Full-Page Workspace* (`asPage={true}`).
+
+---
+
+## 2. Sistem Pintasan Sub-Tab Sidebar & Hook `useAdminTab`
+
+Untuk halaman admin yang memiliki lebih dari 1 tab internal:
+- **Jangan** membuat deretan tombol tab manual yang memakan ruang vertikal di halaman.
+- Gunakan hook `useAdminTab` dari `src/hooks/useAdminTab.ts`:
+  ```tsx
+  import { useAdminTab } from '@/hooks/useAdminTab';
+
+  const VALID_TABS = ['daftar', 'tagihan', 'pengaturan'] as const;
+  type MyTab = (typeof VALID_TABS)[number];
+
+  const [activeTab, setActiveTab] = useAdminTab<MyTab>('daftar', VALID_TABS);
+  ```
+- Daftarkan `subTabs` pada `MENU_GROUPS` di `src/app/(admin)/layout.tsx` dengan `id` yang sama persis.
+- Oper daftar tab ke `AdminPageHeader`:
+  ```tsx
+  <AdminPageHeader
+    title="Manajemen Katalog"
+    tabs={[
+      { id: 'daftar', label: 'Daftar Produk' },
+      { id: 'tagihan', label: 'Tagihan & Order', badge: pendingCount },
+      { id: 'pengaturan', label: 'Pengaturan' },
+    ]}
+    activeTab={activeTab}
+    onTabChange={setActiveTab}
+  />
+  ```
+  - Di **PC & Tablet (`>= md:`)**, navigasi sub-tab tampil sebagai *Accordion Sub-Menu* di Sidebar kiri serta *quick selector* di *breadcrumb*, sehingga area kerja utama tetap lega.
+  - Di **Smartphone (`< md:`)**, `AdminPageHeader` otomatis menampilkan *Horizontal Pill Scroller* yang nyaman untuk layar sentuh.
+
+---
+
+## 3. Aturan Kompatibilitas 3 Perangkat (PC, Tablet, Smartphone)
+
+| Perangkat | Breakpoint | Aturan Tampilan Data |
+|---|---|---|
+| **Smartphone** | `< 768px` (`< md:`) | **Dilarang merender `<table>` horizontal scroll**. Wajib menggunakan `AdminResponsiveView` + `AdminMobileCard` (1 kolom). |
+| **Tablet** | `768px – 1023px` (`md:` ke `lg:`) | `AdminResponsiveView` merender `AdminMobileCard` dalam **Grid 2 Kolom (`md:grid-cols-2`)**. Panel split-view wajib menggunakan `AdminFormDrawer` (`xl:hidden`). |
+| **PC / Desktop** | `>= 1024px` (`lg:` & `xl:`) | `AdminResponsiveView` merender tabel penuh (`renderDesktopTable`) dengan aksi baris cepat. |
+
+---
+
+## 4. Checklist Anti-Duplikasi (Wajib Dicek Sebelum Commit)
+
+- [ ] Tidak ada deklarasi `function StatCard` lokal di dalam `page.tsx` — gunakan `AdminStatGrid` / `AdminStatCard`.
+- [ ] Tidak ada modal manual `<div className="fixed inset-0 z-50 ...">` — gunakan `AdminFormDrawer`.
+- [ ] Tidak ada class warna dinamis Tailwind seperti ``bg-${color}-50`` — gunakan prop `color` / `variant` pada `AdminStatCard` atau `AdminStatusBadge`.
+- [ ] Semua tabel utama dibungkus dengan `AdminResponsiveView` dan memiliki `renderMobileCard` menggunakan `AdminMobileCard`.

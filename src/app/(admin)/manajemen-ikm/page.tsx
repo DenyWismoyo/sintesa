@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { AdminPageHeader, AdminResponsiveView } from '@/components/admin';
+import { AdminPageHeader, AdminResponsiveView, AdminStatGrid, AdminFilterBar } from '@/components/admin';
 import { useAllIkmSurveys } from '@/hooks/useIkm';
 import { ikmService } from '@/services/ikm.service';
 import { IKM_SERVICE_LABELS, IkmServiceType, IkmSurvey } from '@/types/ikm.types';
@@ -82,73 +82,51 @@ export default function SurveiIkmAdminPage() {
       />
 
       {/* SUMMARY BANNER */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <Card className="border-slate-200/90 shadow-2xs bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-xl sm:rounded-2xl">
-          <CardContent className="p-3.5 sm:p-4 flex items-center justify-between">
-            <div className="min-w-0 pr-2">
-              <p className="text-[10px] sm:text-xs font-bold text-blue-100 uppercase tracking-wider truncate">Nilai IKM</p>
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-black mt-0.5">{summary.overallConvertedScore}</h2>
-              <p className="text-[10px] text-blue-100/90 mt-0.5">Skala 25 - 100</p>
-            </div>
-            <div className="text-center bg-white/15 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl backdrop-blur-xs border border-white/20 shrink-0">
-              <span className="text-xl sm:text-2xl font-black">{summary.overallGrade}</span>
-              <p className="text-[9px] font-bold uppercase tracking-wider mt-0.5">
-                {summary.overallGrade === 'A'
-                  ? 'Sangat Baik'
-                  : summary.overallGrade === 'B'
-                  ? 'Baik'
-                  : summary.overallGrade === 'C'
-                  ? 'Kurang'
-                  : 'Buruk'}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200/90 shadow-2xs bg-white rounded-xl sm:rounded-2xl">
-          <CardContent className="p-3.5 sm:p-4 flex items-center gap-3">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shrink-0">
-              <Users className="w-4 h-4 sm:w-5 sm:h-5" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Total Responden</p>
-              <h3 className="text-lg sm:text-xl md:text-2xl font-black text-slate-900 mt-0.5">{summary.totalRespondents}</h3>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200/90 shadow-2xs bg-white rounded-xl sm:rounded-2xl">
-          <CardContent className="p-3.5 sm:p-4 flex items-center gap-3">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center border border-purple-100 shrink-0">
-              <Award className="w-4 h-4 sm:w-5 sm:h-5" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Mutu Layanan</p>
-              <h3 className="text-sm sm:text-base md:text-lg font-black text-slate-900 mt-0.5 truncate">
-                {summary.overallConvertedScore >= 88.31
-                  ? 'Sangat Memuaskan'
-                  : summary.overallConvertedScore >= 76.61
-                  ? 'Memuaskan'
-                  : 'Perlu Peningkatan'}
-              </h3>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200/90 shadow-2xs bg-white rounded-xl sm:rounded-2xl">
-          <CardContent className="p-3.5 sm:p-4 flex items-center gap-3">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100 shrink-0">
-              <Smile className="w-4 h-4 sm:w-5 sm:h-5" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Rata-rata Unsur</p>
-              <h3 className="text-lg sm:text-xl md:text-2xl font-black text-slate-900 mt-0.5">
-                {(summary.overallConvertedScore / 25).toFixed(2)} <span className="text-xs text-slate-400 font-normal">/4</span>
-              </h3>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <AdminStatGrid
+        columns={4}
+        items={[
+          {
+            label: 'Nilai IKM (Skala 25-100)',
+            value: `${summary.overallConvertedScore} (Mutu ${summary.overallGrade})`,
+            subtext:
+              summary.overallGrade === 'A'
+                ? 'Predikat Sangat Baik'
+                : summary.overallGrade === 'B'
+                ? 'Predikat Baik'
+                : summary.overallGrade === 'C'
+                ? 'Predikat Kurang'
+                : 'Predikat Buruk',
+            icon: <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5" />,
+            color: 'blue',
+          },
+          {
+            label: 'Total Responden',
+            value: summary.totalRespondents,
+            subtext: 'Kuesioner masuk terverifikasi',
+            icon: <Users className="w-4 h-4 sm:w-5 sm:h-5" />,
+            color: 'emerald',
+          },
+          {
+            label: 'Mutu Layanan',
+            value:
+              summary.overallConvertedScore >= 88.31
+                ? 'Sangat Memuaskan'
+                : summary.overallConvertedScore >= 76.61
+                ? 'Memuaskan'
+                : 'Perlu Peningkatan',
+            subtext: 'Standar PermenPAN-RB 14/2017',
+            icon: <Award className="w-4 h-4 sm:w-5 sm:h-5" />,
+            color: 'purple',
+          },
+          {
+            label: 'Rata-rata Unsur',
+            value: `${(summary.overallConvertedScore / 25).toFixed(2)} / 4.00`,
+            subtext: 'Agregat 9 unsur pelayanan',
+            icon: <Smile className="w-4 h-4 sm:w-5 sm:h-5" />,
+            color: 'amber',
+          },
+        ]}
+      />
 
       {/* 9 UNSUR REKAPITULASI GRID */}
       <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs">
@@ -181,29 +159,30 @@ export default function SurveiIkmAdminPage() {
 
       {/* FILTER & TABLE */}
       <div className="space-y-3.5">
-        <div className="flex flex-col sm:flex-row gap-2.5">
-          <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-2.5 text-slate-400" size={16} />
-            <Input
-              placeholder="Cari nama responden atau ulasan masukan..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 h-9 text-xs sm:text-sm bg-white border-slate-200/90 rounded-xl"
-            />
-          </div>
-          <select
-            value={selectedService}
-            onChange={(e) => setSelectedService(e.target.value)}
-            className="h-9 px-3 bg-white border border-slate-200/90 rounded-xl text-xs sm:text-sm font-medium text-slate-700 focus:outline-blue-500"
-          >
-            <option value="ALL">Semua Jenis Layanan</option>
-            {Object.entries(IKM_SERVICE_LABELS).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <AdminFilterBar
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+          searchPlaceholder="Cari nama responden atau ulasan masukan..."
+          filters={[
+            {
+              id: 'serviceType',
+              value: selectedService,
+              onChange: setSelectedService,
+              options: [
+                { label: 'Semua Jenis Layanan', value: 'ALL' },
+                ...Object.entries(IKM_SERVICE_LABELS).map(([key, label]) => ({
+                  label,
+                  value: key,
+                })),
+              ],
+            },
+          ]}
+          hasActiveFilters={Boolean(searchTerm || selectedService !== 'ALL')}
+          onReset={() => {
+            setSearchTerm('');
+            setSelectedService('ALL');
+          }}
+        />
 
         <AdminResponsiveView<IkmSurvey>
           items={filteredSurveys}

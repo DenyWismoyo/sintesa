@@ -1,7 +1,8 @@
 // Lokasi file: src/app/admin/tenant/components/TabDirektoriTenant.tsx
 import React, { useState } from 'react';
-import { Search, Loader2, Edit, Trash2, Building, Eye, Filter, ChevronDown, User, Activity } from 'lucide-react';
+import { Loader2, Edit, Trash2, Building, Eye, ChevronDown, User } from 'lucide-react';
 import { Tenant } from '@/types';
+import { AdminFilterBar, AdminResponsiveView, AdminMobileCard } from '@/components/admin';
 
 interface Props {
   tenants: Tenant[];
@@ -38,78 +39,64 @@ export default function TabDirektoriTenant({ tenants, loading, fetchNextPage, ha
 
   return (
     <div className="space-y-4 animate-in fade-in">
-      
       {/* Toolbar Filter */}
-      <div className="bg-white p-3 sm:p-4 rounded-2xl shadow-2xs border border-slate-200/90 flex flex-col md:flex-row gap-3 justify-between items-center">
-        <div className="relative w-full md:w-80">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Cari startup atau UMKM..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium"
-          />
-        </div>
-        
-        <div className="flex items-center flex-wrap gap-2.5 w-full md:w-auto">
-          <Filter className="w-3.5 h-3.5 text-slate-400 hidden md:block" />
-          
-          <select 
-            value={filterSegment}
-            onChange={e => setFilterSegment(e.target.value)}
-            className="w-full sm:w-auto px-3 py-2 text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer"
-          >
-            <option value="Semua">Semua Segmen</option>
-            <option value="StartUp">StartUp Teknologi</option>
-            <option value="UMKM">UMKM / IKM</option>
-          </select>
+      <AdminFilterBar
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Cari startup, founder, atau sektor usaha..."
+        filters={[
+          {
+            id: 'segment',
+            value: filterSegment,
+            onChange: setFilterSegment,
+            options: [
+              { label: 'Semua Segmen', value: 'Semua' },
+              { label: 'StartUp Teknologi', value: 'StartUp' },
+              { label: 'UMKM / IKM', value: 'UMKM' },
+            ],
+          },
+          {
+            id: 'stage',
+            value: filterStage,
+            onChange: setFilterStage,
+            options: [
+              { label: 'Semua Tahapan (Pipeline)', value: 'Semua' },
+              { label: 'Pra-Inkubasi', value: 'Pra-Inkubasi' },
+              { label: 'Validasi Ide', value: 'Validasi Ide' },
+              { label: 'Pengembangan Produk', value: 'Pengembangan Produk' },
+              { label: 'Go-To-Market', value: 'Go-To-Market' },
+              { label: 'Alumni', value: 'Alumni' },
+            ],
+          },
+        ]}
+        hasActiveFilters={Boolean(searchTerm || filterSegment !== 'Semua' || filterStage !== 'Semua')}
+        onReset={() => {
+          setSearchTerm('');
+          setFilterSegment('Semua');
+          setFilterStage('Semua');
+        }}
+      />
 
-          <select 
-            value={filterStage}
-            onChange={e => setFilterStage(e.target.value)}
-            className="w-full sm:w-auto px-3 py-2 text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer"
-          >
-            <option value="Semua">Semua Tahapan (Pipeline)</option>
-            <option value="Pra-Inkubasi">Pra-Inkubasi</option>
-            <option value="Validasi Ide">Validasi Ide</option>
-            <option value="Pengembangan Produk">Pengembangan Produk</option>
-            <option value="Go-To-Market">Go-To-Market</option>
-            <option value="Alumni">Alumni</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Table Data */}
-      <div className="bg-white rounded-2xl shadow-2xs border border-slate-200/90 overflow-hidden">
-        <div className="overflow-x-auto min-h-[400px]">
-          <table className="w-full min-w-[700px] text-sm text-left border-collapse">
-            <thead className="text-xs text-slate-500 uppercase bg-slate-50/80 border-b border-slate-150 font-bold tracking-wider">
-              <tr>
-                <th className="px-5 py-3.5 w-[35%]">Profil Startup</th>
-                <th className="px-5 py-3.5 w-[20%]">Sektor Bisnis</th>
-                <th className="px-5 py-3.5 w-[18%]">Status & Tahap</th>
-                <th className="px-5 py-3.5 w-[15%]">Health Score</th>
-                <th className="px-5 py-3.5 w-[12%] text-right pr-6">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 bg-white">
-              {loading && tenants.length === 0 ? (
+      {/* Table & Mobile Card Data */}
+      <div className="space-y-3">
+        <AdminResponsiveView<Tenant>
+          items={filteredTenants}
+          isLoading={loading && tenants.length === 0}
+          emptyTitle="Tidak ada startup yang sesuai"
+          emptyMessage="Belum ada data tenant yang sesuai dengan filter pencarian Anda."
+          renderDesktopTable={(items) => (
+            <table className="w-full min-w-[700px] text-sm text-left border-collapse">
+              <thead className="text-xs text-slate-500 uppercase bg-slate-50/80 border-b border-slate-150 font-bold tracking-wider">
                 <tr>
-                  <td colSpan={5} className="px-6 py-20 text-center text-slate-500">
-                    <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto mb-3" />
-                    <span className="font-bold text-sm">Memuat direktori...</span>
-                  </td>
+                  <th className="px-5 py-3.5 w-[35%]">Profil Startup</th>
+                  <th className="px-5 py-3.5 w-[20%]">Sektor Bisnis</th>
+                  <th className="px-5 py-3.5 w-[18%]">Status & Tahap</th>
+                  <th className="px-5 py-3.5 w-[15%]">Health Score</th>
+                  <th className="px-5 py-3.5 w-[12%] text-right pr-6">Aksi</th>
                 </tr>
-              ) : filteredTenants.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-20 text-center text-slate-500">
-                    <Building className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-                    <span className="font-bold text-sm">Tidak ada startup yang sesuai.</span>
-                  </td>
-                </tr>
-              ) : (
-                filteredTenants.map((tenant) => (
+              </thead>
+              <tbody className="divide-y divide-slate-100 bg-white">
+                {items.map((tenant) => (
                   <tr key={tenant.id} className="hover:bg-slate-50/70 transition-colors group cursor-pointer" onClick={() => onViewProfile(tenant)}>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3.5">
@@ -144,13 +131,44 @@ export default function TabDirektoriTenant({ tenants, loading, fetchNextPage, ha
                       </div>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        
-        <div className="px-5 py-3.5 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between bg-slate-50/70 gap-3">
+                ))}
+              </tbody>
+            </table>
+          )}
+          renderMobileCard={(tenant) => (
+            <AdminMobileCard
+              title={tenant.name}
+              subtitle={`${tenant.ownerName} • ${tenant.sector}`}
+              badge={
+                <span className="px-2 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 rounded text-[9px] font-bold uppercase">
+                  {tenant.segment || 'StartUp'}
+                </span>
+              }
+              fields={[
+                { label: 'Tahap Pipeline', value: tenant.pipelineStage || 'Pra-Inkubasi' },
+                { label: 'Status', value: tenant.status },
+                {
+                  label: 'Health Score',
+                  value: (
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className={`w-2 h-2 rounded-full ${getHealthDotColor(tenant.currentHealthScore)}`} />
+                      {tenant.currentHealthScore === 'Unknown' ? 'Belum Ada Data' : tenant.currentHealthScore}
+                    </span>
+                  ),
+                },
+              ]}
+              footer={
+                <div className="flex items-center justify-end gap-1.5 w-full">
+                  <button onClick={() => onViewProfile(tenant)} className="px-2.5 py-1.5 text-xs font-bold text-blue-600 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-1"><Eye size={13} /> Profil</button>
+                  <button onClick={() => onEdit(tenant)} className="p-1.5 text-slate-600 bg-white border border-slate-200 rounded-lg"><Edit size={14} /></button>
+                  <button onClick={() => onDelete(tenant.id!)} className="p-1.5 text-red-600 bg-white border border-red-200 rounded-lg"><Trash2 size={14} /></button>
+                </div>
+              }
+            />
+          )}
+        />
+
+        <div className="px-5 py-3.5 bg-white rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xs">
           <span className="text-xs font-medium text-slate-500">Menampilkan <span className="font-bold text-slate-800">{filteredTenants.length}</span> tenant dimuat.</span>
           {hasNextPage && (
             <button onClick={() => fetchNextPage()} disabled={isFetchingNextPage} className="flex items-center gap-1.5 px-4 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold shadow-2xs transition-colors disabled:opacity-50">

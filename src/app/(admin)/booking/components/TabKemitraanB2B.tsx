@@ -25,6 +25,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { AdminFilterBar, AdminResponsiveView, AdminMobileCard } from '@/components/admin';
 
 const STATUS_LABELS: Record<PartnershipInquiry['status'], { label: string; color: string }> = {
   PENDING: { label: 'Menunggu Review', color: 'bg-amber-50 text-amber-700 border-amber-200' },
@@ -103,54 +104,24 @@ export default function TabKemitraanB2B() {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden space-y-4">
-      {/* Header & Filter Bar */}
-      <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-2">
-            <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-              <Handshake className="w-5 h-5 text-indigo-600" />
-              <span>Tiket Permohonan Kemitraan & RFP B2B</span>
-            </h3>
-            <span className="px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[11px] font-bold">
-              {inquiries.length} Pengajuan
-            </span>
-          </div>
-          <p className="text-xs text-slate-500">
-            Daftar inisiasi kerjasama resmi dari BUMN, Kementerian, Korporasi Swasta, dan Perguruan Tinggi.
-          </p>
-        </div>
+    <div className="space-y-4">
+      <AdminFilterBar
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Cari instansi, PIC, perihal, atau bidang kerjasama..."
+        totalHits={filteredInquiries.length}
+        totalLabel="pengajuan B2B"
+        hasActiveFilters={Boolean(searchQuery)}
+        onReset={() => setSearchQuery('')}
+      />
 
-        <div className="w-full sm:w-72">
-          <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-            <input
-              type="text"
-              placeholder="Cari instansi, PIC, perihal..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-9 pl-9 pr-3 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Tabel Pengajuan Kemitraan */}
-      {loading ? (
-        <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
-          <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
-          <span className="text-xs">Memuat data kemitraan...</span>
-        </div>
-      ) : filteredInquiries.length === 0 ? (
-        <div className="p-16 text-center text-slate-400 space-y-2">
-          <Building2 className="w-12 h-12 text-slate-300 mx-auto" />
-          <p className="text-sm font-bold text-slate-700">Belum Ada Pengajuan Kemitraan Baru</p>
-          <p className="text-xs text-slate-400">
-            Permohonan kerjasama melalui halaman publik /kemitraan akan otomatis muncul di sini.
-          </p>
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
+      <AdminResponsiveView
+        items={filteredInquiries}
+        isLoading={loading}
+        loadingMessage="Memuat data kemitraan..."
+        emptyTitle="Belum Ada Pengajuan Kemitraan Baru"
+        emptySubtitle="Permohonan kerjasama melalui halaman publik /kemitraan akan otomatis muncul di sini."
+        renderDesktopTable={() => (
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50/80 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-slate-150">
               <tr>
@@ -226,8 +197,38 @@ export default function TabKemitraanB2B() {
               })}
             </tbody>
           </table>
-        </div>
-      )}
+        )}
+        renderMobileCard={(inq) => {
+          const statusMeta = STATUS_LABELS[inq.status] || STATUS_LABELS.PENDING;
+          return (
+            <AdminMobileCard
+              key={inq.id}
+              code={inq.agencyType}
+              title={inq.agencyName}
+              subtitle={inq.subject}
+              badge={
+                <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-bold border ${statusMeta.color}`}>
+                  {statusMeta.label}
+                </span>
+              }
+              fields={[
+                { label: 'PIC Pemohon', value: `${inq.picName} (${inq.picPhone})` },
+                { label: 'Bidang', value: inq.partnershipType.replace('_', ' ') },
+              ]}
+              actions={
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleOpenDetail(inq)}
+                  className="h-8 px-3 rounded-lg text-xs font-bold text-indigo-700 border-indigo-200 hover:bg-indigo-50 w-full sm:w-auto"
+                >
+                  Kelola Pengajuan
+                </Button>
+              }
+            />
+          );
+        }}
+      />
 
       {/* Modal Detail & Update Status Kemitraan */}
       <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>

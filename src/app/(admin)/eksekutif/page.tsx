@@ -4,7 +4,7 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { APP_ROLES } from '@/config/roles';
-import { AdminPageHeader } from '@/components/admin';
+import { AdminPageHeader, AdminStatGrid } from '@/components/admin';
 import { useBilling } from '@/hooks/useBilling';
 import { useFinance } from '@/hooks/useFinance';
 import { useTenants } from '@/hooks/useTenants';
@@ -92,37 +92,34 @@ export default function ExecutiveCommandCenterPage() {
 
   return (
     <div className="space-y-5 pb-20">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-4 sm:p-6 rounded-xl sm:rounded-2xl text-white shadow-md">
-        <div>
-          <Badge className="bg-amber-400 text-slate-950 font-black text-[10px] sm:text-xs gap-1.5 mb-1.5 px-2.5 py-0.5">
-            <Crown size={13} /> EXECUTIVE COMMAND CENTER BLUD
-          </Badge>
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight">
-            Dashboard Eksekutif Direksi
-          </h1>
-          <p className="text-[11px] sm:text-xs text-slate-300 mt-0.5 max-w-xl">
-            Konsolidasi capaian target PAD BLUD, utilisasi fasilitas kawasan, inkubasi, dan kepuasan publik Solo Technopark.
-          </p>
-        </div>
+      <AdminPageHeader
+        title="Dashboard Eksekutif Direksi"
+        subtitle="Konsolidasi capaian target PAD BLUD, utilisasi fasilitas kawasan, inkubasi, dan kepuasan publik Solo Technopark."
+        badge="Executive Command Center BLUD"
+        breadcrumbs={[
+          { label: 'Admin', href: '/dashboard' },
+          { label: 'Eksekutif Direksi' },
+        ]}
+        actions={
+          <div className="flex items-center flex-wrap gap-2 shrink-0">
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+              className="bg-white text-slate-800 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold shadow-2xs outline-none cursor-pointer"
+            >
+              <option value={2026}>Tahun Anggaran 2026</option>
+              <option value={2025}>Tahun Anggaran 2025</option>
+            </select>
 
-        <div className="flex items-center flex-wrap gap-2 shrink-0">
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="bg-white/10 text-white border border-white/20 rounded-xl px-3 py-1.5 text-xs font-bold backdrop-blur-xs outline-none cursor-pointer"
-          >
-            <option value={2026} className="text-slate-900">Tahun Anggaran 2026</option>
-            <option value={2025} className="text-slate-900">Tahun Anggaran 2025</option>
-          </select>
-
-          <Button
-            onClick={() => window.print()}
-            className="bg-white text-slate-900 hover:bg-slate-100 font-bold gap-1.5 text-xs h-8 px-3"
-          >
-            <Download size={14} /> Cetak Laporan
-          </Button>
-        </div>
-      </div>
+            <Button
+              onClick={() => window.print()}
+              className="bg-slate-900 text-white hover:bg-slate-800 font-bold gap-1.5 text-xs h-9 px-3.5 rounded-xl"
+            >
+              <Download size={14} /> Cetak Laporan
+            </Button>
+          </div>
+        }
+      />
 
       {/* CORE BLUD TARGET & REVENUE CARD */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
@@ -226,61 +223,38 @@ export default function ExecutiveCommandCenterPage() {
       </div>
 
       {/* STRATEGIC COLLABORATION METRICS */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <Card className="border-slate-200/90 shadow-2xs bg-white rounded-xl sm:rounded-2xl">
-          <CardContent className="p-3.5 sm:p-4 flex items-center gap-3">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center border border-purple-100 shrink-0">
-              <Rocket className="w-4 h-4 sm:w-5 sm:h-5" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider truncate">Tenant Inkubasi</p>
-              <h3 className="text-sm sm:text-base font-black text-slate-900 mt-0.5 truncate">
-                {ecosystemMetrics.activeTenants} <span className="text-[11px] font-normal text-slate-400">/ {ecosystemMetrics.totalTenants}</span>
-              </h3>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200/90 shadow-2xs bg-white rounded-xl sm:rounded-2xl">
-          <CardContent className="p-3.5 sm:p-4 flex items-center gap-3">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shrink-0">
-              <Briefcase className="w-4 h-4 sm:w-5 sm:h-5" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider truncate">MoU & Mitra</p>
-              <h3 className="text-sm sm:text-base font-black text-slate-900 mt-0.5 truncate">
-                {ecosystemMetrics.totalMouActive} <span className="text-[11px] font-normal text-slate-400">Aktif</span>
-              </h3>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200/90 shadow-2xs bg-white rounded-xl sm:rounded-2xl">
-          <CardContent className="p-3.5 sm:p-4 flex items-center gap-3">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shrink-0">
-              <Building2 className="w-4 h-4 sm:w-5 sm:h-5" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider truncate">Aset Fasilitas</p>
-              <h3 className="text-sm sm:text-base font-black text-slate-900 mt-0.5 truncate">
-                {ecosystemMetrics.totalAssets} <span className="text-[11px] font-normal text-slate-400">Unit</span>
-              </h3>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200/90 shadow-2xs bg-white rounded-xl sm:rounded-2xl">
-          <CardContent className="p-3.5 sm:p-4 flex items-center gap-3">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100 shrink-0">
-              <Activity className="w-4 h-4 sm:w-5 sm:h-5" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider truncate">Kepatuhan BLUD</p>
-              <h3 className="text-xs sm:text-sm font-black text-slate-900 mt-0.5 truncate">WTP (Penuh)</h3>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <AdminStatGrid
+        items={[
+          {
+            label: 'Tenant Inkubasi',
+            value: ecosystemMetrics.activeTenants,
+            subtext: `dari ${ecosystemMetrics.totalTenants} tenant`,
+            icon: Rocket,
+            variant: 'purple',
+          },
+          {
+            label: 'MoU & Mitra',
+            value: ecosystemMetrics.totalMouActive,
+            subtext: 'Kerja sama aktif',
+            icon: Briefcase,
+            variant: 'blue',
+          },
+          {
+            label: 'Aset Fasilitas',
+            value: ecosystemMetrics.totalAssets,
+            subtext: 'Unit terdaftar',
+            icon: Building2,
+            variant: 'emerald',
+          },
+          {
+            label: 'Kepatuhan BLUD',
+            value: 'WTP (Penuh)',
+            subtext: 'Standar akuntansi',
+            icon: Activity,
+            variant: 'amber',
+          },
+        ]}
+      />
     </div>
   );
 }

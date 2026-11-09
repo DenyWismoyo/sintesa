@@ -44,6 +44,8 @@ import ModalQuickWalkinParticipant from '../../components/ModalQuickWalkinPartic
 import BatchManagementTab from '../../components/BatchManagementTab';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { AdminPageHeader, AdminFormDrawer } from '@/components/admin';
+import { X } from 'lucide-react';
 
 export default function KelolaPesertaPage() {
   const { user, role, isInstructor: isGlobalInstructor, loading: authLoading } = useAuth();
@@ -594,184 +596,357 @@ export default function KelolaPesertaPage() {
           </div>
         </div>
 
-        {/* Sidebar Panel Detail Peserta */}
+        {/* Sidebar Panel Detail Peserta (Sticky di XL Desktop, Slide-Over Drawer di Tablet & HP) */}
         {selectedParticipant && (
-          <div className="w-full xl:w-[420px] shrink-0 bg-white border border-slate-200 rounded-3xl shadow-sm flex flex-col h-[680px] animate-in slide-in-from-right-4 duration-300 overflow-hidden sticky top-6">
-            <div className="p-5 border-b border-slate-100 bg-slate-900 text-white flex items-start justify-between relative overflow-hidden">
-              <div className="relative z-10">
-                <h3 className="font-black text-lg text-white tracking-tight leading-tight mb-0.5">
-                  {selectedParticipant.name}
-                </h3>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                  {selectedParticipant.email}
-                </p>
-                {selectedParticipant.certificateNumber && (
-                  <p className="text-[10px] text-emerald-400 font-mono mt-1">
-                    No. Sertifikat: {selectedParticipant.certificateNumber}
+          <>
+            <div className="hidden xl:flex w-[420px] shrink-0 bg-white border border-slate-200 rounded-3xl shadow-sm flex-col h-[680px] animate-in slide-in-from-right-4 duration-300 overflow-hidden sticky top-6">
+              <div className="p-5 border-b border-slate-100 bg-slate-900 text-white flex items-start justify-between relative overflow-hidden">
+                <div className="relative z-10 min-w-0 pr-2">
+                  <h3 className="font-black text-lg text-white tracking-tight leading-tight mb-0.5 truncate">
+                    {selectedParticipant.name}
+                  </h3>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">
+                    {selectedParticipant.email}
                   </p>
-                )}
+                  {selectedParticipant.certificateNumber && (
+                    <p className="text-[10px] text-emerald-400 font-mono mt-1">
+                      No. Sertifikat: {selectedParticipant.certificateNumber}
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Badge className="bg-emerald-500 text-white text-[10px]">
+                    {selectedParticipant.graduationStatus === 'GRADUATED'
+                      ? 'ALUMNI'
+                      : selectedParticipant.status}
+                  </Badge>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedParticipant(null)}
+                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+                    title="Tutup Panel"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-              <Badge className="bg-emerald-500 text-white text-[10px]">
-                {selectedParticipant.graduationStatus === 'GRADUATED'
-                  ? 'ALUMNI'
-                  : selectedParticipant.status}
-              </Badge>
-            </div>
 
-            <div className="flex border-b border-slate-200 bg-slate-50/80 px-4">
-              {canManageLMS && (
+              <div className="flex border-b border-slate-200 bg-slate-50/80 px-4">
+                {canManageLMS && (
+                  <button
+                    onClick={() => setActiveTab('profil')}
+                    className={`pb-3 pt-3.5 px-4 text-xs font-black flex items-center gap-2 transition-all relative ${
+                      activeTab === 'profil'
+                        ? 'text-blue-700'
+                        : 'text-slate-400 hover:text-slate-700'
+                    }`}
+                  >
+                    Profil & Validasi
+                    {activeTab === 'profil' && (
+                      <div className="absolute bottom-0 inset-x-0 h-1 bg-blue-600 rounded-t-full" />
+                    )}
+                  </button>
+                )}
                 <button
-                  onClick={() => setActiveTab('profil')}
+                  onClick={() => setActiveTab('tugas')}
                   className={`pb-3 pt-3.5 px-4 text-xs font-black flex items-center gap-2 transition-all relative ${
-                    activeTab === 'profil'
+                    activeTab === 'tugas'
                       ? 'text-blue-700'
                       : 'text-slate-400 hover:text-slate-700'
                   }`}
                 >
-                  Profil & Validasi
-                  {activeTab === 'profil' && (
+                  Tugas & Evaluasi
+                  {activeTab === 'tugas' && (
                     <div className="absolute bottom-0 inset-x-0 h-1 bg-blue-600 rounded-t-full" />
                   )}
                 </button>
-              )}
-              <button
-                onClick={() => setActiveTab('tugas')}
-                className={`pb-3 pt-3.5 px-4 text-xs font-black flex items-center gap-2 transition-all relative ${
-                  activeTab === 'tugas'
-                    ? 'text-blue-700'
-                    : 'text-slate-400 hover:text-slate-700'
-                }`}
-              >
-                Tugas & Evaluasi
-                {activeTab === 'tugas' && (
-                  <div className="absolute bottom-0 inset-x-0 h-1 bg-blue-600 rounded-t-full" />
-                )}
-              </button>
-            </div>
+              </div>
 
-            <div className="flex-1 overflow-y-auto p-5 bg-slate-50/30 space-y-4">
-              {activeTab === 'profil' && canManageLMS && (
-                <div className="space-y-4">
-                  {selectedParticipant.status === 'PENDING' && (
-                    <div className="flex gap-2.5 pb-4 border-b border-slate-200">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleUpdateStatus(selectedParticipant.id!, 'REJECTED')}
-                        className="flex-1 text-rose-600 border-rose-200 hover:bg-rose-50 text-xs font-bold"
-                      >
-                        <XCircle className="w-3.5 h-3.5 mr-1" /> Tolak
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={() => handleUpdateStatus(selectedParticipant.id!, 'CONFIRMED')}
-                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
-                      >
-                        <CheckCircle className="w-3.5 h-3.5 mr-1" /> Setujui
-                      </Button>
-                    </div>
-                  )}
-
-                  <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-2 text-xs">
-                    <div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        Nomor WhatsApp
-                      </span>
-                      <p className="font-bold text-slate-800 font-mono mt-0.5">
-                        {selectedParticipant.phone}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        Asal Instansi / Sekolah
-                      </span>
-                      <p className="font-bold text-slate-800 mt-0.5">{selectedParticipant.origin}</p>
-                    </div>
-                    {selectedParticipant.nik && (
-                      <div>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                          Nomor Induk Kependudukan (NIK)
-                        </span>
-                        <p className="font-mono text-slate-700 font-bold mt-0.5">
-                          {selectedParticipant.nik}
-                        </p>
+              <div className="flex-1 overflow-y-auto p-5 bg-slate-50/30 space-y-4">
+                {activeTab === 'profil' && canManageLMS && (
+                  <div className="space-y-4">
+                    {selectedParticipant.status === 'PENDING' && (
+                      <div className="flex gap-2.5 pb-4 border-b border-slate-200">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleUpdateStatus(selectedParticipant.id!, 'REJECTED')}
+                          className="flex-1 text-rose-600 border-rose-200 hover:bg-rose-50 text-xs font-bold"
+                        >
+                          <XCircle className="w-3.5 h-3.5 mr-1" /> Tolak
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => handleUpdateStatus(selectedParticipant.id!, 'CONFIRMED')}
+                          className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
+                        >
+                          <CheckCircle className="w-3.5 h-3.5 mr-1" /> Setujui
+                        </Button>
                       </div>
                     )}
-                    <div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        Sumber Pendaftaran
-                      </span>
-                      <p className="text-slate-600 capitalize mt-0.5">
-                        {selectedParticipant.registrationSource || 'Katalog Online'}
-                      </p>
+
+                    <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-2 text-xs">
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          Nomor WhatsApp
+                        </span>
+                        <p className="font-bold text-slate-800 font-mono mt-0.5">
+                          {selectedParticipant.phone}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          Asal Instansi / Sekolah
+                        </span>
+                        <p className="font-bold text-slate-800 mt-0.5">{selectedParticipant.origin}</p>
+                      </div>
+                      {selectedParticipant.nik && (
+                        <div>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                            Nomor Induk Kependudukan (NIK)
+                          </span>
+                          <p className="font-mono text-slate-700 font-bold mt-0.5">
+                            {selectedParticipant.nik}
+                          </p>
+                        </div>
+                      )}
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          Sumber Pendaftaran
+                        </span>
+                        <p className="text-slate-600 capitalize mt-0.5">
+                          {selectedParticipant.registrationSource || 'Katalog Online'}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {activeTab === 'tugas' && (
+                {activeTab === 'tugas' && (
+                  <div className="space-y-4">
+                    {loadingSubmissions ? (
+                      <div className="py-10 flex justify-center">
+                        <Loader2 className="w-7 h-7 animate-spin text-blue-500" />
+                      </div>
+                    ) : participantSubmissions.length === 0 ? (
+                      <div className="text-center py-10 border border-dashed border-slate-300 rounded-2xl text-slate-400 text-xs font-bold bg-white">
+                        Peserta belum mengumpulkan tugas.
+                      </div>
+                    ) : (
+                      participantSubmissions.map((sub) => (
+                        <div
+                          key={sub.id}
+                          className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 shadow-2xs"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-slate-800">
+                              Tugas {sub.lessonId.substring(0, 5)}
+                            </span>
+                            {sub.status === 'GRADED' && (
+                              <Badge className="bg-emerald-100 text-emerald-800 text-[10px]">
+                                Nilai: {sub.score}
+                              </Badge>
+                            )}
+                          </div>
+
+                          <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-700 whitespace-pre-wrap font-mono">
+                            {sub.answerText || 'Tidak ada teks jawaban.'}
+                          </div>
+
+                          <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={gradingScores[sub.id] || 0}
+                              onChange={(e) =>
+                                setGradingScores((prev) => ({
+                                  ...prev,
+                                  [sub.id]: parseInt(e.target.value) || 0,
+                                }))
+                              }
+                              className="w-16 h-8 text-center text-xs font-black border border-slate-200 rounded-lg outline-none"
+                            />
+                            <Button
+                              size="sm"
+                              onClick={() => handleGradeSubmission(sub.id, 'GRADED')}
+                              className="h-8 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex-1"
+                            >
+                              Simpan Skor
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Mobile & Tablet (< xl:) Drawer Evaluasi Peserta */}
+            <div className="xl:hidden">
+              <AdminFormDrawer
+                isOpen={Boolean(selectedParticipant)}
+                onClose={() => setSelectedParticipant(null)}
+                title={selectedParticipant.name}
+                subtitle={selectedParticipant.email}
+                badgeText={
+                  selectedParticipant.graduationStatus === 'GRADUATED'
+                    ? 'ALUMNI'
+                    : selectedParticipant.status
+                }
+                asPage={false}
+                maxWidth="lg"
+              >
                 <div className="space-y-4">
-                  {loadingSubmissions ? (
-                    <div className="py-10 flex justify-center">
-                      <Loader2 className="w-7 h-7 animate-spin text-blue-500" />
-                    </div>
-                  ) : participantSubmissions.length === 0 ? (
-                    <div className="text-center py-10 border border-dashed border-slate-300 rounded-2xl text-slate-400 text-xs font-bold bg-white">
-                      Peserta belum mengumpulkan tugas.
-                    </div>
-                  ) : (
-                    participantSubmissions.map((sub) => (
-                      <div
-                        key={sub.id}
-                        className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 shadow-2xs"
+                  <div className="flex border-b border-slate-200 bg-slate-50/80 rounded-t-xl px-2">
+                    {canManageLMS && (
+                      <button
+                        onClick={() => setActiveTab('profil')}
+                        className={`pb-2.5 pt-2.5 px-3 text-xs font-black flex items-center gap-2 transition-all relative ${
+                          activeTab === 'profil'
+                            ? 'text-blue-700'
+                            : 'text-slate-400 hover:text-slate-700'
+                        }`}
                       >
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-slate-800">
-                            Tugas {sub.lessonId.substring(0, 5)}
-                          </span>
-                          {sub.status === 'GRADED' && (
-                            <Badge className="bg-emerald-100 text-emerald-800 text-[10px]">
-                              Nilai: {sub.score}
-                            </Badge>
-                          )}
-                        </div>
+                        Profil & Validasi
+                        {activeTab === 'profil' && (
+                          <div className="absolute bottom-0 inset-x-0 h-1 bg-blue-600 rounded-t-full" />
+                        )}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setActiveTab('tugas')}
+                      className={`pb-2.5 pt-2.5 px-3 text-xs font-black flex items-center gap-2 transition-all relative ${
+                        activeTab === 'tugas'
+                          ? 'text-blue-700'
+                          : 'text-slate-400 hover:text-slate-700'
+                      }`}
+                    >
+                      Tugas & Evaluasi
+                      {activeTab === 'tugas' && (
+                        <div className="absolute bottom-0 inset-x-0 h-1 bg-blue-600 rounded-t-full" />
+                      )}
+                    </button>
+                  </div>
 
-                        <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-700 whitespace-pre-wrap font-mono">
-                          {sub.answerText || 'Tidak ada teks jawaban.'}
-                        </div>
-
-                        {/* Grading Form */}
-                        <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={gradingScores[sub.id] || 0}
-                            onChange={(e) =>
-                              setGradingScores((prev) => ({
-                                ...prev,
-                                [sub.id]: parseInt(e.target.value) || 0,
-                              }))
-                            }
-                            className="w-16 h-8 text-center text-xs font-black border border-slate-200 rounded-lg outline-none"
-                          />
+                  {activeTab === 'profil' && canManageLMS && (
+                    <div className="space-y-4">
+                      {selectedParticipant.status === 'PENDING' && (
+                        <div className="flex gap-2.5 pb-3 border-b border-slate-200">
                           <Button
+                            type="button"
+                            variant="outline"
                             size="sm"
-                            onClick={() => handleGradeSubmission(sub.id, 'GRADED')}
-                            className="h-8 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex-1"
+                            onClick={() => handleUpdateStatus(selectedParticipant.id!, 'REJECTED')}
+                            className="flex-1 text-rose-600 border-rose-200 hover:bg-rose-50 text-xs font-bold"
                           >
-                            Simpan Skor
+                            <XCircle className="w-3.5 h-3.5 mr-1" /> Tolak
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => handleUpdateStatus(selectedParticipant.id!, 'CONFIRMED')}
+                            className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
+                          >
+                            <CheckCircle className="w-3.5 h-3.5 mr-1" /> Setujui
                           </Button>
                         </div>
+                      )}
+
+                      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2.5 text-xs">
+                        <div>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                            Nomor WhatsApp
+                          </span>
+                          <p className="font-bold text-slate-800 font-mono mt-0.5">
+                            {selectedParticipant.phone}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                            Asal Instansi / Sekolah
+                          </span>
+                          <p className="font-bold text-slate-800 mt-0.5">{selectedParticipant.origin}</p>
+                        </div>
+                        {selectedParticipant.nik && (
+                          <div>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                              Nomor Induk Kependudukan (NIK)
+                            </span>
+                            <p className="font-mono text-slate-700 font-bold mt-0.5">
+                              {selectedParticipant.nik}
+                            </p>
+                          </div>
+                        )}
                       </div>
-                    ))
+                    </div>
+                  )}
+
+                  {activeTab === 'tugas' && (
+                    <div className="space-y-3">
+                      {loadingSubmissions ? (
+                        <div className="py-8 flex justify-center">
+                          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                        </div>
+                      ) : participantSubmissions.length === 0 ? (
+                        <div className="text-center py-8 border border-dashed border-slate-300 rounded-2xl text-slate-400 text-xs font-bold bg-slate-50">
+                          Peserta belum mengumpulkan tugas.
+                        </div>
+                      ) : (
+                        participantSubmissions.map((sub) => (
+                          <div
+                            key={sub.id}
+                            className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2.5"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-slate-800">
+                                Tugas {sub.lessonId.substring(0, 5)}
+                              </span>
+                              {sub.status === 'GRADED' && (
+                                <Badge className="bg-emerald-100 text-emerald-800 text-[10px]">
+                                  Nilai: {sub.score}
+                                </Badge>
+                              )}
+                            </div>
+
+                            <div className="p-2.5 bg-white rounded-xl text-xs text-slate-700 whitespace-pre-wrap font-mono border border-slate-100">
+                              {sub.answerText || 'Tidak ada teks jawaban.'}
+                            </div>
+
+                            <div className="flex items-center gap-2 pt-1">
+                              <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                value={gradingScores[sub.id] || 0}
+                                onChange={(e) =>
+                                  setGradingScores((prev) => ({
+                                    ...prev,
+                                    [sub.id]: parseInt(e.target.value) || 0,
+                                  }))
+                                }
+                                className="w-16 h-8 text-center text-xs font-black bg-white border border-slate-200 rounded-lg outline-none"
+                              />
+                              <Button
+                                size="sm"
+                                onClick={() => handleGradeSubmission(sub.id, 'GRADED')}
+                                className="h-8 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex-1"
+                              >
+                                Simpan Skor
+                              </Button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
                   )}
                 </div>
-              )}
+              </AdminFormDrawer>
             </div>
-          </div>
+          </>
         )}
       </div>
       )}
