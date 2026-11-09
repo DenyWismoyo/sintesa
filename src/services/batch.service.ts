@@ -262,6 +262,8 @@ export const batchService = {
         batch: `Batch ${batchNumber} (${year})`,
         trainingYear: String(year),
         graduationYear,
+        originSource: 'STP_VOKASI',
+        originInstitution: pData.origin || 'Solo Technopark',
         certificationResult: 'Kompeten / Lulus',
         certificateNumber: certNumber,
         status: 'DORMANT',

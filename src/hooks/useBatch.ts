@@ -128,6 +128,7 @@ export const useBatch = (trainingId?: string) => {
       queryClient.invalidateQueries({ queryKey });
       queryClient.invalidateQueries({ queryKey: ['training-participants', trainingId] });
       queryClient.invalidateQueries({ queryKey: ['alumnis'] });
+      queryClient.invalidateQueries({ queryKey: ['allAlumnis'] });
       toast.success(`Yudisium Berhasil! ${res.count} peserta resmi dikonversi menjadi Alumni STP.`);
     },
     onError: (err: any) => {

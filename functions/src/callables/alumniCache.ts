@@ -14,7 +14,7 @@ export const rebuildAlumniMasterCache = onCall(async (request) => {
   }
 
   const role = request.auth.token?.role as string | undefined;
-  const allowedRoles = ['super_admin', 'admin', 'admin_pelatihan', 'operator_pelatihan'];
+  const allowedRoles = ['super_admin', 'admin', 'direktur', 'admin_pelatihan', 'operator_pelatihan'];
   if (!role || !allowedRoles.includes(role)) {
     throw new HttpsError('permission-denied', 'Akses Ditolak: Hak akses tidak mencukupi untuk memperbarui cache alumni.');
   }
@@ -22,48 +22,73 @@ export const rebuildAlumniMasterCache = onCall(async (request) => {
   const appId = request.data.appId || 'blud-app-dev';
 
   try {
-    // 2. Baca seluruh data alumni (Ini memakan N Reads, tetapi HANYA terjadi saat ada perubahan data, bukan setiap kali halaman dibuka)
-    const snapshot = await db.collection('alumnis').orderBy('createdAt', 'desc').get();
+    // 2. Baca seluruh data alumni tanpa filter orderBy di query Firestore agar dokumen tanpa createdAt tidak terlewat
+    const snapshot = await db.collection('alumnis').get();
     
     const compressedAlumnis: any[] = [];
     
     snapshot.forEach(doc => {
       const data = doc.data();
-      // 3. Kompresi Payload: Hanya simpan field yang benar-benar ditampilkan di tabel & filter frontend
-      // Kita pastikan format kosong/Belum bekerja berubah menjadi Proses Verifikasi di Database Cache
       compressedAlumnis.push({
         id: doc.id,
         name: data.name || '',
+        nik: data.nik || '',
+        gender: data.gender || '',
+        domicile: data.domicile || '',
+        age: data.age || undefined,
+        uniformSize: data.uniformSize || '',
+        shoeSize: data.shoeSize || '',
         phone: data.phone || '',
         email: data.email || '',
         programTaken: data.programTaken || '',
         trainingYear: data.trainingYear || data.graduationYear || '',
+        graduationYear: data.graduationYear || data.trainingYear || '',
         batch: data.batch || '',
         status: data.status || 'DORMANT',
         registrationCode: data.registrationCode || '',
+        certificateNumber: data.certificateNumber || '',
         employmentStatus: (!data.employmentStatus || data.employmentStatus === 'Belum Bekerja') ? 'Proses Verifikasi' : data.employmentStatus,
         company: data.company || '',
         currentJob: data.currentJob || '',
         birthInfo: data.birthInfo || '',
         address: data.address || '',
+        postCode: data.postCode || '',
         certificationResult: data.certificationResult || '',
         originSource: data.originSource || 'STP_VOKASI',
         originInstitution: data.originInstitution || '',
+        partnerInstitution: data.partnerInstitution || '',
+        targetPlacement: data.targetPlacement || '',
+        targetCountry: data.targetCountry || '',
+        courseStartDate: data.courseStartDate || '',
+        courseEndDate: data.courseEndDate || '',
         district: data.district || '',
+        photoUrl: data.photoUrl || '',
         isVerified: Boolean(data.isVerified),
         isLookingForJob: Boolean(data.isLookingForJob),
         internalStatus: data.internalStatus || 'AVAILABLE',
         skills: Array.isArray(data.skills) ? data.skills : [],
+        tools: Array.isArray(data.tools) ? data.tools : [],
+        bio: data.bio || '',
+        experienceLevel: data.experienceLevel || '',
+        industry: data.industry || '',
+        workSetup: data.workSetup || '',
+        education: data.education || '',
+        major: data.major || '',
+        portfolioUrl: data.portfolioUrl || '',
+        linkedinUrl: data.linkedinUrl || '',
+        githubUrl: data.githubUrl || '',
+        resumeFileUrl: data.resumeFileUrl || data.resumeUrl || '',
         createdAt: data.createdAt || 0
       });
     });
 
+    compressedAlumnis.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
     // 4. Simpan ke dalam SATU dokumen tunggal (Aggregated Document)
-    // Dokumen ini yang nantinya akan di-fetch oleh frontend dengan biaya hanya 1 READ!
     await db.collection(`artifacts/${appId}/public/data/cache_alumnis`).doc('master').set({
       lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
       count: compressedAlumnis.length,
-      data: compressedAlumnis // Array ribuan data
+      data: compressedAlumnis
     });
 
     console.log(`[ALUMNI CACHE] Berhasil mengkompresi ${compressedAlumnis.length} data menjadi 1 dokumen cache.`);

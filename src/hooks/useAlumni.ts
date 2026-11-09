@@ -11,19 +11,34 @@ import { getAppId } from '@/lib/appId';
 export function useAlumni() {
   const queryClient = useQueryClient();
 
-  // --- TRIGGER MEMBANGUN ULANG CACHE DI LATAR BELAKANG ---
+  // --- TRIGGER MEMBANGUN ULANG CACHE DI LATAR BELAKANG & CLIENT ---
   const triggerCacheRebuild = async () => {
     try {
+      await alumniService.syncAlumniMasterCache();
       const appId = getAppId();
       const rebuildAlumniMasterCache = httpsCallable(functions, 'rebuildAlumniMasterCache');
-      // Berjalan di latar belakang tanpa memblokir UI
       rebuildAlumniMasterCache({ appId }).then(() => {
         console.log("[CACHE] Cache Master Alumni berhasil diperbarui.");
-      }).catch(err => {
-        console.error("[CACHE ERROR] Gagal memperbarui Cache Master Alumni", err);
+      }).catch(() => {
+        // Lewati jika callable gagal di local/dev karena syncAlumniMasterCache sudah memperbarui cache
       });
     } catch (error) {
       console.error("[CACHE ERROR] Terjadi kesalahan trigger", error);
+    }
+  };
+
+  // --- PAKSA SINKRONISASI PENUH DARI KOLEKSI ALUMNIS KE CACHE & MEMORY ---
+  const forceSyncAll = async () => {
+    try {
+      const syncRes = await alumniService.syncAlumniMasterCache();
+      if (syncRes.success && Array.isArray((syncRes as any).data)) {
+        queryClient.setQueryData(['allAlumnis'], (syncRes as any).data);
+      }
+      await queryClient.invalidateQueries({ queryKey: ['allAlumnis'] });
+      await queryClient.invalidateQueries({ queryKey: ['alumnis'] });
+      return { success: true, count: syncRes.count || 0 };
+    } catch (error: any) {
+      return { success: false, error: error.message };
     }
   };
 
@@ -105,9 +120,6 @@ export function useAlumni() {
          };
       });
 
-      // KUNCI PERBAIKAN: JANGAN GUNAKAN invalidateQueries DI SINI
-      // agar UI tidak men-download dokumen cache yang masih basi
-      
       triggerCacheRebuild(); // Biarkan server mengupdate cache-nya pelan-pelan di belakang layar
     },
   });
@@ -176,6 +188,7 @@ export function useAlumni() {
     allAlumnis,
     loadingAll,
     refetchAll,
+    forceSyncAll,
     
     addAlumni,
     importAlumniExcel,

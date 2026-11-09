@@ -255,7 +255,7 @@ export const onTrainingWrittenInvalidateCache = onDocumentWritten("trainings/{tr
  */
 export const onAlumniWrittenInvalidateCache = onDocumentWritten("alumnis/{alumniId}", async (event) => {
   try {
-    const snapshot = await db.collection('alumnis').orderBy('createdAt', 'desc').get();
+    const snapshot = await db.collection('alumnis').get();
     const compressedAlumnis: any[] = [];
     const sanitizedTalentPool: any[] = [];
 
@@ -264,25 +264,51 @@ export const onAlumniWrittenInvalidateCache = onDocumentWritten("alumnis/{alumni
       compressedAlumnis.push({
         id: doc.id,
         name: data.name || '',
+        nik: data.nik || '',
+        gender: data.gender || '',
+        domicile: data.domicile || '',
+        age: data.age || undefined,
+        uniformSize: data.uniformSize || '',
+        shoeSize: data.shoeSize || '',
         phone: data.phone || '',
         email: data.email || '',
         programTaken: data.programTaken || '',
         trainingYear: data.trainingYear || data.graduationYear || '',
+        graduationYear: data.graduationYear || data.trainingYear || '',
         batch: data.batch || '',
         status: data.status || 'DORMANT',
         registrationCode: data.registrationCode || '',
+        certificateNumber: data.certificateNumber || '',
         employmentStatus: (!data.employmentStatus || data.employmentStatus === 'Belum Bekerja') ? 'Proses Verifikasi' : data.employmentStatus,
         company: data.company || '',
         currentJob: data.currentJob || '',
         birthInfo: data.birthInfo || '',
         address: data.address || '',
+        postCode: data.postCode || '',
         district: data.district || '',
         originSource: data.originSource || 'STP_VOKASI',
         originInstitution: data.originInstitution || '',
+        partnerInstitution: data.partnerInstitution || '',
+        targetPlacement: data.targetPlacement || '',
+        targetCountry: data.targetCountry || '',
+        courseStartDate: data.courseStartDate || '',
+        courseEndDate: data.courseEndDate || '',
+        photoUrl: data.photoUrl || '',
         isVerified: Boolean(data.isVerified),
         isLookingForJob: Boolean(data.isLookingForJob),
         internalStatus: data.internalStatus || 'AVAILABLE',
         skills: Array.isArray(data.skills) ? data.skills : [],
+        tools: Array.isArray(data.tools) ? data.tools : [],
+        bio: data.bio || '',
+        experienceLevel: data.experienceLevel || '',
+        industry: data.industry || '',
+        workSetup: data.workSetup || '',
+        education: data.education || '',
+        major: data.major || '',
+        portfolioUrl: data.portfolioUrl || '',
+        linkedinUrl: data.linkedinUrl || '',
+        githubUrl: data.githubUrl || '',
+        resumeFileUrl: data.resumeFileUrl || data.resumeUrl || '',
         certificationResult: data.certificationResult || '',
         createdAt: data.createdAt || 0
       });
@@ -320,6 +346,9 @@ export const onAlumniWrittenInvalidateCache = onDocumentWritten("alumnis/{alumni
         });
       }
     });
+
+    compressedAlumnis.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    sanitizedTalentPool.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
     const cachePayload = {
       lastUpdated: admin.firestore.FieldValue.serverTimestamp(),

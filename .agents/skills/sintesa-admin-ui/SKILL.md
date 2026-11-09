@@ -68,3 +68,4 @@ Untuk halaman admin yang memiliki lebih dari 1 tab internal:
 - [ ] Tidak ada modal manual `<div className="fixed inset-0 z-50 ...">` — gunakan `AdminFormDrawer`.
 - [ ] Tidak ada class warna dinamis Tailwind seperti ``bg-${color}-50`` — gunakan prop `color` / `variant` pada `AdminStatCard` atau `AdminStatusBadge`.
 - [ ] Semua tabel utama dibungkus dengan `AdminResponsiveView` dan memiliki `renderMobileCard` menggunakan `AdminMobileCard`.
+

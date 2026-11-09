@@ -41,7 +41,7 @@ export default function AdminPageHeader({
   tabs,
   activeTab,
   onTabChange,
-  showTabsOnDesktop = false,
+  showTabsOnDesktop = true,
   children,
   className = '',
 }: AdminPageHeaderProps) {

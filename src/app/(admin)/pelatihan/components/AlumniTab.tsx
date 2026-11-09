@@ -6,12 +6,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Users, UploadCloud, Plus, Search, FileText, 
   Trash2, CheckCircle2, AlertCircle, X, Download, Clock, Save, FileSpreadsheet, CalendarDays, RefreshCw, Edit2,
-  Loader2, Filter, SlidersHorizontal, ChevronDown, DownloadCloud, MessageCircle, Key
+  Loader2, Filter, SlidersHorizontal, ChevronDown, DownloadCloud, MessageCircle, Key, ShieldCheck, Briefcase, ExternalLink
 } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
+import { AdminStatGrid } from '@/components/admin';
 import { toast } from 'sonner';
 
 // Import library pembaca Excel
@@ -71,11 +73,46 @@ export default function AlumniTab() {
     allAlumnis = [], 
     loadingAll: loading = false, 
     refetchAll, 
+    forceSyncAll,
     addAlumni, 
     updateAlumni, 
     deleteAlumni, 
     importAlumniExcel 
   } = useAlumni() as any; 
+  const [isSyncingCache, setIsSyncingCache] = useState(false);
+
+  const handleForceRefresh = async () => {
+    setIsSyncingCache(true);
+    try {
+      if (forceSyncAll) {
+        const res = await forceSyncAll();
+        if (res?.success) {
+          toast.success(`Database & Cache Master Alumni berhasil disinkronkan (${res.count} data).`);
+        } else {
+          await refetchAll?.();
+          toast.success('Data alumni berhasil dimuat ulang.');
+        }
+      } else if (refetchAll) {
+        await refetchAll();
+        toast.success('Data alumni berhasil dimuat ulang.');
+      }
+    } catch {
+      toast.error('Gagal menyegarkan data alumni.');
+    } finally {
+      setIsSyncingCache(false);
+    }
+  };
+
+  const alumniStats = useMemo(() => {
+    const total = allAlumnis.length;
+    const claimed = allAlumnis.filter((a: any) => a.status === 'CLAIMED').length;
+    const dormant = total - claimed;
+    const employed = allAlumnis.filter((a: any) => {
+      const s = (a.employmentStatus || '').toLowerCase();
+      return s.includes('bekerja') || s.includes('wirausaha') || a.internalStatus === 'HIRED';
+    }).length;
+    return { total, claimed, dormant, employed };
+  }, [allAlumnis]);
   
   // State Filter & Pencarian
   const [search, setSearch] = useState('');
@@ -438,34 +475,81 @@ export default function AlumniTab() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      {/* RINGKASAN KPI DATABASE ALUMNI & INTEGRASI PUBLIK */}
+      <AdminStatGrid
+        columns={4}
+        items={[
+          {
+            label: 'Total Master Alumni',
+            value: alumniStats.total,
+            icon: <Users size={18} strokeWidth={2.5} />,
+            color: 'blue',
+            subtext: 'STP Vokasi, BP3MI & RSKB',
+            onClick: () => setFilterStatus('ALL'),
+          },
+          {
+            label: 'Akun Aktif (Claimed)',
+            value: alumniStats.claimed,
+            icon: <CheckCircle2 size={18} strokeWidth={2.5} />,
+            color: 'emerald',
+            subtext: 'Aktif di /profil & /alumni-portal',
+            onClick: () => setFilterStatus('CLAIMED'),
+          },
+          {
+            label: 'Belum Klaim (Dormant)',
+            value: alumniStats.dormant,
+            icon: <Clock size={18} strokeWidth={2.5} />,
+            color: 'amber',
+            subtext: 'Siap dikirim Kode Klaim WA',
+            onClick: () => setFilterStatus('DORMANT'),
+          },
+          {
+            label: 'Terserap Kerja / Bisnis',
+            value: alumniStats.employed,
+            icon: <Briefcase size={18} strokeWidth={2.5} />,
+            color: 'indigo',
+            subtext: 'Terhubung Tracer Study Karir',
+          },
+        ]}
+      />
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">Database Master Alumni</h2>
-          <p className="text-sm text-slate-500">Pencarian instan pada seluruh data alumni tersinkronisasi.</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-800">Database Master Alumni</h2>
+          <p className="text-xs sm:text-sm text-slate-500">
+            Pusat data tunggal yang terintegrasi dengan Klaim Akun (<code className="text-slate-700 font-bold">/profil</code>), Forum Alumni (<code className="text-slate-700 font-bold">/alumni-portal</code>), Bursa Karir (<code className="text-slate-700 font-bold">/karir</code>), dan Verifikasi E-Sertifikat (<code className="text-slate-700 font-bold">/verifikasi-sertifikat</code>).
+          </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-          <Button onClick={() => refetchAll && refetchAll()} variant="outline" className="rounded-xl border-slate-200 text-slate-600 bg-white hover:bg-slate-50 font-bold" title="Refresh Data">
-            <RefreshCw size={18} className="mr-2" /> Segarkan
+        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+          <Button
+            onClick={handleForceRefresh}
+            disabled={isSyncingCache}
+            variant="outline"
+            className="rounded-xl border-slate-200 text-slate-600 bg-white hover:bg-slate-50 font-bold text-xs h-9"
+            title="Sinkronkan ulang dari koleksi Firestore ke Master Cache"
+          >
+            <RefreshCw size={15} className={`mr-1.5 ${isSyncingCache ? 'animate-spin' : ''}`} />
+            {isSyncingCache ? 'Menyinkronkan...' : 'Segarkan & Sync'}
           </Button>
-          <Button onClick={handleExportExcel} variant="outline" className="rounded-xl border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 font-bold" title="Export data yang tampil">
-            <DownloadCloud size={18} className="mr-2" /> Export Data
+          <Button onClick={handleExportExcel} variant="outline" className="rounded-xl border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 font-bold text-xs h-9" title="Export data yang tampil">
+            <DownloadCloud size={15} className="mr-1.5" /> Export Data
           </Button>
           <a 
             href="/docs/DAFTAR_KODE_KLAIM_ALUMNI_P3MI_WELDER_2026.pdf" 
             target="_blank" 
             rel="noopener noreferrer"
             download="DAFTAR_KODE_KLAIM_ALUMNI_P3MI_WELDER_2026.pdf"
-            className="inline-flex items-center justify-center rounded-xl border border-teal-200 text-teal-800 bg-teal-50 hover:bg-teal-100 font-bold px-4 py-2 text-sm shadow-xs transition-colors cursor-pointer"
+            className="inline-flex items-center justify-center rounded-xl border border-teal-200 text-teal-800 bg-teal-50 hover:bg-teal-100 font-bold px-3.5 h-9 text-xs shadow-2xs transition-colors cursor-pointer"
             title="Unduh Dokumen Resmi Daftar Kode & Panduan Aktivasi Alumni BP3MI (PDF)"
           >
-            <FileText size={18} className="mr-2 text-teal-600" /> Unduh PDF BP3MI
+            <FileText size={15} className="mr-1.5 text-teal-600" /> Unduh PDF BP3MI
           </a>
-          <Button onClick={() => setIsImportModalOpen(true)} variant="outline" className="rounded-xl border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 font-bold">
-            <FileSpreadsheet size={18} className="mr-2" /> Import Excel
+          <Button onClick={() => setIsImportModalOpen(true)} variant="outline" className="rounded-xl border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 font-bold text-xs h-9">
+            <FileSpreadsheet size={15} className="mr-1.5" /> Import Excel
           </Button>
-          <Button onClick={handleOpenAdd} className="rounded-xl bg-slate-900 text-white font-bold shadow-md">
-            <Plus size={18} className="mr-2" /> Tambah Manual
+          <Button onClick={handleOpenAdd} className="rounded-xl bg-slate-900 text-white font-bold shadow-xs text-xs h-9">
+            <Plus size={15} className="mr-1.5" /> Tambah Manual
           </Button>
         </div>
       </div>
@@ -637,8 +721,8 @@ export default function AlumniTab() {
           )}
         </AnimatePresence>
 
-        {/* --- TABEL DATA --- */}
-        <div className="overflow-x-auto">
+        {/* --- TABEL DATA DESKTOP (lg:block) --- */}
+        <div className="hidden lg:block overflow-x-auto">
           <table className="w-full min-w-[850px] text-left text-sm text-slate-600">
             <thead className="bg-slate-50/80 text-slate-500 font-bold text-xs uppercase tracking-wider border-b border-slate-100">
               <tr>
@@ -774,6 +858,16 @@ export default function AlumniTab() {
                         </code>
                       </td>
                       <td className="p-4 text-right pr-6 flex justify-end gap-1.5">
+                        {alumni.registrationCode && (
+                          <Link
+                            href={`/verifikasi-sertifikat?code=${encodeURIComponent(alumni.registrationCode)}`}
+                            target="_blank"
+                            title="Cek Halaman Verifikasi Sertifikat Publik"
+                            className="inline-flex items-center justify-center text-teal-600 hover:text-teal-700 hover:bg-teal-50 border border-slate-200 rounded-xl h-9 w-9 p-0 shadow-2xs transition-colors"
+                          >
+                            <ShieldCheck size={16} />
+                          </Link>
+                        )}
                         {alumni.phone && (
                           <Button 
                             variant="outline" 
@@ -815,6 +909,174 @@ export default function AlumniTab() {
           {!loading && displayLimit >= filteredAlumni.length && filteredAlumni.length > 25 && (
             <div className="p-4 border-t border-slate-100 text-center bg-slate-50 text-xs font-bold text-slate-400">
               Semua data telah ditampilkan.
+            </div>
+          )}
+        </div>
+
+        {/* --- TAMPILAN KARTU RESPONSIVE TABLET & SMARTPHONE (lg:hidden) --- */}
+        <div className="lg:hidden">
+          {loading ? (
+            <div className="p-12 text-center">
+              <Loader2 className="w-8 h-8 animate-spin text-amber-500 mx-auto mb-3" />
+              <p className="font-bold text-slate-500 text-sm">Mensinkronkan database alumni...</p>
+            </div>
+          ) : displayedAlumni.length === 0 ? (
+            <div className="p-12 text-center text-slate-400">
+              <Filter className="w-10 h-10 mx-auto mb-2 text-slate-300" />
+              <p className="font-bold text-slate-500 text-sm">Tidak ada data yang sesuai dengan pencarian/filter.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3.5 sm:p-4">
+              {displayedAlumni.map((alumni: any) => {
+                const empStatus =
+                  !alumni.employmentStatus || alumni.employmentStatus === 'Belum Bekerja'
+                    ? 'Proses Verifikasi'
+                    : alumni.employmentStatus;
+                const isSelected = selectedIds.includes(alumni.id);
+
+                return (
+                  <div
+                    key={alumni.id}
+                    className={`rounded-2xl border p-4 space-y-3 transition-all ${
+                      isSelected
+                        ? 'bg-indigo-50/40 border-indigo-300 shadow-xs'
+                        : 'bg-white border-slate-200/90 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2.5">
+                      <div className="flex items-start gap-2.5 min-w-0">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedIds((prev) => [...prev, alumni.id]);
+                            } else {
+                              setSelectedIds((prev) => prev.filter((id) => id !== alumni.id));
+                            }
+                          }}
+                          className="mt-1 w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer shrink-0"
+                        />
+                        {alumni.photoUrl ? (
+                          <img
+                            src={alumni.photoUrl}
+                            alt={alumni.name}
+                            className="w-10 h-10 rounded-xl object-cover border border-slate-200 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 font-bold flex items-center justify-center shrink-0 border border-slate-200 text-xs">
+                            {(alumni.name || 'A').slice(0, 2).toUpperCase()}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <h4 className="font-black text-slate-900 text-sm truncate">{alumni.name}</h4>
+                          <p className="text-[11px] text-slate-500 truncate">
+                            {alumni.phone || alumni.email || 'Tanpa Kontak'}
+                            {alumni.domicile ? ` • ${alumni.domicile}` : ''}
+                          </p>
+                          {alumni.nik && (
+                            <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-100 text-slate-700 border border-slate-200">
+                              NIK: {alumni.nik}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {alumni.status === 'CLAIMED' ? (
+                        <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 font-bold text-[10px] px-2 py-0.5 shrink-0">
+                          <CheckCircle2 size={11} className="mr-1" /> Diklaim
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="bg-slate-100 text-slate-500 border-slate-200 font-bold text-[10px] px-2 py-0.5 shrink-0">
+                          <Clock size={11} className="mr-1" /> Dormant
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-100 space-y-1.5 text-xs">
+                      <div className="font-bold text-slate-800 line-clamp-1">{alumni.programTaken || '-'}</div>
+                      <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500">
+                        <span>Tahun: <strong>{alumni.trainingYear || alumni.graduationYear || '-'}</strong></span>
+                        <span>•</span>
+                        <span>Batch: <strong>{alumni.batch || '-'}</strong></span>
+                        <span>•</span>
+                        <span className="font-semibold text-slate-700">{empStatus}</span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border ${
+                            ALUMNI_ORIGIN_BADGES[(alumni.originSource || 'STP_VOKASI') as AlumniOriginSource] ||
+                            'bg-indigo-50 text-indigo-700 border-indigo-200'
+                          }`}
+                        >
+                          {ALUMNI_ORIGIN_LABELS[(alumni.originSource || 'STP_VOKASI') as AlumniOriginSource] ||
+                            'Diklat Vokasi STP'}
+                        </span>
+                        {alumni.partnerInstitution && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                            {alumni.partnerInstitution}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100">
+                      <code className="text-[11px] font-black text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-100 truncate">
+                        {alumni.registrationCode}
+                      </code>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {alumni.registrationCode && (
+                          <Link
+                            href={`/verifikasi-sertifikat?code=${encodeURIComponent(alumni.registrationCode)}`}
+                            target="_blank"
+                            title="Verifikasi Sertifikat Publik"
+                            className="inline-flex items-center justify-center text-teal-600 hover:bg-teal-50 border border-slate-200 rounded-xl h-8 w-8"
+                          >
+                            <ShieldCheck size={14} />
+                          </Link>
+                        )}
+                        {alumni.phone && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setWaPopupAlumni(alumni)}
+                            className="text-emerald-600 hover:bg-emerald-50 border-slate-200 rounded-xl h-8 w-8 p-0"
+                          >
+                            <MessageCircle size={14} />
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEdit(alumni)}
+                          className="text-blue-600 hover:bg-blue-50 border-slate-200 rounded-xl h-8 w-8 p-0"
+                        >
+                          <Edit2 size={14} />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDelete(alumni.id!)}
+                          className="text-red-500 hover:bg-red-50 border-slate-200 rounded-xl h-8 w-8 p-0"
+                        >
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {!loading && displayLimit < filteredAlumni.length && (
+            <div className="p-4 border-t border-slate-100 flex justify-center bg-slate-50/50">
+              <Button
+                variant="outline"
+                onClick={() => setDisplayLimit((prev) => prev + 25)}
+                className="rounded-full bg-white border-slate-200 text-slate-600 shadow-xs font-bold text-xs px-6"
+              >
+                Muat Lebih Banyak Data <ChevronDown size={15} className="ml-1.5" />
+              </Button>
             </div>
           )}
         </div>

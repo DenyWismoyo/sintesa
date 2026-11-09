@@ -43,11 +43,12 @@ export const alumniService = {
         }
       }
 
-      // 2. FALLBACK: Jika cache belum ada/terhapus, baru terpaksa fetch semua dokumen asli (Mahal)
-      console.warn("[OPTIMASI] Cache tidak ditemukan. Melakukan Fetch penuh (Mahal).");
-      const q = query(collection(db, COLLECTION_NAME), orderBy('createdAt', 'desc'));
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Alumni));
+      // 2. FALLBACK: Jika cache belum ada/terhapus, baru terpaksa fetch semua dokumen asli
+      console.warn("[OPTIMASI] Cache tidak ditemukan. Melakukan Fetch penuh.");
+      const snapshot = await getDocs(collection(db, COLLECTION_NAME));
+      const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Alumni));
+      list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      return list;
     } catch (error: any) {
       console.error("Error fetching all alumnis:", error);
       throw new Error("Gagal mengambil seluruh data alumni.");
@@ -242,7 +243,9 @@ export const alumniService = {
   updateAlumni: async (id: string, data: Partial<Alumni>) => {
     try {
       const docRef = doc(db, COLLECTION_NAME, id);
-      await updateDoc(docRef, data);
+      await updateDoc(docRef, { ...data, updatedAt: Date.now() });
+      // Best-effort sinkronisasi cache agar perubahan dari /profil (Alumni) maupun Admin langsung tampil
+      alumniService.syncAlumniMasterCache().catch(() => {});
       return { success: true };
     } catch (error: any) {
       console.error("Error updating alumni:", error);
@@ -359,8 +362,7 @@ export const alumniService = {
   syncAlumniMasterCache: async () => {
     try {
       const appId = getAppId();
-      const q = query(collection(db, COLLECTION_NAME), orderBy('createdAt', 'desc'));
-      const snapshot = await getDocs(q);
+      const snapshot = await getDocs(collection(db, COLLECTION_NAME));
       const compressed: any[] = [];
 
       snapshot.forEach((d) => {
@@ -378,6 +380,7 @@ export const alumniService = {
           email: data.email || '',
           programTaken: data.programTaken || '',
           trainingYear: data.trainingYear || data.graduationYear || '',
+          graduationYear: data.graduationYear || data.trainingYear || '',
           batch: data.batch || '',
           originSource: data.originSource || 'STP_VOKASI',
           originInstitution: data.originInstitution || '',
@@ -389,6 +392,21 @@ export const alumniService = {
           district: data.district || '',
           photoUrl: data.photoUrl || '',
           isVerified: Boolean(data.isVerified),
+          isLookingForJob: Boolean(data.isLookingForJob),
+          internalStatus: data.internalStatus || 'AVAILABLE',
+          skills: Array.isArray(data.skills) ? data.skills : [],
+          tools: Array.isArray(data.tools) ? data.tools : [],
+          bio: data.bio || '',
+          experienceLevel: data.experienceLevel || '',
+          industry: data.industry || '',
+          workSetup: data.workSetup || '',
+          education: data.education || '',
+          major: data.major || '',
+          portfolioUrl: data.portfolioUrl || '',
+          linkedinUrl: data.linkedinUrl || '',
+          githubUrl: data.githubUrl || '',
+          resumeFileUrl: data.resumeFileUrl || data.resumeUrl || '',
+          certificateNumber: data.certificateNumber || '',
           status: data.status || 'DORMANT',
           registrationCode: data.registrationCode || '',
           employmentStatus: (!data.employmentStatus || data.employmentStatus === 'Belum Bekerja') ? 'Proses Verifikasi' : data.employmentStatus,
@@ -396,10 +414,13 @@ export const alumniService = {
           currentJob: data.currentJob || '',
           birthInfo: data.birthInfo || '',
           address: data.address || '',
+          postCode: data.postCode || '',
           certificationResult: data.certificationResult || '',
           createdAt: data.createdAt || 0,
         });
       });
+
+      compressed.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
       const cacheRef = doc(db, `artifacts/${appId}/public/data/cache_alumnis`, 'master');
       await setDoc(cacheRef, {
@@ -409,7 +430,7 @@ export const alumniService = {
       });
 
       console.log(`[SYNC CACHE ALUMNI] Berhasil menyinkronkan master cache alumni (${compressed.length} alumni)`);
-      return { success: true, count: compressed.length };
+      return { success: true, count: compressed.length, data: compressed };
     } catch (err) {
       console.warn("[SYNC CACHE ALUMNI WARNING] Gagal sinkronisasi cache alumni:", err);
       return { success: false, error: err };

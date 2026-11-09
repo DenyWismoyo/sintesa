@@ -29,14 +29,17 @@ export default function TalentPoolTab() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterOpenToWork, setFilterOpenToWork] = useState(false);
   const [filterInternalStatus, setFilterInternalStatus] = useState<string>('ALL');
+  const [filterAccountStatus, setFilterAccountStatus] = useState<string>('ALL');
+  const [filterOrigin, setFilterOrigin] = useState<string>('ALL');
   
   const [selectedTalent, setSelectedTalent] = useState<Alumni | any | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
-  const { results: filteredTalents, loading, hasNextPage, loadMore } = useAlumniSearch({
+  const { results: filteredTalents, totalHits, loading, hasNextPage, loadMore } = useAlumniSearch({
     query: searchTerm,
-    status: 'CLAIMED',
+    status: filterAccountStatus !== 'ALL' ? filterAccountStatus : undefined,
     internalStatus: filterInternalStatus !== 'ALL' ? filterInternalStatus : undefined,
+    originSource: filterOrigin !== 'ALL' ? filterOrigin : undefined,
     isLookingForJob: filterOpenToWork ? true : undefined,
     perPage: 12
   });
@@ -86,12 +89,25 @@ export default function TalentPoolTab() {
           <input placeholder="Cari nama, pekerjaan, keahlian..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-11 pr-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white outline-none transition-all" />
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-          <select value={filterInternalStatus} onChange={(e) => setFilterInternalStatus(e.target.value)} className="w-full sm:w-auto px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 outline-none cursor-pointer">
+        <div className="flex flex-col sm:flex-row flex-wrap items-center gap-2.5 w-full md:w-auto">
+          <select value={filterOrigin} onChange={(e) => setFilterOrigin(e.target.value)} className="w-full sm:w-auto px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 outline-none cursor-pointer">
+            <option value="ALL">Semua Jalur Alumni</option>
+            <option value="STP_VOKASI">Diklat Vokasi STP</option>
+            <option value="KERJASAMA_P3MI">BP3MI Jateng (SMK Go Global)</option>
+            <option value="RSKB_SURAKARTA">RSKB Kota Surakarta</option>
+          </select>
+
+          <select value={filterAccountStatus} onChange={(e) => setFilterAccountStatus(e.target.value)} className="w-full sm:w-auto px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 outline-none cursor-pointer">
+            <option value="ALL">Semua Status Akun ({totalHits})</option>
+            <option value="CLAIMED">Sudah Klaim Akun (Claimed)</option>
+            <option value="DORMANT">Belum Klaim (Dormant)</option>
+          </select>
+
+          <select value={filterInternalStatus} onChange={(e) => setFilterInternalStatus(e.target.value)} className="w-full sm:w-auto px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 outline-none cursor-pointer">
             <option value="ALL">Semua Pipeline</option><option value="AVAILABLE">Tersedia (Available)</option><option value="INTERVIEWING">Sedang Interview</option><option value="HIRED">Telah Disalurkan</option>
           </select>
 
-          <button onClick={() => setFilterOpenToWork(!filterOpenToWork)} className={`w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all border ${filterOpenToWork ? 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm ring-2 ring-emerald-500/20' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>
+          <button onClick={() => setFilterOpenToWork(!filterOpenToWork)} className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border ${filterOpenToWork ? 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm ring-2 ring-emerald-500/20' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>
             <div className={`w-2.5 h-2.5 rounded-full ${filterOpenToWork ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} /> Open to Work
           </button>
         </div>
