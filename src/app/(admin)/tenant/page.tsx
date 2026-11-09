@@ -6,7 +6,6 @@ import TabDirektoriTenant from './components/TabDirektoriTenant';
 import ModalFormTenant from './components/ModalFormTenant';
 import KanbanBoardTenant from './components/KanbanBoardTenant';
 import BusinessMatchingBoard from './components/BusinessMatchingBoard';
-import StatCardTenant from './components/StatCardTenant';
 import DrawerProfilTenant from './components/DrawerProfilTenant';
 import TabTagihanTenant from './components/TabTagihanTenant';
 import TabKurasiProduk from './components/TabKurasiProduk';
@@ -19,7 +18,8 @@ import ModalFormInvoice from '../billing/component/ModalFormInvoice';
 import ModalInvoiceDetail from '../billing/component/ModalInvoiceDetail';
 
 import { Building2, KanbanSquare, Network, Receipt, ShieldCheck, UserCheck, Plus, Headset } from 'lucide-react'; 
-import { AdminPageHeader, AdminStatGrid } from '@/components/admin'; 
+import { AdminPageHeader, AdminStatGrid, AdminConfirmDialog } from '@/components/admin'; 
+import { toast } from 'sonner'; 
 
 // Import Custom Hooks
 import { useTenants } from '@/hooks/useTenants';
@@ -71,6 +71,8 @@ export default function TenantAdminPage() {
   // STATE BARU FASE 5: Modal Validasi Pra-Inkubasi
   const [isValidationModalOpen, setIsValidationModalOpen] = useState(false);
   const [selectedValidationTenant, setSelectedValidationTenant] = useState<Tenant | null>(null);
+  const [tenantToDelete, setTenantToDelete] = useState<string | null>(null);
+  const [isDeletingTenant, setIsDeletingTenant] = useState(false);
 
   // Handler Modal
   const handleOpenAdd = () => { router.push('/tenant/editor'); };
@@ -90,15 +92,15 @@ export default function TenantAdminPage() {
   const handleSaveValidationDecision = async (tenantId: string, decisionData: Partial<Tenant>) => {
     try {
       const res = await updateTenant(tenantId, decisionData);
-      if (res && !res.success) alert("Gagal menyimpan keputusan: " + res.error);
-      else alert("Keputusan berhasil disimpan! Status tenant telah diperbarui.");
+      if (res && !res.success) toast.error("Gagal menyimpan keputusan: " + res.error);
+      else toast.success("Keputusan berhasil disimpan! Status tenant telah diperbarui.");
     } catch (error) { console.error("Error saving decision:", error); }
   };
 
   const handleUpdateStage = async (tenantId: string, newStage: string) => {
     try {
       const res = await updateTenant(tenantId, { pipelineStage: newStage as any });
-      if (res && !res.success) alert("Gagal memperbarui status: " + res.error);
+      if (res && !res.success) toast.error("Gagal memperbarui status: " + res.error);
     } catch (error) { console.error("Gagal update stage:", error); }
   };
 
@@ -108,15 +110,27 @@ export default function TenantAdminPage() {
         ? await updateTenant(selectedTenant.id, data, logoFile, docFile, pitchDeckFile, coverImageFile)
         : await addTenant(data as Omit<Tenant, 'id' | 'createdAt'>, logoFile, docFile);
 
-      if (res && !res.success) alert("Gagal menyimpan data tenant: " + res.error);
+      if (res && !res.success) toast.error("Gagal menyimpan data tenant: " + res.error);
       else handleCloseModal();
-    } catch (error: any) { alert("Terjadi kesalahan sistem."); }
+    } catch (error: any) { toast.error("Terjadi kesalahan sistem: " + error.message); }
   };
 
-  const handleDeleteTenant = async (id: string) => {
-    if (window.confirm("Yakin ingin menghapus tenant ini beserta seluruh datanya?")) {
-      const res = await removeTenant(id);
-      if (res && !res.success) alert("Gagal menghapus tenant: " + res.error);
+  const handleDeleteTenant = (id: string) => {
+    setTenantToDelete(id);
+  };
+
+  const confirmDeleteTenant = async () => {
+    if (!tenantToDelete) return;
+    setIsDeletingTenant(true);
+    try {
+      const res = await removeTenant(tenantToDelete);
+      if (res && !res.success) toast.error("Gagal menghapus tenant: " + res.error);
+      else toast.success("Tenant berhasil dihapus dari basis data.");
+    } catch (error: any) {
+      toast.error("Terjadi kesalahan sistem: " + error.message);
+    } finally {
+      setIsDeletingTenant(false);
+      setTenantToDelete(null);
     }
   };
 
@@ -253,6 +267,18 @@ export default function TenantAdminPage() {
 
       {isInvoiceModalOpen && <ModalFormInvoice initialData={invoiceDraft as Invoice} invoices={invoices} onClose={() => setIsInvoiceModalOpen(false)} onSubmit={handleSubmitInvoice} />}
       <ModalInvoiceDetail isOpen={isInvoiceDetailOpen} onClose={() => setIsInvoiceDetailOpen(false)} invoice={selectedInvoice} accounts={accounts} />
+
+      {/* Dialog Konfirmasi Hapus Tenant */}
+      <AdminConfirmDialog
+        isOpen={Boolean(tenantToDelete)}
+        onClose={() => setTenantToDelete(null)}
+        onConfirm={confirmDeleteTenant}
+        isLoading={isDeletingTenant}
+        title="Hapus Data Tenant"
+        description="Apakah Anda yakin ingin menghapus tenant ini beserta seluruh arsip datanya secara permanen?"
+        confirmText="Ya, Hapus Tenant"
+        variant="danger"
+      />
     </div>
   );
 }

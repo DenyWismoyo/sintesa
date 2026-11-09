@@ -10,6 +10,7 @@ import {
 import { toast } from 'sonner';
 import { useFinance } from '@/hooks/useFinance';
 import { Account } from '@/types';
+import { AdminConfirmDialog } from '@/components/admin';
 
 export default function TabFinanceSettings() {
   const { accounts = [], loading, createAccount, updateAccount, deleteAccount } = useFinance() || {};
@@ -20,6 +21,8 @@ export default function TabFinanceSettings() {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
+  const [accountToDelete, setAccountToDelete] = useState<Account | null>(null);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   
   // State khusus untuk fitur Quick Add
@@ -150,7 +153,7 @@ export default function TabFinanceSettings() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (acc: Account) => {
+  const handleDelete = (acc: Account) => {
     if (acc.isSystem) {
       toast.error('Akun bawaan sistem tidak dapat dihapus.');
       return;
@@ -160,13 +163,25 @@ export default function TabFinanceSettings() {
       toast.error('Gagal menghapus! Akun ini memiliki sub-kegiatan di bawahnya.');
       return;
     }
-    if (window.confirm(`Hapus kode rekening: \n${acc.code} - ${acc.name}?`)) {
-      const toastId = toast.loading('Menghapus...');
+    setAccountToDelete(acc);
+  };
+
+  const confirmDeleteAccount = async () => {
+    if (!accountToDelete?.id) return;
+    setIsDeletingAccount(true);
+    const toastId = toast.loading('Menghapus...');
+    try {
       if (deleteAccount) {
-         const res = await deleteAccount(acc.id!);
-         if (res.success) toast.success('Berhasil dihapus', { id: toastId });
-         else toast.error(`Gagal menghapus: ${res.error}`, { id: toastId });
+         const res = await deleteAccount(accountToDelete.id);
+         if (res.success) {
+           toast.success('Berhasil dihapus', { id: toastId });
+           setAccountToDelete(null);
+         } else {
+           toast.error(`Gagal menghapus: ${res.error}`, { id: toastId });
+         }
       }
+    } finally {
+      setIsDeletingAccount(false);
     }
   };
 
@@ -612,6 +627,18 @@ export default function TabFinanceSettings() {
           onSubmit={handleSubmit} 
         />
       )}
+
+      {/* DIALOG KONFIRMASI HAPUS AKUN REKENING */}
+      <AdminConfirmDialog
+        isOpen={!!accountToDelete}
+        onClose={() => setAccountToDelete(null)}
+        title="Hapus Kode Rekening?"
+        description={`Apakah Anda yakin ingin menghapus kode rekening: ${accountToDelete?.code} - ${accountToDelete?.name}?`}
+        confirmText="Hapus Rekening"
+        variant="danger"
+        isLoading={isDeletingAccount}
+        onConfirm={confirmDeleteAccount}
+      />
     </div>
   );
 }

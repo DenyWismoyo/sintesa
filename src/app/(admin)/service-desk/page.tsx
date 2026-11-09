@@ -10,6 +10,7 @@ import {
   AdminFormDrawer,
   AdminStatGrid,
   AdminFilterBar,
+  AdminConfirmDialog,
 } from '@/components/admin';
 import { useAllWorkOrders, useWorkOrderMutations } from '@/hooks/useServiceDesk';
 import { WorkOrder, WorkOrderStatus, WorkOrderPriority } from '@/types/serviceDesk.types';
@@ -63,6 +64,18 @@ export default function ServiceDeskPage() {
   const [isAssignOpen, setIsAssignOpen] = useState(false);
   const [isResolveOpen, setIsResolveOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<WorkOrder | null>(null);
+  const [ticketToDelete, setTicketToDelete] = useState<WorkOrder | null>(null);
+
+  const handleConfirmDeleteTicket = async () => {
+    if (!ticketToDelete?.id) return;
+    try {
+      await deleteWorkOrderMutation.mutateAsync(ticketToDelete.id);
+      toast.success('Tiket SPK berhasil dihapus.');
+      setTicketToDelete(null);
+    } catch (err: any) {
+      toast.error('Gagal menghapus tiket SPK: ' + (err.message || err));
+    }
+  };
 
   // Print Document Modal
   const [isPrintOpen, setIsPrintOpen] = useState(false);
@@ -381,11 +394,7 @@ export default function ServiceDeskPage() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => {
-                          if (window.confirm('Hapus tiket SPK ini?')) {
-                            deleteWorkOrderMutation.mutateAsync(wo.id!);
-                          }
-                        }}
+                        onClick={() => setTicketToDelete(wo)}
                         className="h-7 w-7 p-0 text-slate-400 hover:text-red-600"
                       >
                         <Trash2 size={13} />
@@ -466,11 +475,7 @@ export default function ServiceDeskPage() {
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={() => {
-                  if (window.confirm('Hapus tiket SPK ini?')) {
-                    deleteWorkOrderMutation.mutateAsync(wo.id!);
-                  }
-                }}
+                onClick={() => setTicketToDelete(wo)}
                 className="h-7 w-7 p-0 text-slate-400 hover:text-red-600"
               >
                 <Trash2 size={14} />
@@ -660,6 +665,18 @@ export default function ServiceDeskPage() {
         onClose={() => setIsPrintOpen(false)}
         order={printOrder}
         mode={printMode}
+      />
+
+      {/* DIALOG KONFIRMASI HAPUS TIKET SPK */}
+      <AdminConfirmDialog
+        isOpen={!!ticketToDelete}
+        onClose={() => setTicketToDelete(null)}
+        title="Hapus Tiket SPK?"
+        description={`Apakah Anda yakin ingin menghapus tiket SPK "${ticketToDelete?.spkNumber} - ${ticketToDelete?.title}"? Tindakan ini tidak dapat dibatalkan.`}
+        confirmText="Hapus SPK"
+        variant="danger"
+        isLoading={deleteWorkOrderMutation.isPending}
+        onConfirm={handleConfirmDeleteTicket}
       />
     </div>
   );

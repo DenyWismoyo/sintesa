@@ -8,6 +8,7 @@ import { db } from '@/lib/firebase';
 import { toast } from 'sonner';
 import { APP_ROLES, ROLE_LABELS, canPerformAction, PERMISSIONS } from '@/config/roles';
 import { useAuth } from '@/lib/AuthContext';
+import { AdminResponsiveView, AdminMobileCard } from '@/components/admin';
 
 interface UserData {
   id: string;
@@ -232,98 +233,145 @@ export default function TabKeamanan() {
         </div>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left whitespace-nowrap">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold">
-              <tr>
-                <th className="px-6 py-4">Informasi Pengguna</th>
-                <th className="px-6 py-4">Divisi / Hak Akses Saat Ini</th>
-                <th className="px-6 py-4 text-right">Aksi Manajemen Role</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {loading ? (
-                <tr>
-                  <td colSpan={3} className="px-6 py-12 text-center">
-                    <Loader2 className="w-8 h-8 text-blue-500 animate-spin mx-auto mb-2" />
-                    <p className="text-slate-500">Memuat data staf...</p>
-                  </td>
-                </tr>
-              ) : filteredUsers.length === 0 ? (
-                <tr>
-                  <td colSpan={3} className="px-6 py-16 text-center text-slate-500">
-                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
-                      <Users className="w-6 h-6 text-slate-300"/>
-                    </div>
-                    Tidak ada {viewFilter === 'STAFF' ? 'Staf Internal' : viewFilter === 'PUBLIC' ? 'Pengguna Umum' : viewFilter === 'EXTERNAL' ? 'Eksternal Khusus' : 'Pengguna'} yang cocok dengan pencarian.
-                  </td>
-                </tr>
-              ) : (
-                filteredUsers.map((u) => {
-                  const displayName = formatNameFallback(u);
-                  const initials = displayName.substring(0, 2).toUpperCase();
-                  const currentRole = u.role || APP_ROLES.PUBLIC;
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+        {loading ? (
+          <div className="py-12 text-center text-slate-500">
+            <Loader2 className="w-8 h-8 text-blue-500 animate-spin mx-auto mb-2" />
+            <p className="text-slate-500">Memuat data staf & pengguna...</p>
+          </div>
+        ) : (
+          <AdminResponsiveView
+            items={filteredUsers}
+            keyExtractor={(u) => u.id}
+            emptyTitle="Tidak Ada Pengguna"
+            emptySubtitle={`Tidak ada ${viewFilter === 'STAFF' ? 'Staf Internal' : viewFilter === 'PUBLIC' ? 'Pengguna Umum' : viewFilter === 'EXTERNAL' ? 'Eksternal Khusus' : 'Pengguna'} yang cocok dengan pencarian.`}
+            renderDesktopTable={(items) => (
+              <table className="w-full text-sm text-left whitespace-nowrap">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold">
+                  <tr>
+                    <th className="px-6 py-4">Informasi Pengguna</th>
+                    <th className="px-6 py-4">Divisi / Hak Akses Saat Ini</th>
+                    <th className="px-6 py-4 text-right">Aksi Manajemen Role</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {items.map((u) => {
+                    const displayName = formatNameFallback(u);
+                    const initials = displayName.substring(0, 2).toUpperCase();
+                    const currentRole = u.role || APP_ROLES.PUBLIC;
 
-                  return (
-                    <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shadow-inner ${currentRole === APP_ROLES.PUBLIC ? 'bg-slate-100 text-slate-500' : 'bg-blue-100 text-blue-600'}`}>
-                            {initials}
+                    return (
+                      <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shadow-inner ${currentRole === APP_ROLES.PUBLIC ? 'bg-slate-100 text-slate-500' : 'bg-blue-100 text-blue-600'}`}>
+                              {initials}
+                            </div>
+                            <div>
+                              <p className="font-bold text-slate-800">{displayName}</p>
+                              <p className="text-xs text-slate-500">{u.email}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-bold text-slate-800">{displayName}</p>
-                            <p className="text-xs text-slate-500">{u.email}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold border ${getRoleBadgeStyle(currentRole)}`}>
-                          {ROLE_LABELS[currentRole] || currentRole}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        {updatingId === u.id ? (
-                          <div className="flex items-center justify-end gap-2 text-slate-500">
-                            <Loader2 className="w-4 h-4 animate-spin" /> Menyimpan...
-                          </div>
-                        ) : (
-                          <select
-                            value={currentRole}
-                            onChange={(e) => handleRoleChangeIntent(u.id, e.target.value, displayName, currentRole)}
-                            disabled={u.id === currentUser?.uid}
-                            className={`px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:bg-slate-50 cursor-pointer ${currentRole === APP_ROLES.PUBLIC ? 'text-slate-500' : 'text-slate-800'}`}
-                          >
-                            <option value={APP_ROLES.PUBLIC}>Cabut Akses (Jadikan Umum)</option>
-                            
-                            {ROLE_GROUPS.map((group, idx) => (
-                              <optgroup key={idx} label={`── ${group.label} ──`}>
-                                {group.roles.map(roleKey => (
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold border ${getRoleBadgeStyle(currentRole)}`}>
+                            {ROLE_LABELS[currentRole] || currentRole}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          {updatingId === u.id ? (
+                            <div className="flex items-center justify-end gap-2 text-slate-500">
+                              <Loader2 className="w-4 h-4 animate-spin" /> Menyimpan...
+                            </div>
+                          ) : (
+                            <select
+                              value={currentRole}
+                              onChange={(e) => handleRoleChangeIntent(u.id, e.target.value, displayName, currentRole)}
+                              disabled={u.id === currentUser?.uid}
+                              className={`px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:bg-slate-50 cursor-pointer ${currentRole === APP_ROLES.PUBLIC ? 'text-slate-500' : 'text-slate-800'}`}
+                            >
+                              <option value={APP_ROLES.PUBLIC}>Cabut Akses (Jadikan Umum)</option>
+                              
+                              {ROLE_GROUPS.map((group, idx) => (
+                                <optgroup key={idx} label={`── ${group.label} ──`}>
+                                  {group.roles.map(roleKey => (
+                                    <option key={roleKey} value={roleKey}>
+                                      {ROLE_LABELS[roleKey]}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              ))}
+
+                              <optgroup label="── Eksternal Khusus & Mitra ──">
+                                {EXTERNAL_ROLES.map(roleKey => (
                                   <option key={roleKey} value={roleKey}>
                                     {ROLE_LABELS[roleKey]}
                                   </option>
                                 ))}
                               </optgroup>
-                            ))}
+                            </select>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+            renderMobileCard={(u) => {
+              const displayName = formatNameFallback(u);
+              const currentRole = u.role || APP_ROLES.PUBLIC;
 
-                            <optgroup label="── Eksternal Khusus & Mitra ──">
-                              {EXTERNAL_ROLES.map(roleKey => (
-                                <option key={roleKey} value={roleKey}>
-                                  {ROLE_LABELS[roleKey]}
-                                </option>
-                              ))}
-                            </optgroup>
-                          </select>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+              return (
+                <AdminMobileCard
+                  key={u.id}
+                  title={displayName}
+                  subtitle={u.email}
+                  badge={
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold border ${getRoleBadgeStyle(currentRole)}`}>
+                      {ROLE_LABELS[currentRole] || currentRole}
+                    </span>
+                  }
+                  fields={[
+                    { label: 'ID Pengguna', value: u.id.substring(0, 12) + '...' },
+                    { label: 'Tipe Akses', value: ROLE_LABELS[currentRole] || currentRole },
+                  ]}
+                  actions={
+                    <div className="w-full pt-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                        Ubah Hak Akses / Role:
+                      </label>
+                      <select
+                        value={currentRole}
+                        onChange={(e) => handleRoleChangeIntent(u.id, e.target.value, displayName, currentRole)}
+                        disabled={u.id === currentUser?.uid || updatingId === u.id}
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                      >
+                        <option value={APP_ROLES.PUBLIC}>Cabut Akses (Jadikan Umum)</option>
+                        {ROLE_GROUPS.map((group, idx) => (
+                          <optgroup key={idx} label={`── ${group.label} ──`}>
+                            {group.roles.map(roleKey => (
+                              <option key={roleKey} value={roleKey}>
+                                {ROLE_LABELS[roleKey]}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ))}
+                        <optgroup label="── Eksternal Khusus & Mitra ──">
+                          {EXTERNAL_ROLES.map(roleKey => (
+                            <option key={roleKey} value={roleKey}>
+                              {ROLE_LABELS[roleKey]}
+                            </option>
+                          ))}
+                        </optgroup>
+                      </select>
+                    </div>
+                  }
+                />
+              );
+            }}
+          />
+        )}
       </div>
 
       {/* OVERLAY MODAL KONFIRMASI CERDAS */}

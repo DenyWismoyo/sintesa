@@ -26,6 +26,7 @@ import {
   AdminFilterBar,
   AdminResponsiveView,
   AdminMobileCard,
+  AdminConfirmDialog,
 } from '@/components/admin';
 import { useTraining } from '@/hooks/useTraining';
 import { useAlumni } from '@/hooks/useAlumni';
@@ -54,6 +55,8 @@ export default function AdminPelatihanPage() {
   const { allAlumnis } = useAlumni();
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [trainingToDelete, setTrainingToDelete] = useState<string | null>(null);
+  const [isDeletingTraining, setIsDeletingTraining] = useState(false);
 
   React.useEffect(() => {
     if (!authLoading) {
@@ -78,12 +81,23 @@ export default function AdminPelatihanPage() {
     return title.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = (id: string) => {
     if (!canManageLMS) return toast.error('Akses Ditolak');
-    if (confirm('Apakah Anda yakin ingin menghapus kelas ini?')) {
-      const res = await deleteTraining(id);
+    setTrainingToDelete(id);
+  };
+
+  const confirmDeleteTraining = async () => {
+    if (!trainingToDelete) return;
+    setIsDeletingTraining(true);
+    try {
+      const res = await deleteTraining(trainingToDelete);
       if (res.success) toast.success('Program Pelatihan Berhasil Dihapus');
       else toast.error('Gagal Menghapus', { description: res.error });
+    } catch (err: any) {
+      toast.error('Gagal Menghapus: ' + (err.message || err));
+    } finally {
+      setIsDeletingTraining(false);
+      setTrainingToDelete(null);
     }
   };
 
@@ -465,6 +479,18 @@ export default function AdminPelatihanPage() {
           subtitle="Pantau pelunasan biaya pendaftaran pelatihan berbayar, cetak invoice PDF, dan kwitansi peserta."
         />
       )}
+
+      {/* Dialog Konfirmasi Hapus Program Pelatihan */}
+      <AdminConfirmDialog
+        isOpen={Boolean(trainingToDelete)}
+        onClose={() => setTrainingToDelete(null)}
+        onConfirm={confirmDeleteTraining}
+        isLoading={isDeletingTraining}
+        title="Hapus Program Pelatihan"
+        description="Apakah Anda yakin ingin menghapus kelas program pelatihan ini secara permanen?"
+        confirmText="Ya, Hapus Kelas"
+        variant="danger"
+      />
     </div>
   );
 }

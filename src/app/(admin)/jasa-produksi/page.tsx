@@ -20,6 +20,7 @@ import {
   AdminResponsiveView,
   AdminMobileCard,
   AdminFormDrawer,
+  AdminConfirmDialog,
 } from '@/components/admin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -105,6 +106,8 @@ export default function JasaProduksiPage() {
 
   const [detailOrder, setDetailOrder] = useState<ProductionOrder | null>(null);
   const [isSeeding, setIsSeeding] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<ProductionOrder | null>(null);
+  const [isDeletingOrder, setIsDeletingOrder] = useState(false);
 
   // Handler Muat Data Demo Manufaktur
   const handleSeedDemoData = async () => {
@@ -201,17 +204,25 @@ export default function JasaProduksiPage() {
   };
 
   // Handler Hapus Order
-  const handleDeleteOrder = async (order: ProductionOrder) => {
+  const handleDeleteOrder = (order: ProductionOrder) => {
     if (!order.id) return;
-    const confirm = window.confirm(`Apakah Anda yakin ingin menghapus pesanan "${order.projectTitle}" (${order.orderNumber})?`);
-    if (!confirm) return;
+    setOrderToDelete(order);
+  };
 
-    const res = await deleteOrder(order.id);
-    if (res.success) {
-      toast.success('Pesanan produksi berhasil dihapus.');
-      if (detailOrder?.id === order.id) setDetailOrder(null);
-    } else {
-      toast.error(res.error || 'Gagal menghapus pesanan.');
+  const confirmDeleteOrder = async () => {
+    if (!orderToDelete?.id) return;
+    setIsDeletingOrder(true);
+    try {
+      const res = await deleteOrder(orderToDelete.id);
+      if (res.success) {
+        toast.success('Pesanan produksi berhasil dihapus.');
+        if (detailOrder?.id === orderToDelete.id) setDetailOrder(null);
+        setOrderToDelete(null);
+      } else {
+        toast.error(res.error || 'Gagal menghapus pesanan.');
+      }
+    } finally {
+      setIsDeletingOrder(false);
     }
   };
 
@@ -891,6 +902,18 @@ export default function JasaProduksiPage() {
           setSelectedOrderForSpk(null);
         }}
         order={selectedOrderForSpk}
+      />
+
+      {/* Dialog Konfirmasi Hapus Order */}
+      <AdminConfirmDialog
+        isOpen={!!orderToDelete}
+        onClose={() => setOrderToDelete(null)}
+        title="Hapus Pesanan Produksi?"
+        description={`Apakah Anda yakin ingin menghapus pesanan "${orderToDelete?.projectTitle}" (${orderToDelete?.orderNumber})? Tindakan ini tidak dapat dibatalkan.`}
+        confirmText="Hapus Pesanan"
+        variant="danger"
+        isLoading={isDeletingOrder}
+        onConfirm={confirmDeleteOrder}
       />
     </div>
   );

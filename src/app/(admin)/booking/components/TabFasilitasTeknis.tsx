@@ -46,6 +46,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { AdminResponsiveView, AdminMobileCard, AdminStatGrid, AdminStatusBadge } from '@/components/admin';
 
 // Mapping nama ikon ke komponen Lucide
 const ICON_COMPONENTS: Record<string, React.ElementType> = {
@@ -255,63 +256,34 @@ export default function TabFasilitasTeknis() {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* 1. KARTU STATISTIK RINGKAS */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-              Total Fasilitas Teknis
-            </span>
-            <span className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5 block">
-              {stats.total}
-            </span>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-            <Boxes className="w-5 h-5" />
-          </div>
-        </div>
-
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-              Tersedia Disewa
-            </span>
-            <span className="text-xl sm:text-2xl font-black text-emerald-600 mt-0.5 block">
-              {stats.active}
-            </span>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-            <CheckCircle2 className="w-5 h-5" />
-          </div>
-        </div>
-
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-              Perawatan / Nonaktif
-            </span>
-            <span className="text-xl sm:text-2xl font-black text-amber-600 mt-0.5 block">
-              {stats.inactive}
-            </span>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-            <AlertCircle className="w-5 h-5" />
-          </div>
-        </div>
-
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-              Rata-Rata Tarif Sewa
-            </span>
-            <span className="text-base sm:text-lg font-black text-slate-900 mt-0.5 block">
-              {formatRupiah(stats.avgPrice)}
-            </span>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-            <TrendingUp className="w-5 h-5" />
-          </div>
-        </div>
-      </div>
+      <AdminStatGrid
+        items={[
+          {
+            label: 'Total Fasilitas Teknis',
+            value: stats.total,
+            icon: Boxes,
+            color: 'blue',
+          },
+          {
+            label: 'Tersedia Disewa',
+            value: stats.active,
+            icon: CheckCircle2,
+            color: 'emerald',
+          },
+          {
+            label: 'Perawatan / Nonaktif',
+            value: stats.inactive,
+            icon: AlertCircle,
+            color: 'amber',
+          },
+          {
+            label: 'Rata-Rata Tarif Sewa',
+            value: formatRupiah(stats.avgPrice),
+            icon: TrendingUp,
+            color: 'purple',
+          },
+        ]}
+      />
 
       {/* 2. TOOLBAR PENCARIAN & AKSI */}
       <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
@@ -436,91 +408,164 @@ export default function TabFasilitasTeknis() {
             )}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 border-b border-slate-200/80 text-slate-500 uppercase text-[10px] font-bold tracking-wider">
-                <tr>
-                  <th className="p-4">Fasilitas & Spesifikasi</th>
-                  <th className="p-4">Kategori</th>
-                  <th className="p-4 text-right">Tarif Sewa (BLUD)</th>
-                  <th className="p-4 text-center">Unit Stok</th>
-                  <th className="p-4 text-center">Status Sewa</th>
-                  <th className="p-4 text-right">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredAddons.map((addon) => {
-                  const IconComp = ICON_COMPONENTS[addon.iconName || 'Monitor'] || Monitor;
-                  return (
-                    <tr key={addon.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="p-4">
-                        <div className="flex items-start gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 mt-0.5">
-                            <IconComp className="w-4.5 h-4.5" />
-                          </div>
-                          <div>
-                            <span className="font-bold text-slate-900 text-xs block leading-tight">
-                              {addon.name}
+          <div className="p-4">
+            <AdminResponsiveView
+              items={filteredAddons}
+              keyExtractor={(addon, idx) => addon.id || String(idx)}
+              emptyTitle="Tidak Ada Fasilitas Teknis"
+              emptySubtitle="Tidak ada perlengkapan yang sesuai dengan filter pencarian."
+              renderDesktopTable={(items) => (
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 border-b border-slate-200/80 text-slate-500 uppercase text-[10px] font-bold tracking-wider">
+                    <tr>
+                      <th className="p-4">Fasilitas & Spesifikasi</th>
+                      <th className="p-4">Kategori</th>
+                      <th className="p-4 text-right">Tarif Sewa (BLUD)</th>
+                      <th className="p-4 text-center">Unit Stok</th>
+                      <th className="p-4 text-center">Status Sewa</th>
+                      <th className="p-4 text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {items.map((addon) => {
+                      const IconComp = ICON_COMPONENTS[addon.iconName || 'Monitor'] || Monitor;
+                      return (
+                        <tr key={addon.id} className="hover:bg-slate-50/60 transition-colors">
+                          <td className="p-4">
+                            <div className="flex items-start gap-3">
+                              <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 mt-0.5">
+                                <IconComp className="w-4.5 h-4.5" />
+                              </div>
+                              <div>
+                                <span className="font-bold text-slate-900 text-xs block leading-tight">
+                                  {addon.name}
+                                </span>
+                                <span className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
+                                  {addon.description || 'Tidak ada deskripsi spesifikasi tambahan.'}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="p-4">
+                            <span className="inline-block px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-[10px] font-bold">
+                              {FACILITY_ADDON_CATEGORY_LABELS[addon.category] || addon.category}
                             </span>
-                            <span className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
-                              {addon.description || 'Tidak ada deskripsi spesifikasi tambahan.'}
+                          </td>
+
+                          <td className="p-4 text-right">
+                            <div className="font-extrabold text-slate-900 font-mono text-xs">
+                              {formatRupiah(addon.price)}
+                            </div>
+                            <div className="text-[10px] text-slate-400">/{addon.unit}</div>
+                          </td>
+
+                          <td className="p-4 text-center">
+                            <span className="font-bold text-slate-800">
+                              {addon.stockQuantity || 1} Unit
                             </span>
-                          </div>
-                        </div>
-                      </td>
+                          </td>
 
-                      <td className="p-4">
-                        <span className="inline-block px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-[10px] font-bold">
-                          {FACILITY_ADDON_CATEGORY_LABELS[addon.category] || addon.category}
-                        </span>
-                      </td>
+                          <td className="p-4 text-center">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleAvailability(addon)}
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold cursor-pointer transition-all ${
+                                addon.isAvailable
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                                  : 'bg-slate-100 text-slate-500 border border-slate-200 hover:bg-slate-200'
+                              }`}
+                            >
+                              {addon.isAvailable ? (
+                                <>
+                                  <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                  <span>Aktif</span>
+                                </>
+                              ) : (
+                                <>
+                                  <XCircle className="w-3 h-3 text-slate-400" />
+                                  <span>Nonaktif</span>
+                                </>
+                              )}
+                            </button>
+                          </td>
 
-                      <td className="p-4 text-right">
-                        <div className="font-extrabold text-slate-900 font-mono text-xs">
-                          {formatRupiah(addon.price)}
-                        </div>
-                        <div className="text-[10px] text-slate-400">/{addon.unit}</div>
-                      </td>
-
-                      <td className="p-4 text-center">
-                        <span className="font-bold text-slate-800">
-                          {addon.stockQuantity || 1} Unit
-                        </span>
-                      </td>
-
-                      <td className="p-4 text-center">
+                          <td className="p-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditModal(addon)}
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 cursor-pointer transition-colors"
+                                title="Edit Fasilitas"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setDeletingAddon(addon);
+                                  setIsDeleteModalOpen(true);
+                                }}
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 cursor-pointer transition-colors"
+                                title="Hapus Fasilitas"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+              renderMobileCard={(addon) => {
+                const IconComp = ICON_COMPONENTS[addon.iconName || 'Monitor'] || Monitor;
+                return (
+                  <AdminMobileCard
+                    key={addon.id}
+                    title={addon.name}
+                    subtitle={FACILITY_ADDON_CATEGORY_LABELS[addon.category] || addon.category}
+                    badge={
+                      <AdminStatusBadge
+                        status={addon.isAvailable ? 'Tersedia' : 'Nonaktif'}
+                        variant={addon.isAvailable ? 'emerald' : 'slate'}
+                      />
+                    }
+                    fields={[
+                      {
+                        label: 'Tarif Sewa',
+                        value: (
+                          <span className="font-mono font-bold text-slate-900">
+                            {formatRupiah(addon.price)} / {addon.unit}
+                          </span>
+                        ),
+                      },
+                      { label: 'Unit Stok', value: `${addon.stockQuantity || 1} Unit` },
+                      { label: 'Kategori', value: FACILITY_ADDON_CATEGORY_LABELS[addon.category] || addon.category },
+                      { label: 'Deskripsi', value: addon.description || '-' },
+                    ]}
+                    actions={
+                      <div className="flex items-center justify-between w-full pt-1">
                         <button
                           type="button"
                           onClick={() => handleToggleAvailability(addon)}
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold cursor-pointer transition-all ${
+                          className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors ${
                             addon.isAvailable
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
-                              : 'bg-slate-100 text-slate-500 border border-slate-200 hover:bg-slate-200'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-slate-100 text-slate-600 border-slate-200'
                           }`}
                         >
-                          {addon.isAvailable ? (
-                            <>
-                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                              <span>Aktif</span>
-                            </>
-                          ) : (
-                            <>
-                              <XCircle className="w-3 h-3 text-slate-400" />
-                              <span>Nonaktif</span>
-                            </>
-                          )}
+                          {addon.isAvailable ? '✓ Status: Aktif' : '✕ Status: Nonaktif'}
                         </button>
-                      </td>
-
-                      <td className="p-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
+                        <div className="flex items-center gap-1">
                           <button
                             type="button"
                             onClick={() => handleOpenEditModal(addon)}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 cursor-pointer transition-colors"
-                            title="Edit Fasilitas"
+                            className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
+                            title="Edit"
                           >
-                            <Edit className="w-4 h-4" />
+                            <Edit className="w-3.5 h-3.5" />
                           </button>
                           <button
                             type="button"
@@ -528,18 +573,18 @@ export default function TabFasilitasTeknis() {
                               setDeletingAddon(addon);
                               setIsDeleteModalOpen(true);
                             }}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 cursor-pointer transition-colors"
-                            title="Hapus Fasilitas"
+                            className="p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition-colors cursor-pointer"
+                            title="Hapus"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                      </div>
+                    }
+                  />
+                );
+              }}
+            />
           </div>
         )}
       </div>

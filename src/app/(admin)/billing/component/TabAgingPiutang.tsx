@@ -7,6 +7,7 @@ import {
   Clock, AlertTriangle, MessageCircle, ChevronDown, ChevronUp, 
   FileText, CheckCircle, Search, Filter, ShieldAlert, Phone, Package, User
 } from 'lucide-react';
+import { AdminResponsiveView, AdminMobileCard, AdminStatusBadge } from '@/components/admin';
 
 interface Props {
   invoices: Invoice[];
@@ -194,148 +195,221 @@ export default function TabAgingPiutang({ invoices, onViewDetail }: Props) {
         </div>
       </div>
 
-      {/* MAIN TABLE */}
-      <div className="overflow-x-auto w-full min-h-[400px]">
-        <table className="w-full text-sm text-left border-collapse whitespace-nowrap">
-          <thead className="text-[10px] text-slate-500 bg-slate-50 border-b border-slate-200 uppercase tracking-widest font-bold">
-            <tr>
-              <th className="px-6 py-4 w-10"></th>
-              <th className="px-6 py-4">Pelanggan</th>
-              <th className="px-4 py-4 text-right bg-emerald-50/50">Belum Jatuh Tempo</th>
-              <th className="px-4 py-4 text-right">1 - 30 Hari</th>
-              <th className="px-4 py-4 text-right">31 - 60 Hari</th>
-              <th className="px-4 py-4 text-right">61 - 90 Hari</th>
-              <th className="px-4 py-4 text-right bg-red-50/50">&gt; 90 Hari</th>
-              <th className="px-6 py-4 text-right font-black text-slate-800">Total Piutang</th>
-              <th className="px-6 py-4 text-center">Aksi</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 bg-white">
-            
-            {/* BARIS TOTAL KESELURUHAN */}
-            <tr className="bg-slate-800 text-white font-bold text-xs uppercase tracking-wider">
-              <td colSpan={2} className="px-6 py-3 text-right">TOTAL KESELURUHAN</td>
-              <td className="px-4 py-3 text-right text-emerald-400">{formatRupiah(summary.notDue)}</td>
-              <td className="px-4 py-3 text-right">{formatRupiah(summary.days1_30)}</td>
-              <td className="px-4 py-3 text-right">{formatRupiah(summary.days31_60)}</td>
-              <td className="px-4 py-3 text-right">{formatRupiah(summary.days61_90)}</td>
-              <td className="px-4 py-3 text-right text-red-400">{formatRupiah(summary.over90)}</td>
-              <td className="px-6 py-3 text-right text-base font-black text-amber-300">{formatRupiah(summary.total)}</td>
-              <td></td>
-            </tr>
+      {/* RESPONSIVE AGING PIUTANG VIEW */}
+      <div className="p-4 bg-white">
+        <AdminResponsiveView
+          items={filteredData}
+          keyExtractor={(c) => c.customerName}
+          emptyTitle="Tidak Ada Data Piutang"
+          emptySubtitle="Tidak ada data piutang pelanggan yang cocok dengan filter."
+          renderDesktopTable={(items) => (
+            <table className="w-full text-sm text-left border-collapse whitespace-nowrap">
+              <thead className="text-[10px] text-slate-500 bg-slate-50 border-b border-slate-200 uppercase tracking-widest font-bold">
+                <tr>
+                  <th className="px-6 py-4 w-10"></th>
+                  <th className="px-6 py-4">Pelanggan</th>
+                  <th className="px-4 py-4 text-right bg-emerald-50/50">Belum Jatuh Tempo</th>
+                  <th className="px-4 py-4 text-right">1 - 30 Hari</th>
+                  <th className="px-4 py-4 text-right">31 - 60 Hari</th>
+                  <th className="px-4 py-4 text-right">61 - 90 Hari</th>
+                  <th className="px-4 py-4 text-right bg-red-50/50">&gt; 90 Hari</th>
+                  <th className="px-6 py-4 text-right font-black text-slate-800">Total Piutang</th>
+                  <th className="px-6 py-4 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 bg-white">
+                {/* BARIS TOTAL KESELURUHAN */}
+                <tr className="bg-slate-800 text-white font-bold text-xs uppercase tracking-wider">
+                  <td colSpan={2} className="px-6 py-3 text-right">TOTAL KESELURUHAN</td>
+                  <td className="px-4 py-3 text-right text-emerald-400">{formatRupiah(summary.notDue)}</td>
+                  <td className="px-4 py-3 text-right">{formatRupiah(summary.days1_30)}</td>
+                  <td className="px-4 py-3 text-right">{formatRupiah(summary.days31_60)}</td>
+                  <td className="px-4 py-3 text-right">{formatRupiah(summary.days61_90)}</td>
+                  <td className="px-4 py-3 text-right text-red-400">{formatRupiah(summary.over90)}</td>
+                  <td className="px-6 py-3 text-right text-base font-black text-amber-300">{formatRupiah(summary.total)}</td>
+                  <td></td>
+                </tr>
 
-            {filteredData.length === 0 ? (
-              <tr><td colSpan={9} className="px-6 py-16 text-center text-slate-500 font-bold">Tidak ada data piutang ditemukan.</td></tr>
-            ) : (
-              filteredData.map((customer, idx) => {
-                const isExpanded = expandedCustomer === customer.customerName;
-                const hasOverdue = customer.total - customer.notDue > 0;
+                {items.map((customer, idx) => {
+                  const isExpanded = expandedCustomer === customer.customerName;
+                  const hasOverdue = customer.total - customer.notDue > 0;
 
-                return (
-                  <React.Fragment key={idx}>
-                    <tr className={`hover:bg-slate-50 transition-colors ${isExpanded ? 'bg-slate-50 border-l-4 border-l-blue-500' : 'border-l-4 border-l-transparent'}`}>
-                      <td className="px-4 py-4 text-center">
-                        <button onClick={() => toggleExpand(customer.customerName)} className="p-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors">
-                          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                        </button>
-                      </td>
-                      <td className="px-6 py-4">
-                        <p className="font-bold text-slate-800">{customer.customerName}</p>
-                        {customer.customerPhone && <p className="text-[10px] text-slate-500 font-medium mt-0.5 flex items-center gap-1"><Phone className="w-3 h-3"/> {customer.customerPhone}</p>}
-                      </td>
-                      <td className="px-4 py-4 text-right font-semibold text-slate-600 bg-emerald-50/20">{customer.notDue > 0 ? formatRupiah(customer.notDue) : '-'}</td>
-                      <td className="px-4 py-4 text-right font-semibold text-slate-600">{customer.days1_30 > 0 ? formatRupiah(customer.days1_30) : '-'}</td>
-                      <td className="px-4 py-4 text-right font-semibold text-amber-600">{customer.days31_60 > 0 ? formatRupiah(customer.days31_60) : '-'}</td>
-                      <td className="px-4 py-4 text-right font-semibold text-orange-600">{customer.days61_90 > 0 ? formatRupiah(customer.days61_90) : '-'}</td>
-                      <td className="px-4 py-4 text-right font-bold text-red-600 bg-red-50/20">{customer.over90 > 0 ? formatRupiah(customer.over90) : '-'}</td>
-                      <td className="px-6 py-4 text-right font-black text-slate-900">{formatRupiah(customer.total)}</td>
-                      <td className="px-6 py-4 text-center">
-                        <button 
-                          onClick={() => handleSendReminder(customer)}
-                          disabled={!hasOverdue || !customer.customerPhone}
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors shadow-sm ${
-                            hasOverdue && customer.customerPhone 
-                              ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-200' 
-                              : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
-                          }`}
-                          title={!customer.customerPhone ? 'Nomor HP tidak ada' : 'Kirim Reminder WA'}
-                        >
-                          <MessageCircle className="w-3.5 h-3.5" /> Reminder
-                        </button>
-                      </td>
-                    </tr>
-
-                    {/* SUB-TABLE: RINCIAN INVOICE PELANGGAN (EXPANDED) */}
-                    {isExpanded && (
-                      <tr className="bg-slate-50/80 border-b border-slate-200 shadow-inner">
-                        <td colSpan={9} className="px-14 py-4">
-                          <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-                            <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Rincian Tagihan: {customer.customerName}</h4>
-                            <table className="w-full text-xs text-left">
-                              <thead className="text-slate-400 border-b border-slate-100">
-                                <tr>
-                                  <th className="py-2">No. Invoice</th>
-                                  <th className="py-2">Divisi & PIC</th>
-                                  <th className="py-2">Tanggal Terbit</th>
-                                  <th className="py-2">Jatuh Tempo</th>
-                                  <th className="py-2 text-right">Total Tagihan</th>
-                                  <th className="py-2 text-right">Sisa (Piutang)</th>
-                                  <th className="py-2 text-center">Status</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-slate-50">
-                                {customer.invoices.map(inv => {
-                                  const invDate = new Date(inv.dueDate);
-                                  invDate.setHours(0,0,0,0);
-                                  const tdy = new Date();
-                                  tdy.setHours(0,0,0,0);
-                                  const isOverdue = tdy.getTime() > invDate.getTime();
-
-                                  const div = inv.division || inferInvoiceDivision(inv);
-                                  const divCfg = INVOICE_DIVISION_CONFIG[div];
-
-                                  return (
-                                    <tr key={inv.id} className="hover:bg-slate-50 cursor-pointer transition-colors" onClick={() => onViewDetail(inv)}>
-                                      <td className="py-2.5 font-bold text-blue-600 hover:underline">{inv.invoiceNumber}</td>
-                                      <td className="py-2.5">
-                                        <div className="flex flex-col gap-0.5">
-                                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold border w-fit ${divCfg.badgeClass}`}>
-                                            {divCfg.shortLabel}
-                                          </span>
-                                          {inv.divisionPic && (
-                                            <span className="text-[10px] text-slate-500 flex items-center gap-1">
-                                              <User className="w-2.5 h-2.5" /> {inv.divisionPic}
-                                            </span>
-                                          )}
-                                        </div>
-                                      </td>
-                                      <td className="py-2.5 text-slate-600">{inv.date}</td>
-                                      <td className="py-2.5 text-slate-600 flex items-center gap-1.5">
-                                        {inv.dueDate} {isOverdue && <AlertTriangle className="w-3 h-3 text-red-500" />}
-                                      </td>
-                                      <td className="py-2.5 text-right font-semibold text-slate-700">{formatRupiah(inv.totalAmount)}</td>
-                                      <td className="py-2.5 text-right font-black text-slate-900">{formatRupiah(inv.remainingAmount)}</td>
-                                      <td className="py-2.5 text-center">
-                                        {isOverdue 
-                                          ? <span className="px-2 py-0.5 bg-red-100 text-red-700 text-[9px] rounded font-bold uppercase">Jatuh Tempo</span>
-                                          : <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[9px] rounded font-bold uppercase">Aman</span>
-                                        }
-                                      </td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            </table>
-                          </div>
+                  return (
+                    <React.Fragment key={idx}>
+                      <tr className={`hover:bg-slate-50 transition-colors ${isExpanded ? 'bg-slate-50 border-l-4 border-l-blue-500' : 'border-l-4 border-l-transparent'}`}>
+                        <td className="px-4 py-4 text-center">
+                          <button onClick={() => toggleExpand(customer.customerName)} className="p-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors">
+                            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                          </button>
+                        </td>
+                        <td className="px-6 py-4">
+                          <p className="font-bold text-slate-800">{customer.customerName}</p>
+                          {customer.customerPhone && <p className="text-[10px] text-slate-500 font-medium mt-0.5 flex items-center gap-1"><Phone className="w-3 h-3"/> {customer.customerPhone}</p>}
+                        </td>
+                        <td className="px-4 py-4 text-right font-semibold text-slate-600 bg-emerald-50/20">{customer.notDue > 0 ? formatRupiah(customer.notDue) : '-'}</td>
+                        <td className="px-4 py-4 text-right font-semibold text-slate-600">{customer.days1_30 > 0 ? formatRupiah(customer.days1_30) : '-'}</td>
+                        <td className="px-4 py-4 text-right font-semibold text-amber-600">{customer.days31_60 > 0 ? formatRupiah(customer.days31_60) : '-'}</td>
+                        <td className="px-4 py-4 text-right font-semibold text-orange-600">{customer.days61_90 > 0 ? formatRupiah(customer.days61_90) : '-'}</td>
+                        <td className="px-4 py-4 text-right font-bold text-red-600 bg-red-50/20">{customer.over90 > 0 ? formatRupiah(customer.over90) : '-'}</td>
+                        <td className="px-6 py-4 text-right font-black text-slate-900">{formatRupiah(customer.total)}</td>
+                        <td className="px-6 py-4 text-center">
+                          <button 
+                            onClick={() => handleSendReminder(customer)}
+                            disabled={!hasOverdue || !customer.customerPhone}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors shadow-sm ${
+                              hasOverdue && customer.customerPhone 
+                                ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-200' 
+                                : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
+                            }`}
+                            title={!customer.customerPhone ? 'Nomor HP tidak ada' : 'Kirim Reminder WA'}
+                          >
+                            <MessageCircle className="w-3.5 h-3.5" /> Reminder
+                          </button>
                         </td>
                       </tr>
-                    )}
-                  </React.Fragment>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+
+                      {/* SUB-TABLE: RINCIAN INVOICE PELANGGAN (EXPANDED) */}
+                      {isExpanded && (
+                        <tr className="bg-slate-50/80 border-b border-slate-200 shadow-inner">
+                          <td colSpan={9} className="px-14 py-4">
+                            <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+                              <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Rincian Tagihan: {customer.customerName}</h4>
+                              <table className="w-full text-xs text-left">
+                                <thead className="text-slate-400 border-b border-slate-100">
+                                  <tr>
+                                    <th className="py-2">No. Invoice</th>
+                                    <th className="py-2">Divisi & PIC</th>
+                                    <th className="py-2">Tanggal Terbit</th>
+                                    <th className="py-2">Jatuh Tempo</th>
+                                    <th className="py-2 text-right">Total Tagihan</th>
+                                    <th className="py-2 text-right">Sisa (Piutang)</th>
+                                    <th className="py-2 text-center">Status</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50">
+                                  {customer.invoices.map(inv => {
+                                    const invDate = new Date(inv.dueDate);
+                                    invDate.setHours(0,0,0,0);
+                                    const tdy = new Date();
+                                    tdy.setHours(0,0,0,0);
+                                    const isOverdue = tdy.getTime() > invDate.getTime();
+
+                                    const div = inv.division || inferInvoiceDivision(inv);
+                                    const divCfg = INVOICE_DIVISION_CONFIG[div];
+
+                                    return (
+                                      <tr key={inv.id} className="hover:bg-slate-50 cursor-pointer transition-colors" onClick={() => onViewDetail(inv)}>
+                                        <td className="py-2.5 font-bold text-blue-600 hover:underline">{inv.invoiceNumber}</td>
+                                        <td className="py-2.5">
+                                          <div className="flex flex-col gap-0.5">
+                                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold border w-fit ${divCfg.badgeClass}`}>
+                                              {divCfg.shortLabel}
+                                            </span>
+                                            {inv.divisionPic && (
+                                              <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                                                <User className="w-2.5 h-2.5" /> {inv.divisionPic}
+                                              </span>
+                                            )}
+                                          </div>
+                                        </td>
+                                        <td className="py-2.5 text-slate-600">{inv.date}</td>
+                                        <td className="py-2.5 text-slate-600 flex items-center gap-1.5">
+                                          {inv.dueDate} {isOverdue && <AlertTriangle className="w-3 h-3 text-red-500" />}
+                                        </td>
+                                        <td className="py-2.5 text-right font-semibold text-slate-700">{formatRupiah(inv.totalAmount)}</td>
+                                        <td className="py-2.5 text-right font-black text-slate-900">{formatRupiah(inv.remainingAmount)}</td>
+                                        <td className="py-2.5 text-center">
+                                          {isOverdue 
+                                            ? <span className="px-2 py-0.5 bg-red-100 text-red-700 text-[9px] rounded font-bold uppercase">Jatuh Tempo</span>
+                                            : <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[9px] rounded font-bold uppercase">Aman</span>
+                                          }
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+          renderMobileCard={(customer) => {
+            const hasOverdue = customer.total - customer.notDue > 0;
+            const isExpanded = expandedCustomer === customer.customerName;
+
+            return (
+              <div key={customer.customerName} className="space-y-2">
+                <AdminMobileCard
+                  title={customer.customerName}
+                  subtitle={customer.customerPhone || 'Tanpa no. telepon'}
+                  badge={
+                    <AdminStatusBadge
+                      status={hasOverdue ? 'Jatuh Tempo' : 'Belum Jatuh Tempo'}
+                      variant={hasOverdue ? 'rose' : 'emerald'}
+                    />
+                  }
+                  fields={[
+                    { label: 'Total Piutang', value: <span className="font-black text-slate-900">{formatRupiah(customer.total)}</span> },
+                    { label: 'Belum Tempo', value: customer.notDue > 0 ? formatRupiah(customer.notDue) : '-' },
+                    { label: '1 - 30 Hari', value: customer.days1_30 > 0 ? formatRupiah(customer.days1_30) : '-' },
+                    { label: '31 - 60 Hari', value: customer.days31_60 > 0 ? formatRupiah(customer.days31_60) : '-' },
+                    { label: '> 60 Hari', value: (customer.days61_90 + customer.over90) > 0 ? formatRupiah(customer.days61_90 + customer.over90) : '-' },
+                  ]}
+                  actions={
+                    <div className="flex items-center gap-2 w-full pt-1">
+                      <button
+                        type="button"
+                        onClick={() => toggleExpand(customer.customerName)}
+                        className="flex-1 py-1.5 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                        <span>{isExpanded ? 'Tutup Rincian' : `Rincian (${customer.invoices.length} Inv)`}</span>
+                      </button>
+                      {customer.customerPhone && (
+                        <button
+                          type="button"
+                          onClick={() => handleSendReminder(customer)}
+                          className="py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          <span>WA</span>
+                        </button>
+                      )}
+                    </div>
+                  }
+                />
+
+                {/* Sub-cards invoice saat expanded di mobile */}
+                {isExpanded && (
+                  <div className="pl-3 border-l-2 border-blue-500 space-y-2 py-1">
+                    {customer.invoices.map((inv) => (
+                      <div
+                        key={inv.id}
+                        onClick={() => onViewDetail(inv)}
+                        className="bg-slate-50 hover:bg-slate-100 p-2.5 rounded-xl border border-slate-200 text-xs cursor-pointer transition-colors"
+                      >
+                        <div className="flex items-center justify-between font-bold">
+                          <span className="text-blue-600">{inv.invoiceNumber}</span>
+                          <span className="text-slate-800">{formatRupiah(inv.remainingAmount)}</span>
+                        </div>
+                        <div className="text-[10px] text-slate-500 mt-1 flex items-center justify-between">
+                          <span>Tempo: {inv.dueDate}</span>
+                          <span className="text-emerald-700 font-semibold">Total: {formatRupiah(inv.totalAmount)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          }}
+        />
       </div>
     </div>
   );

@@ -23,6 +23,7 @@ import { alumniService } from '@/services/alumni.service';
 import { exportAlumniTracerStudy } from '@/services/careerExport.service';
 import { Alumni } from '@/types';
 import { toast } from 'sonner';
+import { AdminResponsiveView, AdminMobileCard, AdminStatusBadge } from '@/components/admin';
 
 export default function TabTracerStudyAnalytics() {
   const [alumnis, setAlumnis] = useState<Alumni[]>([]);
@@ -279,79 +280,111 @@ export default function TabTracerStudyAnalytics() {
           </div>
         </div>
 
-        {/* Tabel Mini Data Tracer Study */}
+        {/* Responsive Table & Mobile Cards Tracer Study */}
         {loading ? (
           <p className="text-xs text-slate-400 py-10 text-center">Memuat data Tracer Study...</p>
-        ) : filteredAlumnis.length === 0 ? (
-          <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-            <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-            <p className="text-xs text-slate-500 font-bold">Tidak ada alumni yang sesuai filter pencarian.</p>
-          </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="border-b border-slate-100 text-slate-400 uppercase text-[10px] font-bold">
-                  <th className="py-2.5 px-3">Nama Alumni</th>
-                  <th className="py-2.5 px-3">Asal Program</th>
-                  <th className="py-2.5 px-3">Kejuruan</th>
-                  <th className="py-2.5 px-3">Status Karir</th>
-                  <th className="py-2.5 px-3">Perusahaan & Jabatan</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredAlumnis.slice(0, 15).map((a) => {
-                  const isRskb = a.originSource === 'RSKB_SURAKARTA';
-                  const s = (a.employmentStatus || '').toLowerCase();
-                  const isHired = s.includes('bekerja') || s.includes('wirausaha') || a.internalStatus === 'HIRED';
-
-                  return (
-                    <tr key={a.id} className="hover:bg-slate-50/70 transition-colors">
-                      <td className="py-3 px-3 font-bold text-slate-900">{a.name}</td>
-                      <td className="py-3 px-3">
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                            isRskb
-                              ? 'bg-sky-50 text-sky-700 border-sky-200'
-                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          }`}
-                        >
-                          {isRskb ? 'RSKB Surakarta' : 'STP Vokasi'}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 text-slate-600">{a.programTaken || '-'}</td>
-                      <td className="py-3 px-3">
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                            isHired
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              : 'bg-amber-50 text-amber-700 border-amber-200'
-                          }`}
-                        >
-                          {a.employmentStatus || 'Proses Verifikasi'}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 text-slate-700 font-medium">
-                        {a.company || a.hiredByCompany ? (
-                          <span>
-                            {a.company || a.hiredByCompany}
-                            {a.currentJob ? ` — ${a.currentJob}` : ''}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400">-</span>
-                        )}
-                      </td>
+          <AdminResponsiveView
+            items={filteredAlumnis.slice(0, 20)}
+            keyExtractor={(a, idx) => a.id || String(idx)}
+            emptyTitle="Tidak Ada Data Tracer Study"
+            emptySubtitle="Tidak ada alumni yang sesuai filter pencarian."
+            renderDesktopTable={(items) => (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-100 text-slate-400 uppercase text-[10px] font-bold">
+                      <th className="py-2.5 px-3">Nama Alumni</th>
+                      <th className="py-2.5 px-3">Asal Program</th>
+                      <th className="py-2.5 px-3">Kejuruan</th>
+                      <th className="py-2.5 px-3">Status Karir</th>
+                      <th className="py-2.5 px-3">Perusahaan & Jabatan</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-            {filteredAlumnis.length > 15 && (
-              <p className="text-[11px] text-slate-400 text-center pt-3">
-                Menampilkan 15 dari {filteredAlumnis.length} alumni. Gunakan tombol <strong>Ekspor Excel</strong> untuk mengunduh seluruh baris data.
-              </p>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {items.map((a) => {
+                      const isRskb = a.originSource === 'RSKB_SURAKARTA';
+                      const s = (a.employmentStatus || '').toLowerCase();
+                      const isHired = s.includes('bekerja') || s.includes('wirausaha') || a.internalStatus === 'HIRED';
+
+                      return (
+                        <tr key={a.id} className="hover:bg-slate-50/70 transition-colors">
+                          <td className="py-3 px-3 font-bold text-slate-900">{a.name}</td>
+                          <td className="py-3 px-3">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                                isRskb
+                                  ? 'bg-sky-50 text-sky-700 border-sky-200'
+                                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              }`}
+                            >
+                              {isRskb ? 'RSKB Surakarta' : 'STP Vokasi'}
+                            </span>
+                          </td>
+                          <td className="py-3 px-3 text-slate-600">{a.programTaken || '-'}</td>
+                          <td className="py-3 px-3">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                                isHired
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  : 'bg-amber-50 text-amber-700 border-amber-200'
+                              }`}
+                            >
+                              {a.employmentStatus || 'Proses Verifikasi'}
+                            </span>
+                          </td>
+                          <td className="py-3 px-3 text-slate-700 font-medium">
+                            {a.company || a.hiredByCompany ? (
+                              <span>
+                                {a.company || a.hiredByCompany}
+                                {a.currentJob ? ` — ${a.currentJob}` : ''}
+                              </span>
+                            ) : (
+                              <span className="text-slate-400">-</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                {filteredAlumnis.length > 20 && (
+                  <p className="text-[11px] text-slate-400 text-center pt-3">
+                    Menampilkan 20 dari {filteredAlumnis.length} alumni. Gunakan tombol <strong>Ekspor Excel</strong> untuk mengunduh seluruh baris data.
+                  </p>
+                )}
+              </div>
             )}
-          </div>
+            renderMobileCard={(a) => {
+              const isRskb = a.originSource === 'RSKB_SURAKARTA';
+              const s = (a.employmentStatus || '').toLowerCase();
+              const isHired = s.includes('bekerja') || s.includes('wirausaha') || a.internalStatus === 'HIRED';
+
+              return (
+                <AdminMobileCard
+                  key={a.id}
+                  title={a.name}
+                  subtitle={a.programTaken || 'Alumni Pelatihan'}
+                  badge={
+                    <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${isRskb ? 'bg-sky-50 text-sky-700 border-sky-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
+                        {isRskb ? 'RSKB' : 'STP'}
+                      </span>
+                      <AdminStatusBadge
+                        status={a.employmentStatus || 'Proses Verifikasi'}
+                        variant={isHired ? 'emerald' : 'amber'}
+                      />
+                    </div>
+                  }
+                  fields={[
+                    { label: 'Perusahaan', value: <span className={isHired ? 'font-bold text-slate-900' : 'text-slate-500'}>{a.company || a.hiredByCompany || '-'}</span> },
+                    { label: 'Jabatan', value: a.currentJob || '-' },
+                    { label: 'Asal Jalur', value: isRskb ? 'RSKB Surakarta' : 'STP Vokasi' },
+                  ]}
+                />
+              );
+            }}
+          />
         )}
       </div>
     </div>

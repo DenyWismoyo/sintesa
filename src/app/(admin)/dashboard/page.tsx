@@ -352,34 +352,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-// ==========================================
-// KOMPONEN CARD STATISTIK
-// ==========================================
-function StatCard({ title, value, subValue, icon, trend, colorClass, href }: { title: string, value: string, subValue?: string, icon: React.ReactNode, trend: string, colorClass: string, href?: string }) {
-  const cardContent = (
-    <div className="bg-white p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col hover:border-blue-200 transition-all relative overflow-hidden group h-full">
-      {/* Efek Latar Glow */}
-      <div className={`absolute -right-6 -top-6 w-20 h-20 rounded-full opacity-15 blur-xl group-hover:scale-125 transition-transform duration-500 ${colorClass.split(' ')[0].replace('text-', 'bg-')}`}></div>
-
-      <div className="flex justify-between items-start mb-2.5 sm:mb-3 relative z-10">
-        <div className={`p-2 sm:p-2.5 rounded-xl border ${colorClass}`}>{icon}</div>
-        <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-md uppercase tracking-wider">
-          {trend}
-        </span>
-      </div>
-      <div className="relative z-10 mt-auto">
-        <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5 truncate">{title}</p>
-        <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-800 tracking-tight group-hover:text-blue-600 transition-colors">{value}</h3>
-        {subValue && (
-          <p className="text-[10px] sm:text-[11px] font-medium text-slate-500 mt-0.5 truncate">{subValue}</p>
-        )}
-      </div>
-    </div>
-  );
-
-  if (href) {
-    return <Link href={href} className="block h-full">{cardContent}</Link>;
-  }
-  return cardContent;
-}

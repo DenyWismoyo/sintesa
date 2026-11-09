@@ -6,8 +6,9 @@ import TabDaftarKatalog from './components/TabDaftarKatalog';
 import ModalFormProduct from './components/ModalFormProduct';
 import DivisionInvoiceTracker from '@/components/finance/DivisionInvoiceTracker';
 import { Tag, Settings, Receipt, CheckCircle2, Share2, Building2, Plus } from 'lucide-react';
-import { AdminPageHeader } from '@/components/admin';
+import { AdminPageHeader, AdminConfirmDialog } from '@/components/admin';
 import { useAdminTab } from '@/hooks/useAdminTab';
+import { toast } from 'sonner';
 
 // Import Custom Hook Katalog
 import { useCatalog } from '@/hooks/useCatalog';
@@ -33,6 +34,8 @@ export default function KatalogAdminPage() {
   // State untuk mengontrol Modal & Loading Fetching
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductCatalog | null>(null);
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
+  const [isDeletingProduct, setIsDeletingProduct] = useState(false);
   const [isFetchingDetail] = useState(false);
 
   // Handler Navigasi Builder
@@ -77,28 +80,42 @@ export default function KatalogAdminPage() {
       }
 
       if (res && !res.success) {
-        alert('Gagal menyimpan produk: ' + res.error);
+        toast.error('Gagal menyimpan produk: ' + res.error);
       } else {
+        toast.success('Produk berhasil disimpan!');
         handleCloseModal();
       }
     } catch (error: any) {
       console.error(error);
-      alert('Terjadi kesalahan sistem saat upload gambar: ' + error.message);
+      toast.error('Terjadi kesalahan sistem: ' + error.message);
     }
   };
 
-  const handleDeleteProduct = async (id: string) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus produk/layanan ini?')) {
+  const handleDeleteProduct = (id: string) => {
+    setProductToDelete(id);
+  };
+
+  const confirmDeleteProduct = async () => {
+    if (!productToDelete) return;
+    setIsDeletingProduct(true);
+    try {
       let res;
       if (typeof removeProduct === 'function') {
-        res = await removeProduct(id);
+        res = await removeProduct(productToDelete);
       } else if (typeof deleteProduct === 'function') {
-        res = await deleteProduct(id);
+        res = await deleteProduct(productToDelete);
       }
 
       if (res && !res.success) {
-        alert('Gagal menghapus produk: ' + res.error);
+        toast.error('Gagal menghapus produk: ' + res.error);
+      } else {
+        toast.success('Produk berhasil dihapus dari katalog.');
       }
+    } catch (err: any) {
+      toast.error('Gagal menghapus produk: ' + (err.message || err));
+    } finally {
+      setIsDeletingProduct(false);
+      setProductToDelete(null);
     }
   };
 
@@ -200,6 +217,18 @@ export default function KatalogAdminPage() {
         onClose={handleCloseModal}
         initialData={selectedProduct}
         onSubmit={handleSaveProduct}
+      />
+
+      {/* Dialog Konfirmasi Hapus Produk */}
+      <AdminConfirmDialog
+        isOpen={Boolean(productToDelete)}
+        onClose={() => setProductToDelete(null)}
+        onConfirm={confirmDeleteProduct}
+        isLoading={isDeletingProduct}
+        title="Hapus Produk Katalog"
+        description="Apakah Anda yakin ingin menghapus produk/layanan ini dari master E-Katalog Solo Technopark?"
+        confirmText="Ya, Hapus Produk"
+        variant="danger"
       />
     </div>
   );

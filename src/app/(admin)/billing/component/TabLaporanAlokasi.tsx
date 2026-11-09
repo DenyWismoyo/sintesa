@@ -4,6 +4,7 @@
 import React, { useState, useMemo } from 'react';
 import { FileText, Calendar, TrendingUp, TrendingDown, Search, Filter, ArrowDownUp, Network } from 'lucide-react';
 import { Invoice, Expense, Account } from '@/types';
+import { AdminResponsiveView, AdminMobileCard, AdminStatusBadge } from '@/components/admin';
 
 interface Props {
   invoices: Invoice[];
@@ -168,31 +169,26 @@ export default function TabLaporanAlokasi({ invoices, expenses, accounts }: Prop
         </div>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto w-full">
-          <table className="w-full text-sm text-left whitespace-nowrap border-collapse">
-            <thead className="text-xs text-slate-500 bg-slate-50 border-b border-slate-100 uppercase tracking-wider font-semibold">
-              <tr>
-                <th className="px-6 py-4 w-32">Tanggal</th>
-                <th className="px-6 py-4">Tipe & Referensi</th>
-                <th className="px-6 py-4">Klien / Vendor</th>
-                <th className="px-6 py-4">Pemetaan Akun (BAS)</th>
-                <th className="px-6 py-4 text-right">Nominal (Rp)</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {combinedData.length === 0 ? (
+      {/* RESPONSIVE ALOKASI TABLE & MOBILE CARDS */}
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-4">
+        <AdminResponsiveView
+          items={combinedData}
+          keyExtractor={(item) => `${item.type}-${item.id}`}
+          emptyTitle="Tidak Ada Data Alokasi"
+          emptySubtitle="Pastikan ada invoice lunas yang sudah di-mapping atau pengeluaran di bulan ini."
+          renderDesktopTable={(items) => (
+            <table className="w-full text-sm text-left whitespace-nowrap border-collapse">
+              <thead className="text-xs text-slate-500 bg-slate-50 border-b border-slate-100 uppercase tracking-wider font-semibold">
                 <tr>
-                  <td colSpan={5} className="px-6 py-16 text-center text-slate-400">
-                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
-                      <Network className="w-6 h-6 text-slate-300"/>
-                    </div>
-                    <p className="font-bold text-slate-600 text-base">Tidak ada data alokasi</p>
-                    <p className="text-sm mt-1">Pastikan ada invoice lunas yang sudah di-mapping atau pengeluaran di bulan ini.</p>
-                  </td>
+                  <th className="px-6 py-4 w-32">Tanggal</th>
+                  <th className="px-6 py-4">Tipe & Referensi</th>
+                  <th className="px-6 py-4">Klien / Vendor</th>
+                  <th className="px-6 py-4">Pemetaan Akun (BAS)</th>
+                  <th className="px-6 py-4 text-right">Nominal (Rp)</th>
                 </tr>
-              ) : (
-                combinedData.map((item, idx) => (
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {items.map((item, idx) => (
                   <tr key={`${item.type}-${item.id}-${idx}`} className="hover:bg-slate-50/80 transition-colors group">
                     <td className="px-6 py-4 font-medium text-slate-500 align-top">{item.date}</td>
                     
@@ -223,11 +219,37 @@ export default function TabLaporanAlokasi({ invoices, expenses, accounts }: Prop
                       {item.type === 'INCOME' ? '+' : '-'} {formatRupiah(item.amount)}
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          )}
+          renderMobileCard={(item) => (
+            <AdminMobileCard
+              key={`${item.type}-${item.id}`}
+              title={item.reference}
+              subtitle={item.party}
+              badge={
+                <AdminStatusBadge
+                  status={item.type === 'INCOME' ? 'Pendapatan' : 'Pengeluaran'}
+                  variant={item.type === 'INCOME' ? 'emerald' : 'rose'}
+                />
+              }
+              fields={[
+                {
+                  label: 'Nominal',
+                  value: (
+                    <span className={`font-black ${item.type === 'INCOME' ? 'text-emerald-600' : 'text-red-600'}`}>
+                      {item.type === 'INCOME' ? '+' : '-'} {formatRupiah(item.amount)}
+                    </span>
+                  ),
+                },
+                { label: 'Tanggal', value: item.date },
+                { label: 'Akun BAS', value: item.coaName },
+                { label: 'Keterangan', value: item.description },
+              ]}
+            />
+          )}
+        />
       </div>
 
     </div>

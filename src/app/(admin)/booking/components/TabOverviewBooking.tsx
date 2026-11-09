@@ -19,6 +19,7 @@ import { formatRupiah } from '@/utils/format';
 import { buildB2BQuotationPdf, loadLogoAsDataUrl } from '@/lib/pdf/b2bQuotationPdf';
 
 import ModalFormInvoice from '../../billing/component/ModalFormInvoice';
+import { AdminConfirmDialog } from '@/components/admin';
 
 const parseFacilities = (facilitiesStr?: string): { label: string; value: string }[] => {
   if (!facilitiesStr) return [];
@@ -53,6 +54,8 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
   const [billingAmount, setBillingAmount] = useState<number>(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSeedingBooking, setIsSeedingBooking] = useState(false);
+  const [rejectBookingId, setRejectBookingId] = useState<string | null>(null);
+  const [isRejecting, setIsRejecting] = useState(false);
 
   const handleSeedBookingDemo = async () => {
     try {
@@ -480,14 +483,24 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
     } finally { setIsProcessing(false); }
   };
 
-  const handleReject = async (id: string) => {
-    if (!confirm("Yakin ingin menolak pengajuan sewa ini?")) return;
+  const handleReject = (id: string) => {
+    setRejectBookingId(id);
+  };
+
+  const confirmRejectBooking = async () => {
+    if (!rejectBookingId) return;
+    setIsRejecting(true);
     try {
-      const bookingRef = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id);
+      const bookingRef = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', rejectBookingId);
       await updateDoc(bookingRef, { status: 'rejected', updatedAt: Date.now() });
       await queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      toast.success("Pengajuan Ditolak.");
-    } catch (error) { toast.error("Gagal menolak pengajuan."); }
+      toast.success("Pengajuan Sewa Ditolak.");
+      setRejectBookingId(null);
+    } catch (error) {
+      toast.error("Gagal menolak pengajuan.");
+    } finally {
+      setIsRejecting(false);
+    }
   };
 
   const renderInvoiceStatus = (invoiceId?: string) => {
@@ -1132,6 +1145,18 @@ export default function TabOverviewBooking({ bookings, appId }: Props) {
           invoices={invoices} 
         />
       )}
+
+      {/* DIALOG KONFIRMASI TOLAK PENGAJUAN SEWA */}
+      <AdminConfirmDialog
+        isOpen={!!rejectBookingId}
+        onClose={() => setRejectBookingId(null)}
+        title="Tolak Pengajuan Sewa?"
+        description="Apakah Anda yakin ingin menolak pengajuan sewa ini? Status booking akan diubah menjadi ditolak."
+        confirmText="Tolak Pengajuan"
+        variant="danger"
+        isLoading={isRejecting}
+        onConfirm={confirmRejectBooking}
+      />
 
     </div>
   );
