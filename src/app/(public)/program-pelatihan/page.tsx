@@ -1,5 +1,6 @@
 // Lokasi file: src/app/(public)/program-pelatihan/page.tsx
 
+import React, { Suspense } from 'react';
 import ClientPage from './ClientPage';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://katalog.solotechnopark.id';
@@ -12,11 +13,7 @@ export default function ProgramPelatihanPage() {
     name: 'Katalog Program Pelatihan KST Solo Technopark',
     description: 'Daftar program pelatihan, sertifikasi, dan bootcamp.',
     url: `${APP_URL}/program-pelatihan`,
-    itemListElement: [
-      // Dalam implementasi nyata, Anda bisa mem-fetch beberapa top courses di sini, 
-      // namun sebagai halaman index, minimal kita memberikan gambaran kepada Google
-      // bahwa ini adalah direktori kursus (Course Provider)
-    ],
+    itemListElement: [],
     mainEntity: {
       '@type': 'EducationalOrganization',
       name: 'KST Solo Technopark',
@@ -31,8 +28,14 @@ export default function ProgramPelatihanPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       
-      {/* Panggil UI Client yang kompleks di sini */}
-      <ClientPage />
+      {/* Panggil UI Client di dalam Suspense boundary */}
+      <Suspense fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
+        </div>
+      }>
+        <ClientPage />
+      </Suspense>
     </>
   );
 }

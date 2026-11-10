@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { bookingService } from '@/services/booking.service';
 import { useAssets } from '@/hooks/useAssets';
 import { useBooking } from '@/hooks/useBooking';
+import { usePublicQuerySync } from '@/hooks/usePublicQuerySync';
 import { Asset, Booking } from '@/types';
 import { motion, Variants, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -33,17 +34,40 @@ const staggerContainer: Variants = {
 
 export default function FasilitasPublicPage() {
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('priceValue:desc');
-  const [currentPage, setCurrentPage] = useState(1);
+  const { getQuery, getQueryNumber, updateQuery } = usePublicQuerySync();
+
+  const [activeTab, setActiveTab] = useState<'daftar' | 'paket_b2b' | 'kalender'>(
+    () => (getQuery('tab') as any) || 'daftar'
+  );
+  const [searchTerm, setSearchTerm] = useState(() => getQuery('q'));
+  const [sortBy, setSortBy] = useState(() => getQuery('sort', 'priceValue:desc'));
+  const [currentPage, setCurrentPage] = useState(() => getQueryNumber('p', 1));
   const [pageSize, setPageSize] = useState(9);
 
   // Menggunakan Master Cache Aset (1-Read Pattern dari cache_assets/master)
   const { publicRooms: rawRooms, loadingRooms: loadingAssets } = useAssets();
 
-  useEffect(() => {
+  const handleTabChange = (tab: 'daftar' | 'paket_b2b' | 'kalender') => {
+    setActiveTab(tab);
+    updateQuery({ tab });
+  };
+
+  const handleSearchChange = (val: string) => {
+    setSearchTerm(val);
     setCurrentPage(1);
-  }, [searchTerm, sortBy]);
+    updateQuery({ q: val, p: 1 });
+  };
+
+  const handleSortChange = (val: string) => {
+    setSortBy(val);
+    setCurrentPage(1);
+    updateQuery({ sort: val, p: 1 });
+  };
+
+  const handlePageChange = (p: number) => {
+    setCurrentPage(p);
+    updateQuery({ p });
+  };
 
   // 1. FILTER & SEARCH: Di memori browser (Instan & 0 Firestore read)
   const rooms = useMemo(() => {
@@ -72,7 +96,6 @@ export default function FasilitasPublicPage() {
 
   const { submitBooking } = useBooking('public');
   
-  const [activeTab, setActiveTab] = useState<'daftar' | 'paket_b2b' | 'kalender'>('daftar');
   const [approvedBookings, setApprovedBookings] = useState<Booking[]>([]);
   const [loadingCalendar, setLoadingCalendar] = useState(false);
 
@@ -150,7 +173,7 @@ export default function FasilitasPublicPage() {
         subtitle="Temukan dan pesan ruang meeting, auditorium, atau fasilitas kelas dunia untuk menunjang aktivitas dan event Anda."
         accentColor="sky"
         searchValue={searchTerm}
-        onSearchChange={setSearchTerm}
+        onSearchChange={handleSearchChange}
         searchPlaceholder="Cari nama ruangan, gedung, atau fasilitas..."
         isLoadingSearch={loadingAssets}
       />
@@ -164,14 +187,14 @@ export default function FasilitasPublicPage() {
             { key: 'kalender', label: 'Cek Kalender Master', icon: <CalendarIcon size={14} /> },
           ]}
           active={activeTab}
-          onChange={(val) => setActiveTab(val as 'daftar' | 'paket_b2b' | 'kalender')}
+          onChange={(val) => handleTabChange(val as 'daftar' | 'paket_b2b' | 'kalender')}
           layoutId="fasilitas-pill-tab"
         />
 
         {activeTab === 'daftar' && (
           <BorderlessSelect
             value={sortBy}
-            onChange={setSortBy}
+            onChange={handleSortChange}
             options={[
               { value: 'priceValue:desc', label: 'Harga Tertinggi' },
               { value: 'priceValue:asc', label: 'Harga Terendah' },
@@ -226,7 +249,7 @@ export default function FasilitasPublicPage() {
                     currentPage={currentPage}
                     totalItems={rooms.length}
                     pageSize={pageSize}
-                    onPageChange={setCurrentPage}
+                    onPageChange={handlePageChange}
                     onPageSizeChange={setPageSize}
                     pageSizeOptions={[6, 9, 18]}
                     mode="hybrid"

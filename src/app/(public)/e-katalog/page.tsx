@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { ProductCategory } from '@/types';
 import ProductCard from './components/ProductCard';
 import { PackageSearch, Store } from 'lucide-react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { useCatalog } from '@/hooks/useCatalog';
+import { usePublicQuerySync } from '@/hooks/usePublicQuerySync';
 import SectionContainer from '@/components/ui/SectionContainer';
 import PageHero from '@/components/ui/PageHero';
 import PillTabs from '@/components/ui/PillTabs';
@@ -47,18 +48,34 @@ const ProductSkeleton = () => (
   </div>
 );
 
-export default function KatalogPublikPage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'Semua'>('Semua');
-  const [currentPage, setCurrentPage] = useState(1);
+function KatalogContent() {
+  const { getQuery, getQueryNumber, updateQuery } = usePublicQuerySync();
+
+  const [searchTerm, setSearchTerm] = useState(() => getQuery('q'));
+  const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'Semua'>(
+    () => (getQuery('kategori') as any) || 'Semua'
+  );
+  const [currentPage, setCurrentPage] = useState(() => getQueryNumber('p', 1));
   const [pageSize, setPageSize] = useState(12);
 
   const { products: rawProducts, loading } = useCatalog();
 
-  // Reset page saat filter berubah
-  React.useEffect(() => {
+  const handleSearchChange = (val: string) => {
+    setSearchTerm(val);
     setCurrentPage(1);
-  }, [searchTerm, selectedCategory]);
+    updateQuery({ q: val, p: 1 });
+  };
+
+  const handleCategoryChange = (cat: ProductCategory | 'Semua') => {
+    setSelectedCategory(cat);
+    setCurrentPage(1);
+    updateQuery({ kategori: cat, p: 1 });
+  };
+
+  const handlePageChange = (p: number) => {
+    setCurrentPage(p);
+    updateQuery({ p });
+  };
 
   const products = rawProducts.filter(p => {
     const isPublished = p.isPublished === true;
@@ -84,7 +101,7 @@ export default function KatalogPublikPage() {
         subtitle="Jelajahi berbagai fasilitas eksklusif, produk teknologi terapan, dan layanan profesional yang tersedia di kawasan kami."
         accentColor="emerald"
         searchValue={searchTerm}
-        onSearchChange={setSearchTerm}
+        onSearchChange={handleSearchChange}
         searchPlaceholder="Cari nama alat, ruangan, atau layanan..."
         isLoadingSearch={loading}
       />
@@ -94,7 +111,7 @@ export default function KatalogPublikPage() {
         <PillTabs
           tabs={categories.map(cat => ({ key: cat, label: cat }))}
           active={selectedCategory}
-          onChange={(cat) => setSelectedCategory(cat as any)}
+          onChange={(cat) => handleCategoryChange(cat as any)}
           layoutId="e-katalog-pill-tab"
           ariaLabel="Filter Kategori Produk"
         />
@@ -125,7 +142,7 @@ export default function KatalogPublikPage() {
               currentPage={currentPage}
               totalItems={products.length}
               pageSize={pageSize}
-              onPageChange={setCurrentPage}
+              onPageChange={handlePageChange}
               onPageSizeChange={setPageSize}
               mode="hybrid"
             />
@@ -136,10 +153,25 @@ export default function KatalogPublikPage() {
             title="Layanan Tidak Ditemukan"
             description="Kami tidak dapat menemukan produk atau layanan yang cocok dengan kata kunci atau filter yang Anda pilih. Silakan coba istilah lain."
             actionLabel="Reset Pencarian"
-            onAction={() => { setSearchTerm(''); setSelectedCategory('Semua'); }}
+            onAction={() => {
+              handleSearchChange('');
+              handleCategoryChange('Semua');
+            }}
           />
         )}
       </div>
     </SectionContainer>
+  );
+}
+
+export default function KatalogPublikPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
+      </div>
+    }>
+      <KatalogContent />
+    </Suspense>
   );
 }

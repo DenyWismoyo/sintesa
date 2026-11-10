@@ -177,5 +177,23 @@ describe('Edge Proxy Routing & Authentication Guard (Isolated Sessions)', () => 
       const resGetFont = proxy(reqGetFont);
       expect(resGetFont.status).toBe(200);
     });
+
+    it('harus memproteksi rute admin baru (/service-desk, /eksekutif, /manajemen-ikm, dll) dari akses tanpa auth', () => {
+      const newAdminRoutes = [
+        '/service-desk',
+        '/eksekutif',
+        '/manajemen-ikm',
+        '/manajemen-kemitraan',
+        '/manajemen-review-pelatihan',
+      ];
+
+      for (const route of newAdminRoutes) {
+        const req = createMockRequest(`http://localhost:3000${route}`);
+        const res = proxy(req);
+        // Harus me-redirect user yang belum login
+        expect(res.status).toBe(307);
+        expect(res.headers.get('location')).toContain('/login');
+      }
+    });
   });
 });

@@ -528,46 +528,51 @@ export default function PetaKawasanPage() {
       {/* ========================================================= */}
       <AnimatePresence>
         {selectedLoc && !isEditMode && viewMode === 'global' && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 pointer-events-none">
+          <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-6 pointer-events-none">
             {/* Backdrop Layer */}
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setSelectedLocId(null)}
-              className="absolute inset-0 bg-slate-900/30 backdrop-blur-sm pointer-events-auto"
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs pointer-events-auto"
             />
             
-            {/* Modal Card */}
+            {/* Modal Card / Bottom Sheet Mobile */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, y: 100 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 100 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative w-full max-w-xl bg-white/95 backdrop-blur-2xl rounded-[2.5rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] border border-white overflow-hidden flex flex-col pointer-events-auto"
+              className="relative w-full sm:max-w-xl max-h-[90vh] bg-white rounded-t-[2rem] sm:rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col pointer-events-auto pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:pb-0"
             >
+              {/* Drag Handle Bar di Smartphone */}
+              <div className="sm:hidden flex justify-center pt-2.5 pb-1 bg-white cursor-grab">
+                <div className="w-12 h-1.5 rounded-full bg-slate-300" />
+              </div>
+
               {/* Tutup Button */}
-              <button onClick={() => setSelectedLocId(null)} className="absolute top-5 right-5 w-10 h-10 bg-black/20 hover:bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white transition-all z-20">
-                <X size={18} strokeWidth={3} />
+              <button onClick={() => setSelectedLocId(null)} className="absolute top-4 right-4 sm:top-5 sm:right-5 w-9 h-9 sm:w-10 sm:h-10 bg-black/30 hover:bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white transition-all z-20">
+                <X size={18} strokeWidth={2.5} />
               </button>
 
               {/* Header Image Area */}
-              <div className="relative h-56 sm:h-64 bg-slate-100 shrink-0 w-full overflow-hidden">
+              <div className="relative h-44 sm:h-60 bg-slate-100 shrink-0 w-full overflow-hidden">
                 {linkedAssetData?.imageUrl ? (
                   <img src={linkedAssetData.imageUrl} alt={linkedAssetData.name} className="w-full h-full object-cover" />
                 ) : selectedLoc.detailImageUrl ? (
                   <img src={selectedLoc.detailImageUrl} alt="Detail" className="w-full h-full object-cover scale-110 opacity-60 mix-blend-multiply" />
                 ) : (
                   <div className="absolute inset-0 bg-gradient-to-br from-indigo-100 to-sky-100 flex items-center justify-center">
-                     {renderIcon(selectedLoc.icon, "w-24 h-24 text-indigo-200")}
+                     {renderIcon(selectedLoc.icon, "w-20 h-20 text-indigo-200")}
                   </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/0" />
                 
                 {/* Title Overlay */}
-                <div className="absolute bottom-6 left-8 right-8 text-white">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest border border-white/30">
+                <div className="absolute bottom-4 sm:bottom-6 left-5 sm:left-8 right-5 sm:right-8 text-white">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="px-2.5 py-0.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest border border-white/30">
                       {selectedLoc.category}
                     </span>
                     {linkedAssetData && (
-                      <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-widest flex items-center gap-1.5 backdrop-blur-md border border-white/30
+                      <span className={`px-2.5 py-0.5 text-[10px] font-black rounded-full uppercase tracking-widest flex items-center gap-1.5 backdrop-blur-md border border-white/30
                         ${linkedAssetData.status === 'Tersedia' ? 'bg-emerald-500/80' : linkedAssetData.status === 'Disewa' ? 'bg-rose-500/80' : 'bg-orange-500/80'}`}
                       >
                         <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
@@ -575,14 +580,14 @@ export default function PetaKawasanPage() {
                       </span>
                     )}
                   </div>
-                  <h2 className="text-3xl sm:text-4xl font-black tracking-tight leading-none drop-shadow-lg">
+                  <h2 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight drop-shadow-md line-clamp-2">
                     {linkedAssetData ? linkedAssetData.name : selectedLoc.title}
                   </h2>
                 </div>
               </div>
 
               {/* Body Content */}
-              <div className="p-8 flex flex-col">
+              <div className="p-5 sm:p-7 overflow-y-auto flex flex-col max-h-[50vh]">
                 <p className="text-slate-600 text-base leading-relaxed mb-8 font-medium">
                   {selectedLoc.description || linkedAssetData?.description || "Deskripsi lokasi belum tersedia. Jelajahi fasilitas ini untuk informasi lebih lanjut."}
                 </p>

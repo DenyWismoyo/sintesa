@@ -12,7 +12,7 @@ import {
   MapPin, Loader2, Image as ImageIcon, CheckCircle, XCircle,
   AlignLeft, Ticket, Settings, Users, Globe, ShieldAlert, Sparkles, UploadCloud
 } from 'lucide-react';
-import { AdminPageHeader, AdminFilterBar, AdminResponsiveView, AdminStatGrid } from '@/components/admin';
+import { AdminPageHeader, AdminFilterBar, AdminResponsiveView, AdminStatGrid, AdminConfirmDialog } from '@/components/admin';
 import ModalPesertaEvent from './components/ModalPesertaEvent';
 
 export default function ManajemenEventPage() {
@@ -26,6 +26,8 @@ export default function ManajemenEventPage() {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pesertaModalEvent, setPesertaModalEvent] = useState<AppEvent | null>(null);
+  const [eventToDelete, setEventToDelete] = useState<{ id: string; title: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -131,9 +133,21 @@ export default function ManajemenEventPage() {
     }
   };
 
-  const handleDelete = async (id: string, title: string) => {
-    if (window.confirm(`Apakah Anda yakin ingin menghapus event "${title}"?`)) {
-      await removeEvent(id);
+  const handleDelete = (id: string, title: string) => {
+    setEventToDelete({ id, title });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!eventToDelete) return;
+    try {
+      setIsDeleting(true);
+      await removeEvent(eventToDelete.id);
+      toast.success(`Event "${eventToDelete.title}" berhasil dihapus.`);
+      setEventToDelete(null);
+    } catch (err: any) {
+      toast.error('Gagal menghapus event: ' + (err.message || err));
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -764,6 +778,18 @@ export default function ManajemenEventPage() {
         isOpen={Boolean(pesertaModalEvent)}
         onClose={() => setPesertaModalEvent(null)}
         event={pesertaModalEvent}
+      />
+
+      {/* DIALOG KONFIRMASI HAPUS EVENT STANDAR ADMIN */}
+      <AdminConfirmDialog
+        isOpen={Boolean(eventToDelete)}
+        onClose={() => setEventToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        title="Hapus Agenda Event"
+        description={`Apakah Anda yakin ingin menghapus event "${eventToDelete?.title}"? Seluruh data pendaftar dan tiket terkait tidak akan dapat dipulihkan.`}
+        confirmText="Hapus Event"
+        variant="danger"
+        isLoading={isDeleting}
       />
     </div>
   );

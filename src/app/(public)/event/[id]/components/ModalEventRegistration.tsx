@@ -5,14 +5,7 @@ import { AppEvent, EventRegistration, EventTicketTier } from '@/types';
 import { eventService } from '@/services/event.service';
 import { billingService } from '@/services/billing.service';
 import { useAuth } from '@/lib/AuthContext';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription,
-  DialogFooter 
-} from '@/components/ui/dialog';
+import { PublicResponsiveModal } from '@/components/public/PublicResponsiveModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,14 +14,11 @@ import {
   Ticket, 
   CheckCircle2, 
   Printer, 
-  Share2, 
   Calendar, 
   Clock, 
   MapPin, 
-  Building2, 
   QrCode, 
   Loader2, 
-  ExternalLink,
   ShieldCheck 
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -169,119 +159,154 @@ export default function ModalEventRegistration({ isOpen, onClose, event, default
     }
   };
 
+  const handleClose = () => {
+    setTicketResult(null);
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) { setTicketResult(null); onClose(); } }}>
-      <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl p-6 sm:p-8">
-        
-        {/* TAMPILAN SUKSES: E-TIKET DIGITAL */}
-        {ticketResult ? (
-          <div className="space-y-6 animate-in zoom-in-95 duration-200">
-            <div className="text-center space-y-2">
-              <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
-                <CheckCircle2 size={32} />
-              </div>
-              <h3 className="text-xl font-black text-slate-900 tracking-tight">
-                {ticketResult.status === 'CONFIRMED' ? 'E-Tiket Resmi Berhasil Diterbitkan!' : 'Registrasi Berhasil Disimpan'}
-              </h3>
-              <p className="text-xs text-slate-500">
-                {ticketResult.status === 'CONFIRMED' 
-                  ? 'Simpan kartu tiket ini atau tunjukkan saat memasuki area Solo Technopark.'
-                  : 'Selesaikan pembayaran tiket untuk mengonfirmasi kehadiran Anda.'}
-              </p>
-            </div>
-
-            {/* KARTU E-TIKET */}
-            <div className="p-6 rounded-2xl bg-gradient-to-br from-violet-900 via-indigo-900 to-slate-900 text-white shadow-xl relative overflow-hidden border border-indigo-500/20">
-              <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-                <Ticket size={140} />
-              </div>
-
-              <div className="relative z-10 space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-white/15">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck size={18} className="text-emerald-400" />
-                    <span className="text-[11px] font-black uppercase tracking-wider text-indigo-200">Solo Technopark Pass</span>
-                  </div>
-                  <Badge variant="outline" className="bg-white/10 text-white border-white/20 text-[10px] font-bold">
-                    {ticketResult.ticketTierName || 'TIKET REGULER'}
-                  </Badge>
-                </div>
-
-                <div>
-                  <p className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">Nama Peserta</p>
-                  <p className="text-lg font-black text-white">{ticketResult.name}</p>
-                  <p className="text-xs text-indigo-200">{ticketResult.agency || '-'}</p>
-                </div>
-
-                <div>
-                  <p className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">Acara</p>
-                  <p className="text-sm font-bold text-white line-clamp-2">{event.title}</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 text-xs pt-1">
-                  <div className="flex items-center gap-2 text-indigo-200">
-                    <Calendar size={14} className="text-indigo-400 shrink-0" />
-                    <span>{event.date}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-indigo-200">
-                    <Clock size={14} className="text-indigo-400 shrink-0" />
-                    <span>{event.time} WIB</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-indigo-200 col-span-2">
-                    <MapPin size={14} className="text-indigo-400 shrink-0" />
-                    <span className="truncate">{event.location || 'Solo Technopark'}</span>
-                  </div>
-                </div>
-
-                {/* KODE TIKET & BARCODE */}
-                <div className="mt-4 pt-4 border-t border-dashed border-white/20 flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-300 block">Kode Masuk / Tiket</span>
-                    <span className="text-base sm:text-lg font-black tracking-wider text-emerald-400 font-mono">
-                      {ticketResult.ticketCode}
-                    </span>
-                  </div>
-                  <div className="w-12 h-12 rounded-xl bg-white p-1 flex items-center justify-center shrink-0 shadow">
-                    <QrCode size={36} className="text-slate-900" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* FOOTER ACTIONS */}
-            <div className="flex flex-col sm:flex-row items-center gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handlePrint}
-                className="w-full sm:flex-1 rounded-xl gap-2 font-bold text-xs"
-              >
-                <Printer size={14} /> Cetak E-Tiket
-              </Button>
-              <Button
-                type="button"
-                onClick={() => { setTicketResult(null); onClose(); }}
-                className="w-full sm:flex-1 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs"
-              >
-                Tutup & Selesai
-              </Button>
-            </div>
+    <PublicResponsiveModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={ticketResult ? (ticketResult.status === 'CONFIRMED' ? 'E-Tiket Resmi Berhasil Diterbitkan!' : 'Registrasi Berhasil Disimpan') : event.title}
+      subtitle={ticketResult ? 'Simpan kartu tiket ini atau tunjukkan saat memasuki area Solo Technopark.' : 'Lengkapi identitas diri Anda untuk penerbitan e-tiket resmi Solo Technopark.'}
+      badge={!ticketResult ? (
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-violet-50 text-violet-700 text-[11px] font-bold border border-violet-100">
+          <Ticket size={12} />
+          <span>Pendaftaran Tiket Acara</span>
+        </div>
+      ) : undefined}
+      maxWidth="xl"
+      footer={
+        ticketResult ? (
+          <div className="flex flex-col sm:flex-row items-center gap-2 w-full">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handlePrint}
+              className="w-full sm:flex-1 rounded-xl gap-2 font-bold text-xs"
+            >
+              <Printer size={14} /> Cetak E-Tiket
+            </Button>
+            <Button
+              type="button"
+              onClick={handleClose}
+              className="w-full sm:flex-1 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs"
+            >
+              Tutup & Selesai
+            </Button>
           </div>
         ) : (
-          /* FORMULIR PENDAFTARAN */
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <DialogHeader>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-50 text-violet-700 text-xs font-bold border border-violet-100 w-fit mb-1">
-                <Ticket size={13} />
-                <span>Pendaftaran Tiket Acara</span>
+          <div className="flex items-center justify-end gap-2 w-full">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onClose}
+              disabled={isSubmitting}
+              className="rounded-xl text-xs font-bold"
+            >
+              Batal
+            </Button>
+            <Button
+              type="submit"
+              form="event-reg-form"
+              disabled={isSubmitting}
+              className="rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold gap-2 px-6 shadow-md shadow-violet-500/20"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" />
+                  <span>Menerbitkan Tiket...</span>
+                </>
+              ) : (
+                <>
+                  <Ticket size={14} />
+                  <span>{isFree ? 'Konfirmasi & Terbitkan Tiket' : 'Lanjut ke Pembayaran'}</span>
+                </>
+              )}
+            </Button>
+          </div>
+        )
+      }
+    >
+      {/* TAMPILAN SUKSES: E-TIKET DIGITAL */}
+      {ticketResult ? (
+        <div className="space-y-6 animate-in zoom-in-95 duration-200">
+          <div className="text-center space-y-2">
+            <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
+              <CheckCircle2 size={32} />
+            </div>
+            <h3 className="text-xl font-black text-slate-900 tracking-tight">
+              {ticketResult.status === 'CONFIRMED' ? 'E-Tiket Resmi Berhasil Diterbitkan!' : 'Registrasi Berhasil Disimpan'}
+            </h3>
+            <p className="text-xs text-slate-500">
+              {ticketResult.status === 'CONFIRMED' 
+                ? 'Simpan kartu tiket ini atau tunjukkan saat memasuki area Solo Technopark.'
+                : 'Selesaikan pembayaran tiket untuk mengonfirmasi kehadiran Anda.'}
+            </p>
+          </div>
+
+          {/* KARTU E-TIKET */}
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-violet-900 via-indigo-900 to-slate-900 text-white shadow-xl relative overflow-hidden border border-indigo-500/20">
+            <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+              <Ticket size={140} />
+            </div>
+
+            <div className="relative z-10 space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-white/15">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck size={18} className="text-emerald-400" />
+                  <span className="text-[11px] font-black uppercase tracking-wider text-indigo-200">Solo Technopark Pass</span>
+                </div>
+                <Badge variant="outline" className="bg-white/10 text-white border-white/20 text-[10px] font-bold">
+                  {ticketResult.ticketTierName || 'TIKET REGULER'}
+                </Badge>
               </div>
-              <DialogTitle className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                {event.title}
-              </DialogTitle>
-              <DialogDescription className="text-xs text-slate-500">
-                Lengkapi identitas diri Anda untuk penerbitan e-tiket resmi Solo Technopark.
-              </DialogDescription>
-            </DialogHeader>
+
+              <div>
+                <p className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">Nama Peserta</p>
+                <p className="text-lg font-black text-white">{ticketResult.name}</p>
+                <p className="text-xs text-indigo-200">{ticketResult.agency || '-'}</p>
+              </div>
+
+              <div>
+                <p className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">Acara</p>
+                <p className="text-sm font-bold text-white line-clamp-2">{event.title}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-xs pt-1">
+                <div className="flex items-center gap-2 text-indigo-200">
+                  <Calendar size={14} className="text-indigo-400 shrink-0" />
+                  <span>{event.date}</span>
+                </div>
+                <div className="flex items-center gap-2 text-indigo-200">
+                  <Clock size={14} className="text-indigo-400 shrink-0" />
+                  <span>{event.time} WIB</span>
+                </div>
+                <div className="flex items-center gap-2 text-indigo-200 col-span-2">
+                  <MapPin size={14} className="text-indigo-400 shrink-0" />
+                  <span className="truncate">{event.location || 'Solo Technopark'}</span>
+                </div>
+              </div>
+
+              {/* KODE TIKET & BARCODE */}
+              <div className="mt-4 pt-4 border-t border-dashed border-white/20 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-300 block">Kode Masuk / Tiket</span>
+                  <span className="text-base sm:text-lg font-black tracking-wider text-emerald-400 font-mono">
+                    {ticketResult.ticketCode}
+                  </span>
+                </div>
+                <div className="w-12 h-12 rounded-xl bg-white p-1 flex items-center justify-center shrink-0 shadow">
+                  <QrCode size={36} className="text-slate-900" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* FORMULIR PENDAFTARAN */
+        <form id="event-reg-form" onSubmit={handleSubmit} className="space-y-5">
 
             {/* PILIHAN TIER TIKET (JIKA ADA LEBIH DARI 1) */}
             {event.ticketingTiers && event.ticketingTiers.length > 0 && (
@@ -386,39 +411,9 @@ export default function ModalEventRegistration({ isOpen, onClose, event, default
               </div>
             </div>
 
-            <DialogFooter className="pt-2">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={onClose}
-                disabled={isSubmitting}
-                className="rounded-xl text-xs font-bold"
-              >
-                Batal
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold gap-2 px-6 shadow-md shadow-violet-500/20"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 size={14} className="animate-spin" />
-                    <span>Menerbitkan Tiket...</span>
-                  </>
-                ) : (
-                  <>
-                    <Ticket size={14} />
-                    <span>{isFree ? 'Konfirmasi & Terbitkan Tiket' : 'Lanjut ke Pembayaran'}</span>
-                  </>
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
-        )}
-
-      </DialogContent>
-    </Dialog>
+        </form>
+      )}
+    </PublicResponsiveModal>
   );
 }
 

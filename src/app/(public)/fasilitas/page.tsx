@@ -1,5 +1,6 @@
 // Lokasi file: src/app/(public)/fasilitas/page.tsx
 
+import React, { Suspense } from 'react';
 import ClientPage from './ClientPage';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://katalog.solotechnopark.id';
@@ -27,8 +28,14 @@ export default function FasilitasPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       
-      {/* Render logika Client (UI, Filter, dll) */}
-      <ClientPage />
+      {/* Render logika Client di dalam Suspense boundary */}
+      <Suspense fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full border-2 border-sky-500 border-t-transparent animate-spin" />
+        </div>
+      }>
+        <ClientPage />
+      </Suspense>
     </>
   );
 }

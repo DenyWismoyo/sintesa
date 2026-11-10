@@ -5,6 +5,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useTraining } from '@/hooks/useTraining';
+import { usePublicQuerySync } from '@/hooks/usePublicQuerySync';
 import { motion, Variants, AnimatePresence } from 'framer-motion';
 
 import { 
@@ -51,10 +52,14 @@ const TrainingSkeleton = () => (
 );
 
 export default function ProgramPelatihanPublik() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedType, setSelectedType] = useState<string>('all');
-  const [priceFilter, setPriceFilter] = useState<'all' | 'free' | 'paid'>('all');
-  const [selectedCategory, setSelectedCategory] = useState<string>('Semua Kategori');
+  const { getQuery, getQueryNumber, updateQuery } = usePublicQuerySync();
+
+  const [searchTerm, setSearchTerm] = useState(() => getQuery('q'));
+  const [selectedType, setSelectedType] = useState<string>(() => getQuery('type', 'all'));
+  const [priceFilter, setPriceFilter] = useState<'all' | 'free' | 'paid'>(() => (getQuery('price') as any) || 'all');
+  const [selectedCategory, setSelectedCategory] = useState<string>(() => getQuery('kategori', 'Semua Kategori'));
+  const [currentPage, setCurrentPage] = useState(() => getQueryNumber('p', 1));
+  const [pageSize, setPageSize] = useState(12);
 
   // Menggunakan Master Cache Pelatihan (1-Read Pattern dari cache_trainings/master)
   const { trainings: rawTrainings, loading } = useTraining();
@@ -89,14 +94,35 @@ export default function ProgramPelatihanPublik() {
     });
   }, [rawTrainings, searchTerm, selectedType, priceFilter, selectedCategory]);
 
-  // Pagination State
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(12);
-
-  // Reset page ke 1 saat filter pencarian berubah
-  useEffect(() => {
+  const handleSearchChange = (val: string) => {
+    setSearchTerm(val);
     setCurrentPage(1);
-  }, [searchTerm, selectedType, priceFilter, selectedCategory]);
+    updateQuery({ q: val, p: 1 });
+  };
+
+  const handleTypeChange = (val: string) => {
+    setSelectedType(val);
+    setCurrentPage(1);
+    updateQuery({ type: val, p: 1 });
+  };
+
+  const handlePriceChange = (val: string) => {
+    const p = val as 'all' | 'free' | 'paid';
+    setPriceFilter(p);
+    setCurrentPage(1);
+    updateQuery({ price: p, p: 1 });
+  };
+
+  const handleCategoryChange = (val: string) => {
+    setSelectedCategory(val);
+    setCurrentPage(1);
+    updateQuery({ kategori: val, p: 1 });
+  };
+
+  const handlePageChange = (p: number) => {
+    setCurrentPage(p);
+    updateQuery({ p });
+  };
 
   const paginatedTrainings = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
@@ -126,7 +152,7 @@ export default function ProgramPelatihanPublik() {
         subtitle="Tingkatkan keterampilan teknis dan manajerial dengan program sertifikasi berstandar industri nasional & internasional."
         accentColor="amber"
         searchValue={searchTerm}
-        onSearchChange={setSearchTerm}
+        onSearchChange={handleSearchChange}
         searchPlaceholder="Cari nama kelas atau topik pelatihan..."
         isLoadingSearch={loading}
       />
@@ -170,7 +196,7 @@ export default function ProgramPelatihanPublik() {
           
           <BorderlessSelect
             value={selectedType}
-            onChange={setSelectedType}
+            onChange={handleTypeChange}
             options={[
               { value: 'all', label: 'Semua Tipe' },
               { value: 'Video Course', label: 'Video Course' },
@@ -184,7 +210,7 @@ export default function ProgramPelatihanPublik() {
               <button
                 key={price}
                 type="button"
-                onClick={() => setPriceFilter(price)}
+                onClick={() => handlePriceChange(price)}
                 className={`px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold capitalize transition-all cursor-pointer ${
                   priceFilter === price 
                     ? 'bg-slate-900 text-white shadow-xs' 
@@ -196,13 +222,14 @@ export default function ProgramPelatihanPublik() {
             ))}
           </div>
 
-          {(selectedType !== 'all' || priceFilter !== 'all' || selectedCategory !== 'Semua Kategori') && (
+          {(selectedType !== 'all' || priceFilter !== 'all' || selectedCategory !== 'Semua Kategori' || searchTerm) && (
             <button
               type="button"
               onClick={() => {
-                setSelectedCategory('Semua Kategori');
-                setSelectedType('all');
-                setPriceFilter('all');
+                handleCategoryChange('Semua Kategori');
+                handleTypeChange('all');
+                handlePriceChange('all');
+                handleSearchChange('');
               }}
               className="text-[11px] sm:text-xs font-bold text-amber-600 hover:text-amber-700 px-2.5 py-1 rounded-full hover:bg-amber-50 transition-colors shrink-0 cursor-pointer whitespace-nowrap"
             >
@@ -217,7 +244,7 @@ export default function ProgramPelatihanPublik() {
         <PillTabs
           tabs={DIKLAT_CATEGORIES.map(cat => ({ key: cat, label: cat }))}
           active={selectedCategory}
-          onChange={(cat) => setSelectedCategory(cat)}
+          onChange={handleCategoryChange}
           layoutId="diklat-pill-tabs"
           ariaLabel="Kategori Diklat"
         />
@@ -271,7 +298,7 @@ export default function ProgramPelatihanPublik() {
               currentPage={currentPage}
               totalItems={activeTrainings.length}
               pageSize={pageSize}
-              onPageChange={setCurrentPage}
+              onPageChange={handlePageChange}
               onPageSizeChange={setPageSize}
               mode="hybrid"
             />

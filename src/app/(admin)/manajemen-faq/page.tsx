@@ -8,7 +8,8 @@ import {
   Loader2, CheckCircle, XCircle, HelpCircle,
   Pin, ThumbsUp, ThumbsDown, Users, Tag, AlertCircle
 } from 'lucide-react';
-import { AdminPageHeader, AdminFilterBar, AdminFormDrawer } from '@/components/admin';
+import { AdminPageHeader, AdminFilterBar, AdminFormDrawer, AdminConfirmDialog } from '@/components/admin';
+import { toast } from 'sonner';
 
 export default function ManajemenFAQPage() {
   const { faqs, loading, error, addFaq, updateFaq, removeFaq } = useFaqs();
@@ -19,6 +20,8 @@ export default function ManajemenFAQPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [faqToDelete, setFaqToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [tagInput, setTagInput] = useState('');
 
   const [formData, setFormData] = useState<Partial<FAQ>>({
@@ -110,9 +113,21 @@ export default function ManajemenFAQPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm(`Apakah Anda yakin ingin menghapus FAQ ini?`)) {
-      await removeFaq(id);
+  const handleDelete = (id: string) => {
+    setFaqToDelete(id);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!faqToDelete) return;
+    try {
+      setIsDeleting(true);
+      await removeFaq(faqToDelete);
+      toast.success('FAQ berhasil dihapus.');
+      setFaqToDelete(null);
+    } catch (err: any) {
+      toast.error('Gagal menghapus FAQ: ' + (err.message || err));
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -362,6 +377,17 @@ export default function ManajemenFAQPage() {
           </div>
         </form>
       </AdminFormDrawer>
+
+      <AdminConfirmDialog
+        isOpen={Boolean(faqToDelete)}
+        onClose={() => setFaqToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        title="Hapus Data FAQ"
+        description="Apakah Anda yakin ingin menghapus pertanyaan ini dari Knowledge Base? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Hapus FAQ"
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

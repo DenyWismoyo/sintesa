@@ -5,6 +5,7 @@ import { hasAccess, APP_ROLES, isInternalStaff } from '@/config/roles';
 // Daftar prefix rute privat internal/admin/portal yang diproteksi oleh proxy (Next.js 16)
 const PROTECTED_PREFIXES = [
   '/dashboard',
+  '/eksekutif',
   '/aset',
   '/booking',
   '/billing',
@@ -17,6 +18,10 @@ const PROTECTED_PREFIXES = [
   '/manajemen-krenova',
   '/manajemen-faq',
   '/manajemen-artikel',
+  '/manajemen-kemitraan',
+  '/manajemen-review-pelatihan',
+  '/manajemen-ikm',
+  '/service-desk',
   '/pengaturan',
   '/presensi',
   '/jasa-produksi',
