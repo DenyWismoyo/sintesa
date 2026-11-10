@@ -9,6 +9,7 @@ import { useHubThreads } from '@/hooks/useHub';
 import SectionContainer from '@/components/ui/SectionContainer';
 import PageHero from '@/components/ui/PageHero';
 import PillTabs from '@/components/ui/PillTabs';
+import { PublicPagination } from '@/components/public';
 import EkosistemHero, { EkosistemView } from './components/EkosistemHero';
 import TenantFilters from './components/TenantFilters';
 import TenantCard from './components/TenantCard';
@@ -54,6 +55,19 @@ export default function EkosistemSmartHubPage() {
         .includes(searchQuery.toLowerCase());
     return matchSegment && matchSearch;
   });
+
+  // Pagination State Direktori
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(12);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, activeSegment]);
+
+  const paginatedTenants = React.useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredTenants.slice(start, start + pageSize);
+  }, [filteredTenants, currentPage, pageSize]);
 
   return (
     <SectionContainer accent="indigo">
@@ -158,16 +172,28 @@ export default function EkosistemSmartHubPage() {
                 )}
 
                 {!tenantsLoading && filteredTenants.length > 0 && (
-                  <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="public-grid-4"
-                  >
-                    {filteredTenants.map((tenant) => (
-                      <TenantCard key={tenant.id} tenant={tenant} />
-                    ))}
-                  </motion.div>
+                  <>
+                    <motion.div
+                      variants={containerVariants}
+                      initial="hidden"
+                      animate="visible"
+                      className="public-grid-4"
+                    >
+                      {paginatedTenants.map((tenant) => (
+                        <TenantCard key={tenant.id} tenant={tenant} />
+                      ))}
+                    </motion.div>
+
+                    {/* Standar Pagination Publik Terpadu */}
+                    <PublicPagination
+                      currentPage={currentPage}
+                      totalItems={filteredTenants.length}
+                      pageSize={pageSize}
+                      onPageChange={setCurrentPage}
+                      onPageSizeChange={setPageSize}
+                      mode="hybrid"
+                    />
+                  </>
                 )}
               </div>
             </motion.div>

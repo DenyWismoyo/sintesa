@@ -53,6 +53,7 @@ import {
 import { SectionContainer } from '@/components/ui/SectionContainer';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { PublicStickyBottomAction } from '@/components/public';
 import { toast } from 'sonner';
 import { useJobDetail, useJobs, useJobAiMatchMutation } from '@/hooks/useJobs';
 import { JobListing, JobAiMatchResponse } from '@/types/job.types';
@@ -1200,76 +1201,38 @@ export default function JobDetailClient({ idOrSlug }: JobDetailClientProps) {
         onClose={() => setIsMyAppsModalOpen(false)}
       />
 
-      {/* ─── Mobile Sticky Floating Action Bar ─── */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-3 shadow-xl flex items-center justify-between gap-3 lg:hidden">
-        <div className="min-w-0 pr-2">
-          <span className="text-[10px] text-slate-400 block font-bold truncate">
-            {job.company}
-          </span>
-          <span className="text-xs font-black text-emerald-700 truncate block">
-            {formattedSalary()}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-1.5 shrink-0">
-          <a
-            href={getInstagramSearchUrl(job)}
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Cari Poster Loker di Instagram"
-          >
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-10 px-2.5 border-rose-200 text-rose-900 hover:bg-rose-50 rounded-xl"
+      {/* ─── Mobile Sticky Floating Action Bar (Standar Pustaka Public) ─── */}
+      <PublicStickyBottomAction
+        title={job.title}
+        subtitle={job.company}
+        badgeText={job.workType || 'Karir'}
+        priceDisplay={<span className="text-emerald-700 font-extrabold">{formattedSalary()}</span>}
+        ctaText="Lamar Sekarang"
+        accent="emerald"
+        onCtaClick={() => router.push(`/karir/${job.id}/lamar`)}
+        secondaryAction={
+          <div className="flex items-center gap-1">
+            <a
+              href={getJobstreetSearchUrl(job)}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Cari di JobStreet ID"
+              className="w-9 h-9 rounded-xl border border-amber-200 bg-amber-50/50 hover:bg-amber-100/80 flex items-center justify-center text-amber-700 active:scale-95 transition-all shrink-0"
             >
-              <Instagram className="w-4 h-4 text-rose-600" />
-            </Button>
-          </a>
-
-          <a
-            href={getJobstreetSearchUrl(job)}
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Cari di JobStreet ID"
-          >
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-10 px-2.5 border-amber-200 text-amber-900 hover:bg-amber-50 rounded-xl"
+              <Briefcase className="w-3.5 h-3.5 text-amber-600" />
+            </a>
+            <a
+              href={getInstagramSearchUrl(job)}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Cari Poster Loker di Instagram"
+              className="w-9 h-9 rounded-xl border border-rose-200 bg-rose-50/50 hover:bg-rose-100/80 flex items-center justify-center text-rose-700 active:scale-95 transition-all shrink-0"
             >
-              <Briefcase className="w-4 h-4 text-amber-600" />
-            </Button>
-          </a>
-
-          <a
-            href={getGlintsSearchUrl(job)}
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Cari di Glints (TapLoker)"
-          >
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-10 px-2.5 border-red-200 text-red-900 hover:bg-red-50 rounded-xl"
-            >
-              <Zap className="w-4 h-4 text-red-600" />
-            </Button>
-          </a>
-
-          <Link href={`/karir/${job.id}/lamar`}>
-            <Button
-              className="h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl gap-1.5 shadow-sm"
-            >
-              <Send className="w-3.5 h-3.5" />
-              <span>Lamar Sekarang</span>
-            </Button>
-          </Link>
-        </div>
-      </div>
+              <Instagram className="w-3.5 h-3.5 text-rose-600" />
+            </a>
+          </div>
+        }
+      />
     </SectionContainer>
   );
 }

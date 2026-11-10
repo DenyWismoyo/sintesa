@@ -25,7 +25,7 @@ import ProviderCard from '@/components/ui/ProviderCard';
 import PillTabs from '@/components/ui/PillTabs';
 import SectionContainer from '@/components/ui/SectionContainer';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
-import { MobileStickyBottomBar } from '@/components/common/MobileStickyBottomBar';
+import { PublicStickyBottomAction, PublicResponsiveModal } from '@/components/public';
 import { getActiveRefCode } from '@/components/common/AffiliateTracker';
 import { AffiliateShareButton } from '@/components/common/AffiliateShareButton';
 import { affiliateService } from '@/services/affiliate.service';
@@ -592,61 +592,44 @@ export default function DetailKatalogEnterprisePage({ initialProduct }: ClientPa
         </div>
       </SectionContainer>
 
-      {/* MOBILE STICKY BOTTOM BAR (MINIMALIS & ERGONOMIS) */}
-      <div className="public-detail-bottom-bar lg:hidden">
-        <div className="flex flex-col min-w-0 pr-2">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none truncate">Tarif</span>
-          <p className="font-black text-slate-900 text-base sm:text-lg flex items-baseline gap-1 mt-1 leading-none truncate">
+      {/* MOBILE STICKY BOTTOM BAR (STANDAR PUSTAKA PUBLIC) */}
+      <PublicStickyBottomAction
+        title={product.name}
+        imageUrl={displayImages[0]}
+        badgeText={product.category}
+        priceDisplay={
+          <span>
             Rp {product.price?.toLocaleString('id-ID')}
-            <span className="text-[11px] font-medium text-slate-400 truncate">/{product.pricingType}</span>
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <AffiliateShareButton
-            path={`/e-katalog/${product.id}`}
-            title={product.name || 'Produk E-Katalog'}
-            description={product.description}
-            size="sm"
-            variant="subtle"
-            iconOnly={true}
-          />
-
-          {/* Tombol WhatsApp Konsultasi PIC Cepat */}
-          <a 
-            href={`https://wa.me/628112658888?text=${encodeURIComponent(`Halo Solo Technopark, saya ingin konsultasi mengenai layanan *${product.name}* (ID: ${product.id}).`)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-10 h-10 rounded-full flex items-center justify-center bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200/60 active:scale-95 transition-all shrink-0"
-            title="Tanya PIC via WhatsApp"
-            aria-label="Tanya via WhatsApp"
-          >
-            <MessageCircle size={18} />
-          </a>
-
-          {/* Tombol Aksi Utama: Jika Pelatihan langsung ke Silabus, jika umum pesan */}
-          {product.category === 'Pelatihan' ? (
-            <Link
-              href={`/program-pelatihan/${product.id}`}
-              className="h-10 px-4 rounded-full flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shadow-sm shrink-0 active:scale-95 transition-all"
-              title="Lihat Silabus & Pendaftaran"
+            <span className="text-[11px] font-medium text-slate-400">/{product.pricingType}</span>
+          </span>
+        }
+        ctaText={product.ctaText || 'Pesan Sekarang'}
+        accent="emerald"
+        isLoading={isProcessing}
+        onCtaClick={handleCTA}
+        secondaryAction={
+          <div className="flex items-center gap-1.5">
+            <AffiliateShareButton
+              path={`/e-katalog/${product.id}`}
+              title={product.name || 'Produk E-Katalog'}
+              description={product.description}
+              size="sm"
+              variant="subtle"
+              iconOnly={true}
+            />
+            <a 
+              href={`https://wa.me/628112658888?text=${encodeURIComponent(`Halo Solo Technopark, saya ingin konsultasi mengenai layanan *${product.name}* (ID: ${product.id}).`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-9 h-9 rounded-full flex items-center justify-center bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200/60 active:scale-95 transition-all shrink-0"
+              title="Tanya PIC via WhatsApp"
+              aria-label="Tanya via WhatsApp"
             >
-              <GraduationCap size={15} />
-              <span>Silabus</span>
-            </Link>
-          ) : (
-            <Button 
-              onClick={handleCTA} 
-              disabled={isProcessing} 
-              className={`h-10 px-5 rounded-full font-bold text-white shadow-sm border-0 text-xs shrink-0 active:scale-95 transition-all ${
-                product.ctaType === 'WHATSAPP' ? 'bg-[#25D366] hover:bg-[#1DA851]' : 'bg-emerald-600 hover:bg-emerald-700'
-              }`}
-            >
-              {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : (product.ctaText || 'Pesan')}
-            </Button>
-          )}
-        </div>
-      </div>
+              <MessageCircle size={16} />
+            </a>
+          </div>
+        }
+      />
 
       {/* Modal Konfirmasi Pesanan */}
       <AnimatePresence>

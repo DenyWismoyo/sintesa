@@ -11,6 +11,7 @@ import PageHero from '@/components/ui/PageHero';
 import PillTabs from '@/components/ui/PillTabs';
 import StatusBadge from '@/components/ui/StatusBadge';
 import EmptyState from '@/components/ui/EmptyState';
+import { PublicFeaturedBanner, PublicPagination } from '@/components/public';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -47,6 +48,19 @@ export default function EventPage() {
       return matchCategory && matchSearch;
     });
   }, [publicEvents, activeCategory, searchTerm]);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [activeCategory, searchTerm]);
+
+  const paginatedEvents = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredEvents.slice(start, start + pageSize);
+  }, [filteredEvents, currentPage, pageSize]);
 
   // Hero Event (1 Teratas)
   const heroEvent = useMemo(() => {
@@ -124,65 +138,54 @@ export default function EventPage() {
           />
         ) : (
           <>
-            {/* HERO EVENT SECTION */}
+            {/* HERO EVENT SPOTLIGHT DENGAN PUBLIC FEATURED BANNER */}
             {heroEvent && searchTerm === '' && activeCategory === 'Semua Kategori' && (
-              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="-mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full bg-slate-900 rounded-none sm:rounded-[2rem] p-5 sm:p-8 md:p-12 mb-8 sm:mb-10 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 group shadow-none sm:shadow-xl">
-                 {heroEvent.imageUrl && (
-                   <img src={heroEvent.imageUrl} alt={heroEvent.title} className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:scale-105 group-hover:opacity-40 transition-all duration-700 ease-out mix-blend-overlay" />
-                 )}
-                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/20 blur-[100px] rounded-full translate-x-1/3 -translate-y-1/3 pointer-events-none" />
-                 
-                 <div className="relative z-10 max-w-2xl">
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      <span className="inline-block px-3 py-1 bg-white/10 backdrop-blur-md text-indigo-200 rounded-full text-[10px] font-black uppercase tracking-widest">Sorotan Acara</span>
-                      {heroEvent.status === 'Ongoing' && <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-500/20 backdrop-blur-md text-rose-300 rounded-full text-[10px] font-black uppercase tracking-widest"><span className="w-2 h-2 bg-rose-400 rounded-full animate-pulse" /> Live Now</span>}
-                    </div>
-                    <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white mb-4 leading-tight tracking-tight">{heroEvent.title}</h2>
-                    
-                    <p className="text-slate-300 mb-6 text-xs sm:text-sm md:text-base leading-relaxed line-clamp-3 font-normal">
-                      {heroEvent.description ? heroEvent.description.replace(/<[^>]*>?/gm, '') : 'Bergabunglah dengan rangkaian acara eksklusif KST untuk membentuk masa depan teknologi dan inovasi.'}
-                    </p>
-                    
-                    <div className="flex flex-wrap gap-3 mb-8">
-                       <div className="flex items-center gap-2 text-slate-200 text-xs sm:text-sm font-semibold bg-white/10 px-3.5 py-1.5 rounded-full backdrop-blur-md">
-                         <Calendar size={15} className="text-indigo-300" /> {heroEvent.date}
-                       </div>
-                       <div className="flex items-center gap-2 text-slate-200 text-xs sm:text-sm font-semibold bg-white/10 px-3.5 py-1.5 rounded-full backdrop-blur-md">
-                         {heroEvent.isOnline ? <Monitor size={15} className="text-emerald-300" /> : <MapPin size={15} className="text-amber-300" />} 
-                         {heroEvent.isOnline ? 'Virtual (Online)' : heroEvent.location}
-                       </div>
-                    </div>
-                    
-                    {heroEvent.status !== 'Completed' ? (
-                      <Link 
-                        href={`/event/${heroEvent.id}`} 
-                        className="px-6 py-3 bg-white text-slate-900 rounded-full text-xs sm:text-sm font-black uppercase tracking-wider hover:bg-indigo-50 hover:text-indigo-700 transition-all shadow-md inline-flex items-center gap-2 hover:scale-105 active:scale-95"
-                      >
-                        {heroEvent.registrationType === 'EXTERNAL' ? 'Daftar di Platform Luar' : 'Daftar Sekarang'} <ArrowRight size={16} />
-                      </Link>
+              <PublicFeaturedBanner
+                tag="Sorotan Acara"
+                badge={
+                  heroEvent.status === 'Ongoing' ? (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-500/20 backdrop-blur-md text-rose-300 rounded-full text-[10px] font-black uppercase tracking-widest border border-rose-500/30">
+                      <span className="w-2 h-2 bg-rose-400 rounded-full animate-pulse" /> Live Now
+                    </span>
+                  ) : undefined
+                }
+                title={heroEvent.title}
+                description={
+                  heroEvent.description
+                    ? heroEvent.description.replace(/<[^>]*>?/gm, '')
+                    : 'Bergabunglah dengan rangkaian acara eksklusif KST untuk membentuk masa depan teknologi dan inovasi.'
+                }
+                imageUrl={heroEvent.imageUrl}
+                accent="violet"
+                metadata={[
+                  {
+                    icon: <Calendar size={14} className="text-violet-300" />,
+                    label: heroEvent.date,
+                  },
+                  {
+                    icon: heroEvent.isOnline ? (
+                      <Monitor size={14} className="text-emerald-300" />
                     ) : (
-                      <Link 
-                        href={`/event/${heroEvent.id}`} 
-                        className="px-6 py-3 bg-slate-800 text-white rounded-full text-xs sm:text-sm font-black uppercase tracking-wider hover:bg-slate-700 transition-all inline-flex items-center gap-2"
-                      >
-                        Lihat Dokumentasi Acara <ArrowRight size={16} />
-                      </Link>
-                    )}
-                 </div>
-
-                 {!heroEvent.imageUrl && (
-                   <div className="relative z-10 w-full md:w-72 aspect-[4/3] bg-white/10 backdrop-blur-xl rounded-2xl flex flex-col items-center justify-center">
-                      <Sparkles size={48} className="mx-auto mb-3 text-white/40" />
-                      <p className="font-black text-xl text-white text-center px-4 leading-tight">{heroEvent.type}</p>
-                   </div>
-                 )}
-              </motion.div>
+                      <MapPin size={14} className="text-amber-300" />
+                    ),
+                    label: heroEvent.isOnline ? 'Virtual (Online)' : heroEvent.location || 'Kawasan STP',
+                  },
+                ]}
+                actionLabel={
+                  heroEvent.status !== 'Completed'
+                    ? heroEvent.registrationType === 'EXTERNAL'
+                      ? 'Daftar di Platform Luar'
+                      : 'Daftar Sekarang'
+                    : 'Lihat Dokumentasi Acara'
+                }
+                actionHref={`/event/${heroEvent.id}`}
+              />
             )}
 
             {/* EVENTS GRID */}
             <motion.div className="public-grid-4" variants={containerVariants} initial="hidden" animate="visible">
               <AnimatePresence>
-                {filteredEvents.map((event) => (
+                {paginatedEvents.map((event) => (
                   <motion.div 
                     key={event.id} 
                     variants={itemVariants} 
@@ -243,6 +246,16 @@ export default function EventPage() {
                 ))}
               </AnimatePresence>
             </motion.div>
+
+            {/* Standar Pagination Publik Terpadu */}
+            <PublicPagination
+              currentPage={currentPage}
+              totalItems={filteredEvents.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={setPageSize}
+              mode="hybrid"
+            />
           </>
         )}
       </div>

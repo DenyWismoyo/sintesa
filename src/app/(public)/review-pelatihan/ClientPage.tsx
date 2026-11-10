@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { PublicReviewCard, PublicShareBar, PublicPagination } from '@/components/public';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
@@ -253,16 +254,6 @@ export default function ReviewPelatihanClientPage({
           </div>
 
           <div className="flex flex-wrap items-center justify-center md:justify-end gap-2 w-full md:w-auto">
-            <Button
-              onClick={handleCopyLink}
-              variant="outline"
-              size="sm"
-              className="rounded-xl h-9 text-xs font-bold bg-white border-slate-200 hover:bg-slate-50 hover:text-emerald-700 shadow-2xs"
-            >
-              {copiedLink ? <Check size={14} className="mr-1.5 text-emerald-600" /> : <Copy size={14} className="mr-1.5" />}
-              {copiedLink ? 'Tersalin!' : 'Salin Tautan'}
-            </Button>
-
             <Link
               href={`/review-pelatihan/${currentProgram.slug || currentProgram.id}`}
               className="inline-flex items-center rounded-xl h-9 text-xs font-bold bg-white border border-slate-200 px-3 hover:bg-slate-50 hover:text-emerald-700 shadow-2xs"
@@ -271,13 +262,12 @@ export default function ReviewPelatihanClientPage({
               <ExternalLink size={13} className="ml-1.5" />
             </Link>
 
-            <Button
-              onClick={handleShareWhatsApp}
-              size="sm"
-              className="rounded-xl h-9 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs"
-            >
-              <MessageCircle size={14} className="mr-1.5" /> WhatsApp
-            </Button>
+            <PublicShareBar
+              title={`Review Program Pelatihan: ${currentProgram.title}`}
+              description={currentProgram.shortDescription || 'Lihat evaluasi dan ulasan terbuka peserta pelatihan vokasi di Solo Technopark.'}
+              variant="pill"
+              label="Bagikan"
+            />
           </div>
         </div>
       )}

@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useTraining } from '@/hooks/useTraining';
 import { motion, Variants, AnimatePresence } from 'framer-motion';
@@ -15,6 +15,7 @@ import PageHero from '@/components/ui/PageHero';
 import PillTabs from '@/components/ui/PillTabs';
 import EmptyState from '@/components/ui/EmptyState';
 import BorderlessSelect from '@/components/ui/BorderlessSelect';
+import { PublicPagination } from '@/components/public';
 import TrainingCard from './components/TrainingCard';
 
 const containerVariants: Variants = {
@@ -87,6 +88,20 @@ export default function ProgramPelatihanPublik() {
       return true;
     });
   }, [rawTrainings, searchTerm, selectedType, priceFilter, selectedCategory]);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
+
+  // Reset page ke 1 saat filter pencarian berubah
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedType, priceFilter, selectedCategory]);
+
+  const paginatedTrainings = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return activeTrainings.slice(start, start + pageSize);
+  }, [activeTrainings, currentPage, pageSize]);
 
   const DIKLAT_CATEGORIES = [
     'Semua Kategori',
@@ -230,25 +245,37 @@ export default function ProgramPelatihanPublik() {
             }}
           />
         ) : (
-          <motion.div 
-            className="public-grid-4" 
-            variants={containerVariants} 
-            initial="hidden" 
-            animate="visible"
-          >
-            <AnimatePresence>
-              {activeTrainings.map((training: any) => (
-                <motion.div 
-                  key={training.id} 
-                  variants={itemVariants}
-                  layout
-                  className="h-full"
-                >
-                  <TrainingCard training={training} />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </motion.div>
+          <>
+            <motion.div 
+              className="public-grid-4" 
+              variants={containerVariants} 
+              initial="hidden" 
+              animate="visible"
+            >
+              <AnimatePresence>
+                {paginatedTrainings.map((training: any) => (
+                  <motion.div 
+                    key={training.id} 
+                    variants={itemVariants}
+                    layout
+                    className="h-full"
+                  >
+                    <TrainingCard training={training} />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
+
+            {/* Standar Pagination Publik */}
+            <PublicPagination
+              currentPage={currentPage}
+              totalItems={activeTrainings.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={setPageSize}
+              mode="hybrid"
+            />
+          </>
         )}
       </div>
     </SectionContainer>

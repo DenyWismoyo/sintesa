@@ -24,6 +24,7 @@ import PageHero from '@/components/ui/PageHero';
 import PillTabs, { PillTabItem } from '@/components/ui/PillTabs';
 import EmptyState from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/button';
+import { PublicPagination } from '@/components/public';
 import { useJobs } from '@/hooks/useJobs';
 import { useTraining } from '@/hooks/useTraining';
 import { JobListing } from '@/types/job.types';
@@ -299,33 +300,6 @@ export default function KarirClientPage() {
       jobsSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
-
-  // Helper untuk membuat daftar nomor halaman bernomor (1, 2, ..., N)
-  const paginationRange = useMemo(() => {
-    const delta = 1;
-    const range: (number | string)[] = [];
-    for (
-      let i = Math.max(2, currentPage - delta);
-      i <= Math.min(totalPages - 1, currentPage + delta);
-      i++
-    ) {
-      range.push(i);
-    }
-
-    if (currentPage - delta > 2) {
-      range.unshift('...');
-    }
-    if (currentPage + delta < totalPages - 1) {
-      range.push('...');
-    }
-
-    range.unshift(1);
-    if (totalPages > 1) {
-      range.push(totalPages);
-    }
-
-    return Array.from(new Set(range));
-  }, [currentPage, totalPages]);
 
   // 5. Scroll Restoration & Visual Focus ke kartu lowongan terakhir yang dibuka
   const hasRestoredScrollRef = useRef(false);
@@ -646,40 +620,6 @@ export default function KarirClientPage() {
         {/* ─── Anchor Target Scroll Pagination ─── */}
         <div ref={jobsSectionRef} className="scroll-mt-24" />
 
-        {/* ─── Sub-Baris Info Hasil & Selector Limit ─── */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-1 text-xs text-slate-500">
-          <div>
-            {!isLoading && total > 0 && (
-              <p>
-                Menampilkan{' '}
-                <span className="font-bold text-slate-900">
-                  {startIndex + 1} - {endIndex}
-                </span>{' '}
-                dari <span className="font-bold text-slate-900">{total}</span> lowongan
-              </p>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] text-slate-400">Tampilkan per halaman:</span>
-            <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 shadow-2xs">
-              {[9, 18, 27].map((size) => (
-                <button
-                  key={size}
-                  onClick={() => setPageSize(size)}
-                  className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${
-                    pageSize === size
-                      ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  {size}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
         {/* ─── Grid Lowongan Kerja ─── */}
         {isLoading ? (
           <div className="public-grid-3">
@@ -712,90 +652,34 @@ export default function KarirClientPage() {
             onAction={handleResetFilters}
           />
         ) : (
-          <div className="public-grid-3">
-            {paginatedJobs.map((job) => (
-              <JobCard
-                key={job.id}
-                job={job}
-                onSelect={handleOpenDetail}
-                onOpenAiMatch={handleOpenAiMatch}
-                selectedProgramFilter={trainingProgram}
-                isApplied={appliedJobIds.has(job.id)}
-                matchSummary={jobMatchMap.get(job.id)}
-                isBookmarked={isBookmarked(job.id)}
-                onToggleBookmark={(j) => toggleBookmark(j.id, j.title)}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* ─── Pagination Controls Bernomor ─── */}
-        {!isLoading && totalPages > 1 && (
-          <div className="pt-6 sm:pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200/80">
-            <div className="text-xs text-slate-500 order-2 sm:order-1">
-              Halaman <span className="font-bold text-slate-900">{currentPage}</span> dari{' '}
-              <span className="font-bold text-slate-900">{totalPages}</span>
+          <div className="space-y-4">
+            <div className="public-grid-3">
+              {paginatedJobs.map((job) => (
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  onSelect={handleOpenDetail}
+                  onOpenAiMatch={handleOpenAiMatch}
+                  selectedProgramFilter={trainingProgram}
+                  isApplied={appliedJobIds.has(job.id)}
+                  matchSummary={jobMatchMap.get(job.id)}
+                  isBookmarked={isBookmarked(job.id)}
+                  onToggleBookmark={(j) => toggleBookmark(j.id, j.title)}
+                />
+              ))}
             </div>
 
-            <div className="flex items-center gap-1.5 order-1 sm:order-2">
-              {/* Tombol Sebelumnya */}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="h-9 px-3 rounded-xl text-xs font-semibold gap-1.5 border-slate-200 hover:bg-slate-50 disabled:opacity-40"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">Sebelumnya</span>
-              </Button>
-
-              {/* Deretan Angka Nomor Halaman */}
-              <div className="flex items-center gap-1">
-                {paginationRange.map((pageItem, idx) => {
-                  if (typeof pageItem === 'string') {
-                    return (
-                      <span
-                        key={`ellipsis-${idx}`}
-                        className="w-8 h-9 flex items-center justify-center text-xs font-bold text-slate-400 select-none"
-                      >
-                        ...
-                      </span>
-                    );
-                  }
-
-                  const isActive = pageItem === currentPage;
-                  return (
-                    <button
-                      key={pageItem}
-                      type="button"
-                      onClick={() => handlePageChange(pageItem)}
-                      className={`min-w-[36px] h-9 px-2 text-xs font-bold rounded-xl transition-all ${
-                        isActive
-                          ? 'bg-emerald-600 text-white shadow-xs'
-                          : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900'
-                      }`}
-                    >
-                      {pageItem}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Tombol Selanjutnya */}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="h-9 px-3 rounded-xl text-xs font-semibold gap-1.5 border-slate-200 hover:bg-slate-50 disabled:opacity-40"
-              >
-                <span className="hidden sm:inline">Selanjutnya</span>
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
+            {/* Standar Pagination Publik Terpadu */}
+            <PublicPagination
+              currentPage={currentPage}
+              totalItems={total}
+              pageSize={pageSize}
+              onPageChange={handlePageChange}
+              onPageSizeChange={setPageSize}
+              pageSizeOptions={[9, 18, 27]}
+              mode="hybrid"
+              scrollTargetRef={jobsSectionRef}
+            />
           </div>
         )}
 

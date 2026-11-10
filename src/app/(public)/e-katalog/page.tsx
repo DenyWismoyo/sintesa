@@ -10,6 +10,7 @@ import SectionContainer from '@/components/ui/SectionContainer';
 import PageHero from '@/components/ui/PageHero';
 import PillTabs from '@/components/ui/PillTabs';
 import EmptyState from '@/components/ui/EmptyState';
+import { PublicPagination } from '@/components/public';
 
 const categories: (ProductCategory | 'Semua')[] = [
   'Semua', 'Ruangan', 'Peralatan', 'Layanan Teknis', 'Pelatihan', 'Produk Tenant', 'Lainnya'
@@ -49,8 +50,15 @@ const ProductSkeleton = () => (
 export default function KatalogPublikPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'Semua'>('Semua');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
 
   const { products: rawProducts, loading } = useCatalog();
+
+  // Reset page saat filter berubah
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory]);
 
   const products = rawProducts.filter(p => {
     const isPublished = p.isPublished === true;
@@ -60,6 +68,11 @@ export default function KatalogPublikPage() {
     
     return isPublished && matchCategory && matchSearch;
   });
+
+  const paginatedProducts = React.useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return products.slice(start, start + pageSize);
+  }, [products, currentPage, pageSize]);
 
   return (
     <SectionContainer accent="emerald">
@@ -96,15 +109,27 @@ export default function KatalogPublikPage() {
             ))}
           </div>
         ) : products.length > 0 ? (
-          <motion.div className="public-grid-4" variants={containerVariants} initial="hidden" animate="visible">
-            <AnimatePresence>
-              {products.map((product) => (
-                <motion.div key={product.id} variants={itemVariants} layoutId={`product-${product.id}`}>
-                  <ProductCard product={product} />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </motion.div>
+          <>
+            <motion.div className="public-grid-4" variants={containerVariants} initial="hidden" animate="visible">
+              <AnimatePresence>
+                {paginatedProducts.map((product) => (
+                  <motion.div key={product.id} variants={itemVariants} layoutId={`product-${product.id}`}>
+                    <ProductCard product={product} />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
+
+            {/* Standar Pagination Publik Terpadu */}
+            <PublicPagination
+              currentPage={currentPage}
+              totalItems={products.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={setPageSize}
+              mode="hybrid"
+            />
+          </>
         ) : (
           <EmptyState 
             icon={PackageSearch}

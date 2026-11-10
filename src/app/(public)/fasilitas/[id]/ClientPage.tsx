@@ -31,8 +31,8 @@ import SectionContainer from '@/components/ui/SectionContainer';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { AffiliateShareButton } from '@/components/common/AffiliateShareButton';
 import { SocialShareBar } from '@/components/common/SocialShareBar';
-import { StickyActionBar } from '@/components/common/StickyActionBar';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
+import { PublicStickyBottomAction } from '@/components/public';
 import BookingWizardModal from '../components/BookingWizardModal';
 import { DialogPageModeProvider } from '@/components/ui/dialog';
 import { useBooking } from '@/hooks/useBooking';
@@ -354,18 +354,27 @@ export default function RoomDetailClient({ roomId, initialRoom, defaultOpenBooki
 
       </div>
 
-      {/* --- STICKY ACTION BAR SAAT SCROLL --- */}
-      <StickyActionBar threshold={350}>
-        <div className="flex items-center gap-3 min-w-0 pr-2">
-          <div>
-            <h4 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-1">{room.name}</h4>
-            <p className="text-[10px] sm:text-[11px] font-semibold text-sky-700 truncate">
-              {isKomersial && harga > 0 ? `Rp ${harga.toLocaleString('id-ID')} / ${room.pricingType || 'Hari'}` : 'Fasilitas Internal'}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
+      {/* --- FLOATING ACTION BAR RESPOSIF (MOBILE & DESKTOP SCROLL) --- */}
+      <PublicStickyBottomAction
+        title={room.name}
+        imageUrl={room.imageUrl}
+        badgeText={room.category || 'Fasilitas'}
+        priceDisplay={
+          isKomersial && harga > 0 ? (
+            <span className="text-sky-700 font-extrabold">
+              Rp {harga.toLocaleString('id-ID')}
+              <span className="text-[11px] font-medium text-slate-400">/{room.pricingType || 'Hari'}</span>
+            </span>
+          ) : (
+            <span className="text-slate-500 font-bold">Fasilitas Internal</span>
+          )
+        }
+        ctaText="Pesan Ruangan"
+        accent="sky"
+        mobileOnly={false}
+        scrollThreshold={350}
+        onCtaClick={() => setShowBookingModal(true)}
+        secondaryAction={
           <AffiliateShareButton
             path={`/fasilitas/${room.id}`}
             title={room.name}
@@ -374,14 +383,8 @@ export default function RoomDetailClient({ roomId, initialRoom, defaultOpenBooki
             variant="subtle"
             iconOnly={true}
           />
-          <Button
-            onClick={() => setShowBookingModal(true)}
-            className="h-10 px-5 rounded-full bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-sm border-0 shrink-0 active:scale-95"
-          >
-            Pesan Ruangan
-          </Button>
-        </div>
-      </StickyActionBar>
+        }
+      />
 
       {/* --- BOOKING WIZARD WORKSPACE --- */}
       {showBookingModal && (

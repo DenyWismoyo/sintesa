@@ -287,14 +287,14 @@ export default function SurveiIkmClientPage() {
                             type="button"
                             key={opt.val}
                             onClick={() => handleScoreChange(q.key, opt.val)}
-                            className={`p-3 rounded-xl border text-xs font-bold text-left transition-all ${
+                            className={`min-h-[54px] sm:min-h-[60px] p-3 sm:p-3.5 rounded-xl border text-xs font-bold text-left transition-all active:scale-[0.98] cursor-pointer ${
                               isSelected
-                                ? 'bg-sky-600 text-white border-sky-600 shadow-md shadow-sky-200 scale-[1.02]'
-                                : 'bg-white text-slate-700 border-slate-200 hover:border-sky-300 hover:bg-sky-50/30'
+                                ? 'bg-sky-600 text-white border-sky-600 shadow-md shadow-sky-500/20 scale-[1.01]'
+                                : 'bg-white text-slate-700 border-slate-200/90 hover:border-sky-300 hover:bg-sky-50/40'
                             }`}
                           >
-                            <span className="block text-base mb-1 font-mono">{opt.val}</span>
-                            {opt.label}
+                            <span className="block text-sm sm:text-base font-black font-mono mb-0.5">{opt.val}</span>
+                            <span className="leading-tight block">{opt.label}</span>
                           </button>
                         );
                       })}

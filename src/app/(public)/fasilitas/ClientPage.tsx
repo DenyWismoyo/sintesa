@@ -18,6 +18,7 @@ import PageHero from '@/components/ui/PageHero';
 import PillTabs from '@/components/ui/PillTabs';
 import EmptyState from '@/components/ui/EmptyState';
 import BorderlessSelect from '@/components/ui/BorderlessSelect';
+import { PublicPagination } from '@/components/public';
 import RoomCard from './components/RoomCard';
 import RoomDetailModal from './components/RoomDetailModal';
 import BookingWizardModal from './components/BookingWizardModal';
@@ -34,9 +35,15 @@ export default function FasilitasPublicPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('priceValue:desc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(9);
 
   // Menggunakan Master Cache Aset (1-Read Pattern dari cache_assets/master)
   const { publicRooms: rawRooms, loadingRooms: loadingAssets } = useAssets();
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, sortBy]);
 
   // 1. FILTER & SEARCH: Di memori browser (Instan & 0 Firestore read)
   const rooms = useMemo(() => {
@@ -57,6 +64,11 @@ export default function FasilitasPublicPage() {
       return priceA - priceB;
     });
   }, [rawRooms, searchTerm, sortBy]);
+
+  const paginatedRooms = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return rooms.slice(start, start + pageSize);
+  }, [rooms, currentPage, pageSize]);
 
   const { submitBooking } = useBooking('public');
   
@@ -197,16 +209,29 @@ export default function FasilitasPublicPage() {
                   onAction={() => setSearchTerm('')}
                 />
               ) : (
-                <motion.div className="public-grid-3" variants={staggerContainer} initial="hidden" animate="visible">
-                  {rooms.map((room: Asset) => (
-                    <RoomCard 
-                      key={room.id} 
-                      room={room} 
-                      onShowDetail={(r) => router.push(`/fasilitas/${r.id}`)} 
-                      onBook={(r) => router.push(`/fasilitas/${r.id}/sewa`)} 
-                    />
-                  ))}
-                </motion.div>
+                <>
+                  <motion.div className="public-grid-3" variants={staggerContainer} initial="hidden" animate="visible">
+                    {paginatedRooms.map((room: Asset) => (
+                      <RoomCard 
+                        key={room.id} 
+                        room={room} 
+                        onShowDetail={(r) => router.push(`/fasilitas/${r.id}`)} 
+                        onBook={(r) => router.push(`/fasilitas/${r.id}/sewa`)} 
+                      />
+                    ))}
+                  </motion.div>
+
+                  {/* Standar Pagination Publik Terpadu */}
+                  <PublicPagination
+                    currentPage={currentPage}
+                    totalItems={rooms.length}
+                    pageSize={pageSize}
+                    onPageChange={setCurrentPage}
+                    onPageSizeChange={setPageSize}
+                    pageSizeOptions={[6, 9, 18]}
+                    mode="hybrid"
+                  />
+                </>
               )}
             </motion.div>
           )}

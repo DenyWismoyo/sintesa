@@ -20,6 +20,7 @@ import { AffiliateShareButton } from '@/components/common/AffiliateShareButton';
 import { SocialShareBar } from '@/components/common/SocialShareBar';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import SectionContainer from '@/components/ui/SectionContainer';
+import { PublicStickyBottomAction } from '@/components/public';
 import { toast } from 'sonner';
 
 // --- HELPER UNTUK MENGUBAH LINK VIDEO MENJADI EMBED ---
@@ -769,51 +770,47 @@ export default function DetailPelatihanPage({ initialTraining }: { initialTraini
         </div>
       </div>
 
-      {/* --- MOBILE STICKY BOTTOM DUAL-CTA (Minimalis & Bebas Tumpang Tindih) --- */}
-      <div className="public-detail-bottom-bar lg:hidden">
-        <div className="flex flex-col min-w-0 pr-2">
-           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none truncate">Biaya Pelatihan</p>
-           {training.isFree ? (
-             <p className="text-base sm:text-lg font-black text-emerald-600 leading-none mt-1 truncate">Gratis</p>
-           ) : (
-             <p className="text-base sm:text-lg font-black text-slate-900 leading-none mt-1 truncate">{formatRupiah(training.price)}</p>
-           )}
-        </div>
-        
-        <div className="flex items-center gap-2 shrink-0">
-          <AffiliateShareButton
-            path={`/program-pelatihan/${training.id}`}
-            title={training.title}
-            description={training.description}
-            size="sm"
-            variant="subtle"
-            iconOnly={true}
-          />
-          {cleanWhatsappNumber && (
-            <a 
-              href={`https://wa.me/${cleanWhatsappNumber}?text=${waText}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-10 h-10 rounded-full flex items-center justify-center bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200/60 active:scale-95 transition-all shrink-0"
-              title="Hubungi Admin WhatsApp"
-              aria-label="Hubungi Admin WhatsApp"
-            >
-              <MessageCircle size={18}/>
-            </a>
-          )}
-          <Button 
-            onClick={() => router.push(`/program-pelatihan/${training.id}/daftar`)}
-            disabled={isFull}
-            className={`h-10 px-5 rounded-full text-xs font-bold shadow-sm border-0 shrink-0 active:scale-95 transition-all ${
-              isFull 
-                ? 'bg-slate-100 text-slate-400 shadow-none cursor-not-allowed' 
-                : 'bg-amber-500 hover:bg-amber-600 text-white'
-            }`}
-          >
-            {isFull ? 'Penuh' : 'Daftar Sekarang'}
-          </Button>
-        </div>
-      </div>
+      {/* --- MOBILE STICKY BOTTOM DUAL-CTA (Standar Pustaka Public) --- */}
+      <PublicStickyBottomAction
+        title={training.title}
+        imageUrl={training.imageUrl}
+        badgeText={training.type || 'Pelatihan'}
+        priceDisplay={
+          training.isFree ? (
+            <span className="text-emerald-600 font-extrabold">Gratis</span>
+          ) : (
+            formatRupiah(training.price)
+          )
+        }
+        ctaText={isFull ? 'Penuh' : 'Daftar Sekarang'}
+        disabled={isFull}
+        accent="amber"
+        onCtaClick={() => router.push(`/program-pelatihan/${training.id}/daftar`)}
+        secondaryAction={
+          <div className="flex items-center gap-1.5">
+            <AffiliateShareButton
+              path={`/program-pelatihan/${training.id}`}
+              title={training.title}
+              description={training.description}
+              size="sm"
+              variant="subtle"
+              iconOnly={true}
+            />
+            {cleanWhatsappNumber && (
+              <a 
+                href={`https://wa.me/${cleanWhatsappNumber}?text=${waText}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-9 h-9 rounded-full flex items-center justify-center bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200/60 active:scale-95 transition-all shrink-0"
+                title="Hubungi Admin WhatsApp"
+                aria-label="Hubungi Admin WhatsApp"
+              >
+                <MessageCircle size={16}/>
+              </a>
+            )}
+          </div>
+        }
+      />
 
       {/* --- VIDEO MODAL --- */}
       <AnimatePresence>

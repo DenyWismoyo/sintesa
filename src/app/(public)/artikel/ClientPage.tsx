@@ -7,6 +7,7 @@ import { ArticleCategory } from '@/types';
 import SectionContainer from '@/components/ui/SectionContainer';
 import PageHero from '@/components/ui/PageHero';
 import PillTabs from '@/components/ui/PillTabs';
+import { PublicPagination } from '@/components/public';
 import { 
   Newspaper, Clock, Calendar, ArrowRight, Eye, 
   Sparkles, GraduationCap, Store, Building2, MessageCircle, 
@@ -29,6 +30,8 @@ export default function ArtikelListClient() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('Semua');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(9);
 
   // Filter artikel
   const filteredArticles = useMemo(() => {
@@ -41,6 +44,15 @@ export default function ArtikelListClient() {
       return matchSearch && matchCategory;
     });
   }, [articles, searchTerm, selectedCategory]);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory]);
+
+  const paginatedArticles = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredArticles.slice(start, start + pageSize);
+  }, [filteredArticles, currentPage, pageSize]);
 
   const renderCtaBadge = (type?: string) => {
     switch(type) {
@@ -121,9 +133,10 @@ export default function ArtikelListClient() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            <AnimatePresence>
-              {filteredArticles.map(article => {
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <AnimatePresence>
+                {paginatedArticles.map(article => {
                 const hasCta = article.cta && article.cta.type !== 'NONE';
                 const formattedDate = article.publishedAt 
                   ? new Date(article.publishedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -219,7 +232,19 @@ export default function ArtikelListClient() {
               })}
             </AnimatePresence>
           </div>
-        )}
+
+          {/* Standar Pagination Publik Terpadu */}
+          <PublicPagination
+            currentPage={currentPage}
+            totalItems={filteredArticles.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+            pageSizeOptions={[6, 9, 18]}
+            mode="hybrid"
+          />
+        </>
+      )}
       </div>
 
     </SectionContainer>

@@ -26,6 +26,7 @@ description: >
 
 ## 📦 Komponen Reusable Wajib
 
+### Generasi 1 (Komponen Dasar Fondasi):
 | Komponen | Lokasi | Kapan Digunakan |
 |----------|--------|-----------------|
 | `SectionContainer` | `src/components/ui/SectionContainer.tsx` | Content wrapper per halaman (mendukung `accent` & `width`) |
@@ -34,6 +35,17 @@ description: >
 | `EmptyState` | `src/components/ui/EmptyState.tsx` | State kosong dengan CTA |
 | `StatusBadge` | `src/components/ui/StatusBadge.tsx` | Badge status terstandarisasi |
 | `OptimizedImage` | `src/components/ui/OptimizedImage.tsx` | Render gambar WebP otomatis dari Firebase Storage |
+
+### Generasi 2 (Pustaka Terpadu `@/components/public`):
+| Komponen | Lokasi | Kapan Digunakan |
+|----------|--------|-----------------|
+| `PublicPagination` | `src/components/public/PublicPagination.tsx` | Navigasi halaman terpadu (`mode="hybrid"`: load more di mobile & numerik di PC/tablet) |
+| `PublicFilterToolbar` | `src/components/public/PublicFilterToolbar.tsx` | Bilah pencarian, pill tabs, dropdown sort, dan drawer mobile filter terintegrasi |
+| `PublicStickyBottomAction` | `src/components/public/PublicStickyBottomAction.tsx` | Floating action dock di *Thumb Zone* bawah smartphone pada halaman detail |
+| `PublicFeaturedBanner` | `src/components/public/PublicFeaturedBanner.tsx` | Banner spotlight visual / hero highlight untuk produk, event, atau promo unggulan |
+| `PublicResponsiveModal` | `src/components/public/PublicResponsiveModal.tsx` | Modal adaptif: Dialog centered di PC/Tablet dan Bottom-Sheet Drawer di Smartphone |
+| `PublicShareBar` | `src/components/public/PublicShareBar.tsx` | Berbagi cerdas via Native Web Share API, WhatsApp, LinkedIn, X, dan referral afiliasi |
+| `PublicReviewCard` | `src/components/public/PublicReviewCard.tsx` | Kartu rating bintang, lencana verifikasi peran alumni/mitra, dan reaksi upvote |
 
 ---
 
