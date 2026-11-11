@@ -63,3 +63,7 @@ export * from './ikm.types';
 
 // 20. Evaluasi & Review Program Pelatihan (Public & Multi-Stakeholder)
 export * from './learningReview.types';
+
+// 21. Universal AI Curation & Assessment Engine (Produk, Alumni, Tenant, Krenova)
+export * from './curation.types';
+

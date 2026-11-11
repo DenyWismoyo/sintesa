@@ -267,6 +267,26 @@ export default function TabAlumni({ initialData }: TabAlumniProps) {
           </div>
         )}
 
+        {/* BANNER UJI KOMPETENSI AI ALUMNI */}
+        <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-indigo-900 via-indigo-800 to-purple-900 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-indigo-200 shrink-0">
+              <Sparkles size={20} />
+            </div>
+            <div>
+              <h4 className="text-sm font-black tracking-tight">Asesmen Kompetensi AI Solo Technopark</h4>
+              <p className="text-xs text-indigo-200">Uji kesiapan teknis dan soft skill Anda untuk mendapatkan rekomendasi dan sertifikasi kesiapan kerja industri.</p>
+            </div>
+          </div>
+          <a
+            href="/curation?domain=ALUMNI_ASSESSMENT"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-indigo-900 font-bold text-xs hover:bg-indigo-50 transition-all shrink-0 shadow-sm"
+          >
+            <span>Mulai Asesmen</span>
+            <Award size={14} />
+          </a>
+        </div>
+
         {/* TOOLBAR MODE FOKUS */}
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-lg font-black text-slate-800">

@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Users, UploadCloud, Plus, Search, FileText, 
   Trash2, CheckCircle2, AlertCircle, X, Download, Clock, Save, FileSpreadsheet, CalendarDays, RefreshCw, Edit2,
-  Loader2, Filter, SlidersHorizontal, ChevronDown, DownloadCloud, MessageCircle, Key, ShieldCheck, Briefcase, ExternalLink
+  Loader2, Filter, SlidersHorizontal, ChevronDown, DownloadCloud, MessageCircle, Key, ShieldCheck, Briefcase, ExternalLink,
+  Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -545,6 +546,13 @@ export default function AlumniTab() {
           >
             <FileText size={15} className="mr-1.5 text-teal-600" /> Unduh PDF BP3MI
           </a>
+          <Link
+            href="/manajemen-kurasi?tab=tokens"
+            className="inline-flex items-center justify-center rounded-xl border border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 font-bold px-3.5 h-9 text-xs shadow-2xs transition-colors cursor-pointer"
+            title="Kelola Token Asesmen Kompetensi AI Alumni"
+          >
+            <Sparkles size={15} className="mr-1.5 text-indigo-600" /> Token Asesmen AI
+          </Link>
           <Button onClick={() => setIsImportModalOpen(true)} variant="outline" className="rounded-xl border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 font-bold text-xs h-9">
             <FileSpreadsheet size={15} className="mr-1.5" /> Import Excel
           </Button>

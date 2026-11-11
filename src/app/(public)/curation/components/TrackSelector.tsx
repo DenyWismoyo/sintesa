@@ -1,102 +1,198 @@
+// Lokasi file: src/app/(public)/curation/components/TrackSelector.tsx
+// Pemilihan Jalur Instrumen Asesmen Dinamis (Multi-Domain)
+
 'use client';
 
 import React, { useState } from 'react';
-import { Rocket, Store, Briefcase, ArrowRight, ChevronLeft } from 'lucide-react';
-
-export type TrackType = 'UMKM' | 'Startup' | 'Jasa' | null;
+import {
+  CurationTemplate,
+  CurationDomain,
+  CURATION_DOMAIN_LABELS,
+} from '@/types/curation.types';
+import { useCurationTemplates } from '@/hooks/useCurationSystem';
+import {
+  ShoppingBag,
+  GraduationCap,
+  Building,
+  Award,
+  ArrowRight,
+  ChevronLeft,
+  Check,
+  Sparkles,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface Props {
-  onSelect: (track: TrackType) => void;
+  onSelect: (template: CurationTemplate) => void;
   onBack: () => void;
+  initialDomain?: CurationDomain;
 }
 
-export default function TrackSelector({ onSelect, onBack }: Props) {
-  const [selected, setSelected] = useState<TrackType>(null);
+export default function TrackSelector({ onSelect, onBack, initialDomain }: Props) {
+  const [selectedDomain, setSelectedDomain] = useState<CurationDomain | 'ALL'>(initialDomain || 'ALL');
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
 
-  const tracks = [
-    {
-      id: 'Startup',
-      title: 'Startup Teknologi',
-      desc: 'Aplikasi, SaaS, atau Platform Digital. Berfokus pada Product-Market Fit, traksi eksponensial pengguna, dan metrik valuasi VC.',
-      icon: Rocket,
-      color: 'indigo'
-    },
-    {
-      id: 'UMKM',
-      title: 'UMKM & Produk Fisik',
-      desc: 'F&B, Fashion, Kriya, atau Manufaktur. Berfokus pada kapasitas produksi harian, standar legalitas (BPOM/Halal), dan kesiapan ekspor.',
-      icon: Store,
-      color: 'emerald'
-    },
-    {
-      id: 'Jasa',
-      title: 'Bisnis Jasa / Agensi',
-      desc: 'Software House, Konsultan, atau Digital Agency. Berfokus pada manajemen tim, siklus retainer klien, dan skalabilitas operasi.',
-      icon: Briefcase,
-      color: 'blue'
+  const { data: templates = [], isLoading } = useCurationTemplates(
+    selectedDomain === 'ALL' ? undefined : selectedDomain
+  );
+
+  const selectedTemplate = templates.find((t) => t.id === selectedTemplateId) || null;
+
+  const getDomainIcon = (domain: CurationDomain) => {
+    switch (domain) {
+      case 'PRODUCT_CURATION':
+        return ShoppingBag;
+      case 'ALUMNI_ASSESSMENT':
+        return GraduationCap;
+      case 'TENANT_INCUBATION':
+        return Building;
+      default:
+        return Award;
     }
-  ];
+  };
 
   return (
     <div className="w-full min-h-[calc(100vh-5.5rem)] flex flex-col items-center justify-center bg-slate-50 px-6 lg:px-16 py-12 relative">
-      <div className="w-full max-w-7xl mx-auto animate-in slide-in-from-bottom-8 duration-700">
+      <div className="w-full max-w-7xl mx-auto space-y-8 animate-in slide-in-from-bottom-8 duration-700">
         
-        <button onClick={onBack} className="text-sm font-bold text-slate-500 hover:text-slate-900 flex items-center gap-1 mb-8 transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200 w-fit">
-          <ChevronLeft size={16} /> Kembali
+        {/* Tombol Kembali */}
+        <button
+          onClick={onBack}
+          className="text-xs font-bold text-slate-500 hover:text-slate-900 flex items-center gap-1 bg-white px-4 py-2 rounded-full shadow-xs border border-slate-200 w-fit cursor-pointer transition-colors"
+        >
+          <ChevronLeft size={16} /> Kembali ke Beranda
         </button>
-        
-        <div className="mb-10 lg:mb-16">
-          <h2 className="text-3xl lg:text-5xl font-black text-slate-900 mb-4 tracking-tight">Pilih Model Bisnis Anda</h2>
-          <p className="text-slate-500 text-base lg:text-lg max-w-2xl">
-            Pilih kategori yang paling mendeskripsikan model operasi bisnis Anda saat ini agar matriks AI kami dapat mengkalibrasi pertanyaan dengan tepat.
+
+        {/* Title & Filter Tabs */}
+        <div className="space-y-4">
+          <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
+            Langkah 1: Tentukan Instrumen Asesmen
+          </span>
+          <h2 className="text-3xl lg:text-5xl font-black text-slate-900 tracking-tight">
+            Pilih Kategori Program &amp; Instrumen
+          </h2>
+          <p className="text-slate-500 text-sm lg:text-base max-w-2xl leading-relaxed">
+            Pilih instrumen yang sesuai dengan profil Anda agar mesin AI kami dapat mengkalibrasi indikator metrik, rubrik penilaian, dan pertanyaan interogasi secara objektif.
           </p>
-        </div>
-        
-        {/* Bento Grid layout untuk layar lebar */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 mb-12">
-          {tracks.map((track) => {
-            const Icon = track.icon;
-            const isSelected = selected === track.id;
-            
-            return (
-              <div 
-                key={track.id}
-                onClick={() => setSelected(track.id as TrackType)}
-                className={`relative overflow-hidden cursor-pointer rounded-[2rem] p-8 lg:p-10 transition-all duration-300 group min-h-[300px] flex flex-col border-2 ${
-                  isSelected 
-                    ? 'border-indigo-600 bg-indigo-600 text-white shadow-2xl shadow-indigo-600/30 scale-[1.02]' 
-                    : 'border-slate-200 bg-white text-slate-800 hover:border-indigo-300 hover:bg-slate-50 hover:-translate-y-2 hover:shadow-xl'
-                }`}
-              >
-                {/* Background Icon Watermark */}
-                <Icon size={180} className={`absolute -bottom-10 -right-10 transition-opacity duration-300 ${isSelected ? 'opacity-10 text-white' : 'opacity-5 text-slate-900 group-hover:text-indigo-900 group-hover:opacity-10'}`} />
-                
-                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-8 shrink-0 transition-colors ${isSelected ? 'bg-white/20 text-white backdrop-blur-md' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-indigo-600'}`}>
-                   <Icon size={32} />
-                </div>
-                
-                <div className="relative z-10 flex-1">
-                   <h3 className={`font-black text-2xl lg:text-3xl mb-3 tracking-tight ${isSelected ? 'text-white' : 'text-slate-900'}`}>{track.title}</h3>
-                   <p className={`text-sm lg:text-base font-medium leading-relaxed ${isSelected ? 'text-indigo-100' : 'text-slate-500'}`}>{track.desc}</p>
-                </div>
 
-                {/* Radio indicator */}
-                <div className={`absolute top-8 right-8 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'border-white' : 'border-slate-300'}`}>
-                   {isSelected && <div className="w-3 h-3 bg-white rounded-full" />}
-                </div>
-              </div>
-            );
-          })}
+          {/* Filter Domain Selector */}
+          <div className="flex flex-wrap gap-2 pt-2">
+            <Button
+              size="sm"
+              variant={selectedDomain === 'ALL' ? 'default' : 'outline'}
+              onClick={() => setSelectedDomain('ALL')}
+              className="text-xs font-bold rounded-xl h-9"
+            >
+              Semua Program ({templates.length})
+            </Button>
+            {(['PRODUCT_CURATION', 'ALUMNI_ASSESSMENT', 'TENANT_INCUBATION', 'CUSTOM_INNOVATION'] as CurationDomain[]).map(
+              (domain) => {
+                const Icon = getDomainIcon(domain);
+                return (
+                  <Button
+                    key={domain}
+                    size="sm"
+                    variant={selectedDomain === domain ? 'default' : 'outline'}
+                    onClick={() => setSelectedDomain(domain)}
+                    className="text-xs font-bold rounded-xl h-9 gap-1.5"
+                  >
+                    <Icon size={14} />
+                    {CURATION_DOMAIN_LABELS[domain]}
+                  </Button>
+                );
+              }
+            )}
+          </div>
         </div>
 
-        <div className="flex justify-end">
-          <button 
-            onClick={() => selected && onSelect(selected)} 
-            disabled={!selected}
-            className="w-full lg:w-auto px-12 py-5 bg-slate-900 text-white font-bold rounded-full hover:bg-indigo-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl hover:shadow-indigo-600/30 text-lg flex items-center justify-center gap-3"
+        {/* BENTO GRID TEMPLATE CARDS */}
+        {isLoading ? (
+          <div className="p-16 text-center text-slate-400 font-bold bg-white rounded-3xl border border-slate-200">
+            Memuat instrumen asesmen...
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {templates.map((tpl) => {
+              const Icon = getDomainIcon(tpl.curationDomain);
+              const isSelected = selectedTemplateId === tpl.id;
+
+              return (
+                <div
+                  key={tpl.id}
+                  onClick={() => setSelectedTemplateId(tpl.id)}
+                  className={`relative overflow-hidden cursor-pointer rounded-3xl p-7 transition-all duration-300 flex flex-col justify-between border-2 min-h-[280px] group ${
+                    isSelected
+                      ? 'border-indigo-600 bg-indigo-600 text-white shadow-2xl shadow-indigo-600/30 scale-[1.02]'
+                      : 'border-slate-200 bg-white text-slate-800 hover:border-indigo-300 hover:shadow-xl'
+                  }`}
+                >
+                  {/* Background Watermark Icon */}
+                  <Icon
+                    size={160}
+                    className={`absolute -bottom-8 -right-8 transition-opacity duration-300 ${
+                      isSelected ? 'opacity-10 text-white' : 'opacity-5 text-slate-900 group-hover:opacity-10'
+                    }`}
+                  />
+
+                  <div className="relative z-10 space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div
+                        className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${
+                          isSelected ? 'bg-white/20 text-white backdrop-blur-md' : 'bg-indigo-50 text-indigo-600'
+                        }`}
+                      >
+                        <Icon size={24} />
+                      </div>
+                      <div
+                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+                          isSelected ? 'border-white bg-white text-indigo-600' : 'border-slate-300'
+                        }`}
+                      >
+                        {isSelected && <Check size={14} className="stroke-[3]" />}
+                      </div>
+                    </div>
+
+                    <div>
+                      <span
+                        className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded ${
+                          isSelected ? 'bg-white/20 text-white' : 'bg-indigo-50 text-indigo-600'
+                        }`}
+                      >
+                        {CURATION_DOMAIN_LABELS[tpl.curationDomain]}
+                      </span>
+                      <h3 className={`font-black text-xl tracking-tight mt-1.5 ${isSelected ? 'text-white' : 'text-slate-900'}`}>
+                        {tpl.trackName}
+                      </h3>
+                      <p className={`text-xs font-medium leading-relaxed mt-2 line-clamp-3 ${isSelected ? 'text-indigo-100' : 'text-slate-500'}`}>
+                        {tpl.trackDescription}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className={`relative z-10 pt-4 border-t text-[11px] font-bold flex justify-between items-center ${
+                    isSelected ? 'border-white/20 text-indigo-100' : 'border-slate-100 text-slate-400'
+                  }`}>
+                    <span>{tpl.steps?.length || 0} Seksi Pertanyaan</span>
+                    <span className="flex items-center gap-1 font-extrabold">
+                      {tpl.aiPromptConfig?.expectedMetrics?.length || 0} Metrik Radar
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* BOTTOM ACTION */}
+        <div className="flex justify-end pt-4">
+          <Button
+            size="lg"
+            disabled={!selectedTemplate}
+            onClick={() => selectedTemplate && onSelect(selectedTemplate)}
+            className="w-full sm:w-auto px-10 py-6 bg-slate-900 hover:bg-indigo-600 text-white font-bold rounded-2xl text-base shadow-xl gap-2 disabled:opacity-40 cursor-pointer transition-all"
           >
-            Lanjutkan ke Asesmen <ArrowRight size={20} />
-          </button>
+            Lanjutkan ke Kuesioner Asesmen <ArrowRight size={18} />
+          </Button>
         </div>
 
       </div>

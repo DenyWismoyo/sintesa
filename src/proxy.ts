@@ -21,6 +21,7 @@ const PROTECTED_PREFIXES = [
   '/manajemen-kemitraan',
   '/manajemen-review-pelatihan',
   '/manajemen-ikm',
+  '/manajemen-kurasi',
   '/service-desk',
   '/pengaturan',
   '/presensi',

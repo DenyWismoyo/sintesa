@@ -90,6 +90,19 @@ export const tenantService = {
     return { tenants, lastVisible };
   },
 
+  getTenantById: async (id: string): Promise<Tenant | null> => {
+    try {
+      const docRef = doc(db, COLLECTION_NAME, id);
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) return null;
+      const data = { id: docSnap.id, ...docSnap.data() };
+      const parsed = TenantSchema.safeParse(data);
+      return parsed.success ? parsed.data : (data as Tenant);
+    } catch {
+      return null;
+    }
+  },
+
   createTenant: async (data: Omit<Tenant, 'id' | 'createdAt'>) => await addDoc(collection(db, COLLECTION_NAME), { ...data, createdAt: Date.now() }),
 
   // FASE 3: BATCH WRITE UNTUK INTEGRASI KURASI

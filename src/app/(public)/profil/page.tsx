@@ -428,6 +428,31 @@ function ProfilContent() {
             </button>
           </div>
 
+          {/* Pintasan Asesmen & Kurasi AI Terpadu */}
+          <div className="public-card p-5 bg-gradient-to-br from-indigo-50/70 via-white to-purple-50/40 border-indigo-100/80 relative overflow-hidden group">
+            <div className="flex items-center gap-2.5 mb-2.5">
+              <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <Sparkles size={16} />
+              </div>
+              <div>
+                <h3 className="text-xs font-black text-slate-900 tracking-tight">Asesmen & Kurasi AI</h3>
+                <p className="text-[10px] text-slate-500 font-medium">Solo Technopark Engine</p>
+              </div>
+            </div>
+            <p className="text-[11px] text-slate-600 mb-3.5 leading-relaxed">
+              {alumniData
+                ? 'Uji kesiapan kompetensi industri Anda dengan simulasi AI untuk memperkuat profil karir.'
+                : 'Uji kesiapan produk e-katalog, inkubasi bisnis, atau asesmen keahlian profesional.'}
+            </p>
+            <Link
+              href={alumniData ? "/curation?domain=ALUMNI_ASSESSMENT" : "/curation"}
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-xs"
+            >
+              <span>{alumniData ? 'Buka Asesmen AI Alumni' : 'Mulai Kurasi & Asesmen'}</span>
+              <ArrowRight size={14} />
+            </Link>
+          </div>
+
           {/* Form Klaim Kode / NIK di Sidebar */}
           {!isCheckingAlumni && !alumniData && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="public-card p-6 bg-gradient-to-br from-emerald-50/60 to-teal-50/20 relative overflow-hidden group">

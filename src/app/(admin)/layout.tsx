@@ -49,6 +49,7 @@ import {
   Search,
   PanelLeftClose,
   PanelLeftOpen,
+  Sparkles,
 } from 'lucide-react';
 import AdminCommandPalette from '@/components/admin/AdminCommandPalette';
 import AdminConfirmDialog from '@/components/admin/AdminConfirmDialog';
@@ -254,6 +255,17 @@ const MENU_GROUPS: AdminMenuGroupConfig[] = [
           { id: 'kurasi', label: 'Kurasi Produk UKM' },
           { id: 'tagihan', label: 'Tagihan Tenant' },
           { id: 'helpdesk', label: 'Helpdesk Keluhan' },
+        ],
+      },
+      {
+        name: 'Kurasi & Asesmen AI',
+        href: '/manajemen-kurasi',
+        icon: Sparkles,
+        subTabs: [
+          { id: 'antrean', label: 'Antrean & Workbench' },
+          { id: 'template', label: 'Studio Template AI' },
+          { id: 'produk', label: 'Kurasi Produk E-Katalog' },
+          { id: 'token', label: 'Distribusi Token Batch' },
         ],
       },
       {
