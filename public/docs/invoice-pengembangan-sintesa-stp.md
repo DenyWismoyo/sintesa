@@ -1,14 +1,14 @@
 ---
 title: INVOICE & BERITA ACARA BIAYA PENGEMBANGAN SISTEM INFORMASI TERPADU (SINTESA)
 subtitle: Dokumen Penagihan Resmi Pengembangan Sistem Manajemen Kawasan Teknologi Solo Technopark
-invoice_number: INV/DEV-SINTESA/STP/2026/10-001
+invoice_number: INV/DEV-SINTESA/STP/2026/11-001
 contract_ref: SPK/KST-STP/TI/2026/08-014
 project_name: Sistem Informasi Kawasan Terpadu (SINTESA) — UPTD Solo Technopark
 client_name: UPTD Kawasan Sains dan Teknologi Solo Technopark
 client_address: Jl. Ki Hajar Dewantara No. 19, Jebres, Kec. Jebres, Kota Surakarta, Jawa Tengah 57126
 vendor_role: Lead Enterprise Software Architect & Full-Stack Development Team
-invoice_date: 30 Oktober 2026
-payment_due_date: 14 November 2026 (14 Hari Kalender)
+invoice_date: 12 November 2026
+payment_due_date: 26 November 2026 (14 Hari Kalender)
 total_amount_idr: 40.000.000
 amount_in_words: Empat Puluh Juta Rupiah
 system_version: v2.5.0-Enterprise (Live Production)
@@ -26,9 +26,9 @@ classification: Dokumen Keuangan & Kontraktual Resmi BLUD
 
 ## 🏛️ SURAT PENGANTAR PENAGIHAN
 
-**Nomor:** 042/INV-DEV/STP-TECH/X/2026  
+**Nomor:** 048/INV-DEV/STP-TECH/XI/2026  
 **Lampiran:** 1 (Satu) Berkas Audit & Rincian Deliverables  
-**Perihal:** Permohonan Pembayaran Biaya Pengembangan & Penyempurnaan Sistem SINTESA (Fase 1 s.d. Fase 5)  
+**Perihal:** Permohonan Pembayaran Biaya Pengembangan & Penyempurnaan Sistem SINTESA (Penerbitan Ulang Tagihan)  
 
 **Kepada Yth.**  
 **Kuasa Pengguna Anggaran (KPA) / Pemimpin BLUD**  
@@ -38,7 +38,7 @@ Jl. Ki Hajar Dewantara No. 19, Jebres, Surakarta 57126
 
 Dengan hormat,
 
-Sehubungan dengan telah diselesaikannya seluruh rangkaian pekerjaan perancangan, pengembangan, pengujian, audit arsitektur keamanan, hingga *deployment* ke *live production* untuk **Sistem Informasi Kawasan Terpadu (SINTESA) Solo Technopark**, bersama ini kami sampaikan dokumen penagihan dan Berita Acara Penyelesaian Pekerjaan (BAPP) sebesar:
+Sehubungan dengan pembaruan masa berlaku dokumen penagihan dan Berita Acara Penyelesaian Pekerjaan (BAPP) untuk **Sistem Informasi Kawasan Terpadu (SINTESA) Solo Technopark**, bersama ini kami sampaikan kembali faktur penagihan resmi sebesar:
 
 $$\mathbf{Rp\ 40.000.000,-\ (Empat\ Puluh\ Juta\ Rupiah)}$$
 
@@ -49,11 +49,11 @@ Pekerjaan ini mencakup implementasi hulu ke hilir untuk 5 klaster strategis kawa
 4. **Presensi Pegawai Mandiri & Disiplin ASN/Non-ASN (Tekno Sign v3 PWA)** (Geofencing Akurat Kawasan STP, AI Face Liveness & Anti-Spoofing, Hierarki Approval LKH, Izin & Lembur).
 5. **Mesin Penerbitan Dokumen Legal & Audit Pelayanan (stpDocumentKit Vektor)** (SPK/BAST Service Desk, Draf MoU/PKS Kerjasama, Lembar Disposisi, Laporan Resmi IKM Standar PermenPAN-RB No. 14/2017, dan In-App Document Viewer).
 
-Bersama surat ini, kami lampirkan rekapitulasi audit teknis, rincian *Bill of Quantities* (BoQ), serta berita acara serah terima pekerjaan untuk diverifikasi oleh Pejabat Pembuat Komitmen (PPK) dan Tim Teknis Solo Technopark.
+Bersama surat ini, kami lampirkan rekapitulasi audit teknis, rincian *Bill of Quantities* (BoQ), serta nomor **Virtual Account (VA) Bank Mandiri** dan rekening perbankan untuk penyaluran pembayaran.
 
 Atas perhatian, kerjasama, dan kepercayaan yang diberikan, kami ucapkan terima kasih.
 
-Surakarta, 30 Oktober 2026  
+Surakarta, 12 November 2026  
 **Hormat Kami,**  
 **Tim Pengembang & Konsultan Arsitektur Perangkat Lunak**  
 
@@ -61,9 +61,9 @@ Surakarta, 30 Oktober 2026
 
 ## 🧾 FAKTUR TAGIHAN (COMMERCIAL INVOICE)
 
-| **FAKTUR TAGIHAN RESMI** | **NOMOR INVOICE:** `INV/DEV-SINTESA/STP/2026/10-001` |
+| **FAKTUR TAGIHAN RESMI** | **NOMOR INVOICE:** `INV/DEV-SINTESA/STP/2026/11-001` |
 |---|---|
-| **Tanggal Tagihan:** 30 Oktober 2026<br>**Jatuh Tempo:** 14 November 2026<br>**Mata Uang:** IDR (Rupiah Indonesia) | **Rujukan Kontrak/SPK:** `SPK/KST-STP/TI/2026/08-014`<br>**Nomor Sistem:** `INV/2026/10/0005`<br>**Kode Akses Portal:** `PAY-TJAM28`<br>**Tautan Pembayaran Mayar:** `https://omnifit.myr.id/invoices/yhtbu3d34v` (Kode: `4B335D79`) |
+| **Tanggal Tagihan:** 12 November 2026<br>**Jatuh Tempo:** 26 November 2026<br>**Mata Uang:** IDR (Rupiah Indonesia) | **Rujukan Kontrak/SPK:** `SPK/KST-STP/TI/2026/08-014`<br>**Nomor Sistem:** `INV/2026/11/0006`<br>**Kode Akses Portal:** `PAY-TJAM28`<br>**Virtual Account Bank Mandiri:** `89022 0812 2600 1234` |
 
 ### Kepada Pihak Pembayar (Tagihkan Kepada):
 * **Instansi:** UPTD Kawasan Sains dan Teknologi Solo Technopark (Pemkot Surakarta)
@@ -156,19 +156,30 @@ Sistem **SINTESA (Sistem Informasi Kawasan Terpadu Solo Technopark)** telah diau
 
 ---
 
-## 💳 KETENTUAN PEMBAYARAN & INTEGRASI GATEWAY MAYAR.ID
+## 💳 KETENTUAN PEMBAYARAN & KANAL TRANSFER
 
 Pembayaran tagihan sebesar **Rp 40.000.000,-** (Empat Puluh Juta Rupiah) dapat disalurkan secara langsung melalui kanal resmi berikut:
 
-1. **Payment Gateway Terintegrasi Mayar.id (QRIS, VA Bank, & E-Wallet):**
-   * **Tautan Invoice Resmi:** [https://omnifit.myr.id/invoices/yhtbu3d34v](https://omnifit.myr.id/invoices/yhtbu3d34v)
-   * **Kode Invoice Mayar:** `4B335D79` (Transaction ID: `2060e2f3-c176-4457-9ff0-124fd820a3e7`)
-   * **Metode Bayar:** QRIS Statis/Dinamis, Virtual Account Seluruh Bank (Mandiri, BRI, BNI, Permata, BCA), dan Gerai Ritel.
-2. **Transfer Kas Daerah / SP2D Bank Jateng BLUD:**
+1. **Virtual Account (VA) Bank Mandiri — Otomatis Terverifikasi:**
+   * **Nama Bank:** Bank Mandiri
+   * **Nomor Virtual Account:** `889088620544386553`
+   * **Nama Akun / Merchant:** `MAYAR - OMNIFIT` *(atau tampil `Xendit / OMNIFIT`)*
+   * **Biller / Kode Perusahaan Mandiri:** `88908` *(Xendit - Mitra Payment Gateway Mayar)*
+   * **Panduan Pembayaran:**
+     * **Livin' by Mandiri:** Buka menu *Bayar* > *Virtual Account* > Cari penyedia jasa *88908* atau langsung masukkan nomor VA `889088620544386553` > Konfirmasi nominal Rp 40.000.000,- > Masukkan PIN transaksi.
+     * **ATM Mandiri:** Menu *Bayar/Beli* > *Pendidikan/Multi Payment* / *Virtual Account* > Masukkan kode perusahaan *88908* atau nomor VA `889088620544386553`.
+     * **Transfer Antar-Bank (ATM Bersama/Prima/Alto):** Pilih transfer ke Bank Mandiri (Kode Bank 008) > Masukkan nomor rekening tujuan `889088620544386553`.
+
+2. **Payment Gateway Terintegrasi Mayar.id (QRIS, VA & E-Wallet):**
+   * **Tautan Invoice Resmi (Langsung Aktif):** [https://omnifit.myr.id/invoices/rdo6fney8e](https://omnifit.myr.id/invoices/rdo6fney8e)
+   * **Kode Invoice Mayar:** `E24F0947`
+   * **Metode Bayar:** Mandiri Virtual Account (otomatis terbit), QRIS Dinamis (Gopay/OVO/ShopeePay/DANA), VA Semua Bank, Kartu Debit/Kredit, dan Gerai Retail.
+
+3. **Transfer Kas Daerah / SP2D Bank Jateng BLUD:**
    * **Nama Bank:** Bank Pembangunan Daerah Jawa Tengah (Bank Jateng) / Bank BCA
    * **Nomor Rekening:** *[Disesuaikan dengan No. Rekening Resmi Penyedia Jasa]*
    * **Atas Nama:** *[Nama Rekening Resmi Penyedia Jasa]*
-   * **Berita Acara Transfer:** `Pelunasan Dev SINTESA STP - INV/DEV-SINTESA/STP/2026/10-001`
+   * **Berita Acara Transfer:** `Pelunasan Dev SINTESA STP - INV/DEV-SINTESA/STP/2026/11-001`
 
 ### Ketentuan Layanan & Garansi:
 1. **Nominal Kontrak Netto:** Tagihan bersifat tetap sebesar Rp 40.000.000,- (Empat Puluh Juta Rupiah) tanpa potongan PPh 23 pada faktur tagihan ini.
@@ -179,7 +190,7 @@ Pembayaran tagihan sebesar **Rp 40.000.000,-** (Empat Puluh Juta Rupiah) dapat d
 
 ## ✍️ LEMBAR PENGESAHAN & BERITA ACARA SERAH TERIMA PEKERJAAN (BAST)
 
-Pada hari ini, **Jumat**, tanggal **Tiga Puluh**, bulan **Oktober**, tahun **Dua Ribu Dua Puluh Enam** (30-10-2026), bertempat di Kantor UPTD Kawasan Sains dan Teknologi Solo Technopark, telah dilaksanakan pemeriksaan, pengujian, dan serah terima hasil pekerjaan pengembangan sistem informasi SINTESA dengan hasil: **DITERIMA DENGAN BAIK DAN LENGKAP (100% SELESAI)**.
+Pada hari ini, **Kamis**, tanggal **Dua Belas**, bulan **November**, tahun **Dua Ribu Dua Puluh Enam** (12-11-2026), bertempat di Kantor UPTD Kawasan Sains dan Teknologi Solo Technopark, telah dilaksanakan pemeriksaan, pengujian, dan serah terima hasil pekerjaan pengembangan sistem informasi SINTESA dengan hasil: **DITERIMA DENGAN BAIK DAN LENGKAP (100% SELESAI)**.
 
 Demikian Berita Acara ini dibuat dalam rangkap yang cukup dan memiliki kekuatan hukum yang sama untuk digunakan sebagaimana mestinya.
 
